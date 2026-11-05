@@ -2,6 +2,7 @@ import { Hc, q0, yu, i7, ii, ja, F5, cs, tf, $r } from "./inherited/catalog.js";
 import { Cu, Qc, Ns, L4, Ci, Zg, Ts, KU } from "./inherited/footprints.js";
 import { Gb, xd } from "./inherited/house-spec.js";
 import { Wc, D4, nM, F0, Ls } from "./inherited/topology.js";
+import { validateDetails } from "./validation.js";
 import {
   collections,
   SceneError,
@@ -64,6 +65,8 @@ function finite(n: unknown, name: string, min = -1000000, max = 1000000) {
     throw new SceneError(
       "INVALID_VALUE",
       `${name} 必须在 ${min}–${max} 范围内`,
+      400,
+      { field: name, min, max },
     );
 }
 function safeObject(value: any, depth = 0) {
@@ -223,6 +226,7 @@ export function validatePlan(plan: Plan) {
     for (const key of ["w", "d"] as const)
       finite(s[key], `构件 ${key}`, 1, 50000);
   }
+  validateDetails(plan);
 }
 export function normalizeState(state: SceneState): SceneState {
   validatePlan(state.plan);

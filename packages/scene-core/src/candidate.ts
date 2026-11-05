@@ -40,6 +40,7 @@ export interface EditScope {
   targetIds: string[];
   allowDeleteIds: string[];
   allowAddKeys: string[];
+  fieldMask?: Record<string, string[]>;
   additionBounds?: { x0: number; y0: number; x1: number; y1: number };
   requirements: { key: string; count: number; scope: "project" | "targets" }[];
 }
@@ -78,6 +79,7 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     "allowAddKeys",
     "requirements",
     "additionBounds",
+    "fieldMask",
   ]);
   const ids = new Set(plan.furniture.map((f) => f.id));
   for (const name of ["targetIds", "allowDeleteIds", "allowAddKeys"] as const) {
@@ -97,6 +99,16 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     fail("目标身份无效或删除授权超出目标范围");
   if (s.allowAddKeys.some((key) => !catalog[key]))
     fail("新增配方不在家具目录内");
+  if (s.fieldMask) {
+    if (!record(s.fieldMask)) fail("字段授权必须为对象");
+    for (const [id, fields] of Object.entries(s.fieldMask))
+      if (
+        !s.targetIds.includes(id) ||
+        !Array.isArray(fields) ||
+        fields.some((f) => !(editableFields as readonly string[]).includes(f))
+      )
+        fail("字段授权超出家具基础参数范围");
+  }
   if (!Array.isArray(s.requirements) || s.requirements.length > 30)
     fail("数量要求无效");
   for (const r of s.requirements) {
@@ -166,6 +178,13 @@ export function materializeEdits(
       if (!scope.targetIds.includes(edit.id)) fail("修改对象超出授权范围");
       keys(edit.values, editableFields);
       if (!Object.keys(edit.values).length) fail("修改字段不能为空");
+      if (
+        scope.fieldMask &&
+        Object.keys(edit.values).some(
+          (field) => !scope.fieldMask?.[edit.id]?.includes(field),
+        )
+      )
+        fail("修改字段超出本次用户授权");
       const object = working.plan.furniture.find((f) => f.id === edit.id);
       if (!object) fail("目标对象不存在");
       const patch: any = clone(edit.values);

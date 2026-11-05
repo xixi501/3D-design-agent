@@ -40,6 +40,12 @@ export interface CandidateReview {
 }
 export class CandidateStore {
   constructor(public projects: ProjectStore) {
+    if (Number(projects.db.pragma("user_version", { simple: true })) > 1)
+      throw new SceneError(
+        "UNSUPPORTED_DATABASE",
+        "数据库版本高于当前业务版本，请使用对应版本恢复",
+        500,
+      );
     projects.db
       .transaction(() => {
         projects.db

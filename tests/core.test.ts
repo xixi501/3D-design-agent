@@ -54,6 +54,18 @@ test("failed command batches do not mutate the source; copies have independent n
     ]),
   );
   assert.deepEqual(state, before);
+  assert.throws(
+    () =>
+      applyCommands(state, [
+        {
+          type: "add",
+          collection: "furniture",
+          object: createFurniture("gate", 2000, 2000, { w: 300 }),
+        },
+      ]),
+    /400 mm/,
+  );
+  assert.deepEqual(state, before);
   const next = applyCommands(state, [
     { type: "duplicate", collection: "furniture", id: cab.id },
   ]);

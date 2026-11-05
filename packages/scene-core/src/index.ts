@@ -156,6 +156,11 @@ export function validatePlan(plan: Plan) {
       throw new SceneError("INVALID_DOCUMENT", "家具名称和颜色必须为字符串");
     for (const k of ["w", "d", "h"] as const)
       finite(f[k], `${f.name} ${k}`, 1, 50000);
+    if (f.type === "gate" && f.w <= 400)
+      throw new SceneError(
+        "INVALID_RECIPE",
+        "庭院门宽度需大于 400 mm（两侧立柱各 200 mm）",
+      );
     finite(f.x, "家具 x");
     finite(f.y, "家具 y");
     finite(f.rot, "家具旋转");

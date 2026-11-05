@@ -5,6 +5,9 @@
   font-size: 13px;
   font-synthesis: none;
 }
+body.saving #viewport {
+  pointer-events: none;
+}
 body.saving header button,
 body.saving #project-name,
 body.saving .library button,

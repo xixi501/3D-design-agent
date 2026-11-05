@@ -17,6 +17,7 @@ import { Fh } from "../modeling/furniture-2d.js";
 import { floorColors } from "./three-view.js";
 import { Mv, Sv } from "../modeling/surfaces.js";
 import { Gr } from "../../../../packages/scene-core/src/inherited/footprints.js";
+import type { EditBase } from "../api.js";
 export interface Selection {
   collection: Collection;
   id: string;
@@ -25,6 +26,7 @@ export class PlanView {
   canvas = document.createElement("canvas");
   ctx: CanvasRenderingContext2D;
   plan?: Plan;
+  base?: EditBase;
   selection?: Selection;
   scale = 0.07;
   ox = 70;
@@ -35,6 +37,8 @@ export class PlanView {
   drag?: {
     at: { x: number; y: number };
     original: Plan;
+    base: EditBase;
+    preview?: Plan;
     selection?: Selection;
     pan?: { x: number; y: number };
     vertex?: number;
@@ -42,7 +46,11 @@ export class PlanView {
   constructor(
     public host: HTMLElement,
     public select: (s?: Selection) => void,
-    public commit: (c: Command[], summary: string) => Promise<void>,
+    public commit: (
+      c: Command[],
+      summary: string,
+      base?: EditBase,
+    ) => Promise<void>,
     public preview: (f: Furniture) => void,
     public report: (s: string) => void,
   ) {
@@ -73,6 +81,7 @@ export class PlanView {
     this.canvas.addEventListener("pointercancel", () => {
       if (this.drag) {
         this.plan = this.drag.original;
+        this.base = this.drag.base;
         this.drag = undefined;
         this.draw();
       }
@@ -91,8 +100,9 @@ export class PlanView {
     this.canvas.style.height = r.height + "px";
     this.draw();
   }
-  load(plan: Plan) {
+  load(plan: Plan, base: EditBase) {
     this.plan = clone(plan);
+    this.base = base;
     this.draw();
   }
   frame() {
@@ -187,13 +197,14 @@ export class PlanView {
       : { x: Math.round(p.x / 50) * 50, y: Math.round(p.y / 50) * 50 };
   }
   down(e: PointerEvent) {
-    if (!this.plan) return;
+    if (!this.plan || !this.base) return;
     this.canvas.setPointerCapture(e.pointerId);
     const p = this.point(e);
     if (e.button === 1 || e.button === 2) {
       this.drag = {
         at: p,
         original: clone(this.plan),
+        base: this.base,
         pan: { x: e.clientX, y: e.clientY },
       };
       return;
@@ -222,6 +233,7 @@ export class PlanView {
             },
           ],
           this.tool === "beam" ? "添加梁" : "添加尺寸",
+          this.base,
         );
         return;
       }
@@ -246,7 +258,7 @@ export class PlanView {
         collection: "walls",
         object: { id: newId(), a, b, t: 120, bearing: false, status: "new" },
       });
-      void this.commit(commands, "绘制墙体");
+      void this.commit(commands, "绘制墙体", this.base);
       return;
     }
     if (this.tool.startsWith("opening:")) {
@@ -288,6 +300,7 @@ export class PlanView {
           },
         ],
         "添加门窗",
+        this.base,
       );
       return;
     }
@@ -310,6 +323,7 @@ export class PlanView {
           },
         ],
         "添加结构构件",
+        this.base,
       );
       return;
     }
@@ -323,6 +337,7 @@ export class PlanView {
           },
         ],
         "添加房间标签",
+        this.base,
       );
       return;
     }
@@ -338,6 +353,7 @@ export class PlanView {
         this.drag = {
           at: p,
           original: clone(this.plan),
+          base: this.base,
           selection: this.selection,
           vertex: index,
         };
@@ -350,6 +366,7 @@ export class PlanView {
     this.drag = {
       at: p,
       original: clone(this.plan),
+      base: this.base,
       selection: this.selection,
     };
     this.draw();
@@ -409,12 +426,14 @@ export class PlanView {
       );
     }
     if (s.collection === "furniture") this.preview(object as Furniture);
+    this.base = this.drag.base;
+    this.drag.preview = this.plan;
     this.draw();
   }
   async up(_e: PointerEvent) {
     const drag = this.drag;
     this.drag = undefined;
-    if (!drag || drag.pan || !drag.selection || !this.plan) return;
+    if (!drag || drag.pan || !drag.selection || !drag.preview) return;
     const commands: Command[] = [];
     for (const collection of [
       "nodes",
@@ -424,7 +443,7 @@ export class PlanView {
       "structs",
       "rooms",
     ] as Collection[])
-      for (const object of this.plan[collection]) {
+      for (const object of drag.preview[collection]) {
         const previous = drag.original[collection].find(
           (o) => o.id === object.id,
         );
@@ -437,6 +456,7 @@ export class PlanView {
       await this.commit(
         commands,
         drag.vertex !== undefined ? "编辑自由轮廓" : "拖动对象",
+        drag.base,
       );
   }
   setOutline(f: Furniture, points: number[][]) {
@@ -484,6 +504,7 @@ export class PlanView {
     await this.commit(
       [{ type: "update", collection: "furniture", id, patch }],
       "添加轮廓顶点",
+      this.base,
     );
   }
   async deleteVertex() {
@@ -502,6 +523,7 @@ export class PlanView {
     await this.commit(
       [{ type: "update", collection: "furniture", id, patch }],
       "删除轮廓顶点",
+      this.base,
     );
     return true;
   }

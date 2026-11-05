@@ -194,6 +194,48 @@ try {
     },
   );
   await step(
+    "a drag keeps its starting revision when a tool changes the scene mid-gesture",
+    async () => {
+      const p = await current(),
+        f = p.plan.furniture.find((f) => f.key === "armchair"),
+        at = await page.evaluate((f) => __actiscape.planView.screen(f), f);
+      await page.mouse.move(at.x, at.y);
+      await page.mouse.down();
+      const remote = (
+        await json(`/projects/${p.id}/commands`, {
+          operationId: crypto.randomUUID(),
+          baseRevision: p.revision,
+          summary: "拖动期间的外部修改",
+          commands: [
+            {
+              type: "update",
+              collection: "furniture",
+              id: f.id,
+              patch: { x: f.x + 120, rot: f.rot + 15 },
+            },
+          ],
+        })
+      ).project;
+      await page.waitForFunction(
+        (rev) => __actiscape.project.revision === rev,
+        {},
+        remote.revision,
+      );
+      await page.mouse.move(at.x + 30, at.y + 15, { steps: 4 });
+      await page.mouse.up();
+      await page.waitForFunction(
+        () =>
+          !__actiscape.busy &&
+          document.querySelector("#save-state").textContent === "操作未完成",
+      );
+      assert.equal((await current()).revision, remote.revision);
+      assert.deepEqual(
+        (await current()).plan.furniture.find((o) => o.id === f.id),
+        remote.plan.furniture.find((o) => o.id === f.id),
+      );
+    },
+  );
+  await step(
     "free form UI, parameter editing, outline vertex drag and array",
     async () => {
       const f = (await current()).plan.furniture.find((f) => f.type === "free");

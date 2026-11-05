@@ -15,6 +15,7 @@ import { Ov, Ba, j0, Cp } from "../modeling/furniture-3d.js";
 import { ensureAssets } from "../modeling/asset-cache.js";
 import { Ko, zd, Qu, Lu, Ps, ei, Hd, qC } from "../modeling/surfaces.js";
 import { Gr } from "../../../../packages/scene-core/src/inherited/footprints.js";
+import type { EditBase } from "../api.js";
 export const floorColors: Record<string, string> = {
   oak: "#c7ab82",
   walnut: "#826145",
@@ -49,6 +50,7 @@ export class ThreeView {
   root = new THREE.Group();
   furniture = new Map<string, THREE.Group>();
   plan?: Plan;
+  base?: EditBase;
   selected?: THREE.BoxHelper;
   walking = false;
   keys = new Set<string>();
@@ -63,6 +65,7 @@ export class ThreeView {
   private transientTextures: THREE.Texture[] = [];
   private drag?: {
     f: Furniture;
+    base: EditBase;
     start: THREE.Vector3;
     plane: THREE.Plane;
     next: { x: number; y: number };
@@ -71,7 +74,11 @@ export class ThreeView {
     public host: HTMLElement,
     public select: (id: string, collection?: string) => void,
     public report: (s: string) => void,
-    public commit: (commands: Command[], summary: string) => Promise<void>,
+    public commit: (
+      commands: Command[],
+      summary: string,
+      base?: EditBase,
+    ) => Promise<void>,
   ) {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -136,7 +143,7 @@ export class ThreeView {
           f = this.plan.furniture.find(
             (f) => f.id === hit?.object.userData.fid,
           );
-        if (!f) return;
+        if (!f || !this.base) return;
         const plane = new THREE.Plane(
             new THREE.Vector3(0, 1, 0),
             -(f.z || 0) / 1000,
@@ -144,7 +151,13 @@ export class ThreeView {
           start = ray.ray.intersectPlane(plane, new THREE.Vector3());
         if (!start) return;
         this.select(f.id);
-        this.drag = { f, start, plane, next: { x: f.x, y: f.y } };
+        this.drag = {
+          f,
+          start,
+          plane,
+          base: this.base,
+          next: { x: f.x, y: f.y },
+        };
         this.controls.enabled = false;
         canvas.setPointerCapture(e.pointerId);
       },
@@ -167,13 +180,14 @@ export class ThreeView {
     });
     canvas.addEventListener("pointerup", () => {
       if (!this.drag) return;
-      const { f, next } = this.drag;
+      const { f, next, base } = this.drag;
       this.drag = undefined;
       this.controls.enabled = !this.walking;
       if (Math.hypot(next.x - f.x, next.y - f.y) > 1)
         void this.commit(
           [{ type: "update", collection: "furniture", id: f.id, patch: next }],
           "三维拖动对象",
+          base,
         );
     });
     canvas.addEventListener("pointercancel", () => {
@@ -296,7 +310,7 @@ export class ThreeView {
       );
     uv.needsUpdate = true;
   }
-  async rebuild(plan: Plan) {
+  async rebuild(plan: Plan, base: EditBase) {
     const generation = ++this.generation;
     await ensureAssets([
       ...new Set(
@@ -305,6 +319,7 @@ export class ThreeView {
     ]);
     if (generation !== this.generation) return;
     this.plan = plan;
+    this.base = base;
     this.clearSelection();
     this.root.traverse((o) => {
       if (o instanceof THREE.Mesh && !o.geometry.userData.shared)

@@ -1,5 +1,5 @@
 import "./style.css";
-import { api, post, ApiError } from "./api.js";
+import { api, post, ApiError, type EditBase } from "./api.js";
 import {
   catalogGroups,
   catalog,
@@ -53,6 +53,17 @@ const planView = new PlanView(
   (f) => three.preview(f),
   message,
 );
+for (const event of ["pointerup", "pointercancel"])
+  window.addEventListener(event, () =>
+    queueMicrotask(() => {
+      const stale = (base?: EditBase) =>
+        base &&
+        project &&
+        (base.projectId !== project.id || base.revision !== project.revision);
+      if (!busy && project && (stale(planView.base) || stale(three.base)))
+        void refresh().catch(fail);
+    }),
+  );
 function setSelection(s?: Selection) {
   selection = s;
   planView.selection = s;
@@ -65,8 +76,15 @@ async function inspector() {
   if (!project) return;
   const sequence = ++inspectorSequence;
   const host = $("#inspector-body");
-  if (panel === "properties")
-    renderInspector(host, project.plan, selection, commands);
+  if (panel === "properties") {
+    const snapshot = project;
+    renderInspector(host, snapshot.plan, selection, (items, summary) =>
+      commands(items, summary, {
+        projectId: snapshot.id,
+        revision: snapshot.revision,
+      }),
+    );
+  }
   if (panel === "history") {
     const p = project.id,
       data = await api(`/projects/${p}/history`);
@@ -113,9 +131,10 @@ async function display(next: Project, frame = false) {
   )
     selection = undefined;
   planView.selection = selection;
-  planView.load(next.plan);
+  const base = { projectId: next.id, revision: next.revision };
+  planView.load(next.plan, base);
   if (frame) planView.frame();
-  await three.rebuild(next.plan);
+  await three.rebuild(next.plan, base);
   if (frame) three.frame();
   three.highlight(
     selection?.collection === "furniture" ? selection.id : undefined,
@@ -208,8 +227,14 @@ async function mutate(
   kind: "commands" | "undo" | "redo",
   items?: Command[],
   summary?: string,
+  base?: EditBase,
 ) {
   if (!project || busy) return;
+  if (base && base.projectId !== project.id) {
+    await refresh().catch(fail);
+    fail(new Error("项目已切换，请重新开始编辑"));
+    return;
+  }
   busy = true;
   lastFailure = false;
   document.body.classList.add("saving");
@@ -217,7 +242,7 @@ async function mutate(
   const id = project.id,
     request = {
       operationId: newId(),
-      baseRevision: project.revision,
+      baseRevision: base?.revision ?? project.revision,
       ...(items ? { commands: items } : {}),
       ...(summary ? { summary } : {}),
     };
@@ -237,8 +262,8 @@ async function mutate(
       await refresh().catch(fail);
   }
 }
-async function commands(items: Command[], summary: string) {
-  await mutate("commands", items, summary);
+async function commands(items: Command[], summary: string, base?: EditBase) {
+  await mutate("commands", items, summary, base);
 }
 function setView(mode: string) {
   $("#viewport").dataset.mode = mode;
@@ -380,9 +405,10 @@ $<HTMLInputElement>("#glb-file").onchange = async (e) => {
   try {
     const file = input.files?.[0];
     if (!file || !project) return;
+    const target = project;
     saved("正在保存模型…");
     const asset = await upload(file, file.name),
-      room = project.plan.rooms[0],
+      room = target.plan.rooms[0],
       id = newId();
     await commands(
       [
@@ -407,6 +433,7 @@ $<HTMLInputElement>("#glb-file").onchange = async (e) => {
         },
       ],
       "导入 GLB 模型",
+      { projectId: target.id, revision: target.revision },
     );
     setSelection({ collection: "furniture", id });
   } catch (e) {

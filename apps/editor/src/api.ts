@@ -1,3 +1,7 @@
+export interface EditBase {
+  projectId: string;
+  revision: number;
+}
 export class ApiError extends Error {
   constructor(
     public code: string,

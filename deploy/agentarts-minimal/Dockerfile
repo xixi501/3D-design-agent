@@ -1,4 +1,4 @@
-FROM python:3.13.13-slim
+FROM python:3.13-slim
 WORKDIR /app
 COPY apps/agent /app/apps/agent
 RUN python -m pip install --no-cache-dir -r apps/agent/requirements.lock -e apps/agent

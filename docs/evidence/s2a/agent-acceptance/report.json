@@ -1,0 +1,79 @@
+{
+  "liveModel": true,
+  "provider": "DeepSeek official",
+  "model": "deepseek-flash",
+  "results": [
+    {
+      "name": "reading-corner",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "a7c804f6-0b23-4af5-a391-b0c42866216e"
+    },
+    {
+      "name": "add-floor-lamp",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "90ff7897-aef9-4279-a050-03c35be96950"
+    },
+    {
+      "name": "size-color",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "0be99cbc-4d46-4073-b038-413af9e6e830"
+    },
+    {
+      "name": "delete",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "c1a2733a-6393-4c6b-ab84-807727aa201f"
+    },
+    {
+      "name": "multi-turn-reference",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "3df6a34a-16eb-43c8-a0d0-d8d83f6be0d7"
+    },
+    {
+      "name": "clarification",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "7183dcbe-f350-4f64-b1dc-9b81e63e5cb3"
+    },
+    {
+      "name": "reading-corner",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "a4fbcda7-4100-4390-8b79-09ef8118af37"
+    },
+    {
+      "name": "add-floor-lamp",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "98271627-cbf6-4fdb-813c-0d439af93a39"
+    },
+    {
+      "name": "size-color",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "62b28b08-10a2-4034-a62e-0ce4986c292a"
+    },
+    {
+      "name": "delete",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "fd742eb4-6705-42e5-b4bb-581b122a7514"
+    },
+    {
+      "name": "multi-turn-reference",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "6f664cec-0624-4403-bdb0-fde965a2b820"
+    },
+    {
+      "name": "clarification",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "c630700a-9481-4868-982e-e0a56b4092ec"
+    }
+  ]
+}

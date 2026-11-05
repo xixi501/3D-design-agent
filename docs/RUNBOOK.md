@@ -1,5 +1,7 @@
 # 启动、验证与恢复
 
+本文保留 S1 基础运行说明。当前完整工作台含 Python Agent 服务，请优先按 [S2-A 启动与恢复](S2A_RUNBOOK.md) 安装与启动。
+
 产品目录 `/workspace/3D-design-agent`，开发分支 `dev/core`。本工程不读取、安装或修改 SceneSmith 的环境。
 
 ## 环境

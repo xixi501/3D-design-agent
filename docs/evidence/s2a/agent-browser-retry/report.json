@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "liveModel": true,
+  "projectId": "86ed3fc3-92de-494b-96f4-322d1555afb6",
+  "taskId": "1cbc5a6e-f929-4a98-a652-28c509b5e72b",
+  "networkResponseLostAfterAcceptance": true,
+  "retriedSameRequestId": true,
+  "oneBusinessCommit": true,
+  "conversationContinuedAfterServiceRestart": true,
+  "modelCalls": 6
+}

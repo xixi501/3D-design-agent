@@ -1,0 +1,52 @@
+{
+  "provider": "DeepSeek official",
+  "requestedModel": "deepseek-flash",
+  "tools": [
+    "read_catalogue_count",
+    "read_sample_scene",
+    "ToolProof"
+  ],
+  "structuredProof": {
+    "catalogue_items": 266,
+    "scene_furniture": 12,
+    "explanation": "通过真实工具依次读取：read_catalogue_count 返回 ActiScape 服务目录共 266 个条目；read_sample_scene 返回样例“演境 · 客餐厅基准”，其中家具数为 12 件。两个数字均来自工具实时返回，未凭记忆作答。"
+  },
+  "visionDescription": "在这张室内三维场景截图中，可以看到以下家具：\n\n1. **灰色沙发**：房间靠后墙的位置摆放着一张浅灰色的沙发。\n2. **浅木色茶几**：沙发正前方有一张长方形的浅木色矮茶几。\n3. **餐桌与餐椅**：房间右侧有一张浅木色长方形餐桌，桌面中心似乎放着一个小摆件；桌子四周配有四把深灰色的椅子。\n4. **高大木柜**：房间左侧靠墙的位置立着一个浅木色的长方形高柜。\n\n（此外，墙角还可见一扇浅木色的门和后方墙面上的一扇窗户。）",
+  "responseMetadata": {
+    "token_usage": {
+      "completion_tokens": 629,
+      "prompt_tokens": 487,
+      "total_tokens": 1116,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "reasoning_tokens": 498,
+        "rejected_prediction_tokens": null,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      },
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 487
+    },
+    "model_name": "deepseek-flash",
+    "system_fingerprint": "bc19ba97cbe016479903222bb1578db6",
+    "finish_reason": "stop"
+  },
+  "usage": {
+    "input_tokens": 487,
+    "output_tokens": 629,
+    "total_tokens": 1116,
+    "input_token_details": {
+      "cache_read": 0
+    },
+    "output_token_details": {
+      "reasoning": 498
+    }
+  }
+}

@@ -1,25 +1,27 @@
 # 真实场景工具 API
 
+S2-A 新增会话、持久候选、渲染取证和提交接口，见 [Agent 与候选 API](AGENT_API.md)。现有手工编辑接口继续可用。
+
 入口 `/api`，运行时 OpenAPI：`GET /api/openapi.json`。本目录 `openapi.json` 是交付版本的静态副本。场景坐标、距离、实例及资产标称尺寸为毫米，x/y 是地面，z 是离地高度；旋转为度。Three.js 内部是米，坐标 `(x,z,y)/1000`，偏航为 `-rot`。
 
 资产 `normalization.center` 使用 GLB 源文件坐标单位，顺序为 `[中心 X, 底部 Y, 中心 Z]`；`normalization.scale` 是源文件单位转换到米的系数。渲染层先平移，再缩放，业务工具直接使用返回的 w/d/h 毫米尺寸。
 
-| 方法与路径 | 作用 |
-|---|---|
-| GET `/health` | 服务与 SQLite 健康状态 |
-| GET `/catalog` | 全部 266 项目录、默认配方、17 类自由造型、材质、家具风格及适用类型、门窗默认值 |
-| GET `/projects` | 持久项目列表 |
-| POST `/projects` | `{document, assetMap?}` 创建 / 导入；无 document 创建空项目 |
-| GET `/projects/:id` | 完整快照、修订号、资产身份、历史位置 |
-| GET `/projects/:id/export` | JSON 快照与资产清单 |
-| POST `/projects/:id/commands` | 原子命令批次 |
-| GET `/projects/:id/history` | 最近 200 个编辑事务、当前位置与操作记录 |
-| POST `/projects/:id/undo`、`/redo` | 持久撤销 / 重做，生成新修订号 |
-| GET `/projects/:id/events` | SSE `revision` 事件；客户端据此重新读取快照 |
-| GET `/projects/:id/checks` | 确定性检查结果、对象 ID、覆盖范围与限制 |
-| GET `/assets`、`/assets/:id` | 已上传资产与尺寸/归一化元数据 |
-| POST `/assets` | multipart 单个 GLB 文件字段 `file` |
-| GET `/assets/:id/file` | 持久 GLB 文件 |
+| 方法与路径                         | 作用                                                                           |
+| ---------------------------------- | ------------------------------------------------------------------------------ |
+| GET `/health`                      | 服务与 SQLite 健康状态                                                         |
+| GET `/catalog`                     | 全部 266 项目录、默认配方、17 类自由造型、材质、家具风格及适用类型、门窗默认值 |
+| GET `/projects`                    | 持久项目列表                                                                   |
+| POST `/projects`                   | `{document, assetMap?}` 创建 / 导入；无 document 创建空项目                    |
+| GET `/projects/:id`                | 完整快照、修订号、资产身份、历史位置                                           |
+| GET `/projects/:id/export`         | JSON 快照与资产清单                                                            |
+| POST `/projects/:id/commands`      | 原子命令批次                                                                   |
+| GET `/projects/:id/history`        | 最近 200 个编辑事务、当前位置与操作记录                                        |
+| POST `/projects/:id/undo`、`/redo` | 持久撤销 / 重做，生成新修订号                                                  |
+| GET `/projects/:id/events`         | SSE `revision` 事件；客户端据此重新读取快照                                    |
+| GET `/projects/:id/checks`         | 确定性检查结果、对象 ID、覆盖范围与限制                                        |
+| GET `/assets`、`/assets/:id`       | 已上传资产与尺寸/归一化元数据                                                  |
+| POST `/assets`                     | multipart 单个 GLB 文件字段 `file`                                             |
+| GET `/assets/:id/file`             | 持久 GLB 文件                                                                  |
 
 ## 命令协议
 
@@ -29,7 +31,12 @@
   "baseRevision": 7,
   "summary": "调整阅读角",
   "commands": [
-    {"type":"update","collection":"furniture","id":"已有对象身份","patch":{"x":6200,"rot":30}}
+    {
+      "type": "update",
+      "collection": "furniture",
+      "id": "已有对象身份",
+      "patch": { "x": 6200, "rot": 30 }
+    }
   ]
 }
 ```
@@ -38,14 +45,14 @@
 
 支持的命令：
 
-| type | 字段 | 语义 |
-|---|---|---|
-| `add` | `collection`, `object`（含 id） | 新增完整对象 |
-| `update` | `collection`, `id`, `patch` | 深合并对象，数组整体替换，null 删除该字段；id 不可修改 |
-| `delete` | `collection`, `id` | 删除对象；删墙同时删除该墙门窗，其他悬空引用会拒绝整批提交 |
-| `createFurniture` | `key`, `x`, `y`, `overrides?` | 按原版目录创建，服务生成独立身份 |
-| `duplicate` | `collection`, `id`, `offset?` | 深复制配方与新身份；结构对象需显式创建引用关系 |
-| `project` | `patch` | 修改 name、height、look、north、phase |
+| type              | 字段                            | 语义                                                       |
+| ----------------- | ------------------------------- | ---------------------------------------------------------- |
+| `add`             | `collection`, `object`（含 id） | 新增完整对象                                               |
+| `update`          | `collection`, `id`, `patch`     | 深合并对象，数组整体替换，null 删除该字段；id 不可修改     |
+| `delete`          | `collection`, `id`              | 删除对象；删墙同时删除该墙门窗，其他悬空引用会拒绝整批提交 |
+| `createFurniture` | `key`, `x`, `y`, `overrides?`   | 按原版目录创建，服务生成独立身份                           |
+| `duplicate`       | `collection`, `id`, `offset?`   | 深复制配方与新身份；结构对象需显式创建引用关系             |
+| `project`         | `patch`                         | 修改 name、height、look、north、phase                      |
 
 集合包括 `nodes/walls/openings/furniture/structs/beams/rooms/measures/elec/voids/comments`。后置功能的数据可保留，但没有相应演示工作台入口。本轮开发应主要使用前八项。
 

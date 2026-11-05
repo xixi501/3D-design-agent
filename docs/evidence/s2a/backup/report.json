@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "sourceStopped": true,
+  "projectId": "86ed3fc3-92de-494b-96f4-322d1555afb6",
+  "originalRevision": 5,
+  "restoredUndoRedo": true,
+  "conversationAndTaskRestored": true,
+  "taskCount": 19,
+  "candidateEvidenceHashes": true,
+  "assetBytes": true,
+  "checkpointFileCopied": true,
+  "restoredDirectory": "/tmp/actiscape-full-restore-qAqVTg/data"
+}

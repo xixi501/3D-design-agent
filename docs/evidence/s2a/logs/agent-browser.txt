@@ -1,0 +1,1 @@
+PASS real browser chat / actual pointer selection / DeepSeek edit / SSE / undo-redo / reopened conversation / no debug dependency

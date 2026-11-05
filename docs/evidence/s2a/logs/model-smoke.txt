@@ -1,0 +1,1 @@
+{"passed": true, "tools": ["read_catalogue_count", "read_sample_scene", "ToolProof"], "model": "deepseek-flash", "vision": true}

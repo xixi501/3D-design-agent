@@ -1,0 +1,75 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "case": "1-add-floor-lamp",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "1-clarification",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "1-delete",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "1-multi-turn-reference",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "1-reading-corner",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "1-size-color",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "2-add-floor-lamp",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "2-clarification",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "2-delete",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "2-multi-turn-reference",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "2-reading-corner",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    },
+    {
+      "case": "2-size-color",
+      "passed": true,
+      "comparison": "All plan business fields, with only explicitly requested deltas"
+    }
+  ],
+  "uniqueTaskCount": 14,
+  "modelRequests": 100,
+  "recordedModelResponses": 100,
+  "recordedResponseTokens": {
+    "input_tokens": 380454,
+    "output_tokens": 18251,
+    "total_tokens": 398705
+  },
+  "elapsedActiveTaskSeconds": 204.185,
+  "costs": "Token usage recorded; no monetary estimate or claim of provider invoice reconciliation."
+}

@@ -1,0 +1,254 @@
+[
+  {
+    "candidateId": "57f44b61-1cf3-453d-8892-05aabf5b6fd0",
+    "view": "top",
+    "path": "candidate-images/57f44b61-1cf3-453d-8892-05aabf5b6fd0/top.png",
+    "sha256": "fb7aba08e0b75ea55d9a553cfe7b8f30d88eff183b96762fed36caf41cc369cc",
+    "candidateHash": "2a440df4175ca2faa701778d3b3fd6135f819d75096d9f73f7cbed28ef7ab289"
+  },
+  {
+    "candidateId": "57f44b61-1cf3-453d-8892-05aabf5b6fd0",
+    "view": "oblique",
+    "path": "candidate-images/57f44b61-1cf3-453d-8892-05aabf5b6fd0/oblique.png",
+    "sha256": "aef1351ce6d8c530b4e77c1c63636a34329e52d283d544393a0bc6d7287d6a0c",
+    "candidateHash": "2a440df4175ca2faa701778d3b3fd6135f819d75096d9f73f7cbed28ef7ab289"
+  },
+  {
+    "candidateId": "f3b33699-4e88-422d-92c7-6d76fbdc5021",
+    "view": "top",
+    "path": "candidate-images/f3b33699-4e88-422d-92c7-6d76fbdc5021/top.png",
+    "sha256": "fb7aba08e0b75ea55d9a553cfe7b8f30d88eff183b96762fed36caf41cc369cc",
+    "candidateHash": "c96a686a1252bb1c989d2b2fd9595f8fe83134d729df3dac40f046231267f658"
+  },
+  {
+    "candidateId": "f3b33699-4e88-422d-92c7-6d76fbdc5021",
+    "view": "oblique",
+    "path": "candidate-images/f3b33699-4e88-422d-92c7-6d76fbdc5021/oblique.png",
+    "sha256": "aef1351ce6d8c530b4e77c1c63636a34329e52d283d544393a0bc6d7287d6a0c",
+    "candidateHash": "c96a686a1252bb1c989d2b2fd9595f8fe83134d729df3dac40f046231267f658"
+  },
+  {
+    "candidateId": "344c9a07-6755-43b6-abd3-8e5f76a15dbc",
+    "view": "top",
+    "path": "candidate-images/344c9a07-6755-43b6-abd3-8e5f76a15dbc/top.png",
+    "sha256": "89225687f0995a6f3214870c9d1d38f18573d39e2e5eff8eab8d2ee752548455",
+    "candidateHash": "8834258c87d216d6e208c0dd620759192bfa134098fe6e0092e3a8cb5880b7f3"
+  },
+  {
+    "candidateId": "344c9a07-6755-43b6-abd3-8e5f76a15dbc",
+    "view": "oblique",
+    "path": "candidate-images/344c9a07-6755-43b6-abd3-8e5f76a15dbc/oblique.png",
+    "sha256": "abd459c27b87d4fb6df9e4ff4dae6f2d6be9d5de21df2a39b0823c841ec68123",
+    "candidateHash": "8834258c87d216d6e208c0dd620759192bfa134098fe6e0092e3a8cb5880b7f3"
+  },
+  {
+    "candidateId": "19fc8bd6-d871-4d16-a06f-0efa00a33bd5",
+    "view": "top",
+    "path": "candidate-images/19fc8bd6-d871-4d16-a06f-0efa00a33bd5/top.png",
+    "sha256": "665d9f0b5fc0643a9b88579fe2ff562c7ab064f3ca2a72d312d65621279360f8",
+    "candidateHash": "1ca8c3bb94de20ab7f4251845c367304cce6700c2432b64b47e2275f23bc6f73"
+  },
+  {
+    "candidateId": "19fc8bd6-d871-4d16-a06f-0efa00a33bd5",
+    "view": "oblique",
+    "path": "candidate-images/19fc8bd6-d871-4d16-a06f-0efa00a33bd5/oblique.png",
+    "sha256": "38581830014928ffa8a6e660edf572f2479fdd90f1c31c14007383635e25b730",
+    "candidateHash": "1ca8c3bb94de20ab7f4251845c367304cce6700c2432b64b47e2275f23bc6f73"
+  },
+  {
+    "candidateId": "fad1d2d1-2009-4b8e-845e-aae05880d821",
+    "view": "top",
+    "path": "candidate-images/fad1d2d1-2009-4b8e-845e-aae05880d821/top.png",
+    "sha256": "665d9f0b5fc0643a9b88579fe2ff562c7ab064f3ca2a72d312d65621279360f8",
+    "candidateHash": "3fd9ae08d257927ce40be8d5e67a3c53b53649954929c7d3521269856ecbaa5e"
+  },
+  {
+    "candidateId": "fad1d2d1-2009-4b8e-845e-aae05880d821",
+    "view": "oblique",
+    "path": "candidate-images/fad1d2d1-2009-4b8e-845e-aae05880d821/oblique.png",
+    "sha256": "38581830014928ffa8a6e660edf572f2479fdd90f1c31c14007383635e25b730",
+    "candidateHash": "3fd9ae08d257927ce40be8d5e67a3c53b53649954929c7d3521269856ecbaa5e"
+  },
+  {
+    "candidateId": "94b97722-3e13-4f43-8e3d-a177461ceb73",
+    "view": "top",
+    "path": "candidate-images/94b97722-3e13-4f43-8e3d-a177461ceb73/top.png",
+    "sha256": "238508a755a860102dbe991893e6493a1ca415dbc5c063d764d57a942e510f0a",
+    "candidateHash": "56bcc9b1159aaec04c6e6e729fba272999c4838a5ae9e3ab847779a8da63e670"
+  },
+  {
+    "candidateId": "94b97722-3e13-4f43-8e3d-a177461ceb73",
+    "view": "oblique",
+    "path": "candidate-images/94b97722-3e13-4f43-8e3d-a177461ceb73/oblique.png",
+    "sha256": "5790a734bf8a26af794ee64883e946a219fd27583303d45aeb0558dfb7ff78ef",
+    "candidateHash": "56bcc9b1159aaec04c6e6e729fba272999c4838a5ae9e3ab847779a8da63e670"
+  },
+  {
+    "candidateId": "9763681e-2fb0-4835-84eb-9a8352062766",
+    "view": "top",
+    "path": "candidate-images/9763681e-2fb0-4835-84eb-9a8352062766/top.png",
+    "sha256": "d6e3533b0feab58c17e7e4e8259084bcdd2e9ce0089adfe54609a1c41411c299",
+    "candidateHash": "a87bc93a125f9d3751b12f977331487b29700fa4346ade250c292833d32893f6"
+  },
+  {
+    "candidateId": "9763681e-2fb0-4835-84eb-9a8352062766",
+    "view": "oblique",
+    "path": "candidate-images/9763681e-2fb0-4835-84eb-9a8352062766/oblique.png",
+    "sha256": "7aa955ba83e692ad932be9d1e703056e2327788a9ed1b1761dde6be0bda95cdf",
+    "candidateHash": "a87bc93a125f9d3751b12f977331487b29700fa4346ade250c292833d32893f6"
+  },
+  {
+    "candidateId": "26f7a0d1-e929-4fb9-b486-6b7b3b0bb391",
+    "view": "top",
+    "path": "candidate-images/26f7a0d1-e929-4fb9-b486-6b7b3b0bb391/top.png",
+    "sha256": "89225687f0995a6f3214870c9d1d38f18573d39e2e5eff8eab8d2ee752548455",
+    "candidateHash": "625f73ff1cdc85cd41f3e21e84b17e6808e518b9cef3a2f23654fb13cde606b5"
+  },
+  {
+    "candidateId": "26f7a0d1-e929-4fb9-b486-6b7b3b0bb391",
+    "view": "oblique",
+    "path": "candidate-images/26f7a0d1-e929-4fb9-b486-6b7b3b0bb391/oblique.png",
+    "sha256": "abd459c27b87d4fb6df9e4ff4dae6f2d6be9d5de21df2a39b0823c841ec68123",
+    "candidateHash": "625f73ff1cdc85cd41f3e21e84b17e6808e518b9cef3a2f23654fb13cde606b5"
+  },
+  {
+    "candidateId": "fb5f1416-e574-4169-bd42-0a32adf04646",
+    "view": "top",
+    "path": "candidate-images/fb5f1416-e574-4169-bd42-0a32adf04646/top.png",
+    "sha256": "fb7aba08e0b75ea55d9a553cfe7b8f30d88eff183b96762fed36caf41cc369cc",
+    "candidateHash": "63a79119426237921f9f4d3180751c4b4026a4edc14927931c2d4cf06aca56c3"
+  },
+  {
+    "candidateId": "fb5f1416-e574-4169-bd42-0a32adf04646",
+    "view": "oblique",
+    "path": "candidate-images/fb5f1416-e574-4169-bd42-0a32adf04646/oblique.png",
+    "sha256": "aef1351ce6d8c530b4e77c1c63636a34329e52d283d544393a0bc6d7287d6a0c",
+    "candidateHash": "63a79119426237921f9f4d3180751c4b4026a4edc14927931c2d4cf06aca56c3"
+  },
+  {
+    "candidateId": "3d5449d0-3dbb-41e0-abdc-17415cf92fe2",
+    "view": "top",
+    "path": "candidate-images/3d5449d0-3dbb-41e0-abdc-17415cf92fe2/top.png",
+    "sha256": "9c8c5205f94179188ecb5c6d7b7a146da6960ae57dbc6beb823069f9696e2b80",
+    "candidateHash": "1f404da065eff09359ec445bc697bb65aeb2ed549120b95a2873a5fb3ecc124e"
+  },
+  {
+    "candidateId": "3d5449d0-3dbb-41e0-abdc-17415cf92fe2",
+    "view": "oblique",
+    "path": "candidate-images/3d5449d0-3dbb-41e0-abdc-17415cf92fe2/oblique.png",
+    "sha256": "ed7881a1f713e92066e580cb04ee31b3860712f7cf56c16c0be36ddde33e38d6",
+    "candidateHash": "1f404da065eff09359ec445bc697bb65aeb2ed549120b95a2873a5fb3ecc124e"
+  },
+  {
+    "candidateId": "8bb1498c-be71-492b-9ba4-1cbc707e2fdc",
+    "view": "top",
+    "path": "candidate-images/8bb1498c-be71-492b-9ba4-1cbc707e2fdc/top.png",
+    "sha256": "238508a755a860102dbe991893e6493a1ca415dbc5c063d764d57a942e510f0a",
+    "candidateHash": "bfbbf5433b2e6392af291eabf5a00295cdb70a3aca1e1051ce03c0b378cc88b9"
+  },
+  {
+    "candidateId": "8bb1498c-be71-492b-9ba4-1cbc707e2fdc",
+    "view": "oblique",
+    "path": "candidate-images/8bb1498c-be71-492b-9ba4-1cbc707e2fdc/oblique.png",
+    "sha256": "5790a734bf8a26af794ee64883e946a219fd27583303d45aeb0558dfb7ff78ef",
+    "candidateHash": "bfbbf5433b2e6392af291eabf5a00295cdb70a3aca1e1051ce03c0b378cc88b9"
+  },
+  {
+    "candidateId": "16ce25c1-dfbc-49b7-96c8-47c5bb7654d3",
+    "view": "top",
+    "path": "candidate-images/16ce25c1-dfbc-49b7-96c8-47c5bb7654d3/top.png",
+    "sha256": "242c9b0fd88392725ace4866d8c35ec0f845caf8d62ae9da5ee5fd226116227d",
+    "candidateHash": "a5677ee96f6a08fcb21a37ea2baaea44c990215267455f9656c0953e6f54f04c"
+  },
+  {
+    "candidateId": "16ce25c1-dfbc-49b7-96c8-47c5bb7654d3",
+    "view": "oblique",
+    "path": "candidate-images/16ce25c1-dfbc-49b7-96c8-47c5bb7654d3/oblique.png",
+    "sha256": "1e7fb1ce1aa8fa81c2ee299fda3d9a5f1e8ab4eb61481dc77a1ff2b105a449a9",
+    "candidateHash": "a5677ee96f6a08fcb21a37ea2baaea44c990215267455f9656c0953e6f54f04c"
+  },
+  {
+    "candidateId": "595a8669-0c37-4a06-ad93-3092e07d176f",
+    "view": "top",
+    "path": "candidate-images/595a8669-0c37-4a06-ad93-3092e07d176f/top.png",
+    "sha256": "fb7aba08e0b75ea55d9a553cfe7b8f30d88eff183b96762fed36caf41cc369cc",
+    "candidateHash": "9116f2269da72e058d836021d0f91a765b87f915281742a297145aa0435a43e1"
+  },
+  {
+    "candidateId": "595a8669-0c37-4a06-ad93-3092e07d176f",
+    "view": "oblique",
+    "path": "candidate-images/595a8669-0c37-4a06-ad93-3092e07d176f/oblique.png",
+    "sha256": "aef1351ce6d8c530b4e77c1c63636a34329e52d283d544393a0bc6d7287d6a0c",
+    "candidateHash": "9116f2269da72e058d836021d0f91a765b87f915281742a297145aa0435a43e1"
+  },
+  {
+    "candidateId": "84a1958c-4a24-4bd5-88f3-94137e92496f",
+    "view": "top",
+    "path": "candidate-images/84a1958c-4a24-4bd5-88f3-94137e92496f/top.png",
+    "sha256": "9c8c5205f94179188ecb5c6d7b7a146da6960ae57dbc6beb823069f9696e2b80",
+    "candidateHash": "ab637d4f8056f681ced64b65cd119208ca0ab62b19409bd44526acc571c98be5"
+  },
+  {
+    "candidateId": "84a1958c-4a24-4bd5-88f3-94137e92496f",
+    "view": "oblique",
+    "path": "candidate-images/84a1958c-4a24-4bd5-88f3-94137e92496f/oblique.png",
+    "sha256": "ed7881a1f713e92066e580cb04ee31b3860712f7cf56c16c0be36ddde33e38d6",
+    "candidateHash": "ab637d4f8056f681ced64b65cd119208ca0ab62b19409bd44526acc571c98be5"
+  },
+  {
+    "candidateId": "420d84ae-d645-4cfc-bc7d-c141eed6e115",
+    "view": "top",
+    "path": "candidate-images/420d84ae-d645-4cfc-bc7d-c141eed6e115/top.png",
+    "sha256": "0d6eb3a77007c00ddaef3eb6eb5caeed2460e866a89460555f249571b6ec10f4",
+    "candidateHash": "666b38bbc53d8d588bdbbae044169c557d7f9ce7cfd20638b098e491ca3f42e8"
+  },
+  {
+    "candidateId": "420d84ae-d645-4cfc-bc7d-c141eed6e115",
+    "view": "oblique",
+    "path": "candidate-images/420d84ae-d645-4cfc-bc7d-c141eed6e115/oblique.png",
+    "sha256": "08d89311727e6e533e16c7cf777ce07573218cd5dfd43611851e76ece00db4cc",
+    "candidateHash": "666b38bbc53d8d588bdbbae044169c557d7f9ce7cfd20638b098e491ca3f42e8"
+  },
+  {
+    "candidateId": "37bf2552-4697-4ade-ac1b-2f524e7366b7",
+    "view": "top",
+    "path": "candidate-images/37bf2552-4697-4ade-ac1b-2f524e7366b7/top.png",
+    "sha256": "e1b21aa100fe013eec54d71d8eb826ca504b977117f962c839ec1fa51461fe07",
+    "candidateHash": "a7e27e3d44c242998c759d4f1bdc1e39a12b158a78fd398d94a660d9657bfa5a"
+  },
+  {
+    "candidateId": "37bf2552-4697-4ade-ac1b-2f524e7366b7",
+    "view": "oblique",
+    "path": "candidate-images/37bf2552-4697-4ade-ac1b-2f524e7366b7/oblique.png",
+    "sha256": "c9f5f2f88c72d5e678460399eec7df3f729817e3d4ee443fca90fad1059a9aae",
+    "candidateHash": "a7e27e3d44c242998c759d4f1bdc1e39a12b158a78fd398d94a660d9657bfa5a"
+  },
+  {
+    "candidateId": "4ce4e3e7-72d8-4759-88ef-061db4ab13e8",
+    "view": "top",
+    "path": "candidate-images/4ce4e3e7-72d8-4759-88ef-061db4ab13e8/top.png",
+    "sha256": "6966e16abb91c453131ae18c0b329ca73597c3a8f1b8ea5dd2264057381d76fb",
+    "candidateHash": "7fc9c3459385a35f5d98ca4a32098e4f886420c093e7f568c94abbaea3460731"
+  },
+  {
+    "candidateId": "4ce4e3e7-72d8-4759-88ef-061db4ab13e8",
+    "view": "oblique",
+    "path": "candidate-images/4ce4e3e7-72d8-4759-88ef-061db4ab13e8/oblique.png",
+    "sha256": "98900e09265b053dc0ebb784a98def55cfc1cd9a07a59b44270eefaa71aa7c46",
+    "candidateHash": "7fc9c3459385a35f5d98ca4a32098e4f886420c093e7f568c94abbaea3460731"
+  },
+  {
+    "candidateId": "85562e28-c64e-4144-bf8f-00acf2482e40",
+    "view": "top",
+    "path": "candidate-images/85562e28-c64e-4144-bf8f-00acf2482e40/top.png",
+    "sha256": "c2925aad651c42f494110b5302a3f2954d5b68729a99ff4bbc033a406e078f60",
+    "candidateHash": "cb3ae6b798cd1e1f8bd5e1515be732b8efb51aec0777464ed8758f5209eee35d"
+  },
+  {
+    "candidateId": "85562e28-c64e-4144-bf8f-00acf2482e40",
+    "view": "oblique",
+    "path": "candidate-images/85562e28-c64e-4144-bf8f-00acf2482e40/oblique.png",
+    "sha256": "69b8f3e630cf1579726722036ed775f52587abe853ab9bfe95fff747737cbf21",
+    "candidateHash": "cb3ae6b798cd1e1f8bd5e1515be732b8efb51aec0777464ed8758f5209eee35d"
+  }
+]

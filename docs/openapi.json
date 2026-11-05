@@ -28,6 +28,380 @@
         }
       }
     },
+    "/api/projects/{id}/candidates": {
+      "get": {
+        "description": "List immutable local-edit candidates without changing the project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a candidate from scoped furniture edits. requestId deduplicates creation and allocated object IDs.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "requestId",
+                  "taskId",
+                  "baseRevision",
+                  "scope",
+                  "edits"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "taskId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "baseRevision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "summary": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "scope": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "edits": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/candidates/{candidate}": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "candidate",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/candidates/{candidate}/checks": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "candidate",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/candidates/{candidate}/render": {
+      "post": {
+        "description": "Read-only rendering of the fixed candidate; returns SHA-bound top and oblique PNG evidence",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "candidate",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/candidates/{candidate}/evidence/{view}": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "candidate",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "view",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/candidates/{candidate}/review": {
+      "post": {
+        "description": "Record independent agent or explicit operator review referencing both evidence hashes",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "passed",
+                  "source",
+                  "summary",
+                  "objectIds",
+                  "evidenceHashes",
+                  "issues"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "passed": {
+                    "type": "boolean"
+                  },
+                  "source": {
+                    "type": "string",
+                    "enum": ["agent", "operator"]
+                  },
+                  "summary": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "objectIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "evidenceHashes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "issues": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "candidate",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/candidates/{candidate}/commit": {
+      "post": {
+        "description": "Commit the same reviewed candidate atomically after rechecking revision, hash, deterministic checks and evidence. Repeats are idempotent.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["operationId", "baseRevision", "candidateHash"],
+                "properties": {
+                  "operationId": {
+                    "type": "string"
+                  },
+                  "baseRevision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "candidateHash": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "candidate",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/agent/{*}": {
+      "get": {
+        "description": "Conversation/task API proxy to the Python LangGraph service",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "*",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      },
+      "post": {
+        "description": "Conversation/task API proxy to the Python LangGraph service",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "*",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
     "/api/catalog": {
       "get": {
         "description": "Complete upstream catalogue, defaults and supported recipes",
@@ -162,10 +536,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "operationId",
-                  "baseRevision"
-                ],
+                "required": ["operationId", "baseRevision"],
                 "properties": {
                   "operationId": {
                     "type": "string",
@@ -219,10 +590,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "operationId",
-                  "baseRevision"
-                ],
+                "required": ["operationId", "baseRevision"],
                 "properties": {
                   "operationId": {
                     "type": "string",
@@ -276,10 +644,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "operationId",
-                  "baseRevision"
-                ],
+                "required": ["operationId", "baseRevision"],
                 "properties": {
                   "operationId": {
                     "type": "string",

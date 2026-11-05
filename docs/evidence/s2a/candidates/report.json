@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "reviewSource": "operator",
+  "liveModel": false,
+  "project": "0ef15c3b-3853-40fd-8edb-1f3ddf71ef01",
+  "candidate": "4528ecfb-1e86-4948-9cd6-11969e22b8eb",
+  "checks": {
+    "passed": true,
+    "issues": [],
+    "coverage": [
+      "授权对象与结构逐字段保护",
+      "需求数量",
+      "封闭房间占地包含（20 mm 容差）",
+      "有效高度与原版参数化轮廓 SAT",
+      "基准问题对照"
+    ],
+    "limitations": [
+      "GLB 使用矩形占地，不是精确网格碰撞",
+      "未验证支撑面、通道可达性、照明或法规"
+    ]
+  },
+  "evidence": [
+    {
+      "view": "top",
+      "sha256": "33401a41d84b8e8ce88387df051a225bb4e494f9c9ff6441313b180db85175dd",
+      "candidateHash": "94601523f04de6b2fc41feafd2b1043cd6bd096090deffd913bf144f08cffae8",
+      "bytes": 192709,
+      "createdAt": "2026-11-05T17:30:09.257Z",
+      "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据"
+    },
+    {
+      "view": "oblique",
+      "sha256": "aae2ce868b70cf9eaa34b23a740dc408ef5446ac1b0abe082da4eec4bce98fcf",
+      "candidateHash": "94601523f04de6b2fc41feafd2b1043cd6bd096090deffd913bf144f08cffae8",
+      "bytes": 162618,
+      "createdAt": "2026-11-05T17:30:09.258Z",
+      "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据"
+    }
+  ],
+  "committedRevision": 1,
+  "restoredRevision": 2,
+  "stableObjectIds": [
+    "d4350d10-8abc-4364-9ae5-b3c31bb27ba2"
+  ],
+  "renderingChangedProject": false
+}

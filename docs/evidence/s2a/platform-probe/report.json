@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "executionLocation": "local-sdk",
+  "cloudDeploymentVerified": false,
+  "invokeUrl": "http://127.0.0.1:3080/invocations",
+  "projectId": "296df7e6-0666-4d68-8608-81bacb45139c",
+  "first": {
+    "passed": true,
+    "projectId": "296df7e6-0666-4d68-8608-81bacb45139c",
+    "requestId": "ea08f174-a953-444e-b55d-24bf213da265",
+    "moveRevision": 1,
+    "undoRevision": 2,
+    "proof": {
+      "objectId": "hz6qqq6k",
+      "observedX": 6800,
+      "catalogueCount": 266
+    },
+    "checkedAt": "2026-11-05T18:01:49.028897+00:00",
+    "platform": "AgentArts SDK; execution location must be recorded by the caller"
+  },
+  "second": {
+    "passed": true,
+    "replayed": true,
+    "projectId": "296df7e6-0666-4d68-8608-81bacb45139c",
+    "currentRevision": 2,
+    "message": "服务端操作记录确认此请求先前已完成移动与撤销，未重复修改"
+  },
+  "restored": true,
+  "duplicateDidNotMutate": true
+}

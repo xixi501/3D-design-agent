@@ -1,0 +1,27 @@
+{
+  "node": {
+    "ok": true,
+    "service": "ActiScape",
+    "formatVersion": 1
+  },
+  "agent": {
+    "ok": true,
+    "service": "ActiScape agents",
+    "modelConfigured": true,
+    "model": "deepseek-flash",
+    "langgraph": "1.2.20",
+    "langchain": "1.4.9",
+    "versions": {
+      "codeCommit": "279d1e377985842776e74460491735ac37fc5428",
+      "workingTreeModified": false,
+      "python": "3.13.13",
+      "langgraph": "1.2.20",
+      "langchain": "1.4.9",
+      "deepseekAdapter": "1.1.1",
+      "model": "deepseek-flash",
+      "reasoningEffort": "high",
+      "tools": "scene-candidate-v1",
+      "promptVersion": "s2a-local-edit-1"
+    }
+  }
+}

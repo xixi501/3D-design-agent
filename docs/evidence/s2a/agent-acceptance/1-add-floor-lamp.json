@@ -1,0 +1,1099 @@
+{
+  "name": "add-floor-lamp",
+  "repeat": 1,
+  "liveModel": true,
+  "provider": "DeepSeek official",
+  "status": "passed",
+  "tasks": [
+    {
+      "id": "3f4f3b94-9839-47d9-bf95-b29fbf5472ec",
+      "conversationId": "6d17fa56-17ac-4b38-a678-f9d3633bebcf",
+      "projectId": "90ff7897-aef9-4279-a050-03c35be96950",
+      "requestId": "84b754d5-8577-4123-a34c-2295264490a9",
+      "input": "在阅读角单人沙发旁边再加一盏落地灯。所有已有家具、墙体和门窗保持不变。",
+      "selectedIds": [],
+      "status": "completed",
+      "result": {
+        "status": "completed",
+        "message": "已保存：在阅读角单人沙发（hz6qqq6k）左侧 x6000/y4900 新增 1 盏落地灯，与已有右侧落地灯形成两侧配光；其余家具、墙体与门窗均不变动。。本次修改作为一个事务提交，可撤销。",
+        "projectId": "90ff7897-aef9-4279-a050-03c35be96950",
+        "candidateId": "16ce25c1-dfbc-49b7-96c8-47c5bb7654d3",
+        "baseRevision": 0,
+        "committedRevision": 1,
+        "diff": {
+          "added": [
+            "f37cdfea-98f5-4314-8d3c-841eee595dcf"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "changes": [
+          {
+            "action": "added",
+            "id": "f37cdfea-98f5-4314-8d3c-841eee595dcf",
+            "name": "落地灯（可点亮）",
+            "fields": [
+              {
+                "field": "x",
+                "before": null,
+                "after": 6000
+              },
+              {
+                "field": "y",
+                "before": null,
+                "after": 4900
+              },
+              {
+                "field": "rot",
+                "before": null,
+                "after": 0
+              },
+              {
+                "field": "w",
+                "before": null,
+                "after": 400
+              },
+              {
+                "field": "d",
+                "before": null,
+                "after": 400
+              },
+              {
+                "field": "h",
+                "before": null,
+                "after": 1650
+              },
+              {
+                "field": "color",
+                "before": null,
+                "after": "#e8dcc6"
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "passed": true,
+          "issues": [],
+          "coverage": [
+            "授权对象与结构逐字段保护",
+            "需求数量",
+            "封闭房间占地包含（20 mm 容差）",
+            "有效高度与原版参数化轮廓 SAT",
+            "基准问题对照"
+          ],
+          "limitations": [
+            "GLB 使用矩形占地，不是精确网格碰撞",
+            "未验证支撑面、通道可达性、照明或法规"
+          ]
+        },
+        "review": {
+          "passed": true,
+          "summary": "已通过确定性检查（授权对象逐字段保护、需求数量、房间占地包含、有效高度轮廓 SAT、基准对照均无问题）。本次仅在阅读角单人沙发 hz6qqq6k（x6800/y4900）左侧新增 1 盏落地灯 f37cdfea-98f5-4314-8d3c-841eee595dcf（x6000/y4900，400×400×1650，颜色 #e8dcc6），位于新增允许范围（5375–8225 / 3475–6325）内；原有落地灯 mr3177bo（x7900/y4900）保留，全场落地灯共 2 盏，符合“再加一盏”的数量要求。diff 显示 updated/deleted 为空，其余 11 件家具与 4 面墙、2 个门窗洞口均未改动。俯视图可见单人沙发左右各一盏落地灯，两灯与沙发、电视柜、立方体之间无重叠，斜视图确认灯高正常、落地放置；截图未见明显新增问题。",
+          "issues": []
+        },
+        "evidence": [
+          {
+            "view": "top",
+            "sha256": "242c9b0fd88392725ace4866d8c35ec0f845caf8d62ae9da5ee5fd226116227d",
+            "candidateHash": "a5677ee96f6a08fcb21a37ea2baaea44c990215267455f9656c0953e6f54f04c",
+            "bytes": 189869,
+            "createdAt": "2026-11-05T17:57:42.956Z",
+            "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+            "url": "/api/projects/90ff7897-aef9-4279-a050-03c35be96950/candidates/16ce25c1-dfbc-49b7-96c8-47c5bb7654d3/evidence/top"
+          },
+          {
+            "view": "oblique",
+            "sha256": "1e7fb1ce1aa8fa81c2ee299fda3d9a5f1e8ab4eb61481dc77a1ff2b105a449a9",
+            "candidateHash": "a5677ee96f6a08fcb21a37ea2baaea44c990215267455f9656c0953e6f54f04c",
+            "bytes": 162470,
+            "createdAt": "2026-11-05T17:57:42.957Z",
+            "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+            "url": "/api/projects/90ff7897-aef9-4279-a050-03c35be96950/candidates/16ce25c1-dfbc-49b7-96c8-47c5bb7654d3/evidence/oblique"
+          }
+        ],
+        "repairs": 0,
+        "versionRetries": 0
+      },
+      "error": null,
+      "cancelRequested": false,
+      "modelCalls": 8,
+      "elapsedSeconds": 17.508704900741577,
+      "createdAt": 1793901450.625466,
+      "updatedAt": 1793901468.1358252
+    }
+  ],
+  "projectId": "90ff7897-aef9-4279-a050-03c35be96950",
+  "conversationId": "6d17fa56-17ac-4b38-a678-f9d3633bebcf",
+  "after": {
+    "plan": {
+      "version": 2,
+      "name": "S2-A 验收 · add-floor-lamp · 1",
+      "height": 2800,
+      "phase": "renovate",
+      "nodes": [
+        {
+          "id": "5begbket",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "id": "cqtro1rv",
+          "x": 9000,
+          "y": 0
+        },
+        {
+          "id": "0ib3na5o",
+          "x": 9000,
+          "y": 6000
+        },
+        {
+          "id": "6ow4qtmm",
+          "x": 0,
+          "y": 6000
+        }
+      ],
+      "walls": [
+        {
+          "id": "fjpbitp4",
+          "a": "5begbket",
+          "b": "cqtro1rv",
+          "t": 200,
+          "bearing": true,
+          "status": "existing"
+        },
+        {
+          "id": "nfaimv5i",
+          "a": "cqtro1rv",
+          "b": "0ib3na5o",
+          "t": 200,
+          "bearing": true,
+          "status": "existing"
+        },
+        {
+          "id": "xqrnxx9e",
+          "a": "0ib3na5o",
+          "b": "6ow4qtmm",
+          "t": 200,
+          "bearing": true,
+          "status": "existing"
+        },
+        {
+          "id": "vfk0op3h",
+          "a": "6ow4qtmm",
+          "b": "5begbket",
+          "t": 200,
+          "bearing": true,
+          "status": "existing"
+        }
+      ],
+      "openings": [
+        {
+          "id": "aahnlm9m",
+          "wall": "fjpbitp4",
+          "type": "window",
+          "pos": 2250,
+          "width": 2100,
+          "sill": 900,
+          "head": 2400,
+          "hinge": 0,
+          "side": 1
+        },
+        {
+          "id": "pfdo4440",
+          "wall": "xqrnxx9e",
+          "type": "door",
+          "pos": 8150,
+          "width": 900,
+          "sill": 0,
+          "head": 2100,
+          "hinge": 0,
+          "side": 1
+        }
+      ],
+      "furniture": [
+        {
+          "id": "85ny2uyt",
+          "key": "sofa",
+          "type": "sofa",
+          "name": "三人沙发",
+          "w": 2200,
+          "d": 950,
+          "h": 820,
+          "color": "#8e9aa8",
+          "x": 2200,
+          "y": 900,
+          "rot": 0
+        },
+        {
+          "id": "wc828xnj",
+          "key": "coffeeTable",
+          "type": "coffeeTable",
+          "name": "茶几",
+          "w": 1200,
+          "d": 600,
+          "h": 400,
+          "color": "#a47a55",
+          "x": 2200,
+          "y": 2400,
+          "rot": 0
+        },
+        {
+          "id": "l0l7zdpd",
+          "key": "tvCabinet",
+          "type": "tvCabinet",
+          "name": "电视柜（电视可开关）",
+          "w": 2000,
+          "d": 400,
+          "h": 450,
+          "color": "#e6e0d6",
+          "x": 2200,
+          "y": 4800,
+          "rot": 180
+        },
+        {
+          "id": "gui1s341",
+          "key": "diningTable",
+          "type": "diningTable",
+          "name": "餐桌",
+          "w": 1600,
+          "d": 900,
+          "h": 750,
+          "color": "#b98c5f",
+          "x": 6500,
+          "y": 2400,
+          "rot": 0
+        },
+        {
+          "id": "o8d4rxw3",
+          "key": "chair",
+          "type": "chair",
+          "name": "餐椅",
+          "w": 460,
+          "d": 520,
+          "h": 880,
+          "color": "#5d636e",
+          "x": 6100,
+          "y": 1600,
+          "rot": 0
+        },
+        {
+          "id": "eugrgeyf",
+          "key": "chair",
+          "type": "chair",
+          "name": "餐椅",
+          "w": 460,
+          "d": 520,
+          "h": 880,
+          "color": "#5d636e",
+          "x": 7000,
+          "y": 1600,
+          "rot": 0
+        },
+        {
+          "id": "esn005jh",
+          "key": "chair",
+          "type": "chair",
+          "name": "餐椅",
+          "w": 460,
+          "d": 520,
+          "h": 880,
+          "color": "#5d636e",
+          "x": 6100,
+          "y": 3200,
+          "rot": 180
+        },
+        {
+          "id": "ookf2vxu",
+          "key": "chair",
+          "type": "chair",
+          "name": "餐椅",
+          "w": 460,
+          "d": 520,
+          "h": 880,
+          "color": "#5d636e",
+          "x": 7000,
+          "y": 3200,
+          "rot": 180
+        },
+        {
+          "id": "hz6qqq6k",
+          "key": "armchair",
+          "type": "armchair",
+          "name": "单人沙发",
+          "w": 850,
+          "d": 850,
+          "h": 800,
+          "color": "#c98a5f",
+          "x": 6800,
+          "y": 4900,
+          "rot": 180
+        },
+        {
+          "id": "mr3177bo",
+          "key": "floorLamp",
+          "type": "floorLamp",
+          "name": "落地灯（可点亮）",
+          "w": 400,
+          "d": 400,
+          "h": 1650,
+          "color": "#e8dcc6",
+          "x": 7900,
+          "y": 4900,
+          "rot": 0
+        },
+        {
+          "id": "7qudk4k5",
+          "key": "cabTall",
+          "type": "cabinet",
+          "name": "书柜 / 高柜",
+          "w": 1500,
+          "d": 400,
+          "h": 2100,
+          "color": "#c9ab88",
+          "x": 400,
+          "y": 3600,
+          "rot": 90,
+          "cab": {
+            "kind": "tall",
+            "door": "swing",
+            "cols": [
+              "open",
+              "door",
+              "open"
+            ]
+          }
+        },
+        {
+          "id": "1edy2jul",
+          "key": "freeBox",
+          "type": "free",
+          "name": "立方体",
+          "w": 800,
+          "d": 500,
+          "h": 350,
+          "color": "#eeeae3",
+          "x": 4500,
+          "y": 4900,
+          "rot": 0,
+          "opt": {
+            "shape": "box",
+            "mat": "paint"
+          }
+        },
+        {
+          "id": "f37cdfea-98f5-4314-8d3c-841eee595dcf",
+          "key": "floorLamp",
+          "type": "floorLamp",
+          "name": "落地灯（可点亮）",
+          "w": 400,
+          "d": 400,
+          "h": 1650,
+          "color": "#e8dcc6",
+          "x": 6000,
+          "y": 4900,
+          "rot": 0
+        }
+      ],
+      "structs": [],
+      "beams": [],
+      "rooms": [
+        {
+          "id": "kjpewzl6",
+          "x": 4500,
+          "y": 3000,
+          "name": "客餐厅",
+          "mat": "oak",
+          "wallMat": "latexWhite",
+          "ceil": {
+            "type": "none",
+            "drop": 0,
+            "edgeW": 400,
+            "cove": false
+          }
+        }
+      ],
+      "measures": [],
+      "elec": [],
+      "prices": {},
+      "look": {
+        "style": "real",
+        "palette": "plan",
+        "glow": true,
+        "labels": true,
+        "round": true
+      },
+      "voids": [],
+      "comments": []
+    },
+    "roomLabelArchive": [],
+    "formatVersion": 1,
+    "id": "90ff7897-aef9-4279-a050-03c35be96950",
+    "revision": 1,
+    "updatedAt": "2026-11-05T17:57:48.123Z",
+    "assets": [],
+    "history": {
+      "undo": 1,
+      "redo": 0
+    }
+  },
+  "traces": [
+    {
+      "taskId": "3f4f3b94-9839-47d9-bf95-b29fbf5472ec",
+      "events": [
+        {
+          "seq": 165,
+          "kind": "queued",
+          "data": {
+            "message": "任务已持久保存"
+          },
+          "createdAt": 1793901450.626194
+        },
+        {
+          "seq": 166,
+          "kind": "phase",
+          "data": {
+            "phase": "reading"
+          },
+          "createdAt": 1793901450.6292167
+        },
+        {
+          "seq": 167,
+          "kind": "phase",
+          "data": {
+            "phase": "understanding"
+          },
+          "createdAt": 1793901450.6585214
+        },
+        {
+          "seq": 168,
+          "kind": "agent_start",
+          "data": {
+            "role": "main",
+            "promptVersion": "s2a-local-edit-1",
+            "promptHash": "e6e1fbd8032608cd8a63f1df774396797e8d5dc1eb283aa1e39b5fc142356e3c",
+            "model": "deepseek-flash"
+          },
+          "createdAt": 1793901450.6615553
+        },
+        {
+          "seq": 169,
+          "kind": "model_start",
+          "data": {
+            "role": "main",
+            "request": 1
+          },
+          "createdAt": 1793901450.7074232
+        },
+        {
+          "seq": 170,
+          "kind": "model_end",
+          "data": {
+            "role": "main",
+            "seconds": 1.194,
+            "usage": {
+              "input_tokens": 2612,
+              "output_tokens": 179,
+              "total_tokens": 2791,
+              "input_token_details": {
+                "cache_read": 896
+              },
+              "output_token_details": {
+                "reasoning": 156
+              }
+            },
+            "model": "deepseek-flash",
+            "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+          },
+          "createdAt": 1793901451.9015744
+        },
+        {
+          "seq": 171,
+          "kind": "tool_start",
+          "data": {
+            "role": "main",
+            "tool": "scene_objects",
+            "input": "{}"
+          },
+          "createdAt": 1793901451.9067075
+        },
+        {
+          "seq": 172,
+          "kind": "tool_end",
+          "data": {
+            "role": "main",
+            "tool": "scene_objects"
+          },
+          "createdAt": 1793901451.9083068
+        },
+        {
+          "seq": 173,
+          "kind": "model_start",
+          "data": {
+            "role": "main",
+            "request": 2
+          },
+          "createdAt": 1793901451.9112008
+        },
+        {
+          "seq": 174,
+          "kind": "model_end",
+          "data": {
+            "role": "main",
+            "seconds": 1.428,
+            "usage": {
+              "input_tokens": 4230,
+              "output_tokens": 211,
+              "total_tokens": 4441,
+              "input_token_details": {
+                "cache_read": 2688
+              },
+              "output_token_details": {
+                "reasoning": 0
+              }
+            },
+            "model": "deepseek-flash",
+            "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+          },
+          "createdAt": 1793901453.3399017
+        },
+        {
+          "seq": 175,
+          "kind": "agent_end",
+          "data": {
+            "role": "main",
+            "result": {
+              "status": "ready",
+              "summary": "在阅读角单人沙发（hz6qqq6k，x6800/y4900）旁新增 1 盏落地灯；现有家具、墙体与门窗均不改动。",
+              "question": "",
+              "target_ids": [],
+              "reference_ids": [
+                "hz6qqq6k"
+              ],
+              "delete_ids": [],
+              "field_permissions": {},
+              "additions": [
+                {
+                  "query": "落地灯",
+                  "count": 1
+                }
+              ],
+              "area": "local"
+            }
+          },
+          "createdAt": 1793901453.3585632
+        },
+        {
+          "seq": 176,
+          "kind": "phase",
+          "data": {
+            "phase": "choosing_assets"
+          },
+          "createdAt": 1793901453.3607516
+        },
+        {
+          "seq": 177,
+          "kind": "agent_start",
+          "data": {
+            "role": "assets",
+            "promptVersion": "s2a-local-edit-1",
+            "promptHash": "6299a60b6a5c21d1bebdf004ef973e9abf6d40e43700cff9da308aff58bee850",
+            "model": "deepseek-flash"
+          },
+          "createdAt": 1793901453.3641756
+        },
+        {
+          "seq": 178,
+          "kind": "model_start",
+          "data": {
+            "role": "assets",
+            "request": 3
+          },
+          "createdAt": 1793901453.430353
+        },
+        {
+          "seq": 179,
+          "kind": "model_end",
+          "data": {
+            "role": "assets",
+            "seconds": 0.671,
+            "usage": {
+              "input_tokens": 687,
+              "output_tokens": 47,
+              "total_tokens": 734,
+              "input_token_details": {
+                "cache_read": 0
+              },
+              "output_token_details": {
+                "reasoning": 0
+              }
+            },
+            "model": "deepseek-flash",
+            "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+          },
+          "createdAt": 1793901454.1017787
+        },
+        {
+          "seq": 180,
+          "kind": "tool_start",
+          "data": {
+            "role": "assets",
+            "tool": "search_catalogue",
+            "input": "{'query': '落地灯'}"
+          },
+          "createdAt": 1793901454.105866
+        },
+        {
+          "seq": 181,
+          "kind": "tool_end",
+          "data": {
+            "role": "assets",
+            "tool": "search_catalogue"
+          },
+          "createdAt": 1793901454.1466277
+        },
+        {
+          "seq": 182,
+          "kind": "model_start",
+          "data": {
+            "role": "assets",
+            "request": 4
+          },
+          "createdAt": 1793901454.1501927
+        },
+        {
+          "seq": 183,
+          "kind": "model_end",
+          "data": {
+            "role": "assets",
+            "seconds": 1.301,
+            "usage": {
+              "input_tokens": 792,
+              "output_tokens": 105,
+              "total_tokens": 897,
+              "input_token_details": {
+                "cache_read": 640
+              },
+              "output_token_details": {
+                "reasoning": 4
+              }
+            },
+            "model": "deepseek-flash",
+            "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+          },
+          "createdAt": 1793901455.45155
+        },
+        {
+          "seq": 184,
+          "kind": "agent_end",
+          "data": {
+            "role": "assets",
+            "result": {
+              "choices": [
+                {
+                  "request_index": 0,
+                  "key": "floorLamp",
+                  "reason": "目录中唯一的落地灯配方“落地灯（可点亮）”（key: floorLamp，400×400×1650mm），名称与用途直接符合在单人沙发旁增加一盏落地灯的请求。"
+                }
+              ]
+            }
+          },
+          "createdAt": 1793901455.472068
+        },
+        {
+          "seq": 185,
+          "kind": "phase",
+          "data": {
+            "phase": "scoping"
+          },
+          "createdAt": 1793901455.4797475
+        },
+        {
+          "seq": 186,
+          "kind": "scope",
+          "data": {
+            "targetIds": [],
+            "allowDeleteIds": [],
+            "allowAddKeys": [
+              "floorLamp"
+            ],
+            "fieldMask": {},
+            "requirements": [
+              {
+                "key": "floorLamp",
+                "count": 2,
+                "scope": "project"
+              }
+            ],
+            "additionBounds": {
+              "x0": 5375,
+              "y0": 3475,
+              "x1": 8225,
+              "y1": 6325
+            }
+          },
+          "createdAt": 1793901455.528085
+        },
+        {
+          "seq": 187,
+          "kind": "phase",
+          "data": {
+            "phase": "designing"
+          },
+          "createdAt": 1793901455.5332568
+        },
+        {
+          "seq": 188,
+          "kind": "agent_start",
+          "data": {
+            "role": "design",
+            "promptVersion": "s2a-local-edit-1",
+            "promptHash": "6887f017a5b33ea78368df306dd1df6bff5e8177bd2e65d400b010339a28b0db",
+            "model": "deepseek-flash"
+          },
+          "createdAt": 1793901455.5407784
+        },
+        {
+          "seq": 189,
+          "kind": "model_start",
+          "data": {
+            "role": "design",
+            "request": 5
+          },
+          "createdAt": 1793901455.600795
+        },
+        {
+          "seq": 190,
+          "kind": "model_end",
+          "data": {
+            "role": "design",
+            "seconds": 2.239,
+            "usage": {
+              "input_tokens": 4384,
+              "output_tokens": 411,
+              "total_tokens": 4795,
+              "input_token_details": {
+                "cache_read": 2560
+              },
+              "output_token_details": {
+                "reasoning": 289
+              }
+            },
+            "model": "deepseek-flash",
+            "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+          },
+          "createdAt": 1793901457.8398962
+        },
+        {
+          "seq": 191,
+          "kind": "tool_start",
+          "data": {
+            "role": "design",
+            "tool": "precheck_edits",
+            "input": "{'edits': [{'type': 'create', 'key': 'floorLamp', 'values': {'x': 6000, 'y': 4900, 'rot': 0}}]}"
+          },
+          "createdAt": 1793901457.845965
+        },
+        {
+          "seq": 192,
+          "kind": "tool_start",
+          "data": {
+            "role": "design",
+            "tool": "scene_objects",
+            "input": "{'ids': ['hz6qqq6k', 'mr3177bo']}"
+          },
+          "createdAt": 1793901457.8467774
+        },
+        {
+          "seq": 193,
+          "kind": "tool_end",
+          "data": {
+            "role": "design",
+            "tool": "scene_objects"
+          },
+          "createdAt": 1793901457.8500638
+        },
+        {
+          "seq": 194,
+          "kind": "tool_end",
+          "data": {
+            "role": "design",
+            "tool": "precheck_edits"
+          },
+          "createdAt": 1793901457.9821486
+        },
+        {
+          "seq": 195,
+          "kind": "model_start",
+          "data": {
+            "role": "design",
+            "request": 6
+          },
+          "createdAt": 1793901457.9886098
+        },
+        {
+          "seq": 196,
+          "kind": "model_end",
+          "data": {
+            "role": "design",
+            "seconds": 2.077,
+            "usage": {
+              "input_tokens": 5613,
+              "output_tokens": 259,
+              "total_tokens": 5872,
+              "input_token_details": {
+                "cache_read": 4736
+              },
+              "output_token_details": {
+                "reasoning": 47
+              }
+            },
+            "model": "deepseek-flash",
+            "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+          },
+          "createdAt": 1793901460.066336
+        },
+        {
+          "seq": 197,
+          "kind": "agent_end",
+          "data": {
+            "role": "design",
+            "result": {
+              "summary": "在阅读角单人沙发（hz6qqq6k）左侧 x6000/y4900 新增 1 盏落地灯，与已有右侧落地灯形成两侧配光；其余家具、墙体与门窗均不变动。",
+              "edits": [
+                {
+                  "type": "create",
+                  "key": "floorLamp",
+                  "values": {
+                    "x": 6000,
+                    "y": 4900,
+                    "z": null,
+                    "rot": 0,
+                    "w": null,
+                    "d": null,
+                    "h": null,
+                    "color": null
+                  }
+                }
+              ]
+            }
+          },
+          "createdAt": 1793901460.0773926
+        },
+        {
+          "seq": 198,
+          "kind": "phase",
+          "data": {
+            "phase": "prechecking"
+          },
+          "createdAt": 1793901460.0793118
+        },
+        {
+          "seq": 199,
+          "kind": "candidate",
+          "data": {
+            "id": "16ce25c1-dfbc-49b7-96c8-47c5bb7654d3",
+            "hash": "a5677ee96f6a08fcb21a37ea2baaea44c990215267455f9656c0953e6f54f04c",
+            "diff": {
+              "added": [
+                "f37cdfea-98f5-4314-8d3c-841eee595dcf"
+              ],
+              "deleted": [],
+              "updated": []
+            },
+            "checks": {
+              "passed": true,
+              "issues": [],
+              "coverage": [
+                "授权对象与结构逐字段保护",
+                "需求数量",
+                "封闭房间占地包含（20 mm 容差）",
+                "有效高度与原版参数化轮廓 SAT",
+                "基准问题对照"
+              ],
+              "limitations": [
+                "GLB 使用矩形占地，不是精确网格碰撞",
+                "未验证支撑面、通道可达性、照明或法规"
+              ]
+            }
+          },
+          "createdAt": 1793901460.1871986
+        },
+        {
+          "seq": 200,
+          "kind": "phase",
+          "data": {
+            "phase": "rendering"
+          },
+          "createdAt": 1793901460.1993222
+        },
+        {
+          "seq": 201,
+          "kind": "evidence",
+          "data": {
+            "candidateId": "16ce25c1-dfbc-49b7-96c8-47c5bb7654d3",
+            "evidence": [
+              {
+                "view": "top",
+                "sha256": "242c9b0fd88392725ace4866d8c35ec0f845caf8d62ae9da5ee5fd226116227d",
+                "candidateHash": "a5677ee96f6a08fcb21a37ea2baaea44c990215267455f9656c0953e6f54f04c",
+                "bytes": 189869,
+                "createdAt": "2026-11-05T17:57:42.956Z",
+                "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据"
+              },
+              {
+                "view": "oblique",
+                "sha256": "1e7fb1ce1aa8fa81c2ee299fda3d9a5f1e8ab4eb61481dc77a1ff2b105a449a9",
+                "candidateHash": "a5677ee96f6a08fcb21a37ea2baaea44c990215267455f9656c0953e6f54f04c",
+                "bytes": 162470,
+                "createdAt": "2026-11-05T17:57:42.957Z",
+                "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据"
+              }
+            ]
+          },
+          "createdAt": 1793901463.2025049
+        },
+        {
+          "seq": 202,
+          "kind": "phase",
+          "data": {
+            "phase": "checking"
+          },
+          "createdAt": 1793901463.2066762
+        },
+        {
+          "seq": 203,
+          "kind": "agent_start",
+          "data": {
+            "role": "check",
+            "promptVersion": "s2a-local-edit-1",
+            "promptHash": "fbdd4cc9dd7a2c14584d1f0e43f80adca98412c98453dbba9e116fa306ec085f",
+            "model": "deepseek-flash"
+          },
+          "createdAt": 1793901463.2847037
+        },
+        {
+          "seq": 204,
+          "kind": "model_start",
+          "data": {
+            "role": "check",
+            "request": 7
+          },
+          "createdAt": 1793901463.3414981
+        },
+        {
+          "seq": 205,
+          "kind": "model_end",
+          "data": {
+            "role": "check",
+            "seconds": 1.741,
+            "usage": {
+              "input_tokens": 3511,
+              "output_tokens": 260,
+              "total_tokens": 3771,
+              "input_token_details": {
+                "cache_read": 512
+              },
+              "output_token_details": {
+                "reasoning": 236
+              }
+            },
+            "model": "deepseek-flash",
+            "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+          },
+          "createdAt": 1793901465.0823498
+        },
+        {
+          "seq": 206,
+          "kind": "tool_start",
+          "data": {
+            "role": "check",
+            "tool": "candidate_checks",
+            "input": "{}"
+          },
+          "createdAt": 1793901465.0907896
+        },
+        {
+          "seq": 207,
+          "kind": "tool_end",
+          "data": {
+            "role": "check",
+            "tool": "candidate_checks"
+          },
+          "createdAt": 1793901465.1119642
+        },
+        {
+          "seq": 208,
+          "kind": "model_start",
+          "data": {
+            "role": "check",
+            "request": 8
+          },
+          "createdAt": 1793901465.1159675
+        },
+        {
+          "seq": 209,
+          "kind": "model_end",
+          "data": {
+            "role": "check",
+            "seconds": 2.815,
+            "usage": {
+              "input_tokens": 3868,
+              "output_tokens": 396,
+              "total_tokens": 4264,
+              "input_token_details": {
+                "cache_read": 3712
+              },
+              "output_token_details": {
+                "reasoning": 99
+              }
+            },
+            "model": "deepseek-flash",
+            "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+          },
+          "createdAt": 1793901467.9313917
+        },
+        {
+          "seq": 210,
+          "kind": "agent_end",
+          "data": {
+            "role": "check",
+            "result": {
+              "passed": true,
+              "summary": "已通过确定性检查（授权对象逐字段保护、需求数量、房间占地包含、有效高度轮廓 SAT、基准对照均无问题）。本次仅在阅读角单人沙发 hz6qqq6k（x6800/y4900）左侧新增 1 盏落地灯 f37cdfea-98f5-4314-8d3c-841eee595dcf（x6000/y4900，400×400×1650，颜色 #e8dcc6），位于新增允许范围（5375–8225 / 3475–6325）内；原有落地灯 mr3177bo（x7900/y4900）保留，全场落地灯共 2 盏，符合“再加一盏”的数量要求。diff 显示 updated/deleted 为空，其余 11 件家具与 4 面墙、2 个门窗洞口均未改动。俯视图可见单人沙发左右各一盏落地灯，两灯与沙发、电视柜、立方体之间无重叠，斜视图确认灯高正常、落地放置；截图未见明显新增问题。",
+              "issues": []
+            }
+          },
+          "createdAt": 1793901467.9390519
+        },
+        {
+          "seq": 211,
+          "kind": "phase",
+          "data": {
+            "phase": "committing"
+          },
+          "createdAt": 1793901467.9809752
+        },
+        {
+          "seq": 212,
+          "kind": "committed",
+          "data": {
+            "revision": 1,
+            "candidateId": "16ce25c1-dfbc-49b7-96c8-47c5bb7654d3",
+            "replayed": false
+          },
+          "createdAt": 1793901468.1286037
+        },
+        {
+          "seq": 213,
+          "kind": "status",
+          "data": {
+            "status": "completed",
+            "message": "已保存：在阅读角单人沙发（hz6qqq6k）左侧 x6000/y4900 新增 1 盏落地灯，与已有右侧落地灯形成两侧配光；其余家具、墙体与门窗均不变动。。本次修改作为一个事务提交，可撤销。"
+          },
+          "createdAt": 1793901468.1352243
+        }
+      ]
+    }
+  ],
+  "modelCalls": 8
+}

@@ -1,0 +1,1 @@
+PASS real GLB dialogue transform/tint, original recipe/assets/other objects protected, undo and redo

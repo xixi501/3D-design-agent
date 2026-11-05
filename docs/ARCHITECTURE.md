@@ -6,7 +6,7 @@ flowchart LR
   UI --> Render[Three.js 三维视图]
   Plan --> HTTP[命令客户端]
   Render --> HTTP
-  Tools[脚本 / 后续 Agent] --> API[Fastify API]
+  Tools[脚本 / Agent 工具] --> API[Fastify API]
   HTTP --> API
   API --> Core[场景核心与确定性检查]
   API --> Store[SQLite 项目与历史]
@@ -31,15 +31,15 @@ flowchart LR
 
 Three.js 核心类映射到 npm `three@0.160.0`。原版定制几何辅助函数继续保留，与其参数化行为一起对照验证。继承模块里的短符号名保留来源定位，产品代码通过有语义的 TypeScript 入口调用；主要映射：
 
-| 上游符号 | 新模块用途 |
-|---|---|
-| Hc / q0 / yu | 家具实例、完整目录、分组 |
-| Wc / D4 / nM | 墙几何、房间区域、标签恢复 |
-| Gb / xd | HouseSpec 导入、空项目 |
-| Zg / Ts | 占地分解、SAT 相交 |
-| Fh / Ov | 完整二维家具绘制、三维参数化几何 |
-| Ns / yi / Pt | 橱柜参数归一化、分段、部件 |
-| Ko / Qu / Sv / qC | 地面、墙面与自定义铺砖 |
+| 上游符号          | 新模块用途                       |
+| ----------------- | -------------------------------- |
+| Hc / q0 / yu      | 家具实例、完整目录、分组         |
+| Wc / D4 / nM      | 墙几何、房间区域、标签恢复       |
+| Gb / xd           | HouseSpec 导入、空项目           |
+| Zg / Ts           | 占地分解、SAT 相交               |
+| Fh / Ov           | 完整二维家具绘制、三维参数化几何 |
+| Ns / yi / Pt      | 橱柜参数归一化、分段、部件       |
+| Ko / Qu / Sv / qC | 地面、墙面与自定义铺砖           |
 
 提取清单 `extraction-manifest.json` 记录模块、绑定与依赖。`npm run test:reference` 验证原版十个文件哈希、无残余 Three 核心捆绑块、核心不依赖浏览器。重新提取后应执行建模对照，不能仅以构建成功判定保真。
 
@@ -56,4 +56,33 @@ Three.js 核心类映射到 npm `three@0.160.0`。原版定制几何辅助函数
 - 新校验拒绝宽度不大于 400 mm 的庭院门配方，避免原版固定立柱宽度导致的负圆弧半径；这个行为修复与原版模块提取分别提交。
 - 自由模型透明度遵循材质默认值或显式 `opt.op`（0–1），属性框显示实际生效值。风格控件沿用原版适用家具类型，目录 API 同时公开这些约束和默认值。
 
-本阶段没有自然语言编辑、LangGraph、四 Agent、照片生成模型服务、GEPA 或 AgentArts 部署。现有 HTTP 是后续接入边界，不是已实现的 Agent 系统。
+## S2-A 编排与提交边界
+
+```mermaid
+flowchart LR
+  Chat[工作台对话与选择] --> Proxy[Node 同源代理]
+  Proxy --> Queue[Python 持久任务队列]
+  Queue --> Main[主控：目标与字段授权]
+  Main --> Assets[按需资产选择]
+  Main --> Scope[固定授权范围]
+  Assets --> Scope
+  Scope --> Design[空间设计：结构化候选]
+  Design --> Candidate[Node 候选与确定性预检]
+  Candidate --> Images[真实只读渲染]
+  Images --> Check[独立检查角色]
+  Check -->|通过| Commit[固定代码提交节点]
+  Check -->|最多三轮| Design
+  Commit --> API[Node 原子命令与项目历史]
+  API --> SSE[原有项目 SSE]
+  SSE --> Chat
+```
+
+`apps/agent/actiscape_agent/workflow.py` 使用 LangGraph 管理角色、分支、修复和一次版本重规划；`manager.py` 管理持久队列和 SQLite 检查点。四角色在 `roles.py` 中分别创建 LangChain Agent 和上下文；提示词与工具范围分开。角色模型共享 DeepSeek 官方服务，但不共享一段无边界的会话上下文。
+
+正式场景数据库只由 Node 写入。`candidate.ts` 生成稳定命令并验证 scope，`candidates.ts` 绑定快照、哈希、图片、独立检查及固定 operationId。Agent 不获得任意 HTTP、脚本或正式场景写工具；最终提交由固定流程节点执行，并在 Node 重新检查后进入原有事务。一次自动应用仍对应一个可撤销事务。
+
+`apps/editor/src/render.ts` 是只读候选显示入口，使用同一三维渲染和有效离地计算；取证时墙体透明、吊顶隐藏，固定俯视和斜视。图片不是用户界面截图的替身，项目业务字段检查和真实工作台操作分别验收。
+
+任务的 requestId、预算、焦点对象和事件保存在独立 `tasks.sqlite`；LangGraph 父流程检查点在 `checkpoints.sqlite`。提交结果不明时只重试原候选与操作身份，不创建第二份正式修改。角色节点中断可以重跑只读工具或预检，提交幂等由正式项目服务保证。
+
+当前已实现自然语言局部家具编辑、四角色协作与本机恢复。文字初始生成、户型图解析、真实 Skill、照片生成、GEPA 与 AgentArts 完整部署仍为后续工作。平台包仅完成本机 SDK 的最小真实工具通道验证。

@@ -60,7 +60,7 @@ glb.furniture.push({
   w: 320,
   d: 320,
   h: 400,
-  color: "#ffffff",
+  color: "#d9d4cc",
 });
 fs.writeFileSync(
   "fixtures/glb-display.plan.json",

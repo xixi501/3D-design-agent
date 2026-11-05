@@ -750,7 +750,8 @@ export class ThreeView {
           for (const m of Array.isArray(o.material)
             ? o.material
             : [o.material]) {
-            if ("color" in m) m.color.multiply(new THREE.Color(f.color));
+            if ("color" in m)
+              m.color.multiply(new THREE.Color(f.opt?.tint || "#ffffff"));
             this.transientMaterials.push(m);
           }
         }

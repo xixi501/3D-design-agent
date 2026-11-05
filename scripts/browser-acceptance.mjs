@@ -583,6 +583,11 @@ try {
                 .add(new T.Vector3(size * 1.7, size * 1.4, size * 1.7));
               camera.lookAt(center);
               D.three.renderer.render(scene, camera);
+              if (
+                D.three.renderer.getContext().isContextLost() ||
+                D.three.renderer.info.render.calls < 1
+              )
+                throw Error(key + " did not complete a WebGL draw");
               ctx.setTransform(1, 0, 0, 1, 100, 100);
               const scale = 160 / Math.max(f.w, f.d);
               ctx.scale(scale, scale);
@@ -627,6 +632,32 @@ try {
         "model",
       );
       assert.equal(p.assets.length, 1);
+      const rawColors = () =>
+        page.evaluate(() => {
+          const colors = [];
+          __actiscape.three.furniture
+            .get("fixture-vase-instance")
+            .traverse((o) => {
+              if (o.isMesh && o.material.map)
+                colors.push(o.material.color.getHexString());
+            });
+          return colors;
+        });
+      assert.equal(
+        p.plan.furniture.find((f) => f.id === "fixture-vase-instance").color,
+        "#d9d4cc",
+      );
+      assert.deepEqual(await rawColors(), ["ffffff"]);
+      await page.evaluate(() =>
+        __actiscape.select({
+          collection: "furniture",
+          id: "fixture-vase-instance",
+        }),
+      );
+      await change('[data-field="color"]', "#ff0000");
+      assert.deepEqual(await rawColors(), ["ff0000"]);
+      await clickMutation("#undo");
+      assert.deepEqual(await rawColors(), ["ffffff"]);
       const unsupported = path.join(out, "unsupported-multifloor.json");
       fs.writeFileSync(
         unsupported,

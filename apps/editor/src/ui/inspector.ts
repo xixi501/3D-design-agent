@@ -116,7 +116,12 @@ export function renderInspector(
             ),
           )
           .join("") +
-        text("color", f.color, "颜色", "color"),
+        text(
+          "color",
+          f.type === "model" ? f.opt?.tint || "#ffffff" : f.color,
+          f.type === "model" ? "颜色叠加" : "颜色",
+          "color",
+        ),
     );
     if (f.type !== "model" && f.type !== "free")
       body += section(
@@ -582,6 +587,12 @@ export function renderInspector(
           return;
         }
         let patch = pathPatch(key, value);
+        if (
+          key === "color" &&
+          selection?.collection === "furniture" &&
+          object?.type === "model"
+        )
+          patch = { color: value, opt: { tint: value } };
         if (key === "mat" && selection?.collection === "rooms")
           patch = { mat: value, tile: null };
         if (key === "customTile") patch = { tile: value ? Gr({}) : null };

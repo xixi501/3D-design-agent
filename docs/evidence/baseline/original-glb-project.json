@@ -1,0 +1,304 @@
+{
+  "version": 2,
+  "name": "演境 · 客餐厅基准",
+  "height": 2800,
+  "phase": "original",
+  "nodes": [
+    {
+      "id": "5begbket",
+      "x": -100,
+      "y": 0
+    },
+    {
+      "id": "cqtro1rv",
+      "x": 9000,
+      "y": 0
+    },
+    {
+      "id": "0ib3na5o",
+      "x": 9000,
+      "y": 6000
+    },
+    {
+      "id": "6ow4qtmm",
+      "x": 0,
+      "y": 6000
+    }
+  ],
+  "walls": [
+    {
+      "id": "fjpbitp4",
+      "a": "5begbket",
+      "b": "cqtro1rv",
+      "t": 220,
+      "bearing": true,
+      "status": "existing"
+    },
+    {
+      "id": "nfaimv5i",
+      "a": "cqtro1rv",
+      "b": "0ib3na5o",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    },
+    {
+      "id": "xqrnxx9e",
+      "a": "0ib3na5o",
+      "b": "6ow4qtmm",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    },
+    {
+      "id": "vfk0op3h",
+      "a": "6ow4qtmm",
+      "b": "5begbket",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    }
+  ],
+  "openings": [
+    {
+      "id": "aahnlm9m",
+      "wall": "fjpbitp4",
+      "type": "slideWindow",
+      "pos": 2250,
+      "width": 2100,
+      "sill": 900,
+      "head": 2400,
+      "hinge": 0,
+      "side": 1,
+      "entry": false
+    },
+    {
+      "id": "pfdo4440",
+      "wall": "xqrnxx9e",
+      "type": "door",
+      "pos": 8150,
+      "width": 900,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0,
+      "side": 1
+    }
+  ],
+  "furniture": [
+    {
+      "id": "85ny2uyt",
+      "key": "sofa",
+      "type": "sofa",
+      "name": "三人沙发",
+      "w": 2200,
+      "d": 950,
+      "h": 820,
+      "color": "#8e9aa8",
+      "x": 2200,
+      "y": 900,
+      "rot": 0
+    },
+    {
+      "id": "wc828xnj",
+      "key": "coffeeTable",
+      "type": "coffeeTable",
+      "name": "茶几",
+      "w": 1200,
+      "d": 600,
+      "h": 400,
+      "color": "#a47a55",
+      "x": 2200,
+      "y": 2400,
+      "rot": 0
+    },
+    {
+      "id": "l0l7zdpd",
+      "key": "tvCabinet",
+      "type": "tvCabinet",
+      "name": "电视柜（电视可开关）",
+      "w": 2000,
+      "d": 400,
+      "h": 450,
+      "color": "#e6e0d6",
+      "x": 2200,
+      "y": 4800,
+      "rot": 180
+    },
+    {
+      "id": "gui1s341",
+      "key": "diningTable",
+      "type": "diningTable",
+      "name": "餐桌",
+      "w": 1600,
+      "d": 900,
+      "h": 750,
+      "color": "#b98c5f",
+      "x": 6500,
+      "y": 2400,
+      "rot": 0
+    },
+    {
+      "id": "o8d4rxw3",
+      "key": "chair",
+      "type": "chair",
+      "name": "餐椅",
+      "w": 460,
+      "d": 520,
+      "h": 880,
+      "color": "#5d636e",
+      "x": 6100,
+      "y": 1600,
+      "rot": 0
+    },
+    {
+      "id": "eugrgeyf",
+      "key": "chair",
+      "type": "chair",
+      "name": "餐椅",
+      "w": 460,
+      "d": 520,
+      "h": 880,
+      "color": "#5d636e",
+      "x": 7000,
+      "y": 1600,
+      "rot": 0
+    },
+    {
+      "id": "esn005jh",
+      "key": "chair",
+      "type": "chair",
+      "name": "餐椅",
+      "w": 460,
+      "d": 520,
+      "h": 880,
+      "color": "#5d636e",
+      "x": 6100,
+      "y": 3200,
+      "rot": 180
+    },
+    {
+      "id": "ookf2vxu",
+      "key": "chair",
+      "type": "chair",
+      "name": "餐椅",
+      "w": 460,
+      "d": 520,
+      "h": 880,
+      "color": "#5d636e",
+      "x": 7000,
+      "y": 3200,
+      "rot": 180
+    },
+    {
+      "id": "hz6qqq6k",
+      "key": "armchair",
+      "type": "armchair",
+      "name": "单人沙发",
+      "w": 850,
+      "d": 850,
+      "h": 800,
+      "color": "#c98a5f",
+      "x": 6800,
+      "y": 4900,
+      "rot": 180
+    },
+    {
+      "id": "mr3177bo",
+      "key": "floorLamp",
+      "type": "floorLamp",
+      "name": "落地灯（可点亮）",
+      "w": 400,
+      "d": 400,
+      "h": 1650,
+      "color": "#e8dcc6",
+      "x": 7900,
+      "y": 4900,
+      "rot": 0
+    },
+    {
+      "id": "7qudk4k5",
+      "key": "cabTall",
+      "type": "cabinet",
+      "name": "书柜 / 高柜",
+      "w": 1500,
+      "d": 400,
+      "h": 2100,
+      "color": "#c9ab88",
+      "x": 400,
+      "y": 3600,
+      "rot": 90,
+      "cab": {
+        "kind": "tall",
+        "door": "swing",
+        "cols": [
+          "drawer",
+          "door",
+          "open"
+        ]
+      }
+    },
+    {
+      "id": "1edy2jul",
+      "key": "freeBox",
+      "type": "free",
+      "name": "立方体",
+      "w": 800,
+      "d": 500,
+      "h": 350,
+      "color": "#eeeae3",
+      "x": 4500,
+      "y": 4900,
+      "rot": 0,
+      "opt": {
+        "shape": "arcWall",
+        "mat": "paint",
+        "arc": 135
+      }
+    },
+    {
+      "id": "zmh41n1q",
+      "key": "model:ruwwgdcs",
+      "type": "model",
+      "name": "textured-vase",
+      "w": 320,
+      "d": 320,
+      "h": 400,
+      "color": "#d9d4cc",
+      "x": 2200,
+      "y": 2200,
+      "rot": 35,
+      "z": 700,
+      "modelId": "ruwwgdcs"
+    }
+  ],
+  "structs": [],
+  "beams": [],
+  "rooms": [
+    {
+      "id": "kjpewzl6",
+      "x": 4500,
+      "y": 3000,
+      "name": "客餐厅",
+      "mat": "oak",
+      "wallMat": "latexWhite",
+      "ceil": {
+        "type": "none",
+        "drop": 0,
+        "edgeW": 400,
+        "cove": false
+      }
+    }
+  ],
+  "measures": [],
+  "elec": [],
+  "prices": {},
+  "look": {
+    "style": "real",
+    "palette": "plan",
+    "glow": true,
+    "labels": true,
+    "round": true
+  },
+  "voids": [],
+  "comments": []
+}

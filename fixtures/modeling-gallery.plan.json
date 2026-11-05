@@ -1,0 +1,622 @@
+{
+  "version": 2,
+  "name": "演境 · 家具与建模展台",
+  "height": 2800,
+  "phase": "original",
+  "nodes": [
+    {
+      "id": "gallery-n0",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "gallery-n1",
+      "x": 18000,
+      "y": 0
+    },
+    {
+      "id": "gallery-n2",
+      "x": 18000,
+      "y": 19000
+    },
+    {
+      "id": "gallery-n3",
+      "x": 0,
+      "y": 19000
+    }
+  ],
+  "walls": [
+    {
+      "id": "gallery-w0",
+      "a": "gallery-n0",
+      "b": "gallery-n1",
+      "t": 120,
+      "bearing": false,
+      "status": "existing"
+    },
+    {
+      "id": "gallery-w1",
+      "a": "gallery-n1",
+      "b": "gallery-n2",
+      "t": 120,
+      "bearing": false,
+      "status": "existing"
+    },
+    {
+      "id": "gallery-w2",
+      "a": "gallery-n2",
+      "b": "gallery-n3",
+      "t": 120,
+      "bearing": false,
+      "status": "existing"
+    },
+    {
+      "id": "gallery-w3",
+      "a": "gallery-n3",
+      "b": "gallery-n0",
+      "t": 120,
+      "bearing": false,
+      "status": "existing"
+    }
+  ],
+  "openings": [],
+  "furniture": [
+    {
+      "id": "gallery-freeBox",
+      "key": "freeBox",
+      "type": "free",
+      "name": "立方体",
+      "w": 1000,
+      "d": 1000,
+      "h": 1000,
+      "color": "#eeeae3",
+      "x": 1500,
+      "y": 1600,
+      "rot": 0,
+      "opt": {
+        "shape": "box",
+        "mat": "paint"
+      }
+    },
+    {
+      "id": "gallery-freeRoundBox",
+      "key": "freeRoundBox",
+      "type": "free",
+      "name": "圆角方块",
+      "w": 1000,
+      "d": 600,
+      "h": 450,
+      "color": "#e7dccb",
+      "x": 4400,
+      "y": 1600,
+      "rot": 0,
+      "opt": {
+        "shape": "roundBox",
+        "mat": "fabric",
+        "r": 80
+      }
+    },
+    {
+      "id": "gallery-freePlatform",
+      "key": "freePlatform",
+      "type": "free",
+      "name": "地台 / 榻榻米台",
+      "w": 2400,
+      "d": 1800,
+      "h": 300,
+      "color": "#c9a77d",
+      "x": 7300,
+      "y": 1600,
+      "rot": 0,
+      "opt": {
+        "shape": "box",
+        "mat": "wood",
+        "floor": true
+      }
+    },
+    {
+      "id": "gallery-freeWallBlock",
+      "key": "freeWallBlock",
+      "type": "free",
+      "name": "背景墙凸块",
+      "w": 2400,
+      "d": 150,
+      "h": 2600,
+      "color": "#e9e3da",
+      "x": 10200,
+      "y": 1600,
+      "rot": 0,
+      "opt": {
+        "shape": "box",
+        "mat": "stone"
+      }
+    },
+    {
+      "id": "gallery-freeCeilBlock",
+      "key": "freeCeilBlock",
+      "type": "free",
+      "name": "吊顶造型块",
+      "w": 2000,
+      "d": 2000,
+      "h": 150,
+      "color": "#f4f3ef",
+      "x": 13100,
+      "y": 1600,
+      "rot": 0,
+      "z": 2650,
+      "opt": {
+        "shape": "box",
+        "mat": "paint"
+      }
+    },
+    {
+      "id": "gallery-freeCyl",
+      "key": "freeCyl",
+      "type": "free",
+      "name": "圆柱",
+      "w": 400,
+      "d": 400,
+      "h": 2700,
+      "color": "#eeeae3",
+      "x": 16000,
+      "y": 1600,
+      "rot": 0,
+      "opt": {
+        "shape": "cyl",
+        "mat": "paint"
+      }
+    },
+    {
+      "id": "gallery-freeRoundStage",
+      "key": "freeRoundStage",
+      "type": "free",
+      "name": "圆形地台",
+      "w": 2000,
+      "d": 2000,
+      "h": 200,
+      "color": "#c9a77d",
+      "x": 1500,
+      "y": 4600,
+      "rot": 0,
+      "opt": {
+        "shape": "cyl",
+        "mat": "wood",
+        "floor": true
+      }
+    },
+    {
+      "id": "gallery-freeHalfCyl",
+      "key": "freeHalfCyl",
+      "type": "free",
+      "name": "半圆柱 / 半圆墙垛",
+      "w": 800,
+      "d": 400,
+      "h": 2700,
+      "color": "#eeeae3",
+      "x": 4400,
+      "y": 4600,
+      "rot": 0,
+      "opt": {
+        "shape": "halfCyl",
+        "mat": "paint"
+      }
+    },
+    {
+      "id": "gallery-freeTube",
+      "key": "freeTube",
+      "type": "free",
+      "name": "圆管 / 圆环隔断",
+      "w": 1800,
+      "d": 1800,
+      "h": 2400,
+      "color": "#e7e2da",
+      "x": 7300,
+      "y": 4600,
+      "rot": 0,
+      "opt": {
+        "shape": "tube",
+        "mat": "paint",
+        "t": 100
+      }
+    },
+    {
+      "id": "gallery-freeSphere",
+      "key": "freeSphere",
+      "type": "free",
+      "name": "球体",
+      "w": 500,
+      "d": 500,
+      "h": 500,
+      "color": "#d9c7b0",
+      "x": 10200,
+      "y": 4600,
+      "rot": 0,
+      "opt": {
+        "shape": "sphere",
+        "mat": "paint"
+      }
+    },
+    {
+      "id": "gallery-freeHemi",
+      "key": "freeHemi",
+      "type": "free",
+      "name": "半球 / 穹顶",
+      "w": 1200,
+      "d": 1200,
+      "h": 600,
+      "color": "#f1eee8",
+      "x": 13100,
+      "y": 4600,
+      "rot": 0,
+      "opt": {
+        "shape": "hemi",
+        "mat": "paint"
+      }
+    },
+    {
+      "id": "gallery-freeCone",
+      "key": "freeCone",
+      "type": "free",
+      "name": "圆锥",
+      "w": 500,
+      "d": 500,
+      "h": 800,
+      "color": "#d9c7b0",
+      "x": 16000,
+      "y": 4600,
+      "rot": 0,
+      "opt": {
+        "shape": "cone",
+        "mat": "paint"
+      }
+    },
+    {
+      "id": "gallery-freePyramid",
+      "key": "freePyramid",
+      "type": "free",
+      "name": "四棱锥",
+      "w": 800,
+      "d": 800,
+      "h": 800,
+      "color": "#d9c7b0",
+      "x": 1500,
+      "y": 7600,
+      "rot": 0,
+      "opt": {
+        "shape": "pyramid",
+        "mat": "paint"
+      }
+    },
+    {
+      "id": "gallery-freeWedge",
+      "key": "freeWedge",
+      "type": "free",
+      "name": "楔形 / 坡道",
+      "w": 1200,
+      "d": 1500,
+      "h": 200,
+      "color": "#b9b4ac",
+      "x": 4400,
+      "y": 7600,
+      "rot": 0,
+      "opt": {
+        "shape": "wedge",
+        "mat": "concrete"
+      }
+    },
+    {
+      "id": "gallery-freeArch",
+      "key": "freeArch",
+      "type": "free",
+      "name": "拱门造型",
+      "w": 1400,
+      "d": 240,
+      "h": 2600,
+      "color": "#efe9e0",
+      "x": 7300,
+      "y": 7600,
+      "rot": 0,
+      "opt": {
+        "shape": "arch",
+        "mat": "paint",
+        "t": 200
+      }
+    },
+    {
+      "id": "gallery-freeArcWall",
+      "key": "freeArcWall",
+      "type": "free",
+      "name": "弧形墙 / 弧形隔断",
+      "w": 2400,
+      "d": 600,
+      "h": 2700,
+      "color": "#ece7df",
+      "x": 10200,
+      "y": 7600,
+      "rot": 0,
+      "opt": {
+        "shape": "arcWall",
+        "mat": "paint",
+        "t": 120,
+        "arc": 90
+      }
+    },
+    {
+      "id": "gallery-freeSlats",
+      "key": "freeSlats",
+      "type": "free",
+      "name": "木格栅",
+      "w": 1800,
+      "d": 60,
+      "h": 2700,
+      "color": "#b48a62",
+      "x": 13100,
+      "y": 7600,
+      "rot": 0,
+      "opt": {
+        "shape": "slats",
+        "mat": "wood",
+        "n": 15,
+        "sw": 40
+      }
+    },
+    {
+      "id": "gallery-freeGlassScreen",
+      "key": "freeGlassScreen",
+      "type": "free",
+      "name": "长虹玻璃隔断",
+      "w": 1500,
+      "d": 60,
+      "h": 2400,
+      "color": "#dfe9ee",
+      "x": 16000,
+      "y": 7600,
+      "rot": 0,
+      "opt": {
+        "shape": "box",
+        "mat": "frosted"
+      }
+    },
+    {
+      "id": "gallery-freeSteps",
+      "key": "freeSteps",
+      "type": "free",
+      "name": "台阶",
+      "w": 1200,
+      "d": 900,
+      "h": 450,
+      "color": "#c9c4bc",
+      "x": 1500,
+      "y": 10600,
+      "rot": 0,
+      "opt": {
+        "shape": "steps",
+        "mat": "stone",
+        "n": 3,
+        "floor": true
+      }
+    },
+    {
+      "id": "gallery-freeTorus",
+      "key": "freeTorus",
+      "type": "free",
+      "name": "圆环 / 环形灯",
+      "w": 1200,
+      "d": 1200,
+      "h": 60,
+      "color": "#fff3d6",
+      "x": 4400,
+      "y": 10600,
+      "rot": 0,
+      "z": 2400,
+      "opt": {
+        "shape": "torus",
+        "mat": "light",
+        "t": 30
+      }
+    },
+    {
+      "id": "gallery-freeLightBox",
+      "key": "freeLightBox",
+      "type": "free",
+      "name": "发光灯带 / 灯箱",
+      "w": 2000,
+      "d": 40,
+      "h": 30,
+      "color": "#fff3d6",
+      "x": 7300,
+      "y": 10600,
+      "rot": 0,
+      "z": 2600,
+      "opt": {
+        "shape": "box",
+        "mat": "light"
+      }
+    },
+    {
+      "id": "gallery-freeMirror",
+      "key": "freeMirror",
+      "type": "free",
+      "name": "镜面板",
+      "w": 900,
+      "d": 20,
+      "h": 1800,
+      "color": "#d9dee3",
+      "x": 10200,
+      "y": 10600,
+      "rot": 0,
+      "z": 300,
+      "opt": {
+        "shape": "box",
+        "mat": "mirror"
+      }
+    },
+    {
+      "id": "gallery-freeVase",
+      "key": "freeVase",
+      "type": "free",
+      "name": "旋转体 · 花瓶",
+      "w": 350,
+      "d": 350,
+      "h": 600,
+      "color": "#c9b8a6",
+      "x": 13100,
+      "y": 10600,
+      "rot": 0,
+      "opt": {
+        "shape": "lathe",
+        "mat": "stone",
+        "preset": "vase"
+      }
+    },
+    {
+      "id": "gallery-freeColumn",
+      "key": "freeColumn",
+      "type": "free",
+      "name": "旋转体 · 罗马柱",
+      "w": 450,
+      "d": 450,
+      "h": 2700,
+      "color": "#eeeae3",
+      "x": 16000,
+      "y": 10600,
+      "rot": 0,
+      "opt": {
+        "shape": "lathe",
+        "mat": "stone",
+        "preset": "column"
+      }
+    },
+    {
+      "id": "gallery-freeExtrude",
+      "key": "freeExtrude",
+      "type": "free",
+      "name": "拉伸体（画轮廓）",
+      "w": 1500,
+      "d": 1000,
+      "h": 300,
+      "color": "#eeeae3",
+      "x": 1500,
+      "y": 13600,
+      "rot": 0,
+      "opt": {
+        "shape": "extrude",
+        "mat": "paint"
+      }
+    },
+    {
+      "id": "gallery-cabTall",
+      "key": "cabTall",
+      "type": "cabinet",
+      "name": "书柜 / 高柜",
+      "w": 1200,
+      "d": 400,
+      "h": 2400,
+      "color": "#c9ab88",
+      "x": 4400,
+      "y": 13600,
+      "rot": 0,
+      "cab": {
+        "kind": "tall",
+        "door": "swing",
+        "cols": [
+          "open",
+          "door",
+          "open"
+        ]
+      }
+    },
+    {
+      "id": "gallery-cabWardrobe",
+      "key": "cabWardrobe",
+      "type": "cabinet",
+      "name": "定制衣柜",
+      "w": 2400,
+      "d": 600,
+      "h": 2600,
+      "color": "#efeae2",
+      "x": 7300,
+      "y": 13600,
+      "rot": 0,
+      "cab": {
+        "kind": "tall",
+        "door": "swing",
+        "cols": [
+          "hang",
+          "drawer",
+          "hang",
+          "door"
+        ],
+        "top": 450
+      }
+    },
+    {
+      "id": "gallery-lCounter",
+      "key": "lCounter",
+      "type": "lCounter",
+      "name": "L 形橱柜（可定制）",
+      "w": 2400,
+      "d": 1800,
+      "h": 900,
+      "color": "#f0ede8",
+      "x": 10200,
+      "y": 13600,
+      "rot": 0
+    },
+    {
+      "id": "gallery-uCounter",
+      "key": "uCounter",
+      "type": "uCounter",
+      "name": "U 形橱柜（可定制）",
+      "w": 2700,
+      "d": 2100,
+      "h": 900,
+      "color": "#f0ede8",
+      "x": 13100,
+      "y": 13600,
+      "rot": 0
+    },
+    {
+      "id": "gallery-sofa",
+      "key": "sofa",
+      "type": "sofa",
+      "name": "三人沙发",
+      "w": 2200,
+      "d": 950,
+      "h": 820,
+      "color": "#8e9aa8",
+      "x": 16000,
+      "y": 13600,
+      "rot": 0
+    },
+    {
+      "id": "gallery-bed18",
+      "key": "bed18",
+      "type": "bed",
+      "name": "双人床 1.8m",
+      "w": 1800,
+      "d": 2100,
+      "h": 1050,
+      "color": "#a9bccf",
+      "x": 1500,
+      "y": 16600,
+      "rot": 0
+    }
+  ],
+  "structs": [],
+  "beams": [],
+  "rooms": [
+    {
+      "id": "gallery-room",
+      "x": 9000,
+      "y": 9500,
+      "name": "家具与建模展台",
+      "mat": "tile"
+    }
+  ],
+  "measures": [],
+  "elec": [],
+  "prices": {},
+  "voids": [],
+  "comments": []
+}

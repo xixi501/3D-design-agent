@@ -1,0 +1,50 @@
+{
+  "results": [
+    {
+      "name": "entire original catalogue generates real geometry and finite bounds",
+      "status": "passed",
+      "detail": {
+        "count": 266,
+        "freeShapeFamilies": 17
+      }
+    },
+    {
+      "name": "all 17 free forms and customized cabinets render from fixed gallery",
+      "status": "passed"
+    },
+    {
+      "name": "original cabinet columns and free-form parameters edited through actual UI",
+      "status": "passed"
+    },
+    {
+      "name": "original structural properties and opening types edited through actual controls",
+      "status": "passed",
+      "detail": {
+        "wallThickness": 220,
+        "openingType": "slideWindow",
+        "nodeX": -100
+      }
+    },
+    {
+      "name": "original textured GLB import and local save/reload retain model and material",
+      "status": "passed",
+      "detail": {
+        "modelBytesInProjectJson": false,
+        "modelStore": "IndexedDB"
+      }
+    },
+    {
+      "name": "original undo history does not survive page reload (documented original limitation)",
+      "status": "passed",
+      "detail": {
+        "classification": "original-defect",
+        "newRequirement": "persistent history"
+      }
+    },
+    {
+      "name": "no uncaught original errors in executed coverage",
+      "status": "passed"
+    }
+  ],
+  "errors": []
+}

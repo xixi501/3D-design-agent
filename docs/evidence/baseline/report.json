@@ -1,0 +1,65 @@
+{
+  "upstream": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+  "browser": "Chrome/156.0.8078.4",
+  "gpu": {
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "software": true
+  },
+  "results": [
+    {
+      "name": "load structured single-floor scene",
+      "status": "passed",
+      "detail": {
+        "furniture": 12,
+        "catalog": 266
+      }
+    },
+    {
+      "name": "real pointer selection, drag, rotate and undo",
+      "status": "passed"
+    },
+    {
+      "name": "cabinet and free shape parameters survive undo and redo",
+      "status": "passed"
+    },
+    {
+      "name": "3D scene and real geometry",
+      "status": "passed"
+    },
+    {
+      "name": "save and reload complete scene equality",
+      "status": "passed"
+    },
+    {
+      "name": "runtime catalogue and all 17 free-shape families are present",
+      "status": "passed",
+      "detail": {
+        "count": 266,
+        "shapes": [
+          "arcWall",
+          "arch",
+          "box",
+          "cone",
+          "cyl",
+          "extrude",
+          "halfCyl",
+          "hemi",
+          "lathe",
+          "pyramid",
+          "roundBox",
+          "slats",
+          "sphere",
+          "steps",
+          "torus",
+          "tube",
+          "wedge"
+        ]
+      }
+    },
+    {
+      "name": "no uncaught page errors",
+      "status": "passed"
+    }
+  ],
+  "errors": []
+}

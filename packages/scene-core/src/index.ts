@@ -3,6 +3,8 @@ import { Cu, Qc, Ns, L4, Ci, Zg, Ts, KU } from "./inherited/footprints.js";
 import { Gb, xd } from "./inherited/house-spec.js";
 import { Wc, D4, nM, F0, Ls } from "./inherited/topology.js";
 import { validateDetails } from "./validation.js";
+import { furnitureElevation } from "./placement.js";
+export { furnitureElevation } from "./placement.js";
 import {
   collections,
   SceneError,
@@ -380,14 +382,17 @@ export function checkScene(plan: Plan) {
     objectIds: string[];
     message: string;
     level: string;
+    metric?: number;
   }[] = [];
   const geo = Wc(plan);
+  const regions = D4(plan, geo).regions;
   // Reuse upstream decomposed footprints and separating-axis penetration depth.
   const boxes = plan.furniture.map((f) => {
     const polygons = Zg(f) as { x: number; y: number }[][],
       p = polygons.flat();
     return {
       f,
+      z: furnitureElevation(f, plan, regions),
       polygons,
       x0: Math.min(...p.map((p) => p.x)),
       x1: Math.max(...p.map((p) => p.x)),
@@ -403,9 +408,7 @@ export function checkScene(plan: Plan) {
         !KU(a.f.type, b.f.type) &&
         Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 20 &&
         Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 20 &&
-        Math.min((a.f.z || 0) + a.f.h, (b.f.z || 0) + b.f.h) -
-          Math.max(a.f.z || 0, b.f.z || 0) >
-          20 &&
+        Math.min(a.z + a.f.h, b.z + b.f.h) - Math.max(a.z, b.z) > 20 &&
         Ts(a.polygons, b.polygons) > 20
       )
         issues.push({
@@ -413,16 +416,15 @@ export function checkScene(plan: Plan) {
           objectIds: [a.f.id, b.f.id],
           message: `${a.f.name} 与 ${b.f.name} 的参数化轮廓及高度区间重叠，请检查实际形状`,
           level: "warning",
+          metric: Ts(a.polygons, b.polygons),
         });
     }
-  for (const { f, polygons } of boxes)
+  for (const { f, polygons, z } of boxes)
     for (const w of geo.active) {
       const solids = [
         ...w.solids,
         ...w.ops
-          .filter(
-            (o: any) => (f.z || 0) < o.o.sill || (f.z || 0) + f.h > o.o.head,
-          )
+          .filter((o: any) => z < o.o.sill || z + f.h > o.o.head)
           .map((o: any) => ({ s0: o.s0, s1: o.s1 })),
       ];
       const wallPolygons = solids.map((s) =>
@@ -436,12 +438,13 @@ export function checkScene(plan: Plan) {
           y: w.a.y + w.u.y * along + w.n.y * side,
         })),
       );
-      if ((f.z || 0) < plan.height && Ts(polygons, wallPolygons) > 20)
+      if (z < (w.w.h || plan.height) && Ts(polygons, wallPolygons) > 20)
         issues.push({
           code: "FURNITURE_IN_WALL",
           objectIds: [f.id, w.w.id],
           message: `${f.name} 的轮廓进入墙体`,
           level: "error",
+          metric: Ts(polygons, wallPolygons),
         });
     }
   return {

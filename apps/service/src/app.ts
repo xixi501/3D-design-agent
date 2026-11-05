@@ -20,6 +20,8 @@ import {
 } from "../../../packages/scene-core/src/index.js";
 import { ProjectStore } from "./store.js";
 import { inspectGlb } from "./assets.js";
+import { candidateRoutes } from "./candidate-routes.js";
+import { agentProxy } from "./agent-proxy.js";
 
 export async function createApp(options: {
   dataDir: string;
@@ -33,6 +35,12 @@ export async function createApp(options: {
   });
   const store = new ProjectStore(options.dataDir),
     streams = new Map<string, Set<ServerResponse>>();
+  const notify = (id: string, revision: number) => {
+    for (const stream of streams.get(id) || [])
+      stream.write(
+        `id: ${revision}\nevent: revision\ndata: ${JSON.stringify({ revision })}\n\n`,
+      );
+  };
   await app.register(swagger, {
     openapi: {
       info: {
@@ -66,6 +74,8 @@ export async function createApp(options: {
     }),
   );
   app.get("/api/openapi.json", async () => app.swagger());
+  const candidates = candidateRoutes(app, store, notify);
+  agentProxy(app);
   app.get(
     "/api/catalog",
     {
@@ -171,11 +181,7 @@ export async function createApp(options: {
       async (req) => {
         const id = (req.params as any).id,
           result = store.mutate(id, kind, req.body as Mutation);
-        if (!result.replayed)
-          for (const stream of streams.get(id) || [])
-            stream.write(
-              `id: ${result.project.revision}\nevent: revision\ndata: ${JSON.stringify({ revision: result.project.revision })}\n\n`,
-            );
+        if (!result.replayed) notify(id, result.project.revision);
         return result;
       },
     );
@@ -256,5 +262,5 @@ export async function createApp(options: {
     for (const set of streams.values()) for (const stream of set) stream.end();
   });
   app.addHook("onClose", async () => store.close());
-  return { app, store };
+  return { app, store, candidates };
 }

@@ -12,5 +12,11 @@ export default defineConfig({
     outDir: path.resolve("dist/editor"),
     emptyOutDir: true,
     sourcemap: true,
+    rolldownOptions: {
+      input: {
+        main: path.resolve("apps/editor/index.html"),
+        render: path.resolve("apps/editor/render.html"),
+      },
+    },
   },
 });

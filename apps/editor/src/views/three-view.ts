@@ -7,6 +7,7 @@ import {
   pointInPolygon,
   projectToWall,
   catalog,
+  furnitureElevation,
   type Plan,
   type Furniture,
   type Command,
@@ -381,6 +382,7 @@ export class ThreeView {
           const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, d), cm);
           mesh.rotation.set(Math.PI / 2, 0, 0);
           const group = new THREE.Group();
+          group.userData.evidenceCeiling = true;
           group.add(mesh);
           group.position.set(x, (plan.height - ceiling.drop) / 1000, z);
           group.rotation.y = angle;
@@ -752,9 +754,7 @@ export class ThreeView {
         ceiling = ei(label);
       group.position.set(
         f.x / 1000,
-        (catalog[f.key]?.ceil
-          ? plan.height - (ceiling.type === "none" ? 0 : ceiling.drop) - f.h
-          : f.z || 0) / 1000,
+        furnitureElevation(f, plan, rooms.regions) / 1000,
         f.y / 1000,
       );
       group.rotation.y = (-f.rot * Math.PI) / 180;

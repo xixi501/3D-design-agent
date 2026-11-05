@@ -13,6 +13,7 @@ from .config import model_settings, state_directory
 from .manager import TaskManager
 from .schemas import ResumeInput, TaskInput
 from .store import TERMINAL, TaskError
+from .versions import runtime_versions
 
 
 class ConversationInput(BaseModel):
@@ -50,6 +51,7 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
             "model": model_settings()["model"],
             "langgraph": version("langgraph"),
             "langchain": version("langchain"),
+            "versions": runtime_versions(),
         }
 
     @app.get("/conversations")

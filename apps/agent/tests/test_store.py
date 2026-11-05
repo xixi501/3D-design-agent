@@ -15,6 +15,7 @@ def test_task_identity_project_serialization_and_persistent_budget(tmp_path):
     with pytest.raises(TaskError, match="已有任务"):
         store.create_task(other["id"], body)
     store.cancel(first["id"])
+    assert store.task(first["id"])["result"]["status"] == "cancelled"
     next_task = store.create_task(other["id"], body)
     for _ in range(24):
         store.count_model_call(next_task["id"], "controlled-test")

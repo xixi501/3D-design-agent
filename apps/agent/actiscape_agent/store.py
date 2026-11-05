@@ -7,6 +7,8 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
+from .versions import runtime_versions
+
 ACTIVE = ("queued", "running", "waiting_input", "committing")
 TERMINAL = ("completed", "failed", "conflict", "cancelled")
 
@@ -153,6 +155,7 @@ class TaskStore:
                     "PROJECT_BUSY", "此项目已有任务，请先完成澄清或取消该任务", 409
                 ) from e
         self.event(id, "queued", {"message": "任务已持久保存"})
+        self.event(id, "runtime", runtime_versions())
         return self.task(id)
 
     def event(self, task: str, kind: str, data: dict):
@@ -295,7 +298,12 @@ class TaskStore:
             return task
         self.update(id, cancel_requested=1)
         if task["status"] in ("queued", "waiting_input"):
-            self.update(id, status="cancelled")
+            self.update(
+                id,
+                status="cancelled",
+                result={"status": "cancelled", "message": "任务已取消，候选未提交。"},
+                error=None,
+            )
         self.event(
             id, "cancel_requested", {"message": "将在安全边界停止；已开始的原子提交将确认最终结果"}
         )

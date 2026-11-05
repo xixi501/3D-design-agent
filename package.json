@@ -11,8 +11,8 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "dev": "node scripts/dev.mjs",
-    "start": "tsx apps/service/src/main.ts",
+    "dev": "node --env-file-if-exists=.env scripts/run-all.mjs --dev",
+    "start": "node --env-file-if-exists=.env --import tsx apps/service/src/main.ts",
     "build": "npm run typecheck && vite build --config apps/editor/vite.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
@@ -26,7 +26,17 @@
     "tools:demo": "node scripts/tool-demo.mjs",
     "reference:build": "node scripts/prepare-reference.mjs",
     "test:catalog": "node scripts/compare-catalog.mjs",
-    "test:visual": "node --import tsx scripts/visual-baseline.mjs"
+    "test:visual": "node --import tsx scripts/visual-baseline.mjs",
+    "dev:editor": "node scripts/dev.mjs",
+    "start:all": "node --env-file-if-exists=.env scripts/run-all.mjs",
+    "start:agent": ".venv/bin/python -m actiscape_agent",
+    "setup:agent": "node scripts/setup-agent.mjs",
+    "test:agent": ".venv/bin/python -m pytest -q apps/agent/tests",
+    "test:candidates": "node --import tsx scripts/candidate-acceptance.mjs",
+    "test:agent:smoke": ".venv/bin/python -m actiscape_agent.smoke",
+    "test:agent:live": "node scripts/agent-acceptance.mjs",
+    "test:agent:browser": "node scripts/agent-browser-acceptance.mjs",
+    "tools:agent-demo": "node scripts/agent-demo.mjs"
   },
   "dependencies": {
     "@fastify/multipart": "10.1.7",

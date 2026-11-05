@@ -1,0 +1,33 @@
+name: Core and agent checks
+on:
+  pull_request:
+  push:
+    branches: [main, dev/core]
+permissions:
+  contents: read
+jobs:
+  scene-and-editor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run test:reference
+  agent-logic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: apps/agent/requirements.lock
+      - run: python -m pip install -r apps/agent/requirements.lock -e apps/agent
+      - run: ruff check apps/agent --select F,I
+      - run: ruff format --check apps/agent
+      - run: python -m pytest -q apps/agent/tests

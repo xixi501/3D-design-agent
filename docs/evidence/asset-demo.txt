@@ -1,0 +1,21 @@
+{
+  "asset": {
+    "id": "asset-82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1",
+    "sha256": "82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1",
+    "name": "textured-vase.glb",
+    "bytes": 7496,
+    "w": 319.9999928474426,
+    "d": 319.9999928474426,
+    "h": 400.0000059604645,
+    "normalization": {
+      "scale": 1,
+      "center": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "objectId": "87992087-8107-434c-885b-3b703db045fb",
+  "revision": 2
+}

@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-11-05T16:23:36.580Z",
+  "url": "http://127.0.0.1:3001/?project=094bca25-d857-4962-9996-91dcba308c77",
+  "projectId": "094bca25-d857-4962-9996-91dcba308c77",
+  "name": "S1 交付演示 · 客餐厅",
+  "revision": 3,
+  "history": {
+    "undo": 3,
+    "redo": 0
+  },
+  "furniture": 13,
+  "debugGlobals": false,
+  "errors": [],
+  "assets": [
+    {
+      "url": "http://127.0.0.1:3001/api/assets/asset-82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1/file",
+      "status": 200
+    }
+  ],
+  "health": {
+    "ok": true,
+    "service": "ActiScape",
+    "formatVersion": 1
+  }
+}

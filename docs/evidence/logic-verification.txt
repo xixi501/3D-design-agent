@@ -1,0 +1,21 @@
+> actiscape@0.1.0 test
+> tsx --test tests/*.test.ts
+
+✔ full legacy snapshot preserves identities, recipes and materials with no browser globals (61.213953ms)
+✔ catalogue is byte-data equivalent to executed upstream and every recipe creates independently (4.511576ms)
+✔ failed command batches do not mutate the source; copies have independent nested recipes (36.158396ms)
+✔ HouseSpec converts, unsupported floors and invalid geometry explicitly fail (15.323363ms)
+✔ room recovery archive survives removed walls and restores original label ID (19.599093ms)
+✔ scene checks identify intersecting footprints and wall penetration with object evidence (6.109083ms)
+✔ HTTP transactions, duplicate requests, concurrency, branches and durable restart (328.456756ms)
+✔ 200 edit limit preserves cursor and operation audit (1877.507188ms)
+✔ textured GLB is content-addressed, survives restart; missing assets and malformed uploads reject (78.709081ms)
+✔ stopped data-directory backup restores the same scene, history cursor and asset bytes (49.112663ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2708.341348

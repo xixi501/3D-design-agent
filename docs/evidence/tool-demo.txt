@@ -1,0 +1,21 @@
+Stale revision correctly rejected: { currentRevision: 1 }
+{
+  "projectId": "094bca25-d857-4962-9996-91dcba308c77",
+  "revision": 1,
+  "editedObject": "hz6qqq6k",
+  "replayed": true,
+  "checks": {
+    "revision": 1,
+    "issues": [],
+    "coverage": [
+      "结构引用与尺寸校验",
+      "原版参数化轮廓 SAT 相交与垂直区间",
+      "家具轮廓与墙体及洞口"
+    ],
+    "limitations": [
+      "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+      "未检查通道可达性、支撑面、照明或法规"
+    ]
+  },
+  "open": "http://127.0.0.1:3001/?project=094bca25-d857-4962-9996-91dcba308c77"
+}

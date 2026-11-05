@@ -256,8 +256,8 @@
       }
     },
     {
-      "id": "zmh41n1q",
-      "key": "model:ruwwgdcs",
+      "id": "zhp04ka0",
+      "key": "model:5vifk7f3",
       "type": "model",
       "name": "textured-vase",
       "w": 320,
@@ -268,7 +268,7 @@
       "y": 2200,
       "rot": 35,
       "z": 700,
-      "modelId": "ruwwgdcs"
+      "modelId": "5vifk7f3"
     }
   ],
   "structs": [],

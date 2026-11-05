@@ -1,0 +1,4 @@
+> actiscape@0.1.0 test:catalog
+> node scripts/compare-catalog.mjs
+
+PASS 266 catalogue bodies: mesh counts, vertex counts and precise bounds match original

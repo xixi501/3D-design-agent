@@ -1,11 +1,13 @@
 # 真实场景工具 API
 
-入口 `/api`，运行时 OpenAPI：`GET /api/openapi.json`。本目录 `openapi.json` 是交付版本的静态副本。所有坐标、距离、模型标称尺寸为毫米，x/y 是地面，z 是离地高度；旋转为度。Three.js 内部是米，坐标 `(x,z,y)/1000`，偏航为 `-rot`。
+入口 `/api`，运行时 OpenAPI：`GET /api/openapi.json`。本目录 `openapi.json` 是交付版本的静态副本。场景坐标、距离、实例及资产标称尺寸为毫米，x/y 是地面，z 是离地高度；旋转为度。Three.js 内部是米，坐标 `(x,z,y)/1000`，偏航为 `-rot`。
+
+资产 `normalization.center` 使用 GLB 源文件坐标单位，顺序为 `[中心 X, 底部 Y, 中心 Z]`；`normalization.scale` 是源文件单位转换到米的系数。渲染层先平移，再缩放，业务工具直接使用返回的 w/d/h 毫米尺寸。
 
 | 方法与路径 | 作用 |
 |---|---|
 | GET `/health` | 服务与 SQLite 健康状态 |
-| GET `/catalog` | 全部 266 项目录、默认配方、17 类自由造型 |
+| GET `/catalog` | 全部 266 项目录、默认配方、17 类自由造型、材质、家具风格及适用类型、门窗默认值 |
 | GET `/projects` | 持久项目列表 |
 | POST `/projects` | `{document, assetMap?}` 创建 / 导入；无 document 创建空项目 |
 | GET `/projects/:id` | 完整快照、修订号、资产身份、历史位置 |
@@ -48,6 +50,12 @@
 集合包括 `nodes/walls/openings/furniture/structs/beams/rooms/measures/elec/voids/comments`。后置功能的数据可保留，但没有相应演示工作台入口。本轮开发应主要使用前八项。
 
 家具基础字段：`id,key,type,name,w,d,h,x,y,z?,rot,color`。`cab` 为柜体配方，`kit` 为橱柜配方，`opt` 为造型参数。默认值从 `/catalog` 获取，实际参数示例见固定项目和 `scripts/modeling-parity.mjs`。
+
+自由模型的 `opt.op` 是 0–1 的不透明度；省略时使用 `freeMaterials[opt.mat].op`，材质未指定透明度则为 1。家具风格的适用类型以 `styleTypes` 为准。
+
+外部 GLB 默认保留文件材质。旧项目中的 `color` 继续作为二维表示颜色；需要三维颜色叠加时显式设置 `opt.tint`，白色表示保持原材质。属性面板会同时记录这一显式参数，撤销后恢复原文件材质。
+
+尺寸会在提交前校验。例如庭院门两侧立柱各 200 mm，宽度必须大于 400 mm；无效配方返回明确错误，不提交后再让浏览器绘制失败。
 
 自由造型：`box,roundBox,cyl,halfCyl,tube,sphere,hemi,cone,pyramid,wedge,arch,arcWall,slats,steps,torus,lathe,extrude`。自由多边形用 `opt.outline` 保存 `x,y|x,y|...`，重新开项目继续参数化生成。柜体分格支持 `door,drawer,open,hang,hangOpen,glass,niche,mixed`。
 

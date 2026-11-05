@@ -1,0 +1,19 @@
+> actiscape@0.1.0 test:browser
+> node scripts/browser-acceptance.mjs
+
+PASS complete legacy snapshot loads with stable identity and data
+PASS real pointer select and drag, keyboard rotate, copy and independent cabinet editing
+PASS a drag keeps its starting revision when a tool changes the scene mid-gesture
+PASS free form UI, parameter editing, outline vertex drag and array
+PASS kitchen shape, per-run wall cabinets, room surfaces and custom tiles use real controls
+PASS wall drawing, opening placement and structural updates commit atomically
+PASS upload textured GLB using file input; transform, save and fresh browser context restore
+PASS external API edits are reflected through SSE and browser reload preserves undo/redo
+PASS two browser pages compete without silently overwriting and converge through SSE
+PASS service restart retains history and assets
+PASS split and 3D views, selection mapping, walkthrough movement, turn and exit
+PASS 3D pointer selects the visible object and commits one drag transaction
+PASS all 266 catalogue items generate finite geometry and render in real WebGL and Canvas2D
+PASS missing GLB mapping and unsupported multi-floor imports have explicit outcomes
+PASS failed network save keeps the last committed scene and shows no success
+PASS no uncaught browser errors

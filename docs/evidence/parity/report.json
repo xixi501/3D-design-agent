@@ -1,0 +1,557 @@
+{
+  "cases": 24,
+  "results": [
+    {
+      "name": "free-box",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 1764,
+        "bounds": [
+          1.137791547795691,
+          1.3548322641369919,
+          1.0291344818998152
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 1764,
+        "bounds": [
+          1.137791547795691,
+          1.3548322641369919,
+          1.0291344818998152
+        ]
+      }
+    },
+    {
+      "name": "free-roundBox",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 1764,
+        "bounds": [
+          1.1032766234693612,
+          1.2734875497877016,
+          0.9745963704218628
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 1764,
+        "bounds": [
+          1.1032766234693612,
+          1.2734875497877016,
+          0.9745963704218628
+        ]
+      }
+    },
+    {
+      "name": "free-cyl",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 292,
+        "bounds": [
+          1.1433584831157877,
+          1.2803209465590621,
+          1.0089952248841911
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 292,
+        "bounds": [
+          1.1433584831157877,
+          1.2803209465590621,
+          1.0089952248841911
+        ]
+      }
+    },
+    {
+      "name": "free-halfCyl",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 2,
+        "vertices": 248,
+        "bounds": [
+          1.1433584831157877,
+          1.3132730879014924,
+          1.02346308225267
+        ]
+      },
+      "actual": {
+        "meshes": 2,
+        "vertices": 248,
+        "bounds": [
+          1.1433584831157877,
+          1.3132730879014924,
+          1.02346308225267
+        ]
+      }
+    },
+    {
+      "name": "free-tube",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 984,
+        "bounds": [
+          1.1433584831157875,
+          1.280070745264887,
+          1.008995236544619
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 984,
+        "bounds": [
+          1.1433584831157875,
+          1.280070745264887,
+          1.008995236544619
+        ]
+      }
+    },
+    {
+      "name": "free-sphere",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 1189,
+        "bounds": [
+          1.001182136248004,
+          1.0865255151621516,
+          0.8134064496761473
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 1189,
+        "bounds": [
+          1.001182136248004,
+          1.0865255151621516,
+          0.8134064496761473
+        ]
+      }
+    },
+    {
+      "name": "free-hemi",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 2,
+        "vertices": 903,
+        "bounds": [
+          1.0133420358905028,
+          1.177914225698751,
+          0.8431961843645904
+        ]
+      },
+      "actual": {
+        "meshes": 2,
+        "vertices": 903,
+        "bounds": [
+          1.0133420358905028,
+          1.177914225698751,
+          0.8431961843645904
+        ]
+      }
+    },
+    {
+      "name": "free-cone",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 195,
+        "bounds": [
+          0.9902680687415704,
+          1.1729060693640572,
+          0.7825180805870446
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 195,
+        "bounds": [
+          0.9902680687415704,
+          1.1729060693640572,
+          0.7825180805870446
+        ]
+      }
+    },
+    {
+      "name": "free-pyramid",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 19,
+        "bounds": [
+          0.9902680517938542,
+          1.2031086000572428,
+          1.0070832982352669
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 19,
+        "bounds": [
+          0.9902680517938542,
+          1.2031086000572428,
+          1.0070832982352669
+        ]
+      }
+    },
+    {
+      "name": "free-wedge",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 24,
+        "bounds": [
+          1.1433584831157875,
+          1.201623026959824,
+          1.0379309512815769
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 24,
+        "bounds": [
+          1.1433584831157875,
+          1.201623026959824,
+          1.0379309512815769
+        ]
+      }
+    },
+    {
+      "name": "free-arch",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 360,
+        "bounds": [
+          1.1433584831157875,
+          1.367952382092532,
+          1.0379309512815769
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 360,
+        "bounds": [
+          1.1433584831157875,
+          1.367952382092532,
+          1.0379309512815769
+        ]
+      }
+    },
+    {
+      "name": "free-arcWall",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 588,
+        "bounds": [
+          1.1433584831157875,
+          1.2249860682719302,
+          0.5955406787172872
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 588,
+        "bounds": [
+          1.1433584831157875,
+          1.2249860682719302,
+          0.5955406787172872
+        ]
+      }
+    },
+    {
+      "name": "free-slats",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13,
+      "expected": {
+        "meshes": 9,
+        "vertices": 216,
+        "bounds": [
+          1.143358483263349,
+          1.367952382112817,
+          1.0379309512858883
+        ]
+      },
+      "actual": {
+        "meshes": 9,
+        "vertices": 216,
+        "bounds": [
+          1.143358483263349,
+          1.367952382112817,
+          1.0379309512858885
+        ]
+      }
+    },
+    {
+      "name": "free-steps",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13,
+      "expected": {
+        "meshes": 7,
+        "vertices": 168,
+        "bounds": [
+          1.143358480567926,
+          1.2253843466261054,
+          1.0379309419944693
+        ]
+      },
+      "actual": {
+        "meshes": 7,
+        "vertices": 168,
+        "bounds": [
+          1.1433584805679262,
+          1.2253843466261054,
+          1.0379309419944696
+        ]
+      }
+    },
+    {
+      "name": "free-torus",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 1365,
+        "bounds": [
+          1.04999245983595,
+          1.246036924036901,
+          0.9141314382672785
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 1365,
+        "bounds": [
+          1.04999245983595,
+          1.246036924036901,
+          0.9141314382672785
+        ]
+      }
+    },
+    {
+      "name": "free-lathe",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 392,
+        "bounds": [
+          0.9902680687415704,
+          1.1782767897242037,
+          0.791772371638148
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 392,
+        "bounds": [
+          0.9902680687415704,
+          1.1782767897242037,
+          0.791772371638148
+        ]
+      }
+    },
+    {
+      "name": "free-extrude",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 1,
+        "vertices": 276,
+        "bounds": [
+          1.177402230177324,
+          1.301576374829307,
+          1.06997869261708
+        ]
+      },
+      "actual": {
+        "meshes": 1,
+        "vertices": 276,
+        "bounds": [
+          1.177402230177324,
+          1.301576374829307,
+          1.06997869261708
+        ]
+      }
+    },
+    {
+      "name": "cabinet-all-columns",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 72,
+        "vertices": 3480,
+        "bounds": [
+          4,
+          2.400000000357628,
+          0.636000005736947
+        ]
+      },
+      "actual": {
+        "meshes": 72,
+        "vertices": 3480,
+        "bounds": [
+          4,
+          2.400000000357628,
+          0.636000005736947
+        ]
+      }
+    },
+    {
+      "name": "cabinet-L-sliding",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 23,
+        "vertices": 2304,
+        "bounds": [
+          3.0000000536441807,
+          2.3999999987185,
+          2.2000000178813934
+        ]
+      },
+      "actual": {
+        "meshes": 23,
+        "vertices": 2304,
+        "bounds": [
+          3.0000000536441807,
+          2.3999999987185,
+          2.2000000178813934
+        ]
+      }
+    },
+    {
+      "name": "kitchen-I",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13,
+      "expected": {
+        "meshes": 54,
+        "vertices": 9824,
+        "bounds": [
+          4.200000035762787,
+          2.3500000067055224,
+          0.6800000085607172
+        ]
+      },
+      "actual": {
+        "meshes": 54,
+        "vertices": 9824,
+        "bounds": [
+          4.200000035762787,
+          2.3500000067055224,
+          0.6800000085607171
+        ]
+      }
+    },
+    {
+      "name": "kitchen-L",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13,
+      "expected": {
+        "meshes": 60,
+        "vertices": 12596,
+        "bounds": [
+          4.200000032186508,
+          2.3500000067055224,
+          2.4000000202655793
+        ]
+      },
+      "actual": {
+        "meshes": 60,
+        "vertices": 12596,
+        "bounds": [
+          4.200000032186508,
+          2.3500000067055224,
+          2.400000020265579
+        ]
+      }
+    },
+    {
+      "name": "kitchen-U",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13,
+      "expected": {
+        "meshes": 77,
+        "vertices": 16508,
+        "bounds": [
+          4.200000032186508,
+          2.3500000067055224,
+          2.4000000202655793
+        ]
+      },
+      "actual": {
+        "meshes": 77,
+        "vertices": 16508,
+        "bounds": [
+          4.200000032186508,
+          2.3500000067055224,
+          2.400000020265579
+        ]
+      }
+    },
+    {
+      "name": "vanity-hanging-double",
+      "status": "passed",
+      "maximumDifferenceMm": 0,
+      "expected": {
+        "meshes": 8,
+        "vertices": 2536,
+        "bounds": [
+          1.6100000143051147,
+          0.7000000083446503,
+          0.5099999904632568
+        ]
+      },
+      "actual": {
+        "meshes": 8,
+        "vertices": 2536,
+        "bounds": [
+          1.6100000143051147,
+          0.7000000083446503,
+          0.5099999904632568
+        ]
+      }
+    },
+    {
+      "name": "shower-arc",
+      "status": "passed",
+      "maximumDifferenceMm": 3.3306690738754696e-13,
+      "expected": {
+        "meshes": 19,
+        "vertices": 1852,
+        "bounds": [
+          0.9124900851122433,
+          2.000000024214387,
+          0.916975923559203
+        ]
+      },
+      "actual": {
+        "meshes": 19,
+        "vertices": 1852,
+        "bounds": [
+          0.9124900851122429,
+          2.000000024214387,
+          0.9169759235592028
+        ]
+      }
+    }
+  ]
+}

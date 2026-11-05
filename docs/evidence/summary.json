@@ -1,0 +1,133 @@
+{
+  "sourceCommit": "2749ff0adf4f3e6d97e5c8c17faf901e0e8d3ece",
+  "upstreamCommit": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+  "generatedAt": "2026-11-05T16:24:23.123Z",
+  "environment": {
+    "node": "v24.22.2",
+    "npm": "11.19.1",
+    "sqlite": "3.53.4",
+    "pythonReference": "Pillow 13.0.0",
+    "browser": "Chrome/156.0.8078.4",
+    "gpu": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "software": true
+    }
+  },
+  "results": {
+    "logic": {
+      "groups": 10,
+      "passed": 10
+    },
+    "baseline": {
+      "groups": 14,
+      "passed": 14
+    },
+    "browser": {
+      "groups": 16,
+      "passed": 16
+    },
+    "recipeParity": {
+      "cases": 24,
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    "catalogue": {
+      "items": 266,
+      "toleranceMm": 0.01,
+      "maximumDifferenceMm": 1.3322676295501878e-12
+    }
+  },
+  "visual": {
+    "input": "fixtures/living-dining.plan.json",
+    "sha256": "f177074b1d118aea2520d6181f1e4ecd0f0b40e7309ba2beb4efe5bb77c5f4b4",
+    "camera": {
+      "position": [
+        12,
+        12,
+        14
+      ],
+      "target": [
+        4.5,
+        0.8,
+        3
+      ],
+      "fov": 45,
+      "width": 960,
+      "height": 720
+    },
+    "actualCaptures": {
+      "original": {
+        "position": [
+          11.999999999999998,
+          12,
+          14
+        ],
+        "target": [
+          4.5,
+          0.8,
+          3
+        ],
+        "width": 960,
+        "height": 720
+      },
+      "editor": {
+        "position": [
+          11.999999999999998,
+          12,
+          14
+        ],
+        "target": [
+          4.5,
+          0.8,
+          3
+        ],
+        "width": 960,
+        "height": 720
+      }
+    },
+    "instrumentation": "An analysis-only reference copy exposes qt for synchronous rendering. Upstream reference files and business algorithms are unchanged.",
+    "light": {
+      "hemisphere": {
+        "sky": "#fff8ef",
+        "ground": "#b2bcc7",
+        "intensity": 2.4
+      },
+      "sun": {
+        "color": "#fff4e0",
+        "intensity": 2.8,
+        "position": [
+          8,
+          14,
+          10
+        ]
+      }
+    },
+    "renderer": "SwiftShader",
+    "browser": "Chrome/156.0.8078.4",
+    "purpose": "Fixed camera, light and resolution for manual visual inspection. Data and geometry assertions are separate; no pixel-equivalence claim."
+  },
+  "productionSmoke": {
+    "checkedAt": "2026-11-05T16:23:36.580Z",
+    "url": "http://127.0.0.1:3001/?project=094bca25-d857-4962-9996-91dcba308c77",
+    "projectId": "094bca25-d857-4962-9996-91dcba308c77",
+    "name": "S1 交付演示 · 客餐厅",
+    "revision": 3,
+    "history": {
+      "undo": 3,
+      "redo": 0
+    },
+    "furniture": 13,
+    "debugGlobals": false,
+    "errors": [],
+    "assets": [
+      {
+        "url": "http://127.0.0.1:3001/api/assets/asset-82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1/file",
+        "status": 200
+      }
+    ],
+    "health": {
+      "ok": true,
+      "service": "ActiScape",
+      "formatVersion": 1
+    }
+  }
+}

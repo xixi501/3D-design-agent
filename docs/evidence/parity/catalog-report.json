@@ -1,0 +1,1337 @@
+{
+  "count": 266,
+  "toleranceMm": 0.01,
+  "note": "Original hidden smart-home airflow helper meshes are excluded from visible body measurements.",
+  "results": [
+    {
+      "key": "bed18",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bed15",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bed12",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bed20",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "roundBed",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bunkBed",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "crib",
+      "status": "passed",
+      "maximumDifferenceMm": 6.661338147750939e-13
+    },
+    {
+      "key": "tatami",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "nightstand",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bedBench",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "wardrobe",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "chest",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "coatRack",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "stool",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bayCushion",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "dresser",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "mirror",
+      "status": "passed",
+      "maximumDifferenceMm": 1.942890293094024e-13
+    },
+    {
+      "key": "desk",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "officeChair",
+      "status": "passed",
+      "maximumDifferenceMm": 3.3306690738754696e-13
+    },
+    {
+      "key": "lDesk",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "kidsDesk",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "gamingChair",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "fileCabinet",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "bookshelf",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "sofa",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "lSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "loveseat",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "uSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "curvedSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bendSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bendSofa_cornerChaise",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bendSofa_roundL",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bendSofa_serpentine",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bendSofa_crescent",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "chaise",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "beanbag",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "ottoman",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "rockingChair",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "hangingChair",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "armchair",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "coffeeTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "roundCoffee",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "ovalCoffee",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "tvCabinet",
+      "status": "passed",
+      "maximumDifferenceMm": 1.6653345369377348e-13
+    },
+    {
+      "key": "diningTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "longTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "roundTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "ovalTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "booth",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "diningBench",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "chair",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "sideboard",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "wineCabinet",
+      "status": "passed",
+      "maximumDifferenceMm": 2.7755575615628914e-13
+    },
+    {
+      "key": "displayCabinet",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "consoleTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "fireplace",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "fishTank",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "projScreen",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "speaker",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "screenDivider",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "kitchenIsland",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "barStool",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "shoeCabinet",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "hallCabinet",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "entryBench",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "piano",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "rug",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "plant",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "acWall",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "acFloor",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "waterHeater",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "miniHeater",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-13
+    },
+    {
+      "key": "gasHeater",
+      "status": "passed",
+      "maximumDifferenceMm": 8.326672684688674e-14
+    },
+    {
+      "key": "waterDispenser",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "purifier",
+      "status": "passed",
+      "maximumDifferenceMm": 8.326672684688674e-14
+    },
+    {
+      "key": "dishwasher",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "tallOven",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "hood",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "microwave",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "washer",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "dryer",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "wallTV",
+      "status": "passed",
+      "maximumDifferenceMm": 9.71445146547012e-14
+    },
+    {
+      "key": "airPurifier",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "robotVac",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "treadmill",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "floorLamp",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "deskLamp",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "curtain",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "sheer",
+      "status": "passed",
+      "maximumDifferenceMm": 2.7755575615628914e-14
+    },
+    {
+      "key": "bigPlant",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "smallPlant",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "hangingPlant",
+      "status": "passed",
+      "maximumDifferenceMm": 3.885780586188048e-13
+    },
+    {
+      "key": "floorVase",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "wallPanel",
+      "status": "passed",
+      "maximumDifferenceMm": 2.498001805406602e-13
+    },
+    {
+      "key": "wallArt",
+      "status": "passed",
+      "maximumDifferenceMm": 3.191891195797325e-13
+    },
+    {
+      "key": "wallArt3",
+      "status": "passed",
+      "maximumDifferenceMm": 8.881784197001252e-13
+    },
+    {
+      "key": "wallClock",
+      "status": "passed",
+      "maximumDifferenceMm": 2.7755575615628914e-14
+    },
+    {
+      "key": "roundRug",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "doormat",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "fan",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "radiator",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "cabWardrobe",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "cabSlide",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "cabCorner",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "cabShoe",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "cabSideboard",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "cabTall",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "cabBase",
+      "status": "passed",
+      "maximumDifferenceMm": 6.661338147750939e-13
+    },
+    {
+      "key": "cabWall",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "cabTV",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "counter",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "fridge",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "fridgeDouble",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "fridgeFrench",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "lCounter",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "uCounter",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "freezer",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "trashBin",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "toilet",
+      "status": "passed",
+      "maximumDifferenceMm": 3.3306690738754696e-13
+    },
+    {
+      "key": "wallToilet",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "squatToilet",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "vanity",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "mirrorCabinet",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "doubleVanity",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "pedestalSink",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeTub",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "bathShelf",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "shower",
+      "status": "passed",
+      "maximumDifferenceMm": 3.3306690738754696e-13
+    },
+    {
+      "key": "showerScreen",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bathtub",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "showerSet",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "towelWarmer",
+      "status": "passed",
+      "maximumDifferenceMm": 8.326672684688674e-13
+    },
+    {
+      "key": "bathHeater",
+      "status": "passed",
+      "maximumDifferenceMm": 9.71445146547012e-14
+    },
+    {
+      "key": "laundrySink",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "clothesRack",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "lounge",
+      "status": "passed",
+      "maximumDifferenceMm": 8.881784197001252e-13
+    },
+    {
+      "key": "sideTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "island",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "stairU",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "stairRun",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "stairLanding",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "elevator",
+      "status": "passed",
+      "maximumDifferenceMm": 3.3306690738754696e-13
+    },
+    {
+      "key": "stairDogleg",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "riser",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "acOutdoor",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "louver",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "meterBox",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "cornerShelf",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "modularSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bayDeck",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "plushToy",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "tableVase",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bookSet",
+      "status": "passed",
+      "maximumDifferenceMm": 2.7755575615628914e-14
+    },
+    {
+      "key": "car",
+      "status": "passed",
+      "maximumDifferenceMm": 8.881784197001252e-13
+    },
+    {
+      "key": "suv",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "evCharger",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "carport",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "carport2",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "garageShelf",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "workbench",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bicycle",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "pool",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "lawn",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "stepStones",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "tree",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "shrub",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "gazebo",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "parasol",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "sunLounger",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "swing",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "bbq",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "waterFeature",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "fence",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "gate",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "lawnLamp",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "billiards",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "mahjong",
+      "status": "passed",
+      "maximumDifferenceMm": 1.3322676295501878e-12
+    },
+    {
+      "key": "teaTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "theaterSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "grandPiano",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "barCounter",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "sauna",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "chandelier",
+      "status": "passed",
+      "maximumDifferenceMm": 6.661338147750939e-13
+    },
+    {
+      "key": "boiler",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "manifold",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "waterSoftener",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "trainingTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "curveTrainingTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "conferenceTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "trainingChair",
+      "status": "passed",
+      "maximumDifferenceMm": 6.661338147750939e-13
+    },
+    {
+      "key": "lectern",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "stage",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "slidingBoard",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "mobileDisplay",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "printer",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "coffeeMachine",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "urinal",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "serviceSink",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "wifiAP",
+      "status": "passed",
+      "maximumDifferenceMm": 9.020562075079397e-14
+    },
+    {
+      "key": "ceilingSpeaker",
+      "status": "passed",
+      "maximumDifferenceMm": 8.326672684688674e-14
+    },
+    {
+      "key": "supplyVent",
+      "status": "passed",
+      "maximumDifferenceMm": 1.8041124150158794e-13
+    },
+    {
+      "key": "returnVent",
+      "status": "passed",
+      "maximumDifferenceMm": 1.8041124150158794e-13
+    },
+    {
+      "key": "outdoorSet",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "plantShelf",
+      "status": "passed",
+      "maximumDifferenceMm": 6.661338147750939e-13
+    },
+    {
+      "key": "bike",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "yogaMat",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "catTree",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "petBed",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "fourSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "singleSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "chaiseSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "readingChair",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "nestTables",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "diningTable4",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "diningTable6",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "roundTable10",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "barTable",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "armDiningChair",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "kingBed",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "kidsBed",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "dayBed",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "wardrobe2",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "wardrobe3",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "toyCabinet",
+      "status": "passed",
+      "maximumDifferenceMm": 5.551115123125783e-14
+    },
+    {
+      "key": "playMat",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "standingDesk",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "bookshelfLow",
+      "status": "passed",
+      "maximumDifferenceMm": 6.661338147750939e-13
+    },
+    {
+      "key": "officeDesk",
+      "status": "passed",
+      "maximumDifferenceMm": 6.661338147750939e-13
+    },
+    {
+      "key": "deskBench2",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "deskBench4",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "bossDesk",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "roundMeeting",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "reception",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "lockers",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "officeSofa",
+      "status": "passed",
+      "maximumDifferenceMm": 8.881784197001252e-13
+    },
+    {
+      "key": "whiteboard",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "pantryCounter",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "shoeBench",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "wineFridge",
+      "status": "passed",
+      "maximumDifferenceMm": 4.440892098500626e-13
+    },
+    {
+      "key": "kitchenTrolley",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "arcLamp",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeBox",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeRoundBox",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freePlatform",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeWallBlock",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeCeilBlock",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeCyl",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeRoundStage",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeHalfCyl",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeTube",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeSphere",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeHemi",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeCone",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freePyramid",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeWedge",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeArch",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeArcWall",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeSlats",
+      "status": "passed",
+      "maximumDifferenceMm": 2.220446049250313e-13
+    },
+    {
+      "key": "freeGlassScreen",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeSteps",
+      "status": "passed",
+      "maximumDifferenceMm": 1.1102230246251565e-13
+    },
+    {
+      "key": "freeTorus",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeLightBox",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeMirror",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeVase",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeColumn",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    },
+    {
+      "key": "freeExtrude",
+      "status": "passed",
+      "maximumDifferenceMm": 0
+    }
+  ]
+}

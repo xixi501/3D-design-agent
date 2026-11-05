@@ -1,0 +1,4 @@
+> actiscape@0.1.0 test:visual
+> node --import tsx scripts/visual-baseline.mjs
+
+PASS fixed-view captures produced with shared camera, lights, resolution and input

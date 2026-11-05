@@ -1,0 +1,77 @@
+{
+  "browser": "Chrome/156.0.8078.4",
+  "gpu": {
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "software": true
+  },
+  "results": [
+    {
+      "name": "complete legacy snapshot loads with stable identity and data",
+      "status": "passed"
+    },
+    {
+      "name": "real pointer select and drag, keyboard rotate, copy and independent cabinet editing",
+      "status": "passed"
+    },
+    {
+      "name": "a drag keeps its starting revision when a tool changes the scene mid-gesture",
+      "status": "passed"
+    },
+    {
+      "name": "free form UI, parameter editing, outline vertex drag and array",
+      "status": "passed"
+    },
+    {
+      "name": "kitchen shape, per-run wall cabinets, room surfaces and custom tiles use real controls",
+      "status": "passed"
+    },
+    {
+      "name": "wall drawing, opening placement and structural updates commit atomically",
+      "status": "passed"
+    },
+    {
+      "name": "upload textured GLB using file input; transform, save and fresh browser context restore",
+      "status": "passed"
+    },
+    {
+      "name": "external API edits are reflected through SSE and browser reload preserves undo/redo",
+      "status": "passed"
+    },
+    {
+      "name": "two browser pages compete without silently overwriting and converge through SSE",
+      "status": "passed"
+    },
+    {
+      "name": "service restart retains history and assets",
+      "status": "passed"
+    },
+    {
+      "name": "split and 3D views, selection mapping, walkthrough movement, turn and exit",
+      "status": "passed"
+    },
+    {
+      "name": "3D pointer selects the visible object and commits one drag transaction",
+      "status": "passed"
+    },
+    {
+      "name": "all 266 catalogue items generate finite geometry and render in real WebGL and Canvas2D",
+      "status": "passed",
+      "detail": {
+        "count": 266
+      }
+    },
+    {
+      "name": "missing GLB mapping and unsupported multi-floor imports have explicit outcomes",
+      "status": "passed"
+    },
+    {
+      "name": "failed network save keeps the last committed scene and shows no success",
+      "status": "passed"
+    },
+    {
+      "name": "no uncaught browser errors",
+      "status": "passed"
+    }
+  ],
+  "errors": []
+}

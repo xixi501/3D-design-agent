@@ -228,3 +228,24 @@ async def test_cancel_before_commit_keeps_project_unchanged(tmp_path):
         assert result["status"] == "cancelled" and client.project["revision"] == 0
     finally:
         await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_render_failure_reports_error_without_commit(tmp_path):
+    class RenderFailureScene(FakeScene):
+        async def request(self, path, body=None):
+            if path.endswith("/render"):
+                raise SceneFailure(503, {"error": "RENDER_FAILED", "message": "截图失败"})
+            return await super().request(path, body)
+
+    client = RenderFailureScene()
+    manager = TaskManager(tmp_path, client, FakeRoles)
+    try:
+        task = await start_task(manager)
+        result = await finished(manager, task["id"])
+        assert result["status"] == "failed"
+        assert result["result"]["errorCode"] == "RENDER_FAILED"
+        assert client.project["revision"] == 0 and not client.ledger
+        assert len(client.candidates) == 1
+    finally:
+        await manager.close()

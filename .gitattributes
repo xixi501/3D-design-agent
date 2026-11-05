@@ -1,0 +1,3 @@
+reference/upstream/** -text -whitespace
+*.glb binary
+*.png binary

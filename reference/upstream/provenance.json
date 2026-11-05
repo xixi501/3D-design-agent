@@ -1,0 +1,17 @@
+{
+  "repository": "https://github.com/ZWD11/house-plan-designer",
+  "commit": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+  "license": "MIT",
+  "files": {
+    "LICENSE": "c4cc143edbe5e2d4bdcf75e94c3bb2091195f2327bc164d0ebfc384694358de7",
+    "reference/spec-format.md": "495b52fd8e3de2c8538ad3aeb9de7f1646a20df79f9d78a27435f8d4a298a3db",
+    "reference/catalog-sizes.json": "d299f37787ae1a2361697aa7244dcd46b43d35ae45601b39d98564c771863b3f",
+    "reference/example-spec.json": "b5226c5b02d21b06e9e464421503167dbe2df5d7d1dd68d0a214ba5e0bb7bb5f",
+    "scripts/browser.mjs": "cdbb291c11ea5a601474a6212e84252786a6639fc3184f5ad5803b1d76d66514",
+    "scripts/qa_furniture.mjs": "979a33c811b604915543d124dc78310fffebb3b26dfc402aa0a13027d1d05111",
+    "scripts/qa.mjs": "c5e8d33aca9d1a333cf64b7315381e857a31a1d064160c13700512eb67995851",
+    "scripts/imgio.py": "066bf71d1859d396e847176c48c1d80c2fd3d9be2123fd0ba99c268fb730496b",
+    "scripts/build.py": "0476e5291a7a3b5cd3ac016671517a99d844075555cee56e95697b6f4e7d4b10",
+    "assets/template.html": "8d0de9d3c35a9b60f64d97e16431860dad77828cc9e5b20960e15722505e6b9d"
+  }
+}

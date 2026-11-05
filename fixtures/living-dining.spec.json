@@ -1,0 +1,190 @@
+{
+  "name": "演境 · 客餐厅基准",
+  "height": 2800,
+  "phase": "renovate",
+  "autoElec": false,
+  "look": {
+    "style": "real",
+    "palette": "plan"
+  },
+  "walls": [
+    {
+      "a": [
+        0,
+        0
+      ],
+      "b": [
+        9000,
+        0
+      ],
+      "t": 200,
+      "bearing": true,
+      "openings": [
+        {
+          "type": "window",
+          "from": 1200,
+          "to": 3300,
+          "sill": 900
+        }
+      ]
+    },
+    {
+      "a": [
+        9000,
+        0
+      ],
+      "b": [
+        9000,
+        6000
+      ],
+      "t": 200,
+      "bearing": true
+    },
+    {
+      "a": [
+        9000,
+        6000
+      ],
+      "b": [
+        0,
+        6000
+      ],
+      "t": 200,
+      "bearing": true,
+      "openings": [
+        {
+          "type": "door",
+          "from": 400,
+          "to": 1300,
+          "into": [
+            1000,
+            5000
+          ]
+        }
+      ]
+    },
+    {
+      "a": [
+        0,
+        6000
+      ],
+      "b": [
+        0,
+        0
+      ],
+      "t": 200,
+      "bearing": true
+    }
+  ],
+  "rooms": [
+    {
+      "at": [
+        4500,
+        3000
+      ],
+      "name": "客餐厅",
+      "mat": "oak",
+      "wallMat": "latexWhite",
+      "ceil": {
+        "type": "none"
+      }
+    }
+  ],
+  "furniture": [
+    {
+      "key": "sofa",
+      "at": [
+        2200,
+        900
+      ]
+    },
+    {
+      "key": "coffeeTable",
+      "at": [
+        2200,
+        2400
+      ]
+    },
+    {
+      "key": "tvCabinet",
+      "at": [
+        2200,
+        4800
+      ],
+      "rot": 180
+    },
+    {
+      "key": "diningTable",
+      "at": [
+        6500,
+        2400
+      ]
+    },
+    {
+      "key": "chair",
+      "at": [
+        6100,
+        1600
+      ]
+    },
+    {
+      "key": "chair",
+      "at": [
+        7000,
+        1600
+      ]
+    },
+    {
+      "key": "chair",
+      "at": [
+        6100,
+        3200
+      ],
+      "rot": 180
+    },
+    {
+      "key": "chair",
+      "at": [
+        7000,
+        3200
+      ],
+      "rot": 180
+    },
+    {
+      "key": "armchair",
+      "at": [
+        6800,
+        4900
+      ],
+      "rot": 180
+    },
+    {
+      "key": "floorLamp",
+      "at": [
+        7900,
+        4900
+      ]
+    },
+    {
+      "key": "cabTall",
+      "at": [
+        400,
+        3600
+      ],
+      "rot": 90,
+      "w": 1500,
+      "d": 400,
+      "h": 2100
+    },
+    {
+      "key": "freeBox",
+      "at": [
+        4500,
+        4900
+      ],
+      "w": 800,
+      "d": 500,
+      "h": 350
+    }
+  ]
+}

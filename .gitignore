@@ -49,3 +49,10 @@ coverage/
 Thumbs.db
 .idea/
 .codex/
+
+# ActiScape local service and reproducible acceptance output
+/data/
+/test-results/
+/.tools/
+/reference/runtime/
+/fixtures/.build_walls.json

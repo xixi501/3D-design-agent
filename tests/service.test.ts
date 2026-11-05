@@ -39,6 +39,12 @@ test("HTTP transactions, duplicate requests, concurrency, branches and durable r
   const req = (method: any, url: string, payload?: any) =>
     server.app.inject({ method, url, payload });
   try {
+    const metadata = (await req("GET", "/api/catalog")).json();
+    assert.equal(Object.keys(metadata.items).length, 266);
+    assert.equal(metadata.freeMaterials.glass.op, 0.3);
+    assert.ok(metadata.styleTypes.includes("armchair"));
+    assert.ok(!metadata.styleTypes.includes("free"));
+    assert.equal(typeof metadata.openingTypes.door.width, "number");
     const created = (
         await req("POST", "/api/projects", { document: fixture })
       ).json(),

@@ -54,6 +54,20 @@ test("failed command batches do not mutate the source; copies have independent n
     ]),
   );
   assert.deepEqual(state, before);
+  const free = state.plan.furniture.find((f) => f.type === "free")!;
+  assert.throws(
+    () =>
+      applyCommands(state, [
+        {
+          type: "update",
+          collection: "furniture",
+          id: free.id,
+          patch: { opt: { op: 2 } },
+        },
+      ]),
+    /不透明度/,
+  );
+  assert.deepEqual(state, before);
   assert.throws(
     () =>
       applyCommands(state, [

@@ -245,6 +245,24 @@ try {
       );
       await change('[data-field="opt.shape"]', "extrude");
       await change('[data-field="h"]', 650);
+      await change('[data-field="opt.mat"]', "glass");
+      assert.equal(
+        await page.$eval('[data-field="opt.op"]', (el) => Number(el.value)),
+        0.3,
+      );
+      const opacities = await page.evaluate((id) => {
+        const values = [];
+        __actiscape.three.furniture.get(id).traverse((o) => {
+          if (o.isMesh)
+            for (const material of Array.isArray(o.material)
+              ? o.material
+              : [o.material])
+              values.push(material.opacity);
+        });
+        return values;
+      }, f.id);
+      assert.ok(opacities.length > 0);
+      assert.ok(opacities.every((value) => value === 0.3));
       const p = await current(),
         free = p.plan.furniture.find((o) => o.id === f.id),
         at = await page.evaluate(

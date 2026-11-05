@@ -3,6 +3,7 @@ import {
   freeMaterials,
   latheProfiles,
   furnitureStyles,
+  styleTypes,
   openingTypes,
   kitchenRecipe,
   isKitchen,
@@ -123,7 +124,7 @@ export function renderInspector(
           "color",
         ),
     );
-    if (f.type !== "model" && f.type !== "free")
+    if (styleTypes.includes(f.type))
       body += section(
         "风格",
         select(
@@ -139,7 +140,14 @@ export function renderInspector(
         "自由模型",
         select("opt.shape", shape, freeShapes, "造型") +
           select("opt.mat", f.opt?.mat || "paint", freeMaterials, "材质") +
-          num("opt.op", f.opt?.op ?? 1, "不透明度", 0.05, 1, 0.05) +
+          num(
+            "opt.op",
+            f.opt?.op ?? (freeMaterials as any)[f.opt?.mat || "paint"]?.op ?? 1,
+            "不透明度（0–1）",
+            0,
+            1,
+            0.05,
+          ) +
           (["box", "roundBox", "extrude"].includes(shape)
             ? num("opt.r", f.opt?.r || 0, "圆角 / 倒角", 0, 500, 5)
             : "") +

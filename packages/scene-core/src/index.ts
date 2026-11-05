@@ -1,4 +1,4 @@
-import { Hc, q0, yu, i7, ii, ja, F5, cs, $r } from "./inherited/catalog.js";
+import { Hc, q0, yu, i7, ii, ja, F5, cs, tf, $r } from "./inherited/catalog.js";
 import { Cu, Qc, Ns, L4, Ci, Zg, Ts, KU } from "./inherited/footprints.js";
 import { Gb, xd } from "./inherited/house-spec.js";
 import { Wc, D4, nM, F0, Ls } from "./inherited/topology.js";
@@ -27,6 +27,7 @@ export {
   ja as freeMaterials,
   F5 as latheProfiles,
   cs as furnitureStyles,
+  tf as styleTypes,
   $r as applyStyle,
 };
 export const detectRooms = (plan: Plan, geometry = Wc(plan)): any =>
@@ -185,10 +186,11 @@ export function validatePlan(plan: Plan) {
           ))
       )
         throw new SceneError("INVALID_RECIPE", "自由轮廓需要 3–200 个有效顶点");
-      for (const k of ["n", "sw", "t", "r", "op", "rx", "ry", "arc"])
+      for (const k of ["n", "sw", "t", "r", "rx", "ry", "arc"])
         if (f.opt?.[k] !== undefined)
           finite(f.opt[k], `造型参数 ${k}`, -360, 10000);
       if (f.opt?.n !== undefined) finite(f.opt.n, "造型数量", 1, 200);
+      if (f.opt?.op !== undefined) finite(f.opt.op, "不透明度", 0, 1);
     }
     if (f.cab) {
       const kinds = [

@@ -1,0 +1,12 @@
+{
+  "uniqueLiveTasks": 19,
+  "modelRequests": 146,
+  "recordedResponses": 146,
+  "recordedResponseTokens": {
+    "input_tokens": 623010,
+    "output_tokens": 108015,
+    "total_tokens": 731025
+  },
+  "activeTaskSeconds": 722.288,
+  "note": "Includes development smokes, pre-fix failures, final matrix, browser generation/edit and S2-A regression. Repeated snapshots of the same task are counted once. Token usage is not an invoice or a monetary estimate."
+}

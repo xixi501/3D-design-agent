@@ -1,0 +1,34 @@
+
+> actiscape@0.1.0 test:generation:live
+> node scripts/generation-acceptance.mjs
+
+FAIL living-dining repeat 1: {"status":"failed","message":"新增请求与目录选择不一致"}
++ actual - expected
+
++ 'failed'
+- 'completed'
+
+PASS reading-lounge repeat 1: 9 model requests, 0 repairs
+PASS living-dining repeat 2: 9 model requests, 0 repairs
+FAIL reading-lounge repeat 2: {"status":"failed","message":"新增请求与目录选择不一致"}
++ actual - expected
+
++ 'failed'
+- 'completed'
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: See all retained generation case results
+    at file:///workspace/3D-design-agent/scripts/generation-acceptance.mjs:217:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.22.2

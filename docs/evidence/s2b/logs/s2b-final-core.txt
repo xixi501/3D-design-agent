@@ -1,0 +1,29 @@
+
+> actiscape@0.1.0 test
+> tsx --test tests/*.test.ts
+
+✔ scoped candidates freeze IDs, preserve projects/history, check boundaries and deduplicate creation (570.639112ms)
+✔ candidate commits require matching evidence/review, are atomic, replay-safe and survive restart (170.810402ms)
+✔ full legacy snapshot preserves identities, recipes and materials with no browser globals (54.868568ms)
+✔ catalogue is byte-data equivalent to executed upstream and every recipe creates independently (3.867524ms)
+✔ failed command batches do not mutate the source; copies have independent nested recipes (39.621471ms)
+✔ HouseSpec converts, unsupported floors and invalid geometry explicitly fail (24.251158ms)
+✔ room recovery archive survives removed walls and restores original label ID (40.387366ms)
+✔ scene checks identify intersecting footprints and wall penetration with object evidence (19.555315ms)
+✔ rectangular compiler preserves net dimensions, units, stable references and rejects ambiguous/invalid openings (88.659054ms)
+✔ initialization previews and candidates leave projects unchanged; enforce quantities, doorway and empty-project scope (459.934437ms)
+✔ initialization commits are one durable transaction and migrate without changing old candidate hashes (91.226817ms)
+✔ HTTP transactions, duplicate requests, concurrency, branches and durable restart (365.178427ms)
+✔ 200 edit limit preserves cursor and operation audit (1631.44474ms)
+✔ textured GLB is content-addressed, survives restart; missing assets and malformed uploads reject (79.250222ms)
+✔ stopped data-directory backup restores the same scene, history cursor and asset bytes (45.286756ms)
+✔ renderer input validation rejects malformed optional fields and endpoints atomically with paths (50.759691ms)
+✔ all upstream defaults and fixed modelling gallery remain valid with extension fields preserved (77.680155ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2656.250088

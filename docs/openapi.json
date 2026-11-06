@@ -28,6 +28,53 @@
         }
       }
     },
+    "/api/projects/{id}/initialization-preview": {
+      "post": {
+        "description": "Read-only rectangular structure preview for an empty project; fixed task ID gives stable structure IDs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["taskId", "baseRevision", "brief"],
+                "additionalProperties": false,
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "baseRevision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "brief": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
     "/api/projects/{id}/candidates": {
       "get": {
         "description": "List immutable local-edit candidates without changing the project",
@@ -80,6 +127,14 @@
                   "summary": {
                     "type": "string",
                     "maxLength": 200
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": ["edit", "initialize"]
+                  },
+                  "brief": {
+                    "type": "object",
+                    "additionalProperties": true
                   },
                   "scope": {
                     "type": "object",

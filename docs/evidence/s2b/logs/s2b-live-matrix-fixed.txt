@@ -1,0 +1,8 @@
+
+> actiscape@0.1.0 test:generation:live
+> node scripts/generation-acceptance.mjs
+
+PASS living-dining repeat 1: 9 model requests, 0 repairs
+PASS reading-lounge repeat 1: 10 model requests, 0 repairs
+PASS living-dining repeat 2: 9 model requests, 0 repairs
+PASS reading-lounge repeat 2: 9 model requests, 0 repairs

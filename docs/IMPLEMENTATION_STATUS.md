@@ -1,4 +1,4 @@
-# S0 / S1 / S2-A implementation status
+# S0 / S1 / S2-A / S2-B implementation status
 
 Approved scope: single-floor editor; complete upstream parametric catalogue, cabinets and 17 free-form types; persistent projects/assets and undo/redo; real scene APIs. S2-A adds conversation-driven local furniture editing through four roles, frozen candidates, deterministic checks, real screenshots and one atomic commit.
 
@@ -34,8 +34,20 @@ Executed evidence: 10 core/service groups; 14 original baseline checks; 16 real-
 
 The original S0 checkboxes cover member one's upstream/editor baseline. They do not mean that the whole team's platform, asset generation or competition deliverables have passed.
 
+## S2-B rectangular text generation
+
+| Gate                                  | Actual status                                                                                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B0 structure and initialization tools | Passed: true net dimensions and unit conversion, fixed structure IDs, readonly preview, checked initialization, one transaction and undo to blank |
+| B1 brief and real Skill               | Passed: missing information waits; brief, defaults, source evidence and versioned Skill content persist; old edit identities survive migration    |
+| B2 four-role generation               | Passed: two fixed cases twice; final batch 4/4 with official DeepSeek, catalogue tools, deterministic checks and real images                      |
+| B3 workbench                          | Passed: actual new-project button, conversation/brief card, clarification, mode transition, service restart and continuous reference/edit         |
+| B4 regression and handoff             | Passed: Node 17 / Python 23, original full regression, six S2-A model flows, complete stopped backup/restore, Skill wheel resources and remote CI |
+
+The first formal batch passed 2/4; two asset request/instance indexing failures were rejected without changing projects. After strict per-request schema correction, a new complete batch passed 4/4. Both batches remain in [S2-B acceptance](S2B_ACCEPTANCE.md). Final generation prompt version is `s2b-rectangular-2`; the first real Skill is `rectangular-living-reading@0.1.0`.
+
 ## Remaining scope
 
-S2-A is the first usable local multi-agent editing loop. Complete S2 still needs initial room generation from text, two clear floorplan-image cases and initial real Skill loading. Cabinet/kitchen/free-form recipe conversation editing remains later; existing manual editing is retained.
+S2-A provides local multi-agent editing. S2-B adds initial rectangular-room generation and the first real Skill. Complete S2 still needs two clear floorplan-image cases and full integration acceptance. Nonrectangular/multiroom text generation and cabinet/kitchen/free-form recipe conversation editing remain later; existing manual editing is retained.
 
 S3 integrates real photo-to-model jobs and placement checks; S4 adds versioned Skills and GEPA with the frozen evaluation split; S5 completes AgentArts orchestration, external checkpoints, deployment and end-to-end competition evidence. None of these is established by a successful local SDK probe.

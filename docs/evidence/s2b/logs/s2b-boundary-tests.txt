@@ -1,0 +1,11 @@
+✔ rectangular compiler preserves net dimensions, units, stable references and rejects ambiguous/invalid openings (85.446994ms)
+✔ initialization previews and candidates leave projects unchanged; enforce quantities, doorway and empty-project scope (512.377343ms)
+✔ initialization commits are one durable transaction and migrate without changing old candidate hashes (88.965482ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1203.759982

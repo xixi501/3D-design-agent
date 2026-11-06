@@ -1,0 +1,52 @@
+{
+  "passed": true,
+  "liveModel": false,
+  "reviewSource": "operator",
+  "netDimensions": {
+    "width": 5000,
+    "depth": 3600,
+    "height": 2800,
+    "wallThickness": 200
+  },
+  "previewChangedProject": false,
+  "stableStructureIds": true,
+  "oneTransaction": true,
+  "undoToBlank": true,
+  "redo": true,
+  "projectId": "6cd74a4a-a6b8-4674-ad98-ee8492866e74",
+  "candidateId": "71ecf57e-1b79-4478-b305-03cb40f5a93c",
+  "checks": {
+    "passed": true,
+    "issues": [],
+    "coverage": [
+      "净尺寸、固定门窗与单个封闭矩形",
+      "授权对象与结构逐字段保护",
+      "需求数量",
+      "封闭房间占地包含（20 mm 容差）",
+      "有效高度与原版参数化轮廓 SAT",
+      "基准问题对照"
+    ],
+    "limitations": [
+      "GLB 使用矩形占地，不是精确网格碰撞",
+      "未验证支撑面、通道可达性、照明或法规"
+    ]
+  },
+  "evidence": [
+    {
+      "view": "top",
+      "sha256": "81c0822fc60299856b91fafb77409244cdc7f489f7723d9b4eb6d5a25fd096a0",
+      "candidateHash": "7e7d3c08dc2fe09ba3f670777ebfd0a83b4c4c388899173807b75c09b454da4a",
+      "bytes": 199267,
+      "createdAt": "2026-11-06T02:23:28.094Z",
+      "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据"
+    },
+    {
+      "view": "oblique",
+      "sha256": "6a264f5ab04adf927aefd7faf5f13c1993e30bd194d5ebb23d384f3e477dac2a",
+      "candidateHash": "7e7d3c08dc2fe09ba3f670777ebfd0a83b4c4c388899173807b75c09b454da4a",
+      "bytes": 181261,
+      "createdAt": "2026-11-06T02:23:28.095Z",
+      "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Processing ./apps/agent
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: actiscape-agent
+  Building wheel for actiscape-agent (pyproject.toml): started
+  Building wheel for actiscape-agent (pyproject.toml): finished with status 'done'
+  Created wheel for actiscape-agent: filename=actiscape_agent-0.2.0-py3-none-any.whl size=41641 sha256=73e458b645c049969fad52b8ebd6cdd7e8534f8329f8c0ba8f170af0b1a5093a
+  Stored in directory: /tmp/pip-ephem-wheel-cache-qa4m9f0i/wheels/53/b1/bb/3a27a57d0640c5f07b18f8d2e0ce5a89b239d5cd1520743ebd
+Successfully built actiscape-agent
+
+[notice] A new release of pip is available: 26.0.1 -> 26.3
+[notice] To update, run: /workspace/3D-design-agent/.venv/bin/python -m pip install --upgrade pip

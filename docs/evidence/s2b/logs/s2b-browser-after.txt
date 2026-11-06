@@ -1,0 +1,5 @@
+
+> actiscape@0.1.0 test:generation:browser
+> node scripts/generation-browser-acceptance.mjs --after-restart
+
+PASS browser service-restart recovery / pinned Skill / continuous reference / real local edit / persistent history / reopened conversation

@@ -5,6 +5,22 @@
     "version": "0.2.0"
   },
   "paths": {
+    "/skills": {
+      "get": {
+        "summary": "Skills",
+        "operationId": "skills_skills_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -520,6 +536,12 @@
             "type": "array",
             "maxItems": 20,
             "title": "Selectedids"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["edit", "generate_rectangular"],
+            "title": "Mode",
+            "default": "edit"
           }
         },
         "additionalProperties": false,

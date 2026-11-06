@@ -10,4 +10,6 @@ S2-A Python 依赖锁定于 `apps/agent/requirements.lock`，包含 LangGraph 1.
 
 模型服务使用 DeepSeek 官方 API；不分发模型权重。AgentArts 本轮仅包含自行编写的最小 LangGraph 工具联通入口和 SDK 调用，不复制完整平台模板。真实模型验收记录不包含 API 密钥。
 
+S2-B 内置的 `rectangular-living-reading` 设计技能整理自上述固定上游 `reference/spec-format.md`（坐标、家具朝向和布局约定）与 ActiScape 项目规则。技能包保留来源、MIT 许可和独立版本；它不声称是上游完整 Skill 的原样移植。
+
 固定客餐厅、展台 JSON 和带贴图花瓶是本项目验收样例；花瓶由 `scripts/prepare-fixtures.py` 程序生成，不需要第三方模型下载或权重。

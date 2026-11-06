@@ -1,0 +1,43 @@
+{
+  "liveModel": true,
+  "provider": "DeepSeek official",
+  "model": "deepseek-flash",
+  "results": [
+    {
+      "name": "reading-corner",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "f6921bb4-91c0-41a8-b16e-881a0851bee7"
+    },
+    {
+      "name": "add-floor-lamp",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "93a11032-e08b-43ea-a96e-8ae1fecc1ad0"
+    },
+    {
+      "name": "size-color",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "7a6ef6d9-62da-4646-9bd5-6a524ea2e672"
+    },
+    {
+      "name": "delete",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "0af3f81b-9263-43a6-aef4-14b86cdbe6bb"
+    },
+    {
+      "name": "multi-turn-reference",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "cf6db158-1839-4746-8f95-3c2d101f0a9f"
+    },
+    {
+      "name": "clarification",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "d650b268-01e0-4c34-b877-fa30fe82bf48"
+    }
+  ]
+}

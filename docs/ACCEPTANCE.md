@@ -1,23 +1,25 @@
 # S0 / S1 验收报告
 
+本文件保留 S1 的固定验收快照。后续实际能力与结果见 [S2-A 验收](S2A_ACCEPTANCE.md) 和 [S2-B 验收](S2B_ACCEPTANCE.md)。
+
 验收日期：2026-11-05 至 2026-11-06。业务与验证源码固定提交：`2749ff0adf4f3e6d97e5c8c17faf901e0e8d3ece`，分支 `dev/core`。后续交付提交补充文档和证据，不改变该业务版本。
 
 原版固定提交：`b94183f9ce2215db9a178da89a90d2ecefb18497`。产品与 SceneSmith 使用独立目录和依赖环境。
 
 ## 结果
 
-| 验收项 | 结果 | 实际证据 |
-|---|---|---|
-| 来源、许可、隔离依赖 | 通过：10 个原版文件哈希一致，7 个提取模块无残余 Three 核心捆绑块；核心不依赖浏览器全局 | `ENVIRONMENT.md`、来源清单、`npm run test:reference` |
-| 独立安装与构建 | 干净 `npm ci`、SQLite 原生模块检查、完整 TypeScript 检查与生产构建通过 | `evidence/final-build.txt`、依赖锁文件 |
-| 核心与服务 | 10 组通过，失败 0、跳过 0 | `evidence/logic-verification.txt` |
-| 原版运行基准 | 基础 7 组 + 扩展 7 组断言通过；其中一组确认原版刷新后撤销历史丢失 | `BASELINE.md`、`evidence/baseline/` |
-| 完整家具目录 | 266 项逐项创建、二维绘制与真实 WebGL 绘制；每项确认产生绘制调用且未丢失图形上下文 | `evidence/browser/report.json`、目录几何记录 |
-| 新旧几何对照 | 266 项实体网格数、顶点数与实际尺寸一致，容差 0.01 mm | `evidence/parity/catalog-report.json` |
-| 参数深测 | 24 组通过：17 个自由造型家族、两组复杂柜体、I/L/U 橱柜、浴室柜、淋浴房 | `evidence/parity/report.json` |
-| 真实工作台操作 | 16 组通过，未捕获页面错误 0 | `evidence/browser/report.json`、`evidence/final-browser.txt` |
-| 固定视角检查 | 同输入、960×720、同相机位置/目标/FOV、同灯光参数与软件渲染；实际相机参数经断言确认 | `evidence/visual/settings.json` 与两张固定视角图 |
-| 真实工具样例 | 脚本实际调用创建、读取、修改、检查、重复请求、过期版本与 GLB 入场 | `evidence/tool-demo.txt`、`evidence/asset-demo.txt` |
+| 验收项               | 结果                                                                                   | 实际证据                                                     |
+| -------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 来源、许可、隔离依赖 | 通过：10 个原版文件哈希一致，7 个提取模块无残余 Three 核心捆绑块；核心不依赖浏览器全局 | `ENVIRONMENT.md`、来源清单、`npm run test:reference`         |
+| 独立安装与构建       | 干净 `npm ci`、SQLite 原生模块检查、完整 TypeScript 检查与生产构建通过                 | `evidence/final-build.txt`、依赖锁文件                       |
+| 核心与服务           | 10 组通过，失败 0、跳过 0                                                              | `evidence/logic-verification.txt`                            |
+| 原版运行基准         | 基础 7 组 + 扩展 7 组断言通过；其中一组确认原版刷新后撤销历史丢失                      | `BASELINE.md`、`evidence/baseline/`                          |
+| 完整家具目录         | 266 项逐项创建、二维绘制与真实 WebGL 绘制；每项确认产生绘制调用且未丢失图形上下文      | `evidence/browser/report.json`、目录几何记录                 |
+| 新旧几何对照         | 266 项实体网格数、顶点数与实际尺寸一致，容差 0.01 mm                                   | `evidence/parity/catalog-report.json`                        |
+| 参数深测             | 24 组通过：17 个自由造型家族、两组复杂柜体、I/L/U 橱柜、浴室柜、淋浴房                 | `evidence/parity/report.json`                                |
+| 真实工作台操作       | 16 组通过，未捕获页面错误 0                                                            | `evidence/browser/report.json`、`evidence/final-browser.txt` |
+| 固定视角检查         | 同输入、960×720、同相机位置/目标/FOV、同灯光参数与软件渲染；实际相机参数经断言确认     | `evidence/visual/settings.json` 与两张固定视角图             |
+| 真实工具样例         | 脚本实际调用创建、读取、修改、检查、重复请求、过期版本与 GLB 入场                      | `evidence/tool-demo.txt`、`evidence/asset-demo.txt`          |
 
 `npm run test:all` 在上述固定业务提交完成整套检查，完整输出保存在 `evidence/release-verification.txt`。表中各组均引用这次验收结果。构建只有单 chunk 大小提示，退出状态为成功。
 

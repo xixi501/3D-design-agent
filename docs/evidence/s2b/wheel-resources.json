@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "file": "actiscape_agent-0.2.0-py3-none-any.whl",
+  "sha256": "73e458b645c049969fad52b8ebd6cdd7e8534f8329f8c0ba8f170af0b1a5093a",
+  "skillFiles": [
+    "actiscape_agent/skills/rectangular-living-reading/LICENSE",
+    "actiscape_agent/skills/rectangular-living-reading/SKILL.md",
+    "actiscape_agent/skills/rectangular-living-reading/manifest.json"
+  ]
+}

@@ -1,0 +1,10 @@
+
+> actiscape@0.1.0 test:agent:live
+> node scripts/agent-acceptance.mjs
+
+PASS reading-corner repeat 1 (6 model requests in last task)
+PASS add-floor-lamp repeat 1 (8 model requests in last task)
+PASS size-color repeat 1 (6 model requests in last task)
+PASS delete repeat 1 (7 model requests in last task)
+PASS multi-turn-reference repeat 1 (7 model requests in last task)
+PASS clarification repeat 1 (8 model requests in last task)

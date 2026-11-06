@@ -1,0 +1,26 @@
+
+> actiscape@0.1.0 build
+> npm run typecheck && vite build --config apps/editor/vite.config.ts
+
+
+> actiscape@0.1.0 typecheck
+> tsc --noEmit
+
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 28 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/editor/render.html                      0.36 kB │ gzip:   0.27 kB
+dist/editor/index.html                       0.49 kB │ gzip:   0.33 kB
+dist/editor/assets/main-BMuSNAk9.css         7.53 kB │ gzip:   2.50 kB
+dist/editor/assets/render-CGT4uYn-.js        1.73 kB │ gzip:   1.04 kB │ map:     5.32 kB
+dist/editor/assets/main-Cf-FtqBu.js         51.68 kB │ gzip:  19.84 kB │ map:   154.02 kB
+dist/editor/assets/three-view-BiY9RxRA.js  919.59 kB │ gzip: 255.72 kB │ map: 3,268.04 kB
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 455ms

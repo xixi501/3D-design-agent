@@ -1,0 +1,820 @@
+{
+  "phase": "before-restart",
+  "passed": true,
+  "liveModel": true,
+  "projectId": "9cecc176-0b5e-402e-bcff-5bae61a85087",
+  "task": {
+    "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551",
+    "conversationId": "c0888e8d-dab6-414c-b062-de7cc22ad22f",
+    "projectId": "9cecc176-0b5e-402e-bcff-5bae61a85087",
+    "requestId": "7cbb342d-128f-4346-857b-fd59e8e8a12d",
+    "input": "帮我设计一个温馨的矩形阅读会客间。\n用户补充：房间室内横向净宽5米、纵向净深3.6米。入口在南墙，门洞左边距西侧内墙3.5米；窗在东墙居中。需要两把单人沙发、一张茶几、一个书柜和一盏落地灯。采用温暖的中性配色，家具使用目录默认尺寸，门窗宽高和层高使用系统默认值。",
+    "selectedIds": [],
+    "status": "completed",
+    "result": {
+      "status": "completed",
+      "message": "已保存：北墙置书架，东窗北侧单人沙发为朝西主阅读位，落地灯紧邻其侧面，另一沙发在茶几南侧朝北，三件构成L形交流阅读组，南侧入口与800mm净空留空。本次修改作为一个事务提交，可撤销。 已将一把单人沙发设为主要阅读座位，可继续说“把它……”调整。",
+      "projectId": "9cecc176-0b5e-402e-bcff-5bae61a85087",
+      "candidateId": "dd5de600-8fd5-44af-866d-8910e168a717",
+      "baseRevision": 0,
+      "committedRevision": 1,
+      "diff": {
+        "added": [
+          "1faf1d74-071e-44df-8d5b-e0fbdac4b07e",
+          "c5fe58ad-70c6-4266-ba1d-cd64844bbc72",
+          "32f79dda-eeb4-4c04-8691-31753b035287",
+          "cfb994f9-0c7b-48da-be21-089e397a1d38",
+          "9b162aae-c49a-4517-9492-1d846c2f02a0"
+        ],
+        "deleted": [],
+        "updated": []
+      },
+      "changes": [
+        {
+          "action": "added",
+          "id": "1faf1d74-071e-44df-8d5b-e0fbdac4b07e",
+          "name": "书架",
+          "fields": [
+            {
+              "field": "x",
+              "before": null,
+              "after": 1150
+            },
+            {
+              "field": "y",
+              "before": null,
+              "after": 175
+            },
+            {
+              "field": "rot",
+              "before": null,
+              "after": 0
+            },
+            {
+              "field": "w",
+              "before": null,
+              "after": 900
+            },
+            {
+              "field": "d",
+              "before": null,
+              "after": 350
+            },
+            {
+              "field": "h",
+              "before": null,
+              "after": 2000
+            },
+            {
+              "field": "color",
+              "before": null,
+              "after": "#c7a27a"
+            }
+          ]
+        },
+        {
+          "action": "added",
+          "id": "c5fe58ad-70c6-4266-ba1d-cd64844bbc72",
+          "name": "单人沙发",
+          "fields": [
+            {
+              "field": "x",
+              "before": null,
+              "after": 4575
+            },
+            {
+              "field": "y",
+              "before": null,
+              "after": 600
+            },
+            {
+              "field": "rot",
+              "before": null,
+              "after": 270
+            },
+            {
+              "field": "w",
+              "before": null,
+              "after": 850
+            },
+            {
+              "field": "d",
+              "before": null,
+              "after": 850
+            },
+            {
+              "field": "h",
+              "before": null,
+              "after": 800
+            },
+            {
+              "field": "color",
+              "before": null,
+              "after": "#c98a5f"
+            }
+          ]
+        },
+        {
+          "action": "added",
+          "id": "32f79dda-eeb4-4c04-8691-31753b035287",
+          "name": "茶几",
+          "fields": [
+            {
+              "field": "x",
+              "before": null,
+              "after": 3500
+            },
+            {
+              "field": "y",
+              "before": null,
+              "after": 800
+            },
+            {
+              "field": "rot",
+              "before": null,
+              "after": 90
+            },
+            {
+              "field": "w",
+              "before": null,
+              "after": 1200
+            },
+            {
+              "field": "d",
+              "before": null,
+              "after": 600
+            },
+            {
+              "field": "h",
+              "before": null,
+              "after": 400
+            },
+            {
+              "field": "color",
+              "before": null,
+              "after": "#a47a55"
+            }
+          ]
+        },
+        {
+          "action": "added",
+          "id": "cfb994f9-0c7b-48da-be21-089e397a1d38",
+          "name": "单人沙发",
+          "fields": [
+            {
+              "field": "x",
+              "before": null,
+              "after": 3350
+            },
+            {
+              "field": "y",
+              "before": null,
+              "after": 2050
+            },
+            {
+              "field": "rot",
+              "before": null,
+              "after": 180
+            },
+            {
+              "field": "w",
+              "before": null,
+              "after": 850
+            },
+            {
+              "field": "d",
+              "before": null,
+              "after": 850
+            },
+            {
+              "field": "h",
+              "before": null,
+              "after": 800
+            },
+            {
+              "field": "color",
+              "before": null,
+              "after": "#c98a5f"
+            }
+          ]
+        },
+        {
+          "action": "added",
+          "id": "9b162aae-c49a-4517-9492-1d846c2f02a0",
+          "name": "落地灯（可点亮）",
+          "fields": [
+            {
+              "field": "x",
+              "before": null,
+              "after": 4450
+            },
+            {
+              "field": "y",
+              "before": null,
+              "after": 1350
+            },
+            {
+              "field": "rot",
+              "before": null,
+              "after": 0
+            },
+            {
+              "field": "w",
+              "before": null,
+              "after": 400
+            },
+            {
+              "field": "d",
+              "before": null,
+              "after": 400
+            },
+            {
+              "field": "h",
+              "before": null,
+              "after": 1650
+            },
+            {
+              "field": "color",
+              "before": null,
+              "after": "#e8dcc6"
+            }
+          ]
+        }
+      ],
+      "checks": {
+        "passed": true,
+        "issues": [],
+        "coverage": [
+          "净尺寸、固定门窗与单个封闭矩形",
+          "授权对象与结构逐字段保护",
+          "需求数量",
+          "封闭房间占地包含（20 mm 容差）",
+          "有效高度与原版参数化轮廓 SAT",
+          "基准问题对照"
+        ],
+        "limitations": [
+          "GLB 使用矩形占地，不是精确网格碰撞",
+          "未验证支撑面、通道可达性、照明或法规"
+        ]
+      },
+      "review": {
+        "passed": true,
+        "summary": "已调用 candidate_checks 并结合两张真实截图（隐藏吊顶/透明墙的俯视与斜视）核对，代码检查 passed=true、issues=[]。\n\n1) 结构与被冻结参数：室内净区由四角节点 (-100,-100)~(5100,3700)、墙厚 200 构成，净宽 5000、净深 3600、层高 2800，与用户补充的 5m×3.6m 一致；南墙门洞宽 900、离地 0、顶高 2100（系统默认），东墙窗宽 1500、离地 900、顶高 2400，居中于东墙；壁厚、默认门窗尺寸与层高均标记为 defaults，未视为模型擅自填写。墙体和门窗在候选数据中保持字段不变（检查项“授权对象与结构逐字段保护”“净尺寸、固定门窗与单个封闭矩形”通过）。\n\n2) 家具类型与数量（本次新增）：单人沙发 2 把、茶几 1 张、书架 1 个、落地灯 1 盏，均为真实目录 key，均为默认尺寸，未减项、未以杂物柜替代书柜。\n\n3) 布局合理性：书架 rot=0 背靠北墙空墙，中心 y=175 等于其旋转后占地半深，未压墙面或门窗；茶几位于两把单人沙发之间，形成可交流的夹角式组合；靠东侧窗的单人沙发紧邻采光侧、避开窗洞占地（窗洞 y≈1050–2550，其占地在窗洞之外），落地灯 (4450,1350) 位于阅读座位旁并留有各自占地，可确认该靠窗座位承担主要阅读用途。南墙入口内侧 800mm 净空区（门洞范围至 y≈2800）内无任何家具，入口与主要动线空地被保留。代码检查确认无越界、无重叠，且各家具与墙内皮距离均不小于旋转后实际占地一半。\n\n4) 风格：家具配色为暖木色/焦糖/陶土与米色灯罩 (#c7a27a、#c98a5f、#a47a55、#e8dcc6)，配合木色地面与中性墙面，符合“温暖的中性配色”要求。\n\n5) 证据：俯视图可核对净尺寸边界、门洞在南墙偏西侧、东墙窗、书架/茶几/两把沙发/落地灯的相对位置与朝向；斜视图可核对书架靠北墙、成组会客关系与灯具与阅读座位的邻接关系，未见明显穿插。检查器限制项（GLB 为矩形占地、未验证支撑面/照明/法规）已明确，不属于阻断项。\n\n综上，用户需求均已满足，无可见新增穿插或尺寸/位置偏差问题，本次判定通过（本角色不执行保存）。",
+        "issues": []
+      },
+      "evidence": [
+        {
+          "view": "top",
+          "sha256": "b570f266a7ef1eac27a106c0276245c825a9887fd0c3e03fe5dd88362bfa2aa5",
+          "candidateHash": "cb9393d07a4b2f705c7f25758d64c8abca320bf348b768c7caddc4da1e74eb3c",
+          "bytes": 189849,
+          "createdAt": "2026-11-06T02:15:26.018Z",
+          "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+          "url": "/api/projects/9cecc176-0b5e-402e-bcff-5bae61a85087/candidates/dd5de600-8fd5-44af-866d-8910e168a717/evidence/top"
+        },
+        {
+          "view": "oblique",
+          "sha256": "e5a46f927a03cf7c3e64cf9dd3a6a706cc49a2408db3aa937d493c92a7c4907f",
+          "candidateHash": "cb9393d07a4b2f705c7f25758d64c8abca320bf348b768c7caddc4da1e74eb3c",
+          "bytes": 175570,
+          "createdAt": "2026-11-06T02:15:26.019Z",
+          "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+          "url": "/api/projects/9cecc176-0b5e-402e-bcff-5bae61a85087/candidates/dd5de600-8fd5-44af-866d-8910e168a717/evidence/oblique"
+        }
+      ],
+      "repairs": 0,
+      "versionRetries": 0,
+      "generation": {
+        "brief": {
+          "purpose": "reading_lounge",
+          "width": {
+            "value": 5,
+            "unit": "m"
+          },
+          "depth": {
+            "value": 3.6,
+            "unit": "m"
+          },
+          "doors": [
+            {
+              "side": "south",
+              "position": "offset",
+              "offset": {
+                "value": 3.5,
+                "unit": "m"
+              }
+            }
+          ],
+          "windows": [
+            {
+              "side": "east",
+              "position": "center"
+            }
+          ]
+        },
+        "dimensions": {
+          "width": 5000,
+          "depth": 3600,
+          "height": 2800,
+          "wallThickness": 200
+        },
+        "openings": [
+          {
+            "type": "door",
+            "side": "south",
+            "from": 3500,
+            "width": 900,
+            "sill": 0,
+            "head": 2100
+          },
+          {
+            "type": "window",
+            "side": "east",
+            "from": 1050,
+            "width": 1500,
+            "sill": 900,
+            "head": 2400
+          }
+        ],
+        "defaults": [
+          "层高 2800 mm",
+          "墙厚 200 mm",
+          "入口1宽度 900 mm",
+          "入口1离地 0 mm",
+          "入口1顶高 2100 mm",
+          "窗1宽度 1500 mm",
+          "窗1离地 900 mm",
+          "窗1顶高 2400 mm"
+        ],
+        "style": "温暖的中性配色",
+        "furniture": [
+          {
+            "query": "单人沙发",
+            "count": 2
+          },
+          {
+            "query": "茶几",
+            "count": 1
+          },
+          {
+            "query": "书柜",
+            "count": 1
+          },
+          {
+            "query": "落地灯",
+            "count": 1
+          }
+        ],
+        "skillsUsed": [
+          {
+            "id": "rectangular-living-reading",
+            "version": "0.1.0",
+            "contentHash": "ff35c055a715485ef9b93fef6e0b656ae61b79abafd6b4da75ff45a673399a50",
+            "source": [
+              "ZWD11/house-plan-designer@b94183f9ce2215db9a178da89a90d2ecefb18497/reference/spec-format.md",
+              "ActiScape S2-B project layout rules"
+            ],
+            "license": "MIT"
+          }
+        ]
+      },
+      "skillsUsed": [
+        {
+          "id": "rectangular-living-reading",
+          "version": "0.1.0",
+          "contentHash": "ff35c055a715485ef9b93fef6e0b656ae61b79abafd6b4da75ff45a673399a50",
+          "source": [
+            "ZWD11/house-plan-designer@b94183f9ce2215db9a178da89a90d2ecefb18497/reference/spec-format.md",
+            "ActiScape S2-B project layout rules"
+          ],
+          "license": "MIT"
+        }
+      ],
+      "structure": {
+        "nodes": {
+          "added": [
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:0",
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:1",
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:2",
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:3"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "walls": {
+          "added": [
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:0",
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:1",
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:2",
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:3"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "openings": {
+          "added": [
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:openings:0",
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:openings:1"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "structs": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "beams": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "rooms": {
+          "added": [
+            "f92683d2-099b-4ed8-85bd-77ecdddf7551:rooms:0"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "measures": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "elec": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "voids": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "comments": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        }
+      },
+      "focusIds": [
+        "c5fe58ad-70c6-4266-ba1d-cd64844bbc72"
+      ]
+    },
+    "error": null,
+    "cancelRequested": false,
+    "modelCalls": 11,
+    "elapsedSeconds": 105.75917410850525,
+    "createdAt": 1793931268.3392868,
+    "updatedAt": 1793931375.130399,
+    "mode": "generate_rectangular",
+    "generation": {
+      "brief": {
+        "purpose": "reading_lounge",
+        "width": {
+          "value": 5,
+          "unit": "m"
+        },
+        "depth": {
+          "value": 3.6,
+          "unit": "m"
+        },
+        "doors": [
+          {
+            "side": "south",
+            "position": "offset",
+            "offset": {
+              "value": 3.5,
+              "unit": "m"
+            }
+          }
+        ],
+        "windows": [
+          {
+            "side": "east",
+            "position": "center"
+          }
+        ]
+      },
+      "furniture": [
+        {
+          "query": "单人沙发",
+          "count": 2
+        },
+        {
+          "query": "茶几",
+          "count": 1
+        },
+        {
+          "query": "书柜",
+          "count": 1
+        },
+        {
+          "query": "落地灯",
+          "count": 1
+        }
+      ],
+      "style": "温暖的中性配色",
+      "missing": [],
+      "defaults": [
+        "层高 2800 mm",
+        "墙厚 200 mm",
+        "入口1宽度 900 mm",
+        "入口1离地 0 mm",
+        "入口1顶高 2100 mm",
+        "窗1宽度 1500 mm",
+        "窗1离地 900 mm",
+        "窗1顶高 2400 mm"
+      ],
+      "evidence": {
+        "purpose": "帮我设计一个温馨的矩形阅读会客间",
+        "width": "房间室内横向净宽5米",
+        "depth": "纵向净深3.6米",
+        "doors": "入口在南墙，门洞左边距西侧内墙3.5米",
+        "windows": "窗在东墙居中"
+      },
+      "unsupported": false,
+      "question": "",
+      "frozen": true,
+      "frozenBrief": {
+        "purpose": "reading_lounge",
+        "width": {
+          "value": 5,
+          "unit": "m"
+        },
+        "depth": {
+          "value": 3.6,
+          "unit": "m"
+        },
+        "doors": [
+          {
+            "side": "south",
+            "position": "offset",
+            "offset": {
+              "value": 3.5,
+              "unit": "m"
+            }
+          }
+        ],
+        "windows": [
+          {
+            "side": "east",
+            "position": "center"
+          }
+        ]
+      },
+      "sourceInputHash": "93256ad95962f8f5b247eda3657c571cde73e7562f23b10cd9f099ec55919dcf",
+      "dimensions": {
+        "width": 5000,
+        "depth": 3600,
+        "height": 2800,
+        "wallThickness": 200
+      },
+      "openings": [
+        {
+          "type": "door",
+          "side": "south",
+          "from": 3500,
+          "width": 900,
+          "sill": 0,
+          "head": 2100
+        },
+        {
+          "type": "window",
+          "side": "east",
+          "from": 1050,
+          "width": 1500,
+          "sill": 900,
+          "head": 2400
+        }
+      ],
+      "skillsUsed": [
+        {
+          "id": "rectangular-living-reading",
+          "version": "0.1.0",
+          "contentHash": "ff35c055a715485ef9b93fef6e0b656ae61b79abafd6b4da75ff45a673399a50",
+          "source": [
+            "ZWD11/house-plan-designer@b94183f9ce2215db9a178da89a90d2ecefb18497/reference/spec-format.md",
+            "ActiScape S2-B project layout rules"
+          ],
+          "license": "MIT"
+        }
+      ],
+      "lastCandidateId": "dd5de600-8fd5-44af-866d-8910e168a717",
+      "lastChecks": {
+        "passed": true,
+        "issues": [],
+        "coverage": [
+          "净尺寸、固定门窗与单个封闭矩形",
+          "授权对象与结构逐字段保护",
+          "需求数量",
+          "封闭房间占地包含（20 mm 容差）",
+          "有效高度与原版参数化轮廓 SAT",
+          "基准问题对照"
+        ],
+        "limitations": [
+          "GLB 使用矩形占地，不是精确网格碰撞",
+          "未验证支撑面、通道可达性、照明或法规"
+        ]
+      }
+    }
+  },
+  "generated": {
+    "plan": {
+      "version": 2,
+      "name": "文字生成 · 阅读会客间",
+      "height": 2800,
+      "phase": "renovate",
+      "nodes": [
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:0",
+          "x": -100,
+          "y": -100
+        },
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:1",
+          "x": 5100,
+          "y": -100
+        },
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:2",
+          "x": 5100,
+          "y": 3700
+        },
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:3",
+          "x": -100,
+          "y": 3700
+        }
+      ],
+      "walls": [
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:0",
+          "a": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:0",
+          "b": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:1",
+          "t": 200,
+          "bearing": true,
+          "status": "existing",
+          "bearingFrom": "inferred"
+        },
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:1",
+          "a": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:1",
+          "b": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:2",
+          "t": 200,
+          "bearing": true,
+          "status": "existing",
+          "bearingFrom": "inferred"
+        },
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:2",
+          "a": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:2",
+          "b": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:3",
+          "t": 200,
+          "bearing": true,
+          "status": "existing",
+          "bearingFrom": "inferred"
+        },
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:3",
+          "a": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:3",
+          "b": "f92683d2-099b-4ed8-85bd-77ecdddf7551:nodes:0",
+          "t": 200,
+          "bearing": true,
+          "status": "existing",
+          "bearingFrom": "inferred"
+        }
+      ],
+      "openings": [
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:openings:0",
+          "wall": "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:1",
+          "type": "window",
+          "pos": 1900,
+          "width": 1500,
+          "sill": 900,
+          "head": 2400,
+          "hinge": 0,
+          "side": 1
+        },
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:openings:1",
+          "wall": "f92683d2-099b-4ed8-85bd-77ecdddf7551:walls:2",
+          "type": "door",
+          "pos": 1150,
+          "width": 900,
+          "sill": 0,
+          "head": 2100,
+          "hinge": 0,
+          "side": 1,
+          "entry": true
+        }
+      ],
+      "furniture": [
+        {
+          "id": "1faf1d74-071e-44df-8d5b-e0fbdac4b07e",
+          "key": "bookshelf",
+          "type": "bookshelf",
+          "name": "书架",
+          "w": 900,
+          "d": 350,
+          "h": 2000,
+          "color": "#c7a27a",
+          "x": 1150,
+          "y": 175,
+          "rot": 0
+        },
+        {
+          "id": "c5fe58ad-70c6-4266-ba1d-cd64844bbc72",
+          "key": "armchair",
+          "type": "armchair",
+          "name": "单人沙发",
+          "w": 850,
+          "d": 850,
+          "h": 800,
+          "color": "#c98a5f",
+          "x": 4575,
+          "y": 600,
+          "rot": 270
+        },
+        {
+          "id": "32f79dda-eeb4-4c04-8691-31753b035287",
+          "key": "coffeeTable",
+          "type": "coffeeTable",
+          "name": "茶几",
+          "w": 1200,
+          "d": 600,
+          "h": 400,
+          "color": "#a47a55",
+          "x": 3500,
+          "y": 800,
+          "rot": 90
+        },
+        {
+          "id": "cfb994f9-0c7b-48da-be21-089e397a1d38",
+          "key": "armchair",
+          "type": "armchair",
+          "name": "单人沙发",
+          "w": 850,
+          "d": 850,
+          "h": 800,
+          "color": "#c98a5f",
+          "x": 3350,
+          "y": 2050,
+          "rot": 180
+        },
+        {
+          "id": "9b162aae-c49a-4517-9492-1d846c2f02a0",
+          "key": "floorLamp",
+          "type": "floorLamp",
+          "name": "落地灯（可点亮）",
+          "w": 400,
+          "d": 400,
+          "h": 1650,
+          "color": "#e8dcc6",
+          "x": 4450,
+          "y": 1350,
+          "rot": 0
+        }
+      ],
+      "structs": [],
+      "beams": [],
+      "rooms": [
+        {
+          "id": "f92683d2-099b-4ed8-85bd-77ecdddf7551:rooms:0",
+          "x": 2500,
+          "y": 1800,
+          "name": "阅读会客间",
+          "mat": "oak",
+          "wallMat": "latexWhite",
+          "ceil": {
+            "type": "none",
+            "drop": 0,
+            "edgeW": 400,
+            "cove": false
+          }
+        }
+      ],
+      "measures": [],
+      "elec": [],
+      "prices": {},
+      "voids": [],
+      "comments": []
+    },
+    "roomLabelArchive": [],
+    "formatVersion": 1,
+    "id": "9cecc176-0b5e-402e-bcff-5bae61a85087",
+    "revision": 1,
+    "updatedAt": "2026-11-06T02:16:15.122Z",
+    "assets": [],
+    "history": {
+      "undo": 1,
+      "redo": 0
+    }
+  },
+  "clarificationSameTask": true,
+  "reloadedWhileWaiting": true,
+  "undoToBlank": true,
+  "redo": true,
+  "errors": []
+}

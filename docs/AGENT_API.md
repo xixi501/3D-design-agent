@@ -2,6 +2,8 @@
 
 浏览器通过同源 `/api/agent` 访问 Python 服务。项目规则与修改继续由 Node 服务执行。Node OpenAPI 位于 `/api/openapi.json`，Agent OpenAPI 位于 `/api/agent/openapi.json`。
 
+S2-B 已增加矩形文字生成，操作与恢复见 [S2B_RUNBOOK.md](S2B_RUNBOOK.md)。原编辑请求保持兼容。
+
 ## 会话和任务
 
 | 方法与路径                                    | 能力                                                    |
@@ -27,6 +29,10 @@
 ```
 
 同一会话的同一 requestId 与相同内容返回原任务；不同内容返回 409。恢复请求同样使用独立 requestId 去重，并携带补充 input 和 selectedIds。原任务的预算不会因恢复而重置。每个项目的活动任务由 SQLite 唯一约束保护。
+
+任务可附 `mode: "edit" | "generate_rectangular"`，默认 edit。默认值不改变旧请求的去重哈希。生成任务仅在空白项目使用，后续澄清继续恢复同一任务；成功后新增的对话任务使用 edit。
+
+GET `/api/agent/skills` 返回首个可用设计 Skill 的身份、版本、哈希、来源、许可、适用用途与所需工具。任务的 `generation` 包含已收集 brief、missing、defaults、冻结状态和 skillsUsed；完整 Skill 正文只在服务端持久快照与角色上下文中保留。
 
 状态为 queued、running、waiting_input、committing、completed、failed、conflict、cancelled。只有服务确认固定候选已提交，才返回 completed 和 committedRevision。任务结果包含业务差异、具体字段变化、代码检查、检查角色意见及两个证据 URL。
 
@@ -66,11 +72,43 @@ commit 请求必须携带候选返回的 operationId、原 baseRevision 和 cand
 
 operator 检查仅供显式工具验收，不能当成检查 Agent 已执行的证据。正式对话流程使用 agent 检查；角色工具注册表不提供 review/commit 的通用写入能力，提交由固定代码节点执行。
 
+## 矩形初始化预览与候选
+
+POST `/api/projects/:id/initialization-preview`：只读编译空白项目的矩形结构，要求 taskId、baseRevision、brief。返回固定结构身份、预览快照、初始化命令、毫米尺寸、门窗与默认值；不增加正式修订号或历史。
+
+```json
+{
+  "taskId": "example-rectangular-task",
+  "baseRevision": 0,
+  "brief": {
+    "purpose": "living_dining",
+    "width": { "value": 6, "unit": "m" },
+    "depth": { "value": 4, "unit": "m" },
+    "doors": [
+      {
+        "side": "south",
+        "position": "offset",
+        "offset": { "value": 400, "unit": "mm" }
+      }
+    ],
+    "windows": [{ "side": "north", "position": "center" }]
+  }
+}
+```
+
+实际 taskId 为最多 100 字符的字母、数字、下划线或连字符，Agent 使用 UUID。purpose 支持 living_dining / reading_lounge；尺寸支持 mm/cm/m。门窗必须给墙面和 center/offset 位置；doors 至少一项，windows=[] 明确表示没有窗。未提供窗数组不能当作无窗。
+
+创建候选仍使用 `/api/projects/:id/candidates`，增加 `kind:"initialize"` 和同一份 brief，scope/edits/requestId/taskId/baseRevision 继续必需。scope 仅允许新增目录家具，并包含每项配方的数量。初始化不接受通过改变目录默认尺寸来绕过空间要求。
+
+结构身份由同一任务固定；家具身份在候选创建时固定。响应保留原家具 diff，并增加 structure 中各集合的 added/deleted/updated 身份；generation 返回输入 brief、毫米尺寸、门窗和默认值。复用同一渲染、检查、review 和 commit 子入口。
+
+正式提交重新编译并比对冻结结构，要求当前项目仍为空白、版本一致、家具清单与几何通过、两个 PNG 哈希有效、独立检查通过。结构与家具一起进入一个事务，撤销恢复原空白项目。PROJECT_NOT_EMPTY / REVISION_CONFLICT 不会覆盖现有内容。
+
 ## 检查与显示边界
 
 检查复用 TypeScript 核心的有效房间区域、参数化轮廓和 SAT，包含字段保护、需求数量、20 mm 容差的房间占地包含及有效高度。吊装家具的有效离地与三维渲染使用同一函数。
 
-新增或加重的相关几何问题阻断提交，既有无关问题继续展示。GLB 仍是矩形占地；未验证精确网格、支撑面、可达性或法规。
+新增或加重的相关几何问题阻断提交，既有无关问题继续展示。S2-B 增加门洞内侧 800 mm 局部净空检查。GLB 仍是矩形占地；未验证精确网格、支撑面、完整通路可达性或法规。
 
 图片采用同一候选真实 Three.js 网格。检查视图将墙体设为 15% 不透明度并隐藏吊顶，便于观察家具；这属于取证视图，不更改项目数据。截图失败、证据缺失或检查未通过不能提交。
 

@@ -1,0 +1,5 @@
+
+> actiscape@0.1.0 test:generation:browser
+> node scripts/generation-browser-acceptance.mjs
+
+PASS browser new project / brief clarification / persisted waiting / real four-role generation / SSE / one-step undo-to-blank / redo

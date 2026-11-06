@@ -1,0 +1,5 @@
+
+> actiscape@0.1.0 test:initialization
+> node --import tsx scripts/initialization-acceptance.mjs
+
+PASS real rectangular preview / two WebGL images / stable IDs / one transaction / undo to blank / redo

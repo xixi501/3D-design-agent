@@ -1,0 +1,44 @@
+{
+  "provider": "DeepSeek official",
+  "model": "deepseek-flash",
+  "liveModel": true,
+  "directory": "/workspace/3D-design-agent/test-results/generation-acceptance/2026-11-06T02-01-57-527Z",
+  "results": [
+    {
+      "name": "living-dining",
+      "repeat": 1,
+      "status": "failed",
+      "error": "{\"status\":\"failed\",\"message\":\"新增请求与目录选择不一致\"}\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n",
+      "projectId": "66a3ba9c-32f6-45f0-915b-cf7bdfe25445",
+      "taskId": "914b86c2-a8a1-4100-8248-4a88246fb273",
+      "modelCalls": 4
+    },
+    {
+      "name": "reading-lounge",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "a6c85dba-cb1a-4961-8669-990a56e32f69",
+      "taskId": "8c62dc78-a659-4067-b920-bf93cd34d410",
+      "modelCalls": 9,
+      "repairs": 0
+    },
+    {
+      "name": "living-dining",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "53290ddc-3a63-4885-b15a-16d412c9ee20",
+      "taskId": "3e5d9fbc-0476-4dde-94ee-433cbb812e84",
+      "modelCalls": 9,
+      "repairs": 0
+    },
+    {
+      "name": "reading-lounge",
+      "repeat": 2,
+      "status": "failed",
+      "error": "{\"status\":\"failed\",\"message\":\"新增请求与目录选择不一致\"}\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n",
+      "projectId": "8b4cca8a-65fa-4f67-8cfc-236236c014e7",
+      "taskId": "f25c8e4b-9408-4ad4-8883-c86531fb1638",
+      "modelCalls": 4
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Two real floorplan inputs — pending
 
-The two user-provided images are not present. Do not substitute the synthetic tool fixture for this acceptance gate.
+The user currently selected one real "92" floorplan for a feasibility pilot; the earlier image was superseded and is not a second acceptance case. Originals, task traces and drafts stay in the local data/test-results directories. The two-case acceptance manifest and frozen references remain pending. Do not substitute the synthetic tool fixture or duplicate the active image for this gate.
 
 Create an operator-owned manifest outside Git, with exactly two cases:
 

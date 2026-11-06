@@ -7,9 +7,15 @@ ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(ROOT / ".env", override=False)
 
 # Whole-floor image recognition needs room for both thinking and the geometry
-# result. Other roles retain the previously verified 8K/120s defaults. The
+# result. Use bounded low effort for pixel extraction: high effort exhausted
+# even 32K reasoning tokens on a real plan without returning its result.
+# Other roles retain the previously verified high-effort/8K/120s defaults. The
 # shared 24-request/600s task budget still applies to every role and retry.
-FLOORPLAN_RECOGNITION_OPTIONS = {"max_tokens": 32768, "timeout": 180}
+FLOORPLAN_RECOGNITION_OPTIONS = {
+    "max_tokens": 32768,
+    "timeout": 180,
+    "reasoning_effort": "low",
+}
 
 
 def state_directory() -> Path:

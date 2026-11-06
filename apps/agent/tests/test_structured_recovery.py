@@ -25,7 +25,9 @@ async def test_recognition_output_profile_reaches_model_without_changing_other_r
     wire = model._get_request_payload([HumanMessage("inspect image")])
     assert wire["max_tokens"] == (32768 if recognition else 8192)
     assert model.request_timeout == (180 if recognition else 120)
-    assert wire["reasoning_effort"] == model_settings()["reasoning_effort"]
+    assert wire["reasoning_effort"] == options.get(
+        "reasoning_effort", model_settings()["reasoning_effort"]
+    )
     store = TaskStore(tmp_path)
     conversation = store.create_conversation("p")
     task = store.create_task(
@@ -51,6 +53,7 @@ async def test_recognition_output_profile_reaches_model_without_changing_other_r
         started = next(e["data"] for e in store.events(task["id"]) if e["kind"] == "agent_start")
         assert started["maxOutputTokens"] == wire["max_tokens"]
         assert started["timeoutSeconds"] == model.request_timeout
+        assert started["reasoningEffort"] == wire["reasoning_effort"]
         assert store.task(task["id"])["modelCalls"] == 1
     finally:
         store.close()

@@ -49,7 +49,7 @@ def runtime_versions():
         "reasoningEffort": model_settings()["reasoning_effort"],
         "tools": "scene-candidate-v3",
         "structuredOutputRecovery": "one-bounded-continuation-1",
-        "modelConfigVersion": "per-role-output-budget-1",
+        "modelConfigVersion": "per-role-output-budget-2",
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
         "floorplanPromptVersion": "s2c-floorplan-3",
         "pillow": version("Pillow"),

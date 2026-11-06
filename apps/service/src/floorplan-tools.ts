@@ -57,7 +57,7 @@ export class FloorplanTools {
       parameters,
       spec,
       draftHash,
-      adapterVersion: "hpd-adapter-1",
+      adapterVersion: "hpd-adapter-2",
       provenance,
     });
     const dir = this.directory(imageId, id),

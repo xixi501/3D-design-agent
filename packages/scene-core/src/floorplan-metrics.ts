@@ -230,6 +230,40 @@ function topology(
     return { passed: false, error: (error as Error).message };
   }
 }
+/** First-pass quality can be measured even when the recognized geometry cannot compile. */
+export function scoreFloorplanRecognition(
+  raw: FloorplanData,
+  reference: FloorplanData,
+  aliases: Record<string, string> = {},
+) {
+  const scale = floorplanScale(reference);
+  const walls = wallQuality(raw, reference, scale);
+  const openings = pairs(
+    openingPoints(raw, scale),
+    openingPoints(reference, scale),
+    (a, b) =>
+      a.type === b.type &&
+      distance(a, b) <= 100 &&
+      Math.abs(a.width - b.width) <= 100,
+    distance,
+  );
+  const furniture = pairs(
+    symbols(raw, scale, aliases),
+    symbols(reference, scale, aliases),
+    (a, b) => a.category === b.category,
+    distance,
+  );
+  return {
+    passed: [walls, openings, furniture].every(
+      (m) => m.precision >= 0.9 && m.recall >= 0.9,
+    ),
+    walls,
+    openings,
+    furniture,
+    thresholdVersion: "s2c-1",
+  };
+}
+
 export function scoreFloorplan(
   raw: FloorplanData,
   confirmed: FloorplanData,

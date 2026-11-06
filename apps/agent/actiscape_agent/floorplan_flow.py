@@ -57,7 +57,22 @@ class FloorplanFlow:
                         "data": {k: v for k, v in value.items() if k not in ("status", "question")},
                     },
                 )
-                return result["checks"]
+                checks = result["checks"]
+                current = self.store.task(task["id"], internal=True)["generation"]
+                submission = current.get("measurementSubmission") or {}
+                if submission.get("recognition") == value:
+                    preservation = [
+                        i
+                        for i in (submission.get("checks") or {}).get("issues", [])
+                        if i.get("code") == "FLOORPLAN_UNEXPLAINED_REMOVAL"
+                    ]
+                    if preservation:
+                        checks = {
+                            **checks,
+                            "passed": False,
+                            "issues": [*checks.get("issues", []), *preservation],
+                        }
+                return checks
             except SceneFailure as error:
                 return {
                     "passed": False,
@@ -95,6 +110,8 @@ class FloorplanFlow:
                     "role": "design",
                     "response": recognized,
                     "checks": checks,
+                    "changes": g.get("measurementSubmission", {}).get("changes", []),
+                    "changeReasons": g.get("measurementSubmission", {}).get("changeReasons", {}),
                     "imageHash": image["sha256"],
                     "sourceInputHash": fingerprint(task["input"]),
                 }
@@ -104,6 +121,18 @@ class FloorplanFlow:
                 break
         g.update(measurementComplete=True, recognitionChecks=checks)
         self.store.update(task["id"], generation=g)
+        if any(i.get("code") == "FLOORPLAN_UNEXPLAINED_REMOVAL" for i in checks.get("issues", [])):
+            recognized = {
+                **recognized,
+                "uncertainties": [
+                    *recognized.get("uncertainties", []),
+                    {
+                        "id": "system-preservation-" + fingerprint(checks)[:12],
+                        "message": "自动测量删除对象或修改标注而未提供原图依据，需解决差异报告后才能确认。",
+                        "blocking": True,
+                    },
+                ],
+            }
         return recognized
 
     async def ground(self, state, task):

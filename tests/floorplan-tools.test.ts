@@ -51,6 +51,16 @@ test("original image tools expose measured evidence without changing project/dra
       evidence: "deliberately inconsistent",
     });
     assert.equal(badChain.json().result.inconsistent, true);
+    const wrongCount = await call(root + "/axis", {
+      ticks: [100, 300],
+      distances: [0, 4000],
+      basis: "interior",
+      evidence: "controlled wrong cumulative coordinates",
+    });
+    assert.equal(wrongCount.statusCode, 422);
+    assert.equal(wrongCount.json().details.expectedCount, 1);
+    assert.equal(wrongCount.json().details.actualCount, 2);
+    assert.deepEqual(wrongCount.json().details.example.distances, [4000]);
     for (const [tool, payload] of [
       ["fit", { walls: [{ kind: "V", c: -1, p0: 0, p1: 20 }] }],
       [
@@ -87,6 +97,33 @@ test("original image tools expose measured evidence without changing project/dra
     ).json();
     assert.equal(invalidResult.checks.passed, false);
     assert.equal(invalidResult.checks.issues[0].field, "walls");
+    const wallIssue = invalidResult.checks.issues[0];
+    assert.ok(wallIssue.objectIds.includes(data.walls[0].id));
+    assert.ok(
+      wallIssue.details.endpoints.some(
+        (p: any) => p.imagePoint.x === 75 && p.nearest.length,
+      ),
+    );
+    const wrongScale = clone(data);
+    wrongScale.anchors.push({
+      ...clone(data.anchors[0]),
+      distance: { value: 8900, unit: "mm" },
+      basis: "interior",
+    });
+    const scaleIssue = (
+      await call(preflightUrl, { imageId: image.id, data: wrongScale })
+    ).json().checks.issues[0];
+    assert.equal(scaleIssue.details.anchors[1].residualMm, 100);
+    assert.equal(scaleIssue.details.anchors[1].basis, "interior");
+    assert.deepEqual(scaleIssue.details.anchors[1].a, data.anchors[0].a);
+    const wrongOpening = clone(data);
+    wrongOpening.openings[0].offset = 2000;
+    const openingIssue = (
+      await call(preflightUrl, { imageId: image.id, data: wrongOpening })
+    ).json().checks.issues[0];
+    assert.ok(openingIssue.objectIds.includes(wrongOpening.openings[0].id));
+    assert.equal(openingIssue.details.wallLengthPx, 900);
+    assert.equal(openingIssue.details.offsetPx, 2000);
     const draft = running.floorplans.create(project.id, {
       requestId: "tools-draft",
       imageId: image.id,
@@ -158,4 +195,28 @@ test("original image tools expose measured evidence without changing project/dra
     await running.app.close();
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("first recognition is scored independently of compilation and the frozen evaluation reference", async () => {
+  const { compileFloorplan } =
+    await import("../packages/scene-core/src/floorplan.js");
+  const { scoreFloorplan, scoreFloorplanRecognition } =
+    await import("../packages/scene-core/src/floorplan-metrics.js");
+  const reference = JSON.parse(
+    fs.readFileSync(
+      "fixtures/s2c-real/one-bedroom.evaluation-only.json",
+      "utf8",
+    ),
+  );
+  assert.equal(compileFloorplan(reference, "evaluation").rooms.length, 3);
+  assert.equal(scoreFloorplan(reference, reference, reference, 0).passed, true);
+  const broken = clone(reference);
+  broken.anchors = [];
+  broken.symbols = broken.symbols.filter((s: any) => s.category !== "chair");
+  assert.throws(() => compileFloorplan(broken, "broken"));
+  const score = scoreFloorplanRecognition(broken, reference);
+  assert.equal(score.passed, false);
+  assert.equal(score.walls.precision, 1);
+  assert.equal(score.openings.recall, 1);
+  assert.equal(score.furniture.recall, 7 / 13);
 });

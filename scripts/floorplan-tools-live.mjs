@@ -5,11 +5,29 @@ import assert from "node:assert/strict";
 import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { blankPlan } from "../packages/scene-core/src/index.ts";
+import {
+  scoreFloorplan,
+  scoreFloorplanRecognition,
+} from "../packages/scene-core/src/floorplan-metrics.ts";
 
 const manifestFile = path.resolve(
   "fixtures/s2c-real/one-bedroom-system-probe.json",
 );
 const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+const evaluation = JSON.parse(
+  fs.readFileSync(
+    "fixtures/s2c-real/one-bedroom.evaluation-manifest.json",
+    "utf8",
+  ),
+);
+const referenceBytes = fs.readFileSync(
+  path.join("fixtures/s2c-real", evaluation.referenceFile),
+);
+assert.equal(
+  createHash("sha256").update(referenceBytes).digest("hex"),
+  evaluation.referenceSha256,
+);
+const reference = JSON.parse(referenceBytes);
 const inputFile = process.argv[2];
 if (!inputFile)
   throw Error(
@@ -60,6 +78,7 @@ assert.equal(
 );
 const context = {
   manifest,
+  evaluation,
   codeCommit,
   serviceVersions: health.versions,
   referenceSentToAgent: false,
@@ -157,6 +176,38 @@ for (let repeat = 1; repeat <= repeats; repeat++) {
     }
   }
   save(`${repeat}-result.json`, record);
+  let scoring = { passed: false, reason: "No complete draft" };
+  let firstRecognition;
+  const raw = task.generation?.rawRecognition;
+  if (raw) {
+    const recognition = { ...raw, image: reference.image };
+    delete recognition.status;
+    delete recognition.question;
+    firstRecognition = scoreFloorplanRecognition(
+      recognition,
+      reference,
+      evaluation.aliases,
+    );
+    if (record.draft) {
+      try {
+        scoring = scoreFloorplan(
+          recognition,
+          record.draft.data,
+          reference,
+          record.draft.corrections,
+          evaluation.aliases,
+        );
+      } catch (error) {
+        scoring = { passed: false, reason: error.message };
+      }
+    }
+  }
+  save(`${repeat}-scoring.json`, {
+    firstRecognition,
+    scoring,
+    zeroObjectCorrections: (record.draft?.corrections || 0) === 0,
+    completeFourRoleWorkflow: false,
+  });
   const result = {
     repeat,
     projectId: before.id,
@@ -167,6 +218,8 @@ for (let repeat = 1; repeat <= repeats; repeat++) {
     modelCalls: task.modelCalls,
     activeSeconds: task.elapsedSeconds,
     compilationPassed: record.preview?.checks?.passed === true,
+    firstRecognition,
+    scoring,
     toolRoles: [
       ...new Set(
         (task.generation?.upstreamTools || []).map(

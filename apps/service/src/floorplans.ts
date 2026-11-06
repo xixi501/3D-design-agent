@@ -82,6 +82,7 @@ export async function imageProcess(
               upstream ? "FLOORPLAN_TOOL_ERROR" : "INVALID_IMAGE",
               value.message || "图片无法解码",
               422,
+              value.details,
             ),
           );
         else finish(undefined, value);
@@ -642,7 +643,8 @@ export class FloorplanStore {
               code: e.code,
               message: e.message,
               field: (e.details as any)?.field,
-              objectIds: [],
+              objectIds: (e.details as any)?.objectIds || [],
+              details: e.details,
               level: "error",
               blocking: true,
             },

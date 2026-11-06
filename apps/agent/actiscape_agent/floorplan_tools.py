@@ -10,6 +10,29 @@ from .floorplan_schemas import FloorplanRecognition, floorplan_recognition_schem
 from .store import fingerprint
 
 
+def recognition_changes(before, after):
+    changes = []
+    for collection in ("anchors", "walls", "openings", "rooms", "symbols"):
+        old = {str(o.get("id", i)): o for i, o in enumerate(before.get(collection, []))}
+        new = {str(o.get("id", i)): o for i, o in enumerate(after.get(collection, []))}
+        for identity in sorted(old.keys() | new.keys()):
+            if old.get(identity) != new.get(identity):
+                changes.append(
+                    {
+                        "collection": collection,
+                        "id": identity,
+                        "kind": "added"
+                        if identity not in old
+                        else "removed"
+                        if identity not in new
+                        else "changed",
+                        "before": old.get(identity),
+                        "after": new.get(identity),
+                    }
+                )
+    return changes
+
+
 class FloorplanToolset:
     def __init__(self, base, task, image, role):
         self.base, self.store, self.client = base, base.store, base.client
@@ -17,10 +40,24 @@ class FloorplanToolset:
         self.submission = None
 
     async def request(self, mode, parameters):
+        key = fingerprint(
+            {
+                "image": self.image["sha256"],
+                "mode": mode,
+                "parameters": parameters,
+                "adapter": "hpd-adapter-2",
+            }
+        )
+        g = self.store.task(self.task["id"], internal=True)["generation"]
+        for entry in reversed(g.get("upstreamTools", [])):
+            record = entry["record"]
+            if record.get("requestHash") == key and not record.get("error"):
+                return {**record, "reused": True}
         try:
-            return await self.client.request(
+            record = await self.client.request(
                 f"/floorplan-images/{self.image['id']}/tools/{mode}", parameters
             )
+            return {**record, "requestHash": key, "parameters": parameters}
         except SceneFailure as error:
             return {
                 "error": error.code,
@@ -86,7 +123,7 @@ class FloorplanToolset:
             evidence: str,
             samples: list[float] | None = None,
         ) -> list[dict]:
-            """Run original axismap.py on increasing pixel ticks and actual adjacent labelled distances in mm. basis: interior/centerline/exterior. Cross-check scale/annotation bases; do not independently stretch X/Y or invent dimensions. Optional samples return diagnostic chain coordinates."""
+            """Measure actual ADJACENT labelled lengths. N ticks require exactly N-1 distances; no initial zero or cumulative coordinates. Generic example: ticks=[100,300], distances=[4000], NOT [0,4000]. basis must be interior/centerline/exterior and evidence must quote the actual annotation. Increasing ORIGINAL pixels; distances in mm. Do not stretch X/Y or invent dimensions. samples optionally return diagnostic coordinates."""
             record = await self.request(
                 "axis",
                 {
@@ -100,7 +137,9 @@ class FloorplanToolset:
             return await self.result("measure_dimension_chain", record)
 
         @tool(return_direct=True)
-        async def preview_floorplan(draft: FloorplanRecognition) -> dict:
+        async def preview_floorplan(
+            draft: FloorplanRecognition, change_reasons: dict[str, str] | None = None
+        ) -> dict:
             """Submit ONE measured recognition draft to read-only TypeScript compilation, as the final, separate tool call of this measurement round. Include status='draft'. The fixed graph decides any next repair round. No project/history writes; do not call repeatedly within a round."""
             value = (
                 floorplan_recognition_schema(self.image["width"], self.image["height"])
@@ -125,6 +164,31 @@ class FloorplanToolset:
                     "message": str(error),
                     "details": error.data.get("details"),
                 }
+            g = self.store.task(self.task["id"], internal=True)["generation"]
+            changes = recognition_changes(
+                g.get("rawRecognition") or g.get("pendingRecognition") or value, value
+            )
+            reasons = change_reasons or {}
+            unexplained = [
+                c
+                for c in changes
+                if (c["kind"] == "removed" or c["collection"] == "anchors")
+                and not reasons.get(c["collection"] + ":" + c["id"], "").strip()
+            ]
+            if unexplained:
+                record.setdefault("checks", {})["passed"] = False
+                record["checks"].setdefault("issues", []).append(
+                    {
+                        "code": "FLOORPLAN_UNEXPLAINED_REMOVAL",
+                        "blocking": True,
+                        "stage": "preservation",
+                        "objectIds": [c["collection"] + ":" + c["id"] for c in unexplained],
+                        "message": "删除已识别对象或修改尺寸标注必须在 change_reasons 中逐项提供原图证据，不可静默减少要求",
+                        "details": unexplained,
+                    }
+                )
+            record["changes"] = changes
+            record["changeReasons"] = reasons
             await self.result("preview_floorplan", record, pictures=False)
             self.submission = value
             g = self.store.task(self.task["id"], internal=True)["generation"]
@@ -133,6 +197,8 @@ class FloorplanToolset:
                 "attempt": g.get("measurementAttempts", 0),
                 "inputHash": fingerprint(self.task["input"]),
                 "checks": record.get("checks"),
+                "changes": changes,
+                "changeReasons": reasons,
             }
             self.store.update(self.task["id"], generation=g)
             return record

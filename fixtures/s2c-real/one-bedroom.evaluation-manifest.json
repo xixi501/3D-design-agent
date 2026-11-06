@@ -17,14 +17,22 @@
     "浴室": "bathroom",
     "三人沙发": "sofa",
     "沙发": "sofa",
-    "茶几": "coffeeTable",
-    "餐桌": "diningTable",
+    "茶几": "coffeetable",
+    "餐桌": "diningtable",
     "餐椅": "chair",
-    "电视柜": "tvCabinet",
+    "电视柜": "tvcabinet",
     "书柜": "bookshelf",
     "置物架": "bookshelf",
     "盆栽": "plant",
     "绿植": "plant",
-    "地毯": "rug"
+    "地毯": "rug",
+    "Dining Chair": "chair",
+    "Dining Table": "diningtable",
+    "Coffee Table": "coffeetable",
+    "TV Cabinet": "tvcabinet",
+    "Sofa": "sofa",
+    "Bookshelf": "bookshelf",
+    "Plant": "plant",
+    "Rug": "rug"
   }
 }

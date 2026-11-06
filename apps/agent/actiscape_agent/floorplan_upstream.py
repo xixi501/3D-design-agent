@@ -18,7 +18,13 @@ from floorplan_image import MAX_BYTES, decode_image, png
 from PIL import Image
 
 ROOT = Path(__file__).parent / "vendor" / "house_plan_designer"
-VERSION = "hpd-adapter-1"
+VERSION = "hpd-adapter-2"
+
+
+class ParameterError(ValueError):
+    def __init__(self, message, details):
+        super().__init__(message)
+        self.details = details
 
 
 def finite(value, low, high):
@@ -166,7 +172,21 @@ def axis(args):
     if not isinstance(ticks, list) or not 2 <= len(ticks) <= 50:
         raise ValueError("需要 2–50 个尺寸刻度")
     if not isinstance(distances, list) or len(distances) != len(ticks) - 1:
-        raise ValueError("尺寸段数量与刻度不符")
+        raise ParameterError(
+            "尺寸段数量与刻度不符：N 个刻度必须对应 N-1 个相邻距离；distances 不含起始零点，也不是累计坐标",
+            {
+                "field": "distances",
+                "tickCount": len(ticks),
+                "expectedCount": len(ticks) - 1,
+                "actualCount": len(distances) if isinstance(distances, list) else None,
+                "example": {
+                    "ticks": [100, 300],
+                    "distances": [4000],
+                    "basis": "interior",
+                    "evidence": "通用示例：两端真实标注 4000 mm，不是当前图像的测量结果",
+                },
+            },
+        )
     if not isinstance(samples, list) or len(samples) > 100:
         raise ValueError("采样点过多")
     for p in [*ticks, *samples]:
@@ -260,5 +280,13 @@ if __name__ == "__main__":
             raise ValueError("工具输入过大")
         print(json.dumps(process(json.loads(raw_input)), ensure_ascii=False))
     except Exception as error:  # noqa: BLE001 -- process boundary returns bounded JSON errors
-        print(json.dumps({"error": "FLOORPLAN_TOOL_ERROR", "message": str(error)[-1000:]}))
+        print(
+            json.dumps(
+                {
+                    "error": "FLOORPLAN_TOOL_ERROR",
+                    "message": str(error)[-1000:],
+                    "details": getattr(error, "details", None),
+                }
+            )
+        )
         sys.exit(1)

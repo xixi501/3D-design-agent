@@ -88,8 +88,15 @@ export interface SymbolMatch {
   symbolId: string;
   key: string;
 }
-function invalid(message: string, field: string): never {
-  throw new SceneError("INVALID_FLOORPLAN", message, 422, { field });
+function invalid(
+  message: string,
+  field: string,
+  details: Record<string, unknown> = {},
+): never {
+  throw new SceneError("INVALID_FLOORPLAN", message, 422, {
+    field,
+    ...details,
+  });
 }
 function object(v: any, fields: string[], field: string) {
   if (
@@ -221,7 +228,13 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       ],
       "openings." + o.id,
     );
-    if (!walls.has(o.wallId)) invalid("门窗缺少所属墙", o.id + ".wallId");
+    if (!walls.has(o.wallId))
+      invalid("门窗缺少所属墙", o.id + ".wallId", {
+        stage: "openings",
+        objectIds: [o.id],
+        wallId: o.wallId,
+        availableWallIds: [...walls],
+      });
     if (!["door", "window", "hole", "sliding"].includes(o.type))
       invalid("门窗类型不受支持", o.id + ".type");
     number(
@@ -287,10 +300,31 @@ export function floorplanScale(data: FloorplanData) {
       millimetres(a.distance, "anchor.distance") /
       Math.hypot(a.b.x - a.a.x, a.b.y - a.a.y),
   );
+  const diagnostics = {
+    stage: "scale",
+    uniformMmPerPixel: values[0],
+    anchors: data.anchors.map((a, i) => ({
+      index: i,
+      a: a.a,
+      b: a.b,
+      basis: a.basis,
+      evidence: a.evidence,
+      distanceMm: millimetres(a.distance, "anchor.distance"),
+      pixelLength: Math.hypot(a.b.x - a.a.x, a.b.y - a.a.y),
+      mmPerPixel: values[i],
+      relativeScaleDifference: values[i] / values[0] - 1,
+      residualMm:
+        Math.hypot(a.b.x - a.a.x, a.b.y - a.a.y) * values[0] -
+        millimetres(a.distance, "anchor.distance"),
+    })),
+    instruction:
+      "核对标注及其真实端点：净尺寸取内墙面，中线尺寸取墙中线，外尺寸取外墙面。不得删除冲突标注、改标注数字或独立拉伸 X/Y。像素测量不是精确尺寸；无法确认时保留阻断项。",
+  };
   if (values.some((v) => Math.abs(v / values[0] - 1) > 0.03 + 1e-9))
     invalid(
       "尺寸标注比例相差超过 3%，请核对标注含义或图片是否被拉伸",
       "anchors",
+      diagnostics,
     );
   if (
     data.anchors.some(
@@ -304,6 +338,7 @@ export function floorplanScale(data: FloorplanData) {
     invalid(
       "明确尺寸在统一比例下仍有超过 1 mm 的差异，请核对标定端点；不能分别拉伸图片",
       "anchors",
+      diagnostics,
     );
   return values[0];
 }
@@ -393,19 +428,66 @@ export function compileFloorplan(
       plan.walls.push({ id, a: node(a), b: node(b), t: w.t });
     }
   }
-  if (
-    plan.nodes.some(
-      (n) => plan.walls.filter((w) => w.a === n.id || w.b === n.id).length < 2,
-    )
-  )
-    invalid("发现未连接墙端，请校正缺口或多余墙线", "walls");
+  const dangling = plan.nodes.filter(
+    (n) => plan.walls.filter((w) => w.a === n.id || w.b === n.id).length < 2,
+  );
+  if (dangling.length) {
+    const endpoints = dangling.slice(0, 12).map((n) => {
+      const imagePoint = {
+        x: n.x / scale + origin.x,
+        y: n.y / scale + origin.y,
+      };
+      const owners = raw.filter((w) => on(n, w)).map((w) => w.id);
+      const nearest = data.walls
+        .filter((w) => !owners.includes(w.id))
+        .map((w) => {
+          const dx = w.b.x - w.a.x,
+            dy = w.b.y - w.a.y;
+          const t = Math.max(
+            0,
+            Math.min(
+              1,
+              ((imagePoint.x - w.a.x) * dx + (imagePoint.y - w.a.y) * dy) /
+                (dx * dx + dy * dy),
+            ),
+          );
+          const point = { x: w.a.x + dx * t, y: w.a.y + dy * t };
+          return {
+            wallId: w.id,
+            point,
+            distancePx: Math.hypot(
+              point.x - imagePoint.x,
+              point.y - imagePoint.y,
+            ),
+          };
+        })
+        .sort((a, b) => a.distancePx - b.distancePx)
+        .slice(0, 2);
+      return { objectIds: owners, imagePoint, nearest };
+    });
+    invalid("发现未连接墙端，请校正缺口或多余墙线", "walls", {
+      stage: "structure",
+      objectIds: [...new Set(endpoints.flatMap((p) => p.objectIds))],
+      endpoints,
+      instruction:
+        "nearest 仅为几何邻近诊断，并非连接授权；对照原图核实墙中线和交点，同一连接点必须完全一致。不要把家具边框接成墙。",
+    });
+  }
   for (const o of data.openings) {
     const host = raw.find((w) => w.id === o.wallId)!,
       len = Math.hypot(host.b.x - host.a.x, host.b.y - host.a.y),
       position = o.offset * scale,
       width = rounded(o.width * scale);
     if (position - width / 2 < -1 || position + width / 2 > len + 1)
-      invalid("门窗超出所属墙的范围", o.id);
+      invalid("门窗超出所属墙的范围", o.id, {
+        stage: "openings",
+        objectIds: [o.id, o.wallId],
+        wall: data.walls.find((w) => w.id === o.wallId),
+        offsetPx: o.offset,
+        widthPx: o.width,
+        wallLengthPx: len / scale,
+        openingIntervalPx: [o.offset - o.width / 2, o.offset + o.width / 2],
+      });
     const center = {
       x: host.a.x + ((host.b.x - host.a.x) * position) / len,
       y: host.a.y + ((host.b.y - host.a.y) * position) / len,
@@ -417,7 +499,18 @@ export function compileFloorplan(
         Math.hypot(center.x - s.a.x, center.y - s.a.y) >= width / 2 - 1 &&
         Math.hypot(center.x - s.b.x, center.y - s.b.y) >= width / 2 - 1,
     );
-    if (!s) invalid("门窗跨越墙体交点，请核对位置或墙体连接", o.id);
+    if (!s)
+      invalid("门窗跨越墙体交点，请核对位置或墙体连接", o.id, {
+        stage: "openings",
+        objectIds: [o.id, o.wallId],
+        imagePoint: {
+          x: center.x / scale + origin.x,
+          y: center.y / scale + origin.y,
+        },
+        wall: data.walls.find((w) => w.id === o.wallId),
+        offsetPx: o.offset,
+        widthPx: o.width,
+      });
     const pos = rounded(Math.hypot(center.x - s.a.x, center.y - s.a.y)),
       sill = o.sill ?? (o.type === "window" ? 900 : 0),
       head = o.head ?? (o.type === "window" ? 2400 : 2100);

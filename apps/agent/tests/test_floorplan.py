@@ -601,3 +601,144 @@ async def test_readonly_tool_errors_are_feedback_and_terminal_submission_normali
         )
     finally:
         store.close()
+
+
+@pytest.mark.asyncio
+async def test_measurement_cache_survives_store_reopen_and_never_reuses_failed_or_changed_parameters(
+    tmp_path,
+):
+    from types import SimpleNamespace
+
+    from actiscape_agent.floorplan_tools import FloorplanToolset
+    from actiscape_agent.store import TaskStore
+
+    class Client(FloorplanScene):
+        calls = 0
+
+        async def request(self, path, body=None):
+            self.calls += 1
+            if body.get("grayMax") == 255:
+                raise SceneFailure(
+                    422, {"error": "FLOORPLAN_TOOL_ERROR", "message": "controlled bad request"}
+                )
+            return await super().request(path, body)
+
+    client = Client()
+    store = TaskStore(tmp_path)
+    conversation = store.create_conversation("p")
+    task = store.create_task(
+        conversation["id"],
+        {"requestId": "cached-measurement", "input": "measure", "selectedIds": []},
+    )
+    toolset = FloorplanToolset(
+        SimpleNamespace(store=store, client=client), task, DATA["image"], "design"
+    )
+    await toolset.recognition()[0].ainvoke({})
+    assert client.calls == 1
+    store.close()
+    store = TaskStore(tmp_path)
+    try:
+        toolset = FloorplanToolset(
+            SimpleNamespace(store=store, client=client), task, DATA["image"], "design"
+        )
+        record = json.loads((await toolset.recognition()[0].ainvoke({}))[0]["text"])
+        assert record["reused"] is True and client.calls == 1
+        await toolset.recognition()[0].ainvoke({"gray_max": 160})
+        assert client.calls == 2
+        for _ in range(2):
+            record = json.loads(
+                (await toolset.recognition()[0].ainvoke({"gray_max": 255}))[0]["text"]
+            )
+            assert record["error"] == "FLOORPLAN_TOOL_ERROR"
+        assert client.calls == 4
+    finally:
+        store.close()
+
+
+@pytest.mark.asyncio
+async def test_silent_symbol_loss_remains_blocking_across_repair_and_restart(tmp_path):
+    from types import SimpleNamespace
+
+    from actiscape_agent.floorplan_tools import FloorplanToolset
+    from actiscape_agent.store import TaskStore
+
+    store = TaskStore(tmp_path)
+    conversation = store.create_conversation("p")
+    task = store.create_task(
+        conversation["id"], {"requestId": "symbol-loss", "input": "measure", "selectedIds": []}
+    )
+    value = {"status": "draft", **{k: copy.deepcopy(v) for k, v in DATA.items() if k != "image"}}
+    store.update(task["id"], generation={"rawRecognition": value, "pendingRecognition": value})
+    changed = copy.deepcopy(value)
+    removed = changed["symbols"].pop()
+    base = SimpleNamespace(store=store, client=FloorplanScene())
+    result = (
+        await FloorplanToolset(base, task, DATA["image"], "design")
+        .measurement()[-1]
+        .ainvoke({"draft": changed})
+    )
+    assert not result["checks"]["passed"]
+    assert result["checks"]["issues"][-1]["objectIds"] == ["symbols:" + removed["id"]]
+    g = store.task(task["id"], internal=True)["generation"]
+    g["pendingRecognition"] = changed
+    store.update(task["id"], generation=g)
+    store.close()
+    store = TaskStore(tmp_path)
+    try:
+        base.store = store
+        result = (
+            await FloorplanToolset(base, task, DATA["image"], "design")
+            .measurement()[-1]
+            .ainvoke({"draft": changed})
+        )
+        assert not result["checks"]["passed"], (
+            "A repeated smaller draft cannot erase the original omission"
+        )
+        result = (
+            await FloorplanToolset(base, task, DATA["image"], "design")
+            .measurement()[-1]
+            .ainvoke({"draft": value})
+        )
+        assert result["checks"]["passed"]
+        assert store.task(task["id"], internal=True)["generation"]["rawRecognition"] == value
+    finally:
+        store.close()
+
+
+@pytest.mark.asyncio
+async def test_full_measurement_flow_persists_unexplained_loss_as_nonconfirmable_uncertainty(
+    tmp_path,
+):
+    class LosingRoles(ControlledFloorplanRoles):
+        async def invoke(
+            self, role, prompt, schema, tools, payload, task_id, images=None, **kwargs
+        ):
+            if role == "design" and schema.__name__ == "PixelFloorplanRecognition":
+                payload = copy.deepcopy(payload)
+                payload["recognition"]["symbols"] = payload["recognition"]["symbols"][:-1]
+            return await super().invoke(
+                role, prompt, schema, tools, payload, task_id, images, **kwargs
+            )
+
+    client = FloorplanScene()
+    manager = TaskManager(tmp_path, client, LosingRoles)
+    task = await start(manager)
+    assert task["status"] == "waiting_input", task
+    generation = manager.store.task(task["id"], internal=True)["generation"]
+    assert generation["measurementAttempts"] == 4
+    assert generation["repairsUsed"] == 3
+    assert not generation["recognitionChecks"]["passed"]
+    assert any(
+        u["blocking"] and u["id"].startswith("system-preservation-")
+        for u in client.draft["data"]["uncertainties"]
+    )
+    await manager.close()
+    manager = TaskManager(tmp_path, client, LosingRoles)
+    try:
+        await manager.start()
+        restored = manager.store.task(task["id"], internal=True)
+        assert restored["generation"]["recognitionChecks"] == generation["recognitionChecks"]
+        assert client.project["revision"] == 0
+        assert not client.ledger
+    finally:
+        await manager.close()

@@ -1,9 +1,30 @@
 {
   "id": "floorplan-reconstruction",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "确认单层正交户型结构，忠实复现指定客餐厅原图布局",
-  "appliesTo": ["reconstruct_floorplan"],
-  "requiredTools": ["floorplan_context", "analyze_floorplan", "fit_wall_faces", "measure_dimension_chain", "preview_floorplan", "search_catalogue_batch", "precheck_floorplan", "candidate_checks", "audit_floorplan_source"],
-  "source": [{"title":"ActiScape S2-C approved reconstruction rules","uri":"repository:docs/S2C_RUNBOOK.md"},{"title":"house-plan-designer image measurement workflow (MIT), pinned b94183f9","uri":"https://github.com/ZWD11/house-plan-designer/tree/b94183f9ce2215db9a178da89a90d2ecefb18497"}],
+  "appliesTo": [
+    "reconstruct_floorplan"
+  ],
+  "requiredTools": [
+    "floorplan_context",
+    "analyze_floorplan",
+    "fit_wall_faces",
+    "measure_dimension_chain",
+    "preview_floorplan",
+    "search_catalogue_batch",
+    "precheck_floorplan",
+    "candidate_checks",
+    "audit_floorplan_source"
+  ],
+  "source": [
+    {
+      "title": "ActiScape S2-C approved reconstruction rules",
+      "uri": "repository:docs/S2C_RUNBOOK.md"
+    },
+    {
+      "title": "house-plan-designer image measurement workflow (MIT), pinned b94183f9",
+      "uri": "https://github.com/ZWD11/house-plan-designer/tree/b94183f9ce2215db9a178da89a90d2ecefb18497"
+    }
+  ],
   "license": "MIT"
 }

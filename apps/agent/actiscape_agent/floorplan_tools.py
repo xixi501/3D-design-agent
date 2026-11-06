@@ -68,11 +68,22 @@ class FloorplanToolset:
             }
 
     async def result(self, name, record, pictures=True):
-        generation = self.store.task(self.task["id"], internal=True)["generation"]
-        generation.setdefault("upstreamTools", []).append(
-            {"role": self.role, "tool": name, "record": record}
-        )
-        self.store.update(self.task["id"], generation=generation)
+        def merge(generation):
+            generation.setdefault("upstreamTools", []).append(
+                {"role": self.role, "tool": name, "record": record}
+            )
+            if (
+                generation.get("workflowVersion") == 2
+                and record.get("id")
+                and not record.get("error")
+            ):
+                generation.setdefault("evidenceIndex", {})[record["id"]] = {
+                    **record,
+                    "role": self.role,
+                    "tool": name,
+                }
+
+        self.store.mutate_generation(self.task["id"], merge)
         self.store.event(
             self.task["id"],
             "floorplan_tool_result",

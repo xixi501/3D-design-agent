@@ -265,6 +265,14 @@ class TaskStore:
             )
         self.event(id, "model_start", {"role": role, "request": task["modelCalls"] + 1})
 
+    def mutate_generation(self, id: str, mutate):
+        """Read/modify/write the latest JSON under one transaction, never across an await."""
+        with self.transaction():
+            generation = self.task(id, internal=True)["generation"]
+            result = mutate(generation)
+            self.update(id, generation=generation)
+            return result
+
     def start(self, id: str):
         task = self.task(id, internal=True)
         if task["activeStarted"]:

@@ -1,3 +1,4 @@
+from .client import SceneFailure
 from .floorplan_roles import FloorplanRoles
 from .generation_flow import COLLECTIONS
 from .skill_registry import FLOORPLAN_TOOLS, load_design_skill, skill_record
@@ -7,6 +8,93 @@ from .store import TaskError, fingerprint
 class FloorplanFlow:
     def __init__(self, store, client, roles):
         self.store, self.client, self.roles = store, client, FloorplanRoles(roles)
+
+    async def recognize_and_measure(self, task, image, snapshot):
+        """Persist real tool/model attempts before confirmation; repairs share the task budget."""
+        g = self.store.task(task["id"], internal=True)["generation"]
+        same_input = g.get("recognitionInputHash") == fingerprint(task["input"])
+        recognized = g.get("pendingRecognition") if same_input else None
+        if recognized is None:
+            recognized = await self.roles.recognize(task, image)
+            g = self.store.task(task["id"], internal=True)["generation"]
+            g.setdefault("rawRecognition", recognized)
+            g.update(
+                pendingRecognition=recognized,
+                recognitionInputHash=fingerprint(task["input"]),
+                measurementComplete=False,
+            )
+            g.setdefault("recognitionAttempts", []).append(
+                {
+                    "role": "main",
+                    "response": recognized,
+                    "imageHash": image["sha256"],
+                    "sourceInputHash": fingerprint(task["input"]),
+                }
+            )
+            self.store.update(task["id"], generation=g)
+        # Old pinned tasks keep the original workflow and request hashes.
+        if (
+            "fit_wall_faces" not in snapshot.get("requiredTools", [])
+            or recognized["status"] == "unsupported"
+        ):
+            return recognized
+
+        async def preflight(value):
+            try:
+                result = await self.client.request(
+                    f"/projects/{task['projectId']}/floorplan-preflight",
+                    {
+                        "imageId": image["id"],
+                        "data": {k: v for k, v in value.items() if k not in ("status", "question")},
+                    },
+                )
+                return result["checks"]
+            except SceneFailure as error:
+                return {
+                    "passed": False,
+                    "issues": [
+                        {
+                            "code": error.code,
+                            "message": str(error),
+                            "details": error.data.get("details"),
+                            "blocking": True,
+                        }
+                    ],
+                }
+
+        checks = await preflight(recognized)
+        while not g.get("measurementComplete"):
+            attempts = g.get("measurementAttempts", 0)
+            if attempts and (checks["passed"] or g.get("repairsUsed", 0) >= 3):
+                break
+            if attempts:
+                g["repairsUsed"] = g.get("repairsUsed", 0) + 1
+                self.store.event(
+                    task["id"],
+                    "repair",
+                    {"round": g["repairsUsed"], "phase": "measuring_floorplan", "report": checks},
+                )
+            g["measurementAttempts"] = attempts + 1
+            self.store.update(task["id"], generation=g)
+            recognized = await self.roles.measure(task, image, recognized, checks)
+            checks = await preflight(recognized)
+            g = self.store.task(task["id"], internal=True)["generation"]
+            g.update(pendingRecognition=recognized, recognitionChecks=checks)
+            g.setdefault("recognitionAttempts", []).append(
+                {
+                    "role": "design",
+                    "response": recognized,
+                    "checks": checks,
+                    "imageHash": image["sha256"],
+                    "sourceInputHash": fingerprint(task["input"]),
+                }
+            )
+            self.store.update(task["id"], generation=g)
+            if recognized["status"] == "unsupported":
+                break
+        g.update(measurementComplete=True, recognitionChecks=checks)
+        self.store.update(task["id"], generation=g)
+        return recognized
 
     async def ground(self, state, task):
         project = state["project"]
@@ -24,17 +112,7 @@ class FloorplanFlow:
         self.store.event(task["id"], "skill_loaded", skill_record(snapshot))
         if not g.get("draftId"):
             image = await self.client.request(f"/floorplan-images/{g['imageId']}")
-            recognized = await self.roles.recognize(task, image)
-            g = self.store.task(task["id"], internal=True)["generation"]
-            g.setdefault("rawRecognition", recognized)
-            g.setdefault("recognitionAttempts", []).append(
-                {
-                    "response": recognized,
-                    "imageHash": image["sha256"],
-                    "sourceInputHash": fingerprint(task["input"]),
-                }
-            )
-            self.store.update(task["id"], generation=g)
+            recognized = await self.recognize_and_measure(task, image, snapshot)
             if recognized["status"] == "unsupported":
                 return {
                     "route": "end",
@@ -45,15 +123,28 @@ class FloorplanFlow:
                 }
             data = {k: v for k, v in recognized.items() if k not in ("status", "question")}
             data["image"] = {k: image[k] for k in ("id", "sha256", "width", "height")}
-            draft = await self.client.request(
-                prefix,
-                {
-                    "requestId": task["id"] + ":recognition",
-                    "imageId": image["id"],
-                    "baseRevision": project["revision"],
-                    "data": data,
-                },
-            )
+            try:
+                draft = await self.client.request(
+                    prefix,
+                    {
+                        "requestId": task["id"] + ":recognition",
+                        "imageId": image["id"],
+                        "baseRevision": project["revision"],
+                        "data": data,
+                    },
+                )
+            except SceneFailure as error:
+                if error.code != "INVALID_FLOORPLAN":
+                    raise
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "waiting_input",
+                        "phase": "reviewing_floorplan",
+                        "message": "识别草稿仍有无效字段，正式项目未改变：" + str(error),
+                        "report": error.data,
+                    },
+                }
             # Re-read: crop tools may have persisted evidence during the model invocation.
             g = self.store.task(task["id"], internal=True)["generation"]
             g.update(
@@ -154,6 +245,7 @@ class FloorplanFlow:
         )
         self.store.update(task["id"], generation=g)
         return {
+            "repairs": g.get("repairsUsed", state.get("repairs", 0)),
             "generation": g,
             "layout_project": {**project, **preview["state"]},
             "intent": {

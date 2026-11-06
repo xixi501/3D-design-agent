@@ -20,7 +20,7 @@ platform = ["agentarts-sdk==0.1.10"]
 packages = ["actiscape_agent"]
 
 [tool.setuptools.package-data]
-actiscape_agent = ["skills/*/*.json", "skills/*/*.md", "skills/*/LICENSE"]
+actiscape_agent = ["skills/*/*.json", "skills/*/*.md", "skills/*/LICENSE", "vendor/house_plan_designer/LICENSE", "vendor/house_plan_designer/*.json", "vendor/house_plan_designer/scripts/*.py", "vendor/house_plan_designer/reference/*.json", "vendor/house_plan_designer/reference/*.md"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -30,3 +30,4 @@ testpaths = ["tests"]
 [tool.ruff]
 target-version = "py313"
 line-length = 100
+extend-exclude = ["actiscape_agent/vendor"]

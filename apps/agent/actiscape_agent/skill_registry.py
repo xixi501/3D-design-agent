@@ -10,6 +10,11 @@ FLOORPLAN_TOOLS = {
     "search_catalogue_batch",
     "precheck_floorplan",
     "candidate_checks",
+    "analyze_floorplan",
+    "fit_wall_faces",
+    "measure_dimension_chain",
+    "preview_floorplan",
+    "audit_floorplan_source",
 }
 GENERATION_TOOLS = {"search_catalogue_batch", "precheck_initialization", "candidate_checks"}
 

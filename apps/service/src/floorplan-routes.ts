@@ -2,7 +2,9 @@ import type { FastifyInstance } from "fastify";
 import fs from "node:fs";
 import { FloorplanStore } from "./floorplans.js";
 import { SceneError } from "../../../packages/scene-core/src/index.js";
+import { floorplanToolRoutes } from "./floorplan-tools.js";
 export function floorplanRoutes(app: FastifyInstance, store: FloorplanStore) {
+  floorplanToolRoutes(app, store);
   app.post(
     "/api/floorplan-images",
     {

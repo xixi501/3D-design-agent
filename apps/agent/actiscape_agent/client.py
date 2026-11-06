@@ -18,7 +18,14 @@ class SceneClient:
         self.base = (base or scene_url()).rstrip("/")
 
     async def request(self, path: str, body=None):
-        async with httpx.AsyncClient(timeout=150 if path.endswith("/render") else 30) as client:
+        timeout = (
+            150
+            if path.endswith("/render")
+            else 90
+            if "/tools/" in path or path.endswith("/source-audit")
+            else 30
+        )
+        async with httpx.AsyncClient(timeout=timeout) as client:
             token = os.environ.get("ACTISCAPE_TOOL_TOKEN")
             response = await client.request(
                 "GET" if body is None else "POST",

@@ -23,19 +23,31 @@ const identity = (v: any) => {
   if (typeof v !== "string" || !v || v.length > 200)
     throw new SceneError("INVALID_REQUEST", "需要有效 requestId");
 };
-async function imageProcess(bytes: Buffer, mode = "inspect"): Promise<any> {
+export async function imageProcess(
+  bytes: Buffer,
+  mode = "inspect",
+  upstream = false,
+): Promise<any> {
   return await new Promise((resolve, reject) => {
     const child = spawn(
       imagePython(),
-      [path.resolve("apps/agent/actiscape_agent/floorplan_image.py"), mode],
+      [
+        path.resolve(
+          `apps/agent/actiscape_agent/${upstream ? "floorplan_upstream" : "floorplan_image"}.py`,
+        ),
+        mode,
+      ],
       { stdio: ["pipe", "pipe", "pipe"] },
     );
     let output = Buffer.alloc(0),
       settled = false;
-    const timer = setTimeout(() => {
-      child.kill();
-      finish(new SceneError("IMAGE_TIMEOUT", "图片解码超时", 422));
-    }, 30000);
+    const timer = setTimeout(
+      () => {
+        child.kill();
+        finish(new SceneError("IMAGE_TIMEOUT", "图片处理超时", 422));
+      },
+      upstream ? 80000 : 30000,
+    );
     const finish = (error?: Error, value?: any) => {
       if (settled) return;
       settled = true;
@@ -67,7 +79,7 @@ async function imageProcess(bytes: Buffer, mode = "inspect"): Promise<any> {
         if (code !== 0 || value.error)
           finish(
             new SceneError(
-              "INVALID_IMAGE",
+              upstream ? "FLOORPLAN_TOOL_ERROR" : "INVALID_IMAGE",
               value.message || "图片无法解码",
               422,
             ),
@@ -593,13 +605,16 @@ export class FloorplanStore {
   }
   preview(project: string, id: string, seed = id) {
     const record = this.get(project, id);
+    return this.inspectData(record.data, seed, {
+      draftId: id,
+      draftRevision: record.revision,
+      draftHash: record.hash,
+    });
+  }
+  inspectData(data: FloorplanData, seed: string, binding?: FloorplanBinding) {
     try {
-      const compiled = compileFloorplan(record.data, seed, {
-          draftId: id,
-          draftRevision: record.revision,
-          draftHash: record.hash,
-        }),
-        issues = record.data.uncertainties
+      const compiled = compileFloorplan(data, seed, binding),
+        issues = data.uncertainties
           .filter((u: any) => u.blocking)
           .map((u: any) => ({
             code: "FLOORPLAN_UNCERTAIN",

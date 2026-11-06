@@ -18,4 +18,6 @@ S2-C 图片预处理新增 Pillow 13.0.0（MIT-CMU）、opencv-python-headless 4
 
 `floorplan-reconstruction@0.1.0` 为本项目按 S2-C 复现规则整理的 MIT 设计 Skill，包含来源、版本和内容哈希。合成 PNG 由本仓库脚本生成，用于工具和协议验证，不冒充用户真实户型图。
 
+`floorplan-reconstruction@0.2.0` 增加上述固定上游的真实读图工作流。`analyze.py`、`axismap.py`、`wallfit.py`、`wallaudit.py`、`furnoverlay.py`、`imgio.py`、尺寸目录和两份工作流说明原样保存在 Python 包内 `vendor/house_plan_designer`；原始 MIT 许可及逐文件哈希一并保留。适配器限制输入、文件和进程边界，正式场景继续由 TypeScript 编译；详情见 [原版工具适配](S2C_UPSTREAM_TOOLS.md)。
+
 DeepSeek 图像与工具图片协议参考 [Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/) 和 [Vision](https://api-docs.deepseek.com/guides/vision/)。本项目适配器修复锁定 SDK 对工具图片数组的文本化，并保留思考模式字段；实际 API 探针及失败记录独立保留。

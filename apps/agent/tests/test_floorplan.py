@@ -49,6 +49,10 @@ class FloorplanScene(FakeScene):
         return ("controlled-image:" + path).encode()
 
     async def request(self, path, body=None):
+        if path == "/projects/p/floorplan-preflight":
+            return {"checks": {"passed": True, "issues": []}, "dataHash": "controlled"}
+        if "/tools/" in path:
+            return {"id": "controlled-pixel-tool", "files": [], "controlled": True}
         if path == "/catalog":
             return {
                 "items": {
@@ -79,6 +83,14 @@ class FloorplanScene(FakeScene):
                 }
             return copy.deepcopy(self.draft)
         if path.startswith(root + "/draft"):
+            if path.endswith("/source-audit"):
+                return {
+                    "id": "controlled-audit",
+                    "draftHash": self.draft["hash"],
+                    "files": [],
+                    "result": {"issues": []},
+                    "controlled": True,
+                }
             if path.endswith("/preview"):
                 plan = copy.deepcopy(FIXTURE)
                 plan["furniture"] = []
@@ -175,6 +187,8 @@ class ControlledFloorplanRoles:
                     "commands": [{"type": "defaults", "values": {"height": 3000}}],
                 }
             self.client.ground_calls += 1
+            analyze = next(t for t in tools if t.name == "analyze_floorplan")
+            await analyze.ainvoke({})
             return {
                 "status": "draft",
                 **{k: copy.deepcopy(v) for k, v in DATA.items() if k != "image"},
@@ -191,6 +205,28 @@ class ControlledFloorplanRoles:
                 ]
             }
         if role == "design":
+            if schema.__name__ == "PixelFloorplanRecognition":
+                for t in tools:
+                    if t.name == "fit_wall_faces":
+                        await t.ainvoke(
+                            {
+                                "walls": [
+                                    {"id": "controlled", "kind": "H", "c": 50, "p0": 50, "p1": 950}
+                                ]
+                            }
+                        )
+                    if t.name == "measure_dimension_chain":
+                        await t.ainvoke(
+                            {
+                                "ticks": [50, 950],
+                                "distances": [9000],
+                                "basis": "centerline",
+                                "evidence": "controlled fixture",
+                            }
+                        )
+                    if t.name == "preview_floorplan":
+                        await t.ainvoke({"draft": payload["recognition"]})
+                return payload["recognition"]
             self.client.design_calls += 1
             if self.client.suspend_design:
                 self.client.suspend_design = False
@@ -201,6 +237,7 @@ class ControlledFloorplanRoles:
                 "matches": payload["sourceMatches"],
             }
         assert len(images) == 4
+        await next(t for t in tools if t.name == "audit_floorplan_source").ainvoke({})
         return {"passed": True, "summary": "controlled four-image review", "issues": []}
 
 
@@ -247,7 +284,7 @@ async def test_confirmation_is_required_and_four_roles_commit_once_after_lost_re
     try:
         task = await start(manager)
         assert task["status"] == "waiting_input", task
-        assert task["modelCalls"] == 1 and client.project["revision"] == 0 and not client.candidates
+        assert task["modelCalls"] == 2 and client.project["revision"] == 0 and not client.candidates
         body = confirmation(task)
         await manager.confirm_floorplan(task["id"], body)
         result = await finished(manager, task["id"])
@@ -441,3 +478,71 @@ async def test_design_cannot_replace_frozen_asset_choices_before_candidate_creat
     task = {"generation": {"matches": [{"symbolId": "sofa", "key": "sofa"}]}}
     with pytest.raises(TaskError, match="资产角色"):
         await role.candidate(task, {}, {}, {"matches": [{"symbolId": "sofa", "key": "bed"}]}, 0)
+
+
+@pytest.mark.asyncio
+async def test_measurement_repairs_share_persisted_three_round_budget_with_candidate_repairs(
+    tmp_path,
+):
+    class InconsistentScene(FloorplanScene):
+        async def request(self, path, body=None):
+            if path.endswith("/floorplan-preflight"):
+                return {
+                    "checks": {
+                        "passed": False,
+                        "issues": [{"message": "controlled scale conflict", "blocking": True}],
+                    }
+                }
+            return await super().request(path, body)
+
+    client = InconsistentScene(bad_checks=True)
+    manager = TaskManager(tmp_path, client, ControlledFloorplanRoles)
+    task = await start(manager)
+    assert task["status"] == "waiting_input", task
+    generation = manager.store.task(task["id"], internal=True)["generation"]
+    assert generation["measurementAttempts"] == 4
+    assert generation["repairsUsed"] == 3
+    assert [r["role"] for r in generation["recognitionAttempts"]] == [
+        "main",
+        "design",
+        "design",
+        "design",
+        "design",
+    ]
+    await manager.close()
+    manager = TaskManager(tmp_path, client, ControlledFloorplanRoles)
+    try:
+        await manager.start()
+        await manager.confirm_floorplan(task["id"], confirmation(task))
+        result = await waiting(manager, task["id"])
+        assert result["status"] == "waiting_input", result
+        assert manager.store.task(task["id"], internal=True)["generation"]["repairsUsed"] == 3
+        repairs = [e for e in manager.store.events(task["id"]) if e["kind"] == "repair"]
+        assert [e["data"]["round"] for e in repairs] == [1, 2, 3]
+        assert client.project["revision"] == 0 and not client.ledger
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_primary_recognition_without_original_analysis_cannot_advance(tmp_path):
+    class NoTools(ControlledFloorplanRoles):
+        async def invoke(
+            self, role, prompt, schema, tools, payload, task_id, images=None, **kwargs
+        ):
+            if role == "main":
+                return {
+                    "status": "draft",
+                    **{k: copy.deepcopy(v) for k, v in DATA.items() if k != "image"},
+                }
+            raise AssertionError("Unmeasured recognition must not reach later roles")
+
+    client = FloorplanScene()
+    manager = TaskManager(tmp_path, client, NoTools)
+    try:
+        task = await start(manager)
+        assert task["status"] == "failed"
+        assert task["result"]["errorCode"] == "FLOORPLAN_TOOLS_UNUSED"
+        assert client.draft is None and client.project["revision"] == 0 and not client.ledger
+    finally:
+        await manager.close()

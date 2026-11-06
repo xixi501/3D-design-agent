@@ -360,6 +360,82 @@ export class ChatPanel {
         review.onclick = () => this.reviewFloorplan(task);
         reply.append(review);
       }
+      if (
+        task.mode === "reconstruct_floorplan" &&
+        task.generation?.upstreamTools?.length
+      ) {
+        const details = node("details"),
+          latest = new Map<string, any>();
+        details.dataset.testid = "floorplan-tool-evidence";
+        details.append(node("summary", "识别与测量证据"));
+        const roleLabels: Record<string, string> = {
+          main: "主控识别",
+          design: "空间测量",
+          check: "独立检查",
+        };
+        const toolLabels: Record<string, string> = {
+          analyze_floorplan: "墙线与尺寸刻度",
+          fit_wall_faces: "墙面及厚度测量",
+          measure_dimension_chain: "尺寸标注核对",
+          preview_floorplan: "结构预检",
+          audit_floorplan_source: "原图对账",
+        };
+        const fileLabels: Record<string, string> = {
+          "analysis.png": "墙线识别图",
+          "mask.png": "墙体像素掩膜",
+          "furn_all.png": "家具位置与朝向核对",
+          "sheet_0.png": "墙体差异放大",
+        };
+        for (const record of task.generation.upstreamTools)
+          latest.set(record.role + ":" + record.tool, record);
+        for (const { role, tool, record } of latest.values()) {
+          details.append(
+            node(
+              "p",
+              `${roleLabels[role] || role} · ${toolLabels[tool] || tool}`,
+            ),
+          );
+          if (typeof record.result?.issueCount === "number")
+            details.append(
+              node(
+                "p",
+                `原图对账发现 ${record.result.issueCount} 处待核对差异。`,
+                "muted",
+              ),
+            );
+          if (record.result?.inconsistent)
+            details.append(
+              node("p", "尺寸链存在比例差异，需要核对标注基准。", "muted"),
+            );
+          for (const file of record.files || []) {
+            if (
+              typeof file.path !== "string" ||
+              !/^\/floorplan-images\/fp-[a-f0-9]{64}\/tools\/[a-f0-9]{64}\/files\/[a-z0-9_]+\.png$/.test(
+                file.path,
+              )
+            )
+              continue;
+            const link = node("a"),
+              img = node("img");
+            link.href = "/api" + file.path;
+            link.target = "_blank";
+            link.rel = "noopener";
+            img.src = link.href;
+            img.alt = fileLabels[file.name] || "原图识别证据";
+            img.loading = "lazy";
+            link.append(img);
+            details.append(link);
+          }
+        }
+        details.append(
+          node(
+            "p",
+            "识别与测量结果供核对，正式保存仍需结构确认和候选检查。",
+            "muted",
+          ),
+        );
+        reply.append(details);
+      }
       const result = task.result;
       if (result?.status === "completed") {
         if (result.generation?.mode === "reconstruct_floorplan") {

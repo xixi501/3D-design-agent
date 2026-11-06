@@ -1,4 +1,5 @@
 import { api, post } from "../api.js";
+import { FloorplanPanel } from "./floorplan.js";
 
 type Context = {
   projectId?: string;
@@ -61,6 +62,8 @@ export class ChatPanel {
   private connection = node("p", undefined, "chat-connection muted");
   private brief = node("details", undefined, "chat-brief");
   private briefTask?: string;
+  private floorplanUpload = node("button", "上传户型图复现客餐厅");
+  private floorplanFile = node("input");
   private projectId?: string;
   private conversationId?: string;
   private tasks: any[] = [];
@@ -73,6 +76,16 @@ export class ChatPanel {
     private getContext: () => Context,
     private onCommit: (projectId: string, generated?: boolean) => Promise<void>,
   ) {
+    this.floorplanUpload.type = "button";
+    this.floorplanFile.type = "file";
+    this.floorplanFile.accept = "image/png,image/jpeg,.png,.jpg,.jpeg";
+    this.floorplanFile.hidden = true;
+    this.floorplanUpload.onclick = () => this.floorplanFile.click();
+    this.floorplanFile.onchange = () => {
+      const file = this.floorplanFile.files?.[0];
+      if (file) void this.uploadFloorplan(file);
+      this.floorplanFile.value = "";
+    };
     this.input.placeholder =
       "例如：把这把椅子向左移动 200 毫米，再在旁边加一盏落地灯";
     this.input.setAttribute("aria-label", "对话需求");
@@ -88,6 +101,8 @@ export class ChatPanel {
     this.root.append(
       node("h2", "设计助手"),
       this.context,
+      this.floorplanUpload,
+      this.floorplanFile,
       this.connection,
       this.brief,
       this.messages,
@@ -131,13 +146,24 @@ export class ChatPanel {
     }
     this.renderMode();
   }
-  private mode(): "edit" | "generate_rectangular" {
+  private mode(): "edit" | "generate_rectangular" | "reconstruct_floorplan" {
     return (
       this.current()?.mode ||
       (this.getContext().blank ? "generate_rectangular" : "edit")
     );
   }
   private renderMode() {
+    this.floorplanUpload.disabled =
+      this.sending || !this.getContext().blank || !!this.current();
+    this.floorplanUpload.title = this.getContext().blank
+      ? "上传清晰的单层 PNG/JPEG，先核对草稿再生成"
+      : "请先新建空白项目";
+    if (this.mode() === "reconstruct_floorplan") {
+      this.context.textContent = "户型图复现 · 先核对整层结构与客餐厅原图布局";
+      this.input.placeholder = "补充图中信息，或打开草稿标定尺寸、校正对象。";
+      this.brief.hidden = true;
+      return;
+    }
     const generating = this.mode() === "generate_rectangular",
       context = this.getContext();
     this.context.textContent = generating
@@ -325,8 +351,29 @@ export class ChatPanel {
       );
       if (task.cancelRequested && active.has(task.status))
         reply.append(node("p", "已请求取消，正在等待安全边界。", "muted"));
+      if (task.mode === "reconstruct_floorplan" && task.generation?.draftId) {
+        const review = node(
+          "button",
+          task.status === "completed" ? "查看生成时的原图草稿" : "核对户型草稿",
+        );
+        review.dataset.testid = "review-floorplan";
+        review.onclick = () => this.reviewFloorplan(task);
+        reply.append(review);
+      }
       const result = task.result;
       if (result?.status === "completed") {
+        if (result.generation?.mode === "reconstruct_floorplan") {
+          reply.append(
+            node(
+              "p",
+              `整层结构与 ${result.changes?.length || 0} 件客餐厅家具已作为一个事务保存，保留确认时的原图布局。`,
+            ),
+          );
+          for (const skill of result.skillsUsed || [])
+            reply.append(
+              node("p", `复现技能 ${skill.id} @ ${skill.version}`, "muted"),
+            );
+        }
         if (result.generation?.dimensions) {
           const d = result.generation.dimensions;
           reply.append(
@@ -458,7 +505,11 @@ export class ChatPanel {
   private update(task: any) {
     const index = this.tasks.findIndex((t) => t.id === task.id);
     if (index < 0) this.tasks.push(task);
-    else this.tasks[index] = { ...this.tasks[index], ...task };
+    else {
+      const next = { ...this.tasks[index], ...task };
+      if (JSON.stringify(next) === JSON.stringify(this.tasks[index])) return;
+      this.tasks[index] = next;
+    }
     this.render();
     if (task.status === "completed" && this.lastRefresh !== task.id) {
       this.lastRefresh = task.id;
@@ -554,6 +605,86 @@ export class ChatPanel {
       localStorage.removeItem(pendingKey);
       if (context.projectId !== this.projectId) return;
       this.input.value = "";
+      this.update(task);
+      this.watchActive();
+    } catch (error) {
+      this.notice.textContent = (error as Error).message;
+      await this.load();
+    } finally {
+      this.sending = false;
+      this.render();
+    }
+  }
+  private reviewFloorplan(task: any) {
+    new FloorplanPanel(
+      task.projectId,
+      task.id,
+      task.generation.draftId,
+      async (body) => {
+        const next = await post(
+          `/agent/tasks/${task.id}/confirm-floorplan`,
+          body,
+        );
+        this.update(next);
+        this.watchActive();
+      },
+      task.status === "completed",
+    );
+  }
+  private async uploadFloorplan(file: File) {
+    if (this.sending) return;
+    if (!this.getContext().blank) {
+      this.notice.textContent = "请先新建空白项目，再上传户型图。";
+      return;
+    }
+    if (this.current()) {
+      this.notice.textContent = "请先完成或取消当前任务。";
+      return;
+    }
+    this.sending = true;
+    this.notice.textContent = "上传并校验原图…";
+    this.render();
+    const project = this.projectId;
+    try {
+      if (!this.conversationId) await this.load();
+      if (!this.conversationId || project !== this.projectId)
+        throw new Error("当前项目已切换，请重新上传");
+      const form = new FormData();
+      form.append("file", file);
+      const image = await api<any>("/floorplan-images", {
+        method: "POST",
+        body: form,
+      });
+      if (project !== this.projectId)
+        throw new Error("当前项目已切换，原图已保存，请在目标项目重新选择");
+      const input =
+        this.input.value.trim() ||
+        "请识别这张单层户型图，保留整层结构，并复现客餐厅原图家具布局。先提供草稿供我确认。";
+      const key = `actiscape-floorplan-pending:${this.conversationId}`,
+        signature = JSON.stringify({ imageId: image.id, input });
+      let previous: any;
+      try {
+        previous = JSON.parse(localStorage.getItem(key) || "null");
+      } catch {}
+      const body =
+        previous?.signature === signature
+          ? previous.body
+          : {
+              requestId: crypto.randomUUID(),
+              input,
+              mode: "reconstruct_floorplan",
+              imageId: image.id,
+              selectedIds: [],
+            };
+      localStorage.setItem(key, JSON.stringify({ signature, body }));
+      const task = await post<any>(
+        `/agent/conversations/${this.conversationId}/tasks`,
+        body,
+      );
+      localStorage.removeItem(key);
+      if (project !== this.projectId) return;
+      this.input.value = "";
+      this.notice.textContent = "原图已保存，正在识别草稿；正式项目暂未改变。";
       this.update(task);
       this.watchActive();
     } catch (error) {

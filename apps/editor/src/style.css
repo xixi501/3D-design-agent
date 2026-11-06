@@ -578,3 +578,105 @@ dialog::backdrop {
     display: none;
   }
 }
+
+.floorplan-dialog {
+  width: min(1450px, 96vw);
+  max-width: 96vw;
+  height: 92vh;
+  max-height: 96vh;
+  padding: 16px;
+}
+.floorplan-dialog::backdrop {
+  background: #25232380;
+}
+.floorplan-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 48px;
+}
+.floorplan-heading h2 {
+  margin: 0;
+}
+.floorplan-body {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) 320px;
+  gap: 16px;
+  height: calc(100% - 48px);
+}
+.floorplan-drawing {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.floorplan-drawing canvas {
+  touch-action: none;
+  flex: none;
+  border: 1px solid #ccc;
+}
+.floorplan-drawing > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 45px;
+}
+.floorplan-drawing > div label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.floorplan-drawing input[type="range"] {
+  width: 90px;
+}
+.floorplan-drawing p {
+  font-size: 12px;
+  color: #666;
+  margin: 6px 0;
+}
+.floorplan-controls {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  padding-right: 10px;
+  gap: 8px;
+}
+.floorplan-controls h3 {
+  margin: 10px 0 2px;
+}
+.floorplan-controls p {
+  font-size: 13px;
+  margin: 5px 0;
+  line-height: 1.5;
+}
+.floorplan-controls label {
+  display: block;
+  font-size: 13px;
+}
+.floorplan-controls input:not([type="checkbox"]),
+.floorplan-controls select {
+  width: 100%;
+  min-height: 32px;
+  padding: 5px;
+  box-sizing: border-box;
+}
+.floorplan-controls form {
+  display: grid;
+  gap: 7px;
+}
+.floorplan-controls form button {
+  margin-top: 6px;
+}
+.floorplan-controls [data-testid="confirm-floorplan"] {
+  position: sticky;
+  bottom: 0;
+  min-height: 42px;
+  flex-shrink: 0;
+}
+@media (max-width: 850px) {
+  .floorplan-body {
+    grid-template-columns: minmax(240px, 1fr) 250px;
+  }
+}

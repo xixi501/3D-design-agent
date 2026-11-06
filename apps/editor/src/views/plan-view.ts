@@ -32,6 +32,33 @@ export class PlanView {
   ox = 70;
   oy = 60;
   tool = "select";
+  sourceImageVisible = false;
+  private sourceImage?: HTMLImageElement;
+  private sourceImageId?: string;
+  private sourceData?: any;
+  setSourceImage(source?: any) {
+    this.sourceData = source;
+    if (!source || source.kind !== "floorplan") {
+      this.sourceImage = undefined;
+      this.sourceImageId = undefined;
+      this.draw();
+      return;
+    }
+    if (this.sourceImageId !== source.imageId) {
+      this.sourceImageId = source.imageId;
+      const img = new Image();
+      this.sourceImage = img;
+      img.onload = () => {
+        if (this.sourceImage === img) this.draw();
+      };
+      img.onerror = () => {
+        if (this.sourceImage === img)
+          this.report("原图加载失败，请检查来源文件是否完整");
+      };
+      img.src = `/api/floorplan-images/${source.imageId}/file`;
+    }
+    this.draw();
+  }
   pending?: { x: number; y: number };
   vertex = -1;
   drag?: {
@@ -570,6 +597,24 @@ export class PlanView {
       if (room.labels[0]?.tile) Sv(c, room, Gr(room.labels[0].tile), unit);
       else for (const r of room.rects) c.fillRect(r.x, r.y, r.w, r.h);
       c.globalAlpha = 1;
+    }
+    if (
+      this.sourceImageVisible &&
+      this.sourceData &&
+      this.sourceImage?.complete &&
+      this.sourceImage.naturalWidth
+    ) {
+      const source = this.sourceData;
+      c.save();
+      c.globalAlpha = 0.45;
+      c.drawImage(
+        this.sourceImage,
+        -source.origin.x * source.mmPerPixel,
+        -source.origin.y * source.mmPerPixel,
+        source.imageWidth * source.mmPerPixel,
+        source.imageHeight * source.mmPerPixel,
+      );
+      c.restore();
     }
     for (const g of geo.active) {
       c.save();

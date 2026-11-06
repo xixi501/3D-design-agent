@@ -21,7 +21,7 @@ import { Fh } from "./modeling/furniture-2d.js";
 import * as THREE from "three";
 const root = document.querySelector("#app")!;
 root.innerHTML = `<header><div class="brand">演境 <span>ActiScape</span></div><input id="project-name" aria-label="项目名称"><span id="save-state" role="status">连接项目服务…</span><div class="header-actions"><button id="new-project">新建</button><button id="open-project">打开项目</button><button id="import-project">导入 JSON</button><button id="export-project">导出</button><button id="save-project" class="primary">保存</button></div></header>
-<div class="toolbar"><div class="tools"><button data-tool="select" class="active">选择</button><button data-tool="wall">墙体</button><button data-tool="opening:door">门</button><button data-tool="opening:window">窗</button><button data-tool="struct:column">柱</button><button data-tool="beam">梁</button><button data-tool="room">房间</button><button data-tool="measure">尺寸</button></div><div class="view-switch"><button data-view="2d" class="active">二维</button><button data-view="split">分屏</button><button data-view="3d">三维</button></div><button id="frame">适应视图</button><button id="walk">漫游</button><button id="undo" title="Ctrl Z">撤销</button><button id="redo" title="Ctrl Shift Z">重做</button></div>
+<div class="toolbar"><div class="tools"><button data-tool="select" class="active">选择</button><button data-tool="wall">墙体</button><button data-tool="opening:door">门</button><button data-tool="opening:window">窗</button><button data-tool="struct:column">柱</button><button data-tool="beam">梁</button><button data-tool="room">房间</button><button data-tool="measure">尺寸</button></div><div class="view-switch"><button data-view="2d" class="active">二维</button><button data-view="split">分屏</button><button data-view="3d">三维</button></div><button id="frame">适应视图</button><button id="source-image" hidden>显示原图</button><button id="walk">漫游</button><button id="undo" title="Ctrl Z">撤销</button><button id="redo" title="Ctrl Shift Z">重做</button></div>
 <main><aside class="library"><div class="side-heading">家具与模型 <span id="catalog-count"></span></div><input id="catalog-search" placeholder="搜索家具 / 造型" aria-label="搜索家具"><button id="upload-model" class="wide primary subtle">＋ 导入 GLB 模型</button><div id="catalog"></div></aside><div id="viewport" data-mode="2d"><div id="plan-view"></div><div id="three-view"></div><div class="view-caption">单层设计 · mm</div></div><aside class="inspector"><nav><button data-panel="properties" class="active">属性</button><button data-panel="history">历史</button><button data-panel="checks">检查</button><button data-panel="chat">对话</button></nav><div id="inspector-body"></div></aside></main><footer><span id="message" role="status">正在载入…</span><span id="revision"></span></footer><input id="json-file" type="file" accept=".json,application/json" hidden><input id="glb-file" type="file" accept=".glb" hidden><dialog id="dialog"><div id="dialog-body"></div><button id="close-dialog">关闭</button></dialog>`;
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
@@ -165,6 +165,8 @@ async function display(next: Project, frame = false) {
   planView.selection = selection;
   const base = { projectId: next.id, revision: next.revision };
   planView.load(next.plan, base);
+  planView.setSourceImage(next.plan.source);
+  $("#source-image").hidden = next.plan.source?.kind !== "floorplan";
   if (frame) planView.frame();
   await three.rebuild(next.plan, base);
   if (frame) three.frame();
@@ -495,6 +497,13 @@ $("#catalog-search").oninput = () =>
   renderCatalog($<HTMLInputElement>("#catalog-search").value);
 $("#undo").onclick = () => void mutate("undo");
 $("#redo").onclick = () => void mutate("redo");
+$("#source-image").onclick = () => {
+  planView.sourceImageVisible = !planView.sourceImageVisible;
+  $("#source-image").textContent = planView.sourceImageVisible
+    ? "隐藏原图"
+    : "显示原图";
+  planView.draw();
+};
 $("#frame").onclick = () => {
   planView.frame();
   three.frame();

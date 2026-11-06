@@ -1,7 +1,7 @@
 import json
 from typing import Any, Sequence
 
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import AIMessage, ToolMessage
 from langchain_deepseek import ChatDeepSeek
 
 from .config import model_settings
@@ -20,7 +20,13 @@ class ActiDeepSeek(ChatDeepSeek):
         # replies. Restore only genuine ToolMessage image arrays, leaving text tools
         # and all parent-generated reasoning/tool-call protocol fields unchanged.
         messages = self._convert_input(input_).to_messages()
+        # The generic OpenAI serializer also omits this DeepSeek-specific field.
         for original, wire in zip(messages, payload["messages"]):
+            if (
+                isinstance(original, AIMessage)
+                and "reasoning_content" in original.additional_kwargs
+            ):
+                wire["reasoning_content"] = original.additional_kwargs["reasoning_content"]
             if (
                 isinstance(original, ToolMessage)
                 and isinstance(original.content, list)

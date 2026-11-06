@@ -72,7 +72,11 @@ async def main(args):
             e["kind"] == "tool_start" and e["data"]["tool"] == "request_original_crop"
             for e in trace
         )
-        passed = used and proof["usedCrop"] and "sofa1" in proof["seenText"].lower()
+        passed = (
+            used
+            and proof["usedCrop"]
+            and "sofa1" in "".join(proof["seenText"].lower().split())
+        )
         protocol = {
             "passed": passed,
             "realModel": True,

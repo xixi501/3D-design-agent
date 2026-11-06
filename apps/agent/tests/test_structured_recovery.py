@@ -11,6 +11,51 @@ class Output(BaseModel):
     result: str
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("recognition", [False, True])
+async def test_recognition_output_profile_reaches_model_without_changing_other_roles(
+    tmp_path, monkeypatch, recognition
+):
+    from actiscape_agent.config import FLOORPLAN_RECOGNITION_OPTIONS, model_settings
+    from actiscape_agent.model import create_model
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-only-not-a-credential")
+    options = FLOORPLAN_RECOGNITION_OPTIONS if recognition else {}
+    model = create_model(**options)
+    wire = model._get_request_payload([HumanMessage("inspect image")])
+    assert wire["max_tokens"] == (32768 if recognition else 8192)
+    assert model.request_timeout == (180 if recognition else 120)
+    assert wire["reasoning_effort"] == model_settings()["reasoning_effort"]
+    store = TaskStore(tmp_path)
+    conversation = store.create_conversation("p")
+    task = store.create_task(
+        conversation["id"], {"requestId": "profile", "input": "inspect", "selectedIds": []}
+    )
+    received = []
+
+    def factory(**kwargs):
+        received.append(kwargs)
+        return object()
+
+    class Agent:
+        async def ainvoke(self, state, config):
+            store.count_model_call(task["id"], "main")
+            return {"structured_response": Output(result="controlled profile verification")}
+
+    monkeypatch.setattr("actiscape_agent.roles.create_agent", lambda *a, **kw: Agent())
+    try:
+        await Roles(store, None, model_factory=factory).invoke(
+            "main", "test", Output, [], {}, task["id"], model_options=options or None
+        )
+        assert received == [options]
+        started = next(e["data"] for e in store.events(task["id"]) if e["kind"] == "agent_start")
+        assert started["maxOutputTokens"] == wire["max_tokens"]
+        assert started["timeoutSeconds"] == model.request_timeout
+        assert store.task(task["id"])["modelCalls"] == 1
+    finally:
+        store.close()
+
+
 def test_intent_requires_consistent_delete_and_field_authorization():
     with pytest.raises(ValidationError):
         Intent(status="ready", summary="delete selected", delete_ids=["selected"])

@@ -5,7 +5,7 @@ from functools import lru_cache
 from importlib.metadata import version
 from urllib.parse import urlparse
 
-from .config import ROOT, model_settings
+from .config import FLOORPLAN_RECOGNITION_OPTIONS, ROOT, model_settings
 
 
 @lru_cache(maxsize=1)
@@ -49,6 +49,8 @@ def runtime_versions():
         "reasoningEffort": model_settings()["reasoning_effort"],
         "tools": "scene-candidate-v3",
         "structuredOutputRecovery": "one-bounded-continuation-1",
+        "modelConfigVersion": "per-role-output-budget-1",
+        "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
         "floorplanPromptVersion": "s2c-floorplan-3",
         "pillow": version("Pillow"),
         "opencv": version("opencv-python-headless"),

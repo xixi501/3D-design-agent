@@ -43,5 +43,5 @@ class ActiDeepSeek(ChatDeepSeek):
         return payload
 
 
-def create_model() -> ActiDeepSeek:
-    return ActiDeepSeek(**model_settings())
+def create_model(**overrides: Any) -> ActiDeepSeek:
+    return ActiDeepSeek(**{**model_settings(), **overrides})

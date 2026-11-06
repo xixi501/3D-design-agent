@@ -157,7 +157,9 @@ class Roles:
         task_id: str,
         images: list[bytes] | None = None,
         prompt_version: str = PROMPT_VERSION,
+        model_options: dict | None = None,
     ):
+        options = {**model_settings(), **(model_options or {})}
         self.store.event(
             task_id,
             "agent_start",
@@ -165,7 +167,10 @@ class Roles:
                 "role": role,
                 "promptVersion": prompt_version,
                 "promptHash": fingerprint(prompt),
-                "model": model_settings()["model"],
+                "model": options["model"],
+                "maxOutputTokens": options["max_tokens"],
+                "timeoutSeconds": options["timeout"],
+                "reasoningEffort": options["reasoning_effort"],
             },
         )
         content = [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]
@@ -182,7 +187,7 @@ class Roles:
         for attempt in range(3):
             try:
                 agent = create_agent(
-                    self.model_factory(),
+                    self.model_factory(**(model_options or {})),
                     tools,
                     response_format=ToolStrategy(schema),
                     system_prompt=prompt,

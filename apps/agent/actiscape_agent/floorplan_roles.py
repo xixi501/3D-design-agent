@@ -3,6 +3,7 @@ import hashlib
 
 from langchain_core.tools import tool
 
+from .config import FLOORPLAN_RECOGNITION_OPTIONS
 from .floorplan_schemas import DraftCorrections, FloorplanRecognition, ReconstructionProposal
 from .generation_roles import GenerationRoles
 from .roles import objects_summary
@@ -125,6 +126,7 @@ class FloorplanRoles:
             task["id"],
             [content],
             prompt_version=VERSION,
+            model_options=FLOORPLAN_RECOGNITION_OPTIONS,
         )
         return FloorplanRecognition.model_validate(value).model_dump(exclude_none=True)
 

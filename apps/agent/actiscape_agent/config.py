@@ -6,6 +6,11 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(ROOT / ".env", override=False)
 
+# Whole-floor image recognition needs room for both thinking and the geometry
+# result. Other roles retain the previously verified 8K/120s defaults. The
+# shared 24-request/600s task budget still applies to every role and retry.
+FLOORPLAN_RECOGNITION_OPTIONS = {"max_tokens": 32768, "timeout": 180}
+
 
 def state_directory() -> Path:
     base = Path(os.environ.get("ACTISCAPE_DATA_DIR", str(ROOT / "data")))

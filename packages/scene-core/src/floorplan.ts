@@ -260,7 +260,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     number(f.w, f.id + ".w", 0.1, data.image.width);
     number(f.d, f.id + ".d", 0.1, data.image.height);
     number(f.rot, f.id + ".rot", -360, 360);
-    if (f.catalogKey !== undefined && !catalog[f.catalogKey])
+    if (f.catalogKey !== undefined && !Object.hasOwn(catalog, f.catalogKey))
       invalid("指定家具不在目录", f.id + ".catalogKey");
   }
   if (
@@ -562,7 +562,10 @@ export function materializeFloorplan(
   const edits: Command[] = active.map((s) => {
     const m = matches.find((m) => m.symbolId === s.id)!;
     object(m, ["symbolId", "key"], "matches");
-    if (!catalog[m.key] || (s.catalogKey && s.catalogKey !== m.key))
+    if (
+      !Object.hasOwn(catalog, m.key) ||
+      (s.catalogKey && s.catalogKey !== m.key)
+    )
       invalid("目录选择与已确认家具不一致", s.id);
     const f = createFurniture(m.key, s.x, s.y, { w: s.w, d: s.d, rot: s.rot });
     f.id = s.objectId;

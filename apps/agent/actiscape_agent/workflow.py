@@ -310,7 +310,11 @@ class Workflow:
     async def assets(self, state: State):
         task = self.task(state, "choosing_assets")
         if task.get("mode") == "reconstruct_floorplan":
-            return {"assets": await FloorplanRoles(self.roles).assets(task, state["intent"])}
+            return {
+                "assets": await FloorplanRoles(self.roles).assets(
+                    task, state["intent"], state.get("last_report")
+                )
+            }
         if task.get("mode") == "generate_rectangular":
             return {"assets": await GenerationRoles(self.roles).assets(task, state["intent"])}
         return {"assets": await self.roles.assets(task, state["intent"])}
@@ -388,6 +392,14 @@ class Workflow:
                 "last_report": c["checks"],
                 "route": "render" if c["checks"]["passed"] else "repair",
             }
+        except TaskError as e:
+            if e.code == "FROZEN_ASSETS":
+                return {
+                    "route": "repair",
+                    "last_report": {"error": e.code, "message": str(e)},
+                    "candidate": None,
+                }
+            raise
         except SceneFailure as e:
             if e.code == "REVISION_CONFLICT":
                 return self.conflict(state)
@@ -495,7 +507,10 @@ class Workflow:
             generation = task["generation"]
             generation["repairsUsed"] = count + 1
             self.store.update(task["id"], generation=generation)
-        return {"repairs": count + 1, "route": "design"}
+        return {
+            "repairs": count + 1,
+            "route": "assets" if task["mode"] == "reconstruct_floorplan" else "design",
+        }
 
     async def commit(self, state: State):
         task = self.task(
@@ -569,7 +584,7 @@ class Workflow:
             "inspect", lambda s: s["route"], {"repair": "repair", "commit": "commit"}
         )
         builder.add_conditional_edges(
-            "repair", lambda s: s["route"], {"end": END, "design": "design"}
+            "repair", lambda s: s["route"], {"end": END, "design": "design", "assets": "assets"}
         )
         builder.add_conditional_edges(
             "commit", lambda s: s["route"], {"end": END, "rebase": "snapshot"}

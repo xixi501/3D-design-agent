@@ -340,3 +340,41 @@ export function scoreFloorplan(
     thresholdVersion: "s2c-1",
   };
 }
+
+/** Evaluate actual instantiated keys, not just labels retained in the confirmed draft. */
+export function catalogueMappingProof(
+  plan: import("./types.js").Plan,
+  reference: FloorplanData,
+  layout: { actualId: string; referenceId: string }[],
+  allowed: Record<string, string[]> = {},
+) {
+  const objects = layout.map((pair) => {
+    const objectId = plan.source?.symbolObjects?.[pair.actualId],
+      f = plan.furniture.find((f) => f.id === objectId),
+      ref = reference.symbols.find((s) => s.id === pair.referenceId),
+      keys =
+        allowed[pair.referenceId] || (ref?.catalogKey ? [ref.catalogKey] : []),
+      covered =
+        Array.isArray(keys) &&
+        keys.length > 0 &&
+        keys.every((k) => typeof k === "string");
+    return {
+      symbolId: pair.actualId,
+      referenceId: pair.referenceId,
+      objectId,
+      key: f?.key,
+      allowedKeys: keys,
+      covered,
+      passed: covered && !!f && keys.includes(f.key),
+    };
+  });
+  const expected = reference.symbols.filter((s) =>
+    reference.targetRoomIds.includes(s.roomId),
+  ).length;
+  return {
+    passed: objects.length === expected && objects.every((o) => o.passed),
+    coverageComplete:
+      objects.length === expected && objects.every((o) => o.covered),
+    objects,
+  };
+}

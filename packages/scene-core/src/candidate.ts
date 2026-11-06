@@ -99,7 +99,7 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     s.allowDeleteIds.some((id) => !s.targetIds.includes(id))
   )
     fail("目标身份无效或删除授权超出目标范围");
-  if (s.allowAddKeys.some((key) => !catalog[key]))
+  if (s.allowAddKeys.some((key) => !Object.hasOwn(catalog, key)))
     fail("新增配方不在家具目录内");
   if (s.fieldMask) {
     if (!record(s.fieldMask)) fail("字段授权必须为对象");
@@ -116,7 +116,7 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
   for (const r of s.requirements) {
     keys(r, ["key", "count", "scope"]);
     if (
-      !catalog[r.key] ||
+      !Object.hasOwn(catalog, r.key) ||
       !Number.isInteger(r.count) ||
       r.count < 0 ||
       r.count > 100 ||

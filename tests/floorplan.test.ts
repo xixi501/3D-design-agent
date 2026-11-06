@@ -536,3 +536,28 @@ test("malformed draft batches and catalogue matches reject atomically with expli
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+test("actual catalogue mapping is graded independently from confirmed symbol labels", async () => {
+  const { scoreFloorplan, catalogueMappingProof } =
+    await import("../packages/scene-core/src/floorplan-metrics.js");
+  const state = materializeFloorplan(data, "grade", binding, matches).state,
+    layout = scoreFloorplan(data, data, data, 0).confirmed.layout,
+    allowed = Object.fromEntries(matches.map((m) => [m.symbolId, [m.key]]));
+  assert.equal(
+    catalogueMappingProof(state.plan, data, layout, allowed).passed,
+    true,
+  );
+  assert.equal(
+    catalogueMappingProof(state.plan, data, layout).coverageComplete,
+    false,
+  );
+  const wrong = clone(state.plan);
+  wrong.furniture[0].key = "bed";
+  assert.equal(
+    catalogueMappingProof(wrong, data, layout, allowed).passed,
+    false,
+  );
+  assert.throws(
+    () => createFurniture("constructor"),
+    (e: any) => e.code === "UNKNOWN_TYPE",
+  );
+});

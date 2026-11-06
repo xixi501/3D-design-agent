@@ -2,10 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { geometryProof } from "./floorplan-geometry.mjs";
-import { scoreFloorplan } from "../packages/scene-core/src/floorplan-metrics.ts";
+import {
+  scoreFloorplan,
+  catalogueMappingProof,
+} from "../packages/scene-core/src/floorplan-metrics.ts";
 import {
   validateFloorplan,
   checkFloorplanInitialization,
+  compileFloorplan,
 } from "../packages/scene-core/src/floorplan.ts";
 import { blankPlan } from "../packages/scene-core/src/index.ts";
 const option = (key, fallback) => {
@@ -66,6 +70,8 @@ if (stage === "start") {
       runs: [],
       completeS2Accepted: false,
     };
+    const prepared = [];
+    const catalogue = (await api("/catalog")).items;
     for (const item of cases) {
       const imageFile = path.resolve(path.dirname(manifestFile), item.image),
         referenceFile = path.resolve(
@@ -82,6 +88,62 @@ if (stage === "start") {
         }),
         image = await response.json();
       if (!response.ok) throw Error(JSON.stringify(image));
+      const reference = JSON.parse(fs.readFileSync(referenceFile));
+      if (
+        reference.image.id !== image.id ||
+        reference.image.sha256 !== image.sha256 ||
+        reference.image.width !== image.width ||
+        reference.image.height !== image.height
+      )
+        throw Error(
+          "Reference image identity/dimensions must match the uploaded oriented image before starting model tasks",
+        );
+      compileFloorplan(reference, "reference-validation");
+      const allowedCatalogueKeys = item.allowedCatalogueKeys || {};
+      for (const symbol of reference.symbols.filter((s) =>
+        reference.targetRoomIds.includes(s.roomId),
+      )) {
+        const keys =
+          allowedCatalogueKeys[symbol.id] ||
+          (symbol.catalogKey ? [symbol.catalogKey] : []);
+        if (
+          !Array.isArray(keys) ||
+          !keys.length ||
+          keys.some((k) => !Object.hasOwn(catalogue, k))
+        )
+          throw Error(
+            "Freeze allowed real catalogue keys for every reference target symbol before running: " +
+              symbol.id,
+          );
+      }
+      prepared.push({
+        item,
+        image,
+        imageFile,
+        referenceFile,
+        bytes,
+        referenceHash,
+        allowedCatalogueKeys,
+      });
+    }
+    if (new Set(prepared.map((p) => p.image.sha256)).size !== 2)
+      throw Error(
+        "Two distinct real images are required, not repeated copies of one image",
+      );
+    const synthetic = sha(fs.readFileSync("fixtures/s2c-synthetic.png"));
+    if (prepared.some((p) => p.image.sha256 === synthetic))
+      throw Error(
+        "The labelled synthetic tool fixture cannot count as a real floorplan case",
+      );
+    for (const {
+      item,
+      image,
+      imageFile,
+      referenceFile,
+      bytes,
+      referenceHash,
+      allowedCatalogueKeys,
+    } of prepared) {
       for (let attempt = 1; attempt <= 2; attempt++) {
         const project = await api("/projects", {}),
           conversation = await api("/agent/conversations", {
@@ -102,6 +164,7 @@ if (stage === "start") {
           imageHash: sha(bytes),
           referenceFile,
           referenceHash,
+          allowedCatalogueKeys,
           projectId: project.id,
           taskId: task.id,
           url: base + "/?project=" + project.id,
@@ -182,6 +245,12 @@ if (stage === "start") {
       candidate.generation.corrections,
       index.aliases,
     );
+    const catalogueMapping = catalogueMappingProof(
+      candidate.state.plan,
+      reference,
+      scores.confirmed.layout,
+      run.allowedCatalogueKeys || {},
+    );
     const checks = checkFloorplanInitialization(
       { plan: blankPlan(), roomLabelArchive: [] },
       candidate.state,
@@ -221,6 +290,7 @@ if (stage === "start") {
     const passed =
       rawValid &&
       geometry.passed &&
+      catalogueMapping.passed &&
       scores.passed &&
       checks.passed &&
       realRoles &&
@@ -234,6 +304,7 @@ if (stage === "start") {
       pending: false,
       rawValid,
       geometry,
+      catalogueMapping,
       scores,
       checks,
       realRoles,

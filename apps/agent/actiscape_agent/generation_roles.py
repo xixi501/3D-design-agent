@@ -84,7 +84,7 @@ class GenerationRoles:
             prompt_version=VERSION,
         )
 
-    async def assets(self, task, intent):
+    async def assets(self, task, intent, last_report=None):
         catalogue = (await self.client.request("/catalog"))["items"]
 
         @tool
@@ -128,6 +128,7 @@ class GenerationRoles:
             schema,
             [search_catalogue_batch],
             {
+                **({"lastReport": last_report} if last_report is not None else {}),
                 "userRequest": task["input"],
                 "requests": [{"request_index": i, **a} for i, a in enumerate(intent["additions"])],
                 **(

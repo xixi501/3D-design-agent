@@ -425,3 +425,19 @@ async def test_manual_edit_during_confirmation_wait_stops_initialization(tmp_pat
         assert len(client.project["plan"]["furniture"]) == 1 and not client.ledger
     finally:
         await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_design_cannot_replace_frozen_asset_choices_before_candidate_creation():
+    from types import SimpleNamespace
+
+    from actiscape_agent.floorplan_roles import FloorplanRoles
+
+    class Client:
+        async def request(self, *args):
+            raise AssertionError("Unauthorized asset changes must be rejected before HTTP")
+
+    role = FloorplanRoles(SimpleNamespace(store=None, client=Client()))
+    task = {"generation": {"matches": [{"symbolId": "sofa", "key": "sofa"}]}}
+    with pytest.raises(TaskError, match="资产角色"):
+        await role.candidate(task, {}, {}, {"matches": [{"symbolId": "sofa", "key": "bed"}]}, 0)

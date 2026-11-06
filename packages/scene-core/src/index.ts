@@ -46,8 +46,11 @@ export const createFurniture = (
   y = 0,
   overrides: Record<string, any> = {},
 ): Furniture => {
-  if (!catalog[key])
-    throw new SceneError("UNKNOWN_TYPE", `家具目录没有 ${key}`);
+  if (typeof key !== "string" || !Object.hasOwn(catalog, key))
+    throw new SceneError(
+      "UNKNOWN_TYPE",
+      `家具目录没有 ${typeof key === "string" ? key : "有效类型"}`,
+    );
   return clone(
     Hc(key, x, y, overrides.rot || 0, { ...overrides, id: newId() }),
   ) as Furniture;
@@ -199,7 +202,7 @@ export function validatePlan(plan: Plan) {
     finite(f.rot, "家具旋转");
     if (f.type === "model" && (typeof f.modelId !== "string" || !f.modelId))
       throw new SceneError("MISSING_ASSET", "外部模型缺少资产身份");
-    if (f.type !== "model" && !catalog[f.key])
+    if (f.type !== "model" && !Object.hasOwn(catalog, f.key))
       throw new SceneError("UNKNOWN_TYPE", `未知家具 ${f.key}`);
     if (f.type !== "model" && catalog[f.key].type !== f.type)
       throw new SceneError("INVALID_RECIPE", "家具类型与目录配方不一致");

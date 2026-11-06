@@ -49,7 +49,7 @@ def runtime_versions():
         "reasoningEffort": model_settings()["reasoning_effort"],
         "tools": "scene-candidate-v3",
         "structuredOutputRecovery": "one-bounded-continuation-1",
-        "floorplanPromptVersion": "s2c-floorplan-2",
+        "floorplanPromptVersion": "s2c-floorplan-3",
         "pillow": version("Pillow"),
         "opencv": version("opencv-python-headless"),
         "promptVersion": "s2a-local-edit-2",

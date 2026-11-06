@@ -48,7 +48,7 @@ def runtime_versions():
         "modelProvider": urlparse(model_settings()["base_url"]).netloc,
         "reasoningEffort": model_settings()["reasoning_effort"],
         "tools": "scene-candidate-v3",
-        "floorplanPromptVersion": "s2c-floorplan-1",
+        "floorplanPromptVersion": "s2c-floorplan-2",
         "pillow": version("Pillow"),
         "opencv": version("opencv-python-headless"),
         "promptVersion": "s2a-local-edit-1",

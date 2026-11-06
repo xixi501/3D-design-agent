@@ -91,6 +91,7 @@ export interface FloorplanImage extends ImageReference {
   normalizedToPixel: { x: number; y: number };
   pixelSpace: string;
   lineCandidates: any[];
+  normalizedSha256?: string;
   status: "ready";
 }
 export class FloorplanStore {
@@ -120,6 +121,17 @@ export class FloorplanStore {
       throw new SceneError(
         "SOURCE_IMAGE_MISSING",
         "户型原图或处理图文件缺失，请恢复数据目录",
+        422,
+      );
+    const expected = variant === "original" ? r.sha256 : r.normalizedSha256;
+    if (
+      expected &&
+      createHash("sha256").update(fs.readFileSync(file)).digest("hex") !==
+        expected
+    )
+      throw new SceneError(
+        "SOURCE_IMAGE_INVALID",
+        "户型图片文件校验失败，请恢复或重新上传原图",
         422,
       );
     return {
@@ -163,6 +175,9 @@ export class FloorplanStore {
         filename: filename.slice(0, 200),
         bytes: bytes.length,
         status: "ready",
+        normalizedSha256: createHash("sha256")
+          .update(Buffer.from(normalized, "base64"))
+          .digest("hex"),
         ...metadata,
       };
     const dir = path.join(this.projects.directory, "floorplan-images", id);
@@ -181,7 +196,18 @@ export class FloorplanStore {
       }
       fs.renameSync(temp, path.join(dir, name));
     }
-    if (!existing)
+    if (existing) {
+      const prior: any = this.image(id);
+      this.projects.db
+        .prepare("UPDATE floorplan_images SET record=? WHERE id=?")
+        .run(
+          JSON.stringify({
+            ...record,
+            ...(prior.crops ? { crops: prior.crops } : {}),
+          }),
+          id,
+        );
+    } else
       this.projects.db
         .prepare("INSERT INTO floorplan_images(id,record) VALUES(?,?)")
         .run(id, JSON.stringify(record));
@@ -207,7 +233,7 @@ export class FloorplanStore {
     const requestHash = hash({
         image: image.sha256,
         box,
-        processorVersion: "s2c-image-2",
+        processorVersion: "s2c-image-3",
       }),
       directory = path.join(
         this.projects.directory,
@@ -243,7 +269,7 @@ export class FloorplanStore {
           scaleX: (box[2] - box[0]) / bytes.readUInt32BE(16),
           scaleY: (box[3] - box[1]) / bytes.readUInt32BE(20),
         },
-        processorVersion: "s2c-image-2",
+        processorVersion: "s2c-image-3",
         path: `/floorplan-images/${imageId}/crops/${requestHash}/file`,
         sha256: createHash("sha256").update(bytes).digest("hex"),
       };
@@ -495,9 +521,30 @@ export class FloorplanStore {
       const data = clone(record.data) as FloorplanData;
       let corrections = record.corrections;
       for (const c of body.commands) {
+        if (!c || typeof c !== "object" || Array.isArray(c))
+          throw new SceneError("INVALID_REQUEST", "草稿命令必须是对象");
+        const allowed: any = {
+          calibrate: ["type", "anchors"],
+          targets: ["type", "roomIds"],
+          defaults: ["type", "values"],
+          upsert: ["type", "collection", "object"],
+          delete: ["type", "collection", "id"],
+        };
+        if (
+          !allowed[c.type] ||
+          Object.keys(c).some((k) => !allowed[c.type].includes(k))
+        )
+          throw new SceneError("INVALID_REQUEST", "草稿命令包含未知类型或字段");
         if (c.type === "calibrate") data.anchors = clone(c.anchors);
         else if (c.type === "targets") data.targetRoomIds = clone(c.roomIds);
         else if (c.type === "defaults") {
+          if (
+            !c.values ||
+            typeof c.values !== "object" ||
+            Array.isArray(c.values) ||
+            !Object.keys(c.values).length
+          )
+            throw new SceneError("INVALID_REQUEST", "草稿默认值需要非空对象");
           for (const k of Object.keys(c.values || {})) {
             if (!["height", "wallThickness", "name"].includes(k))
               throw new SceneError("INVALID_REQUEST", "未知草稿默认字段");

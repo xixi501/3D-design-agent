@@ -190,10 +190,13 @@ export class CandidateStore {
             "草稿确认对应的正式项目版本已变化",
             409,
           );
-        if (reconstruction && request.edits?.length)
+        if (
+          reconstruction &&
+          (request.edits?.length || request.scope !== undefined)
+        )
           throw new SceneError(
             "INVALID_REQUEST",
-            "户型复现只能使用已确认符号，不能另传编辑布局",
+            "户型复现只能使用已确认符号，不能另传编辑布局或授权范围",
           );
         const reconstructed = draft
           ? materializeFloorplan(

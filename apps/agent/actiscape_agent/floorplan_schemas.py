@@ -53,7 +53,6 @@ class ImageSymbol(StrictModel):
     w: FiniteFloat = Field(gt=0)
     d: FiniteFloat = Field(gt=0)
     rot: FiniteFloat = Field(ge=-360, le=360)
-    catalogKey: str | None = None
 
 
 class Uncertainty(StrictModel):

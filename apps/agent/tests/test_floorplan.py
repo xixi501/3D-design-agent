@@ -360,6 +360,9 @@ def test_image_decoder_preserves_orientation_and_crop_pixels_and_rejects_bad_inp
     image.save(jpeg, format="JPEG", exif=exif)
     decoded, _, orientation = decode_image(jpeg.getvalue())
     assert orientation == 6 and decoded.size == (40, 80)
+    transparent = io.BytesIO()
+    Image.new("RGBA", (30, 20), (0, 0, 0, 0)).save(transparent, format="PNG")
+    assert decode_image(transparent.getvalue())[0].getpixel((10, 10)) == (255, 255, 255)
     with pytest.raises(Exception):
         decode_image(b"not an image")
     with pytest.raises(ValueError):

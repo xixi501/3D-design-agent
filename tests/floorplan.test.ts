@@ -435,3 +435,104 @@ test("floorplan scoring separates first recognition, human corrections, topology
   badTarget.targetRoomIds = ["bedroom"];
   assert.equal(scoreFloorplan(data, badTarget, data, 1).passed, false);
 });
+test("malformed draft batches and catalogue matches reject atomically with explicit errors", async () => {
+  const { validateFloorplan } =
+    await import("../packages/scene-core/src/floorplan.js");
+  const malformed = clone(data);
+  (malformed.walls as any)[0] = null;
+  assert.throws(
+    () => validateFloorplan(malformed),
+    (e: any) => e.code === "INVALID_FLOORPLAN",
+  );
+  assert.throws(
+    () =>
+      materializeFloorplan(data, "malformed", binding, [
+        null,
+        ...matches.slice(1),
+      ] as any),
+    (e: any) => e.code === "INVALID_FLOORPLAN",
+  );
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "floorplan-fields-")),
+    store = new ProjectStore(dir),
+    candidates = new CandidateStore(store),
+    floorplans = candidates.floorplans;
+  try {
+    const bytes = fs.readFileSync("fixtures/s2c-synthetic.png"),
+      img = await floorplans.upload(bytes, "guard.png"),
+      d = clone(data);
+    d.image = {
+      id: img.id,
+      sha256: img.sha256,
+      width: img.width,
+      height: img.height,
+    };
+    const p = store.create(blankPlan()),
+      draft = floorplans.create(p.id, {
+        requestId: "guard",
+        imageId: img.id,
+        baseRevision: 0,
+        data: d,
+      });
+    floorplans.confirm(p.id, draft.id, {
+      requestId: "confirm",
+      draftRevision: 0,
+      draftHash: draft.hash,
+    });
+    const before = floorplans.get(p.id, draft.id);
+    for (const bad of [
+      null,
+      { type: "defaults", values: [] },
+      { type: "targets", roomIds: d.targetRoomIds, project: "escape" },
+    ]) {
+      assert.throws(
+        () =>
+          floorplans.commands(p.id, draft.id, {
+            requestId: crypto.randomUUID(),
+            draftRevision: 0,
+            commands: [{ type: "defaults", values: { height: 3100 } }, bad],
+          }),
+        (e: any) => e.code === "INVALID_REQUEST",
+      );
+      assert.deepEqual(floorplans.get(p.id, draft.id), before);
+      assert.equal(store.get(p.id).revision, 0);
+    }
+    assert.throws(
+      () =>
+        candidates.create(p.id, {
+          requestId: "bad-scope",
+          taskId: "guard",
+          baseRevision: 0,
+          kind: "initialize_floorplan",
+          floorplan: {
+            draftId: draft.id,
+            draftRevision: 0,
+            draftHash: draft.hash,
+          },
+          matches,
+          scope: {
+            targetIds: [],
+            allowDeleteIds: [],
+            allowAddKeys: [],
+            requirements: [],
+          },
+        }),
+      (e: any) => e.code === "INVALID_REQUEST",
+    );
+    const file = floorplans.file(img.id).file;
+    assert.ok(img.normalizedSha256);
+    fs.writeFileSync(file, "damaged");
+    assert.throws(
+      () => floorplans.verifyImage(img.id),
+      (e: any) => e.code === "SOURCE_IMAGE_INVALID",
+    );
+    const repaired = await floorplans.upload(bytes, "repaired.png");
+    assert.equal(repaired.id, img.id);
+    assert.equal(
+      floorplans.verifyImage(img.id).normalizedSha256,
+      img.normalizedSha256,
+    );
+  } finally {
+    store.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

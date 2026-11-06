@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
+PROCESSOR_VERSION = "s2c-image-3"
 MAX_BYTES = 20 * 1024 * 1024
 MAX_PIXELS = 25_000_000
 Image.MAX_IMAGE_PIXELS = MAX_PIXELS
@@ -29,7 +30,14 @@ def decode_image(content: bytes):
             probe.verify()
         with Image.open(io.BytesIO(content)) as source:
             orientation = source.getexif().get(274, 1)
-            image = ImageOps.exif_transpose(source).convert("RGB")
+            oriented = ImageOps.exif_transpose(source)
+            if oriented.mode in ("RGBA", "LA") or "transparency" in oriented.info:
+                rgba = oriented.convert("RGBA")
+                background = Image.new("RGBA", rgba.size, "white")
+                background.alpha_composite(rgba)
+                image = background.convert("RGB")
+            else:
+                image = oriented.convert("RGB")
     return image, format_name, orientation
 
 
@@ -64,6 +72,7 @@ def inspect_image(content: bytes):
         )
     )
     return {
+        "processorVersion": PROCESSOR_VERSION,
         "width": image.width,
         "height": image.height,
         "format": format_name,

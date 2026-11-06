@@ -103,7 +103,12 @@ class FloorplanFlow:
         preview = await self.client.request(
             prefix + "/" + draft["id"] + "/preview", {"taskId": task["id"]}
         )
-        g.update(previewChecks=preview["checks"], defaults=preview.get("defaults", []))
+        g.update(
+            previewChecks=preview["checks"],
+            defaults=preview.get("defaults", []),
+            compiledSymbols=preview.get("symbols", []),
+            scale=preview.get("scale"),
+        )
         self.store.update(task["id"], generation=g)
         self.store.event(
             task["id"],

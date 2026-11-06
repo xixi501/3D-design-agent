@@ -130,6 +130,11 @@ class GenerationRoles:
             {
                 "userRequest": task["input"],
                 "requests": [{"request_index": i, **a} for i, a in enumerate(intent["additions"])],
+                **(
+                    {"sourceSymbols": task["generation"].get("compiledSymbols", [])}
+                    if task.get("mode") == "reconstruct_floorplan"
+                    else {}
+                ),
             },
             task["id"],
             prompt_version=self.asset_version,

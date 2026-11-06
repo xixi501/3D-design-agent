@@ -171,6 +171,8 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       invalid(`${field} 数量无效`, field);
     if (field !== "anchors")
       for (const o of data[field]) {
+        if (!o || typeof o !== "object" || Array.isArray(o))
+          invalid("草稿对象必须是完整对象", field);
         text(o.id, field + ".id", 100);
         if (!/^[\w:-]+$/.test(o.id) || ids.has(o.id))
           invalid("草稿对象身份重复或无效", field + ".id");
@@ -544,6 +546,12 @@ export function materializeFloorplan(
 ) {
   const compiled = compileFloorplan(data, seed, binding);
   const active = compiled.symbols;
+  if (Array.isArray(matches))
+    for (const m of matches) {
+      object(m, ["symbolId", "key"], "matches");
+      text(m.symbolId, "matches.symbolId", 100);
+      text(m.key, "matches.key", 100);
+    }
   if (
     !Array.isArray(matches) ||
     matches.length !== active.length ||

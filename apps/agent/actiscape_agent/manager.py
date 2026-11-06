@@ -32,6 +32,76 @@ class TaskManager:
         self.worker = asyncio.create_task(self.work())
         for id in self.store.recoverable():
             self.enqueue(id)
+        for row in self.store.db.execute(
+            "SELECT id FROM tasks WHERE mode='reconstruct_floorplan' AND status='waiting_input'"
+        ).fetchall():
+            with contextlib.suppress(SceneFailure, TaskError):
+                await self.reconcile_floorplan_confirmation(row["id"])
+
+    async def confirm_floorplan(self, id: str, body: dict):
+        task = self.store.task(id, internal=True)
+        if task["mode"] != "reconstruct_floorplan" or task["cancelRequested"]:
+            raise TaskError("INVALID_STATE", "此任务不能确认户型", 409)
+        g = dict(task["generation"])
+        if g.get("draftId") != body["draftId"]:
+            raise TaskError("DRAFT_CONFLICT", "草稿不属于此任务", 409)
+        previous = g.get("confirmation")
+        if task["status"] not in ("waiting_input", "failed", "conflict"):
+            if previous == body:
+                return self.store.task(id)
+            raise TaskError("INVALID_STATE", "当前任务不能重新确认", 409)
+        if task["modelCalls"] >= 24 or task["elapsedSeconds"] >= 600:
+            raise TaskError("BUDGET_EXHAUSTED", "本任务预算已耗尽，请新建任务", 409)
+        record = await self.client.request(
+            f"/projects/{task['projectId']}/floorplan-drafts/{body['draftId']}/confirm",
+            {k: v for k, v in body.items() if k != "draftId"},
+        )
+        g.update(confirmation=body, floorplan=record)
+        self.store.update(id, generation=g)
+        resumed = self.store.resume(
+            id, {"requestId": body["requestId"], "input": "", "selectedIds": []}
+        )
+        self.enqueue(id)
+        self.store.event(
+            id,
+            "floorplan_confirmed",
+            {
+                "draftId": record["id"],
+                "draftRevision": record["revision"],
+                "draftHash": record["hash"],
+            },
+        )
+        return resumed
+
+    async def reconcile_floorplan_confirmation(self, id: str):
+        task = self.store.task(id, internal=True)
+        if (
+            task["mode"] != "reconstruct_floorplan"
+            or task["status"] != "waiting_input"
+            or not task["generation"].get("draftId")
+        ):
+            return
+        d = await self.client.request(
+            f"/projects/{task['projectId']}/floorplan-drafts/{task['generation']['draftId']}"
+        )
+        c = d.get("confirmed")
+        applied = (
+            self.store.db.execute(
+                "SELECT 1 FROM actions WHERE task_id=? AND request_id=?", (id, c["requestId"])
+            ).fetchone()
+            if c
+            else None
+        )
+        if c and not applied and c["revision"] == d["revision"] and c["hash"] == d["hash"]:
+            await self.confirm_floorplan(
+                id,
+                {
+                    "requestId": c["requestId"],
+                    "draftId": d["id"],
+                    "draftRevision": d["revision"],
+                    "draftHash": d["hash"],
+                },
+            )
 
     async def close(self):
         for task in self.delayed:
@@ -103,12 +173,20 @@ class TaskManager:
                         continue
                 previous = await self.graph.aget_state(config)
                 input_hash = fingerprint({"input": task["input"], "selected": task["selectedIds"]})
-                if task.get("mode") == "generate_rectangular":
+                if task.get("mode") in ("generate_rectangular", "reconstruct_floorplan"):
                     input_hash = fingerprint(
                         {
                             "input": task["input"],
                             "selected": task["selectedIds"],
                             "mode": task["mode"],
+                            **(
+                                {
+                                    "resumeNonce": task["generation"].get("resumeNonce"),
+                                    "imageId": task["generation"].get("imageId"),
+                                }
+                                if task["mode"] == "reconstruct_floorplan"
+                                else {}
+                            ),
                         }
                     )
                 fresh = not previous.values or previous.values.get("input_hash") != input_hash
@@ -116,7 +194,9 @@ class TaskManager:
                     state = {
                         "task_id": id,
                         "input_hash": input_hash,
-                        "repairs": 0,
+                        "repairs": task["generation"].get("repairsUsed", 0)
+                        if task.get("mode") == "reconstruct_floorplan"
+                        else 0,
                         "version_retries": 0,
                         "candidate": None,
                         "review": None,
@@ -218,7 +298,10 @@ class TaskManager:
                 status = "cancelled" if code == "CANCELLED" else "failed"
                 result = {"status": status, "message": message, "errorCode": code}
                 current = self.store.task(id)
-                if current.get("mode") == "generate_rectangular" and status == "failed":
+                if (
+                    current.get("mode") in ("generate_rectangular", "reconstruct_floorplan")
+                    and status == "failed"
+                ):
                     generation = current.get("generation", {})
                     if generation.get("lastCandidateId"):
                         result.update(

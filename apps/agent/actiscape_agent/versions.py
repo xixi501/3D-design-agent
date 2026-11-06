@@ -3,6 +3,7 @@ import platform
 import subprocess
 from functools import lru_cache
 from importlib.metadata import version
+from urllib.parse import urlparse
 
 from .config import ROOT, model_settings
 
@@ -43,8 +44,12 @@ def runtime_versions():
         "langchain": version("langchain"),
         "deepseekAdapter": version("langchain-deepseek"),
         "model": model_settings()["model"],
+        "modelProvider": urlparse(model_settings()["base_url"]).netloc,
         "reasoningEffort": model_settings()["reasoning_effort"],
-        "tools": "scene-candidate-v2",
+        "tools": "scene-candidate-v3",
+        "floorplanPromptVersion": "s2c-floorplan-1",
+        "pillow": version("Pillow"),
+        "opencv": version("opencv-python-headless"),
         "promptVersion": "s2a-local-edit-1",
         "generationPromptVersion": "s2b-rectangular-2",
     }

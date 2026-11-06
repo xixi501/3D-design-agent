@@ -22,6 +22,65 @@ const identity = (v: any) => {
   if (typeof v !== "string" || !v || v.length > 200)
     throw new SceneError("INVALID_REQUEST", "需要有效 requestId");
 };
+async function imageProcess(bytes: Buffer, mode = "inspect"): Promise<any> {
+  return await new Promise((resolve, reject) => {
+    const child = spawn(
+      process.env.ACTISCAPE_AGENT_PYTHON ||
+        process.env.ACTISCAPE_PYTHON ||
+        path.resolve(".venv/bin/python"),
+      ["-m", "actiscape_agent.floorplan_image", mode],
+      { stdio: ["pipe", "pipe", "pipe"] },
+    );
+    let output = Buffer.alloc(0),
+      settled = false;
+    const timer = setTimeout(() => {
+      child.kill();
+      finish(new SceneError("IMAGE_TIMEOUT", "图片解码超时", 422));
+    }, 30000);
+    const finish = (error?: Error, value?: any) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      error ? reject(error) : resolve(value);
+    };
+    child.on("error", () =>
+      finish(
+        new SceneError(
+          "IMAGE_PROCESSOR_UNAVAILABLE",
+          "图片处理环境未就绪，请运行 setup:agent",
+          503,
+        ),
+      ),
+    );
+    child.stdout.on("data", (chunk: Buffer) => {
+      output = Buffer.concat([output, chunk]);
+      if (output.length > 64 * 1024 * 1024) {
+        child.kill();
+        finish(new SceneError("INVALID_IMAGE", "图片处理输出过大", 422));
+      }
+    });
+    child.stderr.resume();
+    child.stdin.on("error", () => {});
+    child.on("close", (code) => {
+      if (settled) return;
+      try {
+        const value = JSON.parse(output.toString());
+        if (code !== 0 || value.error)
+          finish(
+            new SceneError(
+              "INVALID_IMAGE",
+              value.message || "图片无法解码",
+              422,
+            ),
+          );
+        else finish(undefined, value);
+      } catch {
+        finish(new SceneError("INVALID_IMAGE", "图片无法解码", 422));
+      }
+    });
+    child.stdin.end(bytes);
+  });
+}
 export interface FloorplanImage extends ImageReference {
   filename: string;
   bytes: number;
@@ -96,61 +155,7 @@ export class FloorplanStore {
     const existing = this.projects.db
       .prepare("SELECT id FROM floorplan_images WHERE id=?")
       .get(id);
-    const result: any = await new Promise((resolve, reject) => {
-      const child = spawn(
-        process.env.ACTISCAPE_PYTHON || path.resolve(".venv/bin/python"),
-        ["-m", "actiscape_agent.floorplan_image"],
-        { stdio: ["pipe", "pipe", "pipe"] },
-      );
-      let output = Buffer.alloc(0),
-        settled = false;
-      const timer = setTimeout(() => {
-        child.kill();
-        finish(new SceneError("IMAGE_TIMEOUT", "图片解码超时", 422));
-      }, 30000);
-      const finish = (error?: Error, value?: any) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        error ? reject(error) : resolve(value);
-      };
-      child.on("error", () =>
-        finish(
-          new SceneError(
-            "IMAGE_PROCESSOR_UNAVAILABLE",
-            "图片处理环境未就绪，请运行 setup:agent",
-            503,
-          ),
-        ),
-      );
-      child.stdout.on("data", (chunk: Buffer) => {
-        output = Buffer.concat([output, chunk]);
-        if (output.length > 64 * 1024 * 1024) {
-          child.kill();
-          finish(new SceneError("INVALID_IMAGE", "图片处理输出过大", 422));
-        }
-      });
-      child.stderr.resume();
-      child.stdin.on("error", () => {});
-      child.on("close", (code) => {
-        if (settled) return;
-        try {
-          const value = JSON.parse(output.toString());
-          if (code !== 0 || value.error)
-            finish(
-              new SceneError(
-                "INVALID_IMAGE",
-                value.message || "图片无法解码",
-                422,
-              ),
-            );
-          else finish(undefined, value);
-        } catch {
-          finish(new SceneError("INVALID_IMAGE", "图片无法解码", 422));
-        }
-      });
-      child.stdin.end(bytes);
-    });
+    const result: any = await imageProcess(bytes);
     const { normalized, ...metadata } = result,
       record: FloorplanImage = {
         id,
@@ -181,6 +186,123 @@ export class FloorplanStore {
         .prepare("INSERT INTO floorplan_images(id,record) VALUES(?,?)")
         .run(id, JSON.stringify(record));
     return this.verifyImage(id);
+  }
+  async crop(imageId: string, box: number[]) {
+    const image = this.verifyImage(imageId),
+      requestHash = hash({ image: image.sha256, box }),
+      directory = path.join(
+        this.projects.directory,
+        "floorplan-images",
+        imageId,
+        "crops",
+      );
+    const file = path.join(directory, requestHash + ".png");
+    if (!fs.existsSync(file)) {
+      const result = await imageProcess(
+        Buffer.from(
+          JSON.stringify({
+            image: fs
+              .readFileSync(this.file(imageId, "original").file)
+              .toString("base64"),
+            box,
+          }),
+        ),
+        "crop",
+      );
+      fs.mkdirSync(directory, { recursive: true });
+      this.writeArtifact(file, Buffer.from(result.png, "base64"));
+    }
+    const bytes = fs.readFileSync(file),
+      record = {
+        id: requestHash,
+        box,
+        path: `/floorplan-images/${imageId}/crops/${requestHash}/file`,
+        sha256: createHash("sha256").update(bytes).digest("hex"),
+      };
+    const latest: any = this.image(imageId);
+    latest.crops = [
+      ...(latest.crops || []).filter((c: any) => c.id !== record.id),
+      record,
+    ];
+    this.projects.db
+      .prepare("UPDATE floorplan_images SET record=? WHERE id=?")
+      .run(JSON.stringify(latest), imageId);
+    return record;
+  }
+  cropFile(imageId: string, cropId: string) {
+    const image: any = this.image(imageId);
+    if (!image.crops?.some((c: any) => c.id === cropId))
+      throw new SceneError("NOT_FOUND", "裁剪证据不存在", 404);
+    const file = path.join(
+      this.projects.directory,
+      "floorplan-images",
+      imageId,
+      "crops",
+      cropId + ".png",
+    );
+    if (!fs.existsSync(file))
+      throw new SceneError("SOURCE_IMAGE_MISSING", "裁剪文件缺失", 422);
+    return file;
+  }
+  private writeArtifact(file: string, bytes: Buffer) {
+    const tmp = file + "." + newId() + ".tmp",
+      fd = fs.openSync(tmp, "wx");
+    try {
+      fs.writeFileSync(fd, bytes);
+      fs.fsyncSync(fd);
+    } finally {
+      fs.closeSync(fd);
+    }
+    fs.renameSync(tmp, file);
+  }
+  async overlay(project: string, id: string) {
+    const draft = this.get(project, id);
+    this.verifyImage(draft.data.image.id);
+    const directory = path.join(
+      this.projects.directory,
+      "floorplan-images",
+      draft.data.image.id,
+      "overlays",
+    );
+    const file = path.join(directory, id + "-" + draft.hash + ".png");
+    if (!fs.existsSync(file)) {
+      const image = fs
+          .readFileSync(this.file(draft.data.image.id, "original").file)
+          .toString("base64"),
+        result = await imageProcess(
+          Buffer.from(JSON.stringify({ image, draft: draft.data })),
+          "overlay",
+        );
+      fs.mkdirSync(directory, { recursive: true });
+      this.writeArtifact(file, Buffer.from(result.png, "base64"));
+    }
+    return {
+      file,
+      sha256: createHash("sha256").update(fs.readFileSync(file)).digest("hex"),
+      draftHash: draft.hash,
+    };
+  }
+  rebase(project: string, id: string, body: any) {
+    return this.action(project, id, body, (record) => {
+      const p = this.projects.get(project);
+      requireBlank(p);
+      if (p.revision !== body.baseRevision)
+        throw new SceneError("REVISION_CONFLICT", "项目版本已变化", 409);
+      const revision = record.revision + 1,
+        next = {
+          ...record,
+          baseRevision: p.revision,
+          revision,
+          hash: hash({ id, revision, data: record.data }),
+          confirmed: null,
+        };
+      this.projects.db
+        .prepare(
+          "INSERT INTO floorplan_revisions(draft,revision,record) VALUES(?,?,?)",
+        )
+        .run(id, revision, JSON.stringify(next));
+      return next;
+    });
   }
   private row(project: string, id: string): any {
     const r = this.projects.db

@@ -102,6 +102,17 @@ export function validatePlan(plan: Plan) {
       !/^[a-f0-9]{64}$/.test(s.imageHash)
     )
       throw new SceneError("INVALID_DOCUMENT", "户型来源信息无效");
+    finite(s.imageWidth, "source.imageWidth", 1, 25000000);
+    finite(s.imageHeight, "source.imageHeight", 1, 25000000);
+    if (s.imageWidth * s.imageHeight > 25000000)
+      throw new SceneError("INVALID_DOCUMENT", "来源图片超过像素限制");
+    if (s.draftHash !== undefined && !/^[a-f0-9]{64}$/.test(s.draftHash))
+      throw new SceneError("INVALID_DOCUMENT", "来源确认哈希无效");
+    if (
+      s.draftRevision !== undefined &&
+      (!Number.isInteger(s.draftRevision) || s.draftRevision < 0)
+    )
+      throw new SceneError("INVALID_DOCUMENT", "来源草稿版本无效");
     finite(s.mmPerPixel, "source.mmPerPixel", 0.001, 10000);
     finite(s.origin?.x, "source.origin.x");
     finite(s.origin?.y, "source.origin.y");

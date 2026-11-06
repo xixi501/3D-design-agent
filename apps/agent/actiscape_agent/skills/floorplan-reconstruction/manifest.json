@@ -1,0 +1,9 @@
+{
+  "id": "floorplan-reconstruction",
+  "version": "0.1.0",
+  "description": "确认单层正交户型结构，忠实复现指定客餐厅原图布局",
+  "appliesTo": ["reconstruct_floorplan"],
+  "requiredTools": ["floorplan_context", "search_catalogue_batch", "precheck_floorplan", "candidate_checks"],
+  "source": [{"title":"ActiScape S2-C approved reconstruction rules","uri":"repository:docs/S2C_RUNBOOK.md"},{"title":"Upstream HouseSpec single-floor format","uri":"repository:reference/upstream"}],
+  "license": "MIT"
+}

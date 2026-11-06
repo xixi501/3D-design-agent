@@ -34,6 +34,38 @@ export function floorplanRoutes(app: FastifyInstance, store: FloorplanStore) {
       .header("cache-control", "no-store")
       .send(fs.createReadStream(file));
   });
+  app.post(
+    "/api/floorplan-images/:image/crops",
+    {
+      schema: {
+        description:
+          "Persist a bounded original-pixel crop for recognition evidence",
+        body: {
+          type: "object",
+          required: ["box"],
+          additionalProperties: false,
+          properties: {
+            box: {
+              type: "array",
+              minItems: 4,
+              maxItems: 4,
+              items: { type: "number" },
+            },
+          },
+        },
+      },
+    },
+    async (req) => store.crop((req.params as any).image, (req.body as any).box),
+  );
+  app.get("/api/floorplan-images/:image/crops/:crop/file", async (req, reply) =>
+    reply
+      .type("image/png")
+      .send(
+        fs.createReadStream(
+          store.cropFile((req.params as any).image, (req.params as any).crop),
+        ),
+      ),
+  );
   const root = "/api/projects/:id/floorplan-drafts",
     item = root + "/:draft";
   const params = (req: any) => [req.params.id, req.params.draft] as const;
@@ -127,5 +159,34 @@ export function floorplanRoutes(app: FastifyInstance, store: FloorplanStore) {
       },
     },
     async (req) => store.confirm(...params(req), req.body),
+  );
+  app.get(item + "/overlay", async (req, reply) => {
+    const result = await store.overlay(...params(req));
+    return reply
+      .type("image/png")
+      .header("x-draft-hash", result.draftHash)
+      .header("x-content-sha256", result.sha256)
+      .header("cache-control", "no-store")
+      .send(fs.createReadStream(result.file));
+  });
+  app.post(
+    item + "/rebase",
+    {
+      schema: {
+        description:
+          "Rebase a still-empty project draft and invalidate confirmation",
+        body: {
+          type: "object",
+          required: ["requestId", "draftRevision", "baseRevision"],
+          additionalProperties: false,
+          properties: {
+            requestId: { type: "string", minLength: 1, maxLength: 200 },
+            draftRevision: { type: "integer", minimum: 0 },
+            baseRevision: { type: "integer", minimum: 0 },
+          },
+        },
+      },
+    },
+    async (req) => store.rebase(...params(req), req.body),
   );
 }

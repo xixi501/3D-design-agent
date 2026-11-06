@@ -47,10 +47,6 @@ export class ProjectStore {
     this.db.pragma("foreign_keys = ON");
     this.db.pragma("busy_timeout = 5000");
     this.db.pragma("synchronous = FULL");
-    this.db
-      .exec(`CREATE TABLE IF NOT EXISTS projects(id TEXT PRIMARY KEY,revision INTEGER NOT NULL,state TEXT NOT NULL,timeline TEXT NOT NULL,cursor INTEGER NOT NULL,updated TEXT NOT NULL);
-      CREATE TABLE IF NOT EXISTS operations(project TEXT NOT NULL REFERENCES projects(id),id TEXT NOT NULL,hash TEXT NOT NULL,kind TEXT NOT NULL,response TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(project,id));
-      CREATE TABLE IF NOT EXISTS assets(id TEXT PRIMARY KEY,record TEXT NOT NULL);`);
     migrate(this.db);
   }
   close() {
@@ -291,6 +287,7 @@ export class ProjectStore {
             throw new SceneError("NO_REDO", "没有可重做的修改", 409);
           state = timeline[cursor++].after;
         }
+        this.checkAssets(state);
         const next = {
           ...row,
           state: JSON.stringify(state),

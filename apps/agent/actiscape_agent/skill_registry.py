@@ -5,11 +5,21 @@ from pathlib import Path
 from .store import TaskError
 
 SKILL_ROOT = Path(__file__).parent / "skills"
+FLOORPLAN_TOOLS = {
+    "floorplan_context",
+    "search_catalogue_batch",
+    "precheck_floorplan",
+    "candidate_checks",
+}
 GENERATION_TOOLS = {"search_catalogue_batch", "precheck_initialization", "candidate_checks"}
 
 
-def load_design_skill(available_tools: set[str], root: Path = SKILL_ROOT) -> dict:
-    directory = root / "rectangular-living-reading"
+def load_design_skill(
+    available_tools: set[str], root: Path = SKILL_ROOT, skill_id: str = "rectangular-living-reading"
+) -> dict:
+    if skill_id not in ("rectangular-living-reading", "floorplan-reconstruction"):
+        raise TaskError("SKILL_UNAVAILABLE", "未知设计 Skill")
+    directory = root / skill_id
     try:
         manifest = json.loads((directory / "manifest.json").read_text())
         content = (directory / "SKILL.md").read_text()
@@ -17,7 +27,7 @@ def load_design_skill(available_tools: set[str], root: Path = SKILL_ROOT) -> dic
     except (OSError, ValueError) as e:
         raise TaskError("SKILL_UNAVAILABLE", "设计 Skill 缺失或无法读取") from e
     if (
-        manifest.get("id") != "rectangular-living-reading"
+        manifest.get("id") != skill_id
         or not manifest.get("version")
         or not content.strip()
         or not license_text.strip()

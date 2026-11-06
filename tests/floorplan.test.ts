@@ -320,3 +320,118 @@ test("durable floorplan upload, draft correction, exact confirmation and one-tra
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+test("floorplan source images, overlays, crops, export/import and stale confirmations fail explicitly", async () => {
+  const { createApp } = await import("../apps/service/src/app.js"),
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "floorplan-source-"));
+  const { app, store, floorplans } = await createApp({
+    dataDir: dir,
+    logger: false,
+  });
+  try {
+    const img = await floorplans.upload(
+        fs.readFileSync("fixtures/s2c-synthetic.png"),
+        "source.png",
+      ),
+      p = store.create(blankPlan()),
+      d = clone(data);
+    d.image = {
+      id: img.id,
+      sha256: img.sha256,
+      width: img.width,
+      height: img.height,
+    };
+    const draft = floorplans.create(p.id, {
+      requestId: "create",
+      imageId: img.id,
+      baseRevision: 0,
+      data: d,
+    });
+    const crop = await floorplans.crop(img.id, [100, 100, 500, 400]);
+    assert.equal(
+      fs
+        .readFileSync(floorplans.cropFile(img.id, crop.id))
+        .subarray(1, 4)
+        .toString(),
+      "PNG",
+    );
+    const overlay = await floorplans.overlay(p.id, draft.id);
+    assert.equal(overlay.draftHash, draft.hash);
+    assert.ok(fs.statSync(overlay.file).size > 1000);
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/projects/${p.id}/floorplan-drafts/${draft.id}/overlay`,
+    });
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.headers["x-draft-hash"], draft.hash);
+    const b = { requestId: "yes", draftRevision: 0, draftHash: draft.hash };
+    floorplans.confirm(p.id, draft.id, b);
+    const changed = floorplans.commands(p.id, draft.id, {
+      requestId: "touch",
+      draftRevision: 0,
+      commands: [
+        {
+          type: "upsert",
+          collection: "symbols",
+          object: { ...d.symbols[0], x: d.symbols[0].x + 10 },
+        },
+      ],
+    });
+    assert.equal(changed.corrections, 1);
+    assert.equal(changed.confirmed, null);
+    assert.throws(
+      () => floorplans.confirm(p.id, draft.id, { ...b, requestId: "stale" }),
+      (e: any) => e.code === "DRAFT_CONFLICT",
+    );
+    const project = materializeFloorplan(
+      d,
+      "source",
+      { draftId: draft.id, draftRevision: 0, draftHash: draft.hash },
+      matches,
+    );
+    const imported = store.create({ formatVersion: 1, ...project.state });
+    assert.equal(imported.plan.source.imageId, img.id);
+    const exported = await app.inject({
+      method: "GET",
+      url: `/api/projects/${imported.id}/export`,
+    });
+    assert.equal(exported.json().sourceImageManifest[0].sha256, img.sha256);
+    fs.unlinkSync(floorplans.file(img.id, "original").file);
+    assert.throws(
+      () => store.create(exported.json()),
+      (e: any) => e.code === "MISSING_SOURCE_IMAGES",
+    );
+    assert.throws(
+      () =>
+        floorplans.confirmed(p.id, {
+          draftId: draft.id,
+          draftRevision: changed.revision,
+          draftHash: changed.hash,
+        }),
+      (e: any) => e.code === "DRAFT_CONFLICT",
+    );
+  } finally {
+    await app.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+test("floorplan scoring separates first recognition, human corrections, topology and final fidelity", async () => {
+  const { scoreFloorplan } =
+    await import("../packages/scene-core/src/floorplan-metrics.js");
+  assert.equal(scoreFloorplan(data, data, data, 0).passed, true);
+  const omitted = clone(data);
+  omitted.symbols.pop();
+  assert.equal(scoreFloorplan(omitted, data, data, 1).rawPassed, false);
+  assert.equal(scoreFloorplan(data, data, data, 6).passed, false);
+  const moved = clone(data);
+  moved.symbols[0].x += 30;
+  assert.equal(scoreFloorplan(data, moved, data, 1).finalPassed, false);
+  const renamed = clone(data);
+  renamed.rooms[1].name = "错误房间";
+  assert.equal(
+    scoreFloorplan(data, renamed, data, 1).confirmed.structure.passed,
+    false,
+  );
+  const badTarget = clone(data);
+  badTarget.targetRoomIds = ["bedroom"];
+  assert.equal(scoreFloorplan(data, badTarget, data, 1).passed, false);
+});

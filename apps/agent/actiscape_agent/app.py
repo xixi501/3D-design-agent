@@ -12,9 +12,16 @@ from pydantic import BaseModel, Field
 from .config import model_settings, state_directory
 from .manager import TaskManager
 from .schemas import ResumeInput, TaskInput
-from .skill_registry import GENERATION_TOOLS, load_design_skill, skill_record
+from .skill_registry import FLOORPLAN_TOOLS, GENERATION_TOOLS, load_design_skill, skill_record
 from .store import TERMINAL, TaskError
 from .versions import runtime_versions
+
+
+class FloorplanConfirmInput(BaseModel):
+    requestId: str = Field(min_length=1, max_length=200)
+    draftId: str = Field(min_length=1, max_length=200)
+    draftRevision: int = Field(ge=0)
+    draftHash: str = Field(pattern=r"^[a-f0-9]{64}$")
 
 
 class ConversationInput(BaseModel):
@@ -46,14 +53,21 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
     @app.get("/skills")
     async def skills():
         snapshot = load_design_skill(GENERATION_TOOLS)
+        other = load_design_skill(FLOORPLAN_TOOLS, skill_id="floorplan-reconstruction")
         return {
             "items": [
+                {
+                    **skill_record(other),
+                    "description": other["description"],
+                    "appliesTo": other["appliesTo"],
+                    "requiredTools": other["requiredTools"],
+                },
                 {
                     **skill_record(snapshot),
                     "description": snapshot["description"],
                     "appliesTo": snapshot["appliesTo"],
                     "requiredTools": snapshot["requiredTools"],
-                }
+                },
             ]
         }
 
@@ -99,11 +113,22 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
 
     @app.get("/tasks/{id}")
     async def task(id: str):
+        from .client import SceneFailure
+
+        try:
+            await manager().reconcile_floorplan_confirmation(id)
+        except SceneFailure as e:
+            if e.status < 500:
+                raise TaskError(e.code, str(e), e.status) from None
         return manager().store.task(id)
 
     @app.get("/tasks/{id}/trace")
     async def trace(id: str, after: int = 0):
         return manager().store.events(id, max(0, after))
+
+    @app.post("/tasks/{id}/confirm-floorplan", status_code=202)
+    async def confirm_floorplan(id: str, body: FloorplanConfirmInput):
+        return await manager().confirm_floorplan(id, body.model_dump())
 
     @app.post("/tasks/{id}/resume", status_code=202)
     async def resume(id: str, body: ResumeInput):

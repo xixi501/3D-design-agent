@@ -290,6 +290,19 @@ export function floorplanScale(data: FloorplanData) {
       "尺寸标注比例相差超过 3%，请核对标注含义或图片是否被拉伸",
       "anchors",
     );
+  if (
+    data.anchors.some(
+      (a) =>
+        Math.abs(
+          Math.hypot(a.b.x - a.a.x, a.b.y - a.a.y) * values[0] -
+            millimetres(a.distance, "anchor.distance"),
+        ) > 1.001,
+    )
+  )
+    invalid(
+      "明确尺寸在统一比例下仍有超过 1 mm 的差异，请核对标定端点；不能分别拉伸图片",
+      "anchors",
+    );
   return values[0];
 }
 export function compileFloorplan(
@@ -426,8 +439,14 @@ export function compileFloorplan(
       width,
       sill,
       head,
-      hinge: o.hinge ?? 0,
-      side: o.side ?? 1,
+      hinge:
+        host.b.x - host.a.x + host.b.y - host.a.y >= 0
+          ? (o.hinge ?? 0)
+          : 1 - (o.hinge ?? 0),
+      side:
+        host.b.x - host.a.x + host.b.y - host.a.y >= 0
+          ? (o.side ?? 1)
+          : -(o.side ?? 1),
     });
   }
   for (const r of data.rooms)

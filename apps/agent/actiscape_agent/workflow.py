@@ -3,6 +3,8 @@ from typing import TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from .client import SceneClient, SceneFailure
+from .floorplan_flow import FloorplanFlow
+from .floorplan_roles import FloorplanRoles
 from .generation_flow import COLLECTIONS, GenerationFlow
 from .generation_roles import GenerationRoles
 from .roles import Roles
@@ -127,6 +129,15 @@ def completion_result(task: dict, state: dict, candidate: dict, revision: int):
         "repairs": state.get("repairs", 0),
         "versionRetries": state.get("version_retries", 0),
     }
+    if candidate.get("kind") == "initialize_floorplan":
+        g = task.get("generation", {})
+        result.update(
+            generation={**candidate["generation"], "skillsUsed": g.get("skillsUsed", [])},
+            skillsUsed=g.get("skillsUsed", []),
+            structure=candidate["structure"],
+            focusIds=conversation_focus(candidate),
+        )
+        result["message"] += " 整层结构及客餐厅原图布局已保留，可继续选择家具进行局部编辑。"
     if candidate.get("kind") == "initialize":
         g = task.get("generation", {})
         result.update(
@@ -246,6 +257,8 @@ class Workflow:
 
     async def ground(self, state: State):
         task = self.task(state, "understanding")
+        if task.get("mode") == "reconstruct_floorplan":
+            return await FloorplanFlow(self.store, self.client, self.roles).ground(state, task)
         if task.get("mode") == "generate_rectangular":
             try:
                 return await GenerationFlow(self.store, self.client, self.roles).ground(state, task)
@@ -296,12 +309,16 @@ class Workflow:
 
     async def assets(self, state: State):
         task = self.task(state, "choosing_assets")
+        if task.get("mode") == "reconstruct_floorplan":
+            return {"assets": await FloorplanRoles(self.roles).assets(task, state["intent"])}
         if task.get("mode") == "generate_rectangular":
             return {"assets": await GenerationRoles(self.roles).assets(task, state["intent"])}
         return {"assets": await self.roles.assets(task, state["intent"])}
 
     async def scope(self, state: State):
-        self.task(state, "scoping")
+        task = self.task(state, "scoping")
+        if task.get("mode") == "reconstruct_floorplan":
+            return await FloorplanFlow(self.store, self.client, self.roles).scope(state, task)
         catalogue = (await self.client.request("/catalog"))["items"]
         try:
             scope = compile_scope(state["project"], state["intent"], state["assets"], catalogue)
@@ -318,6 +335,16 @@ class Workflow:
 
     async def design(self, state: State):
         task = self.task(state, "designing")
+        if task.get("mode") == "reconstruct_floorplan":
+            return {
+                "proposal": await FloorplanRoles(self.roles).design(
+                    task,
+                    state["project"],
+                    state["scope"],
+                    state.get("last_report"),
+                    state.get("repairs", 0),
+                )
+            }
         if task.get("mode") == "generate_rectangular":
             return {
                 "proposal": await GenerationRoles(self.roles).design(
@@ -342,7 +369,9 @@ class Workflow:
         task = self.task(state, "prechecking")
         try:
             role = (
-                GenerationRoles(self.roles)
+                FloorplanRoles(self.roles)
+                if task.get("mode") == "reconstruct_floorplan"
+                else GenerationRoles(self.roles)
                 if task.get("mode") == "generate_rectangular"
                 else self.roles
             )
@@ -387,7 +416,11 @@ class Workflow:
     async def inspect(self, state: State):
         task = self.task(state, "checking")
         review = (
-            await GenerationRoles(self.roles).inspect(task, state["candidate"], state["evidence"])
+            await FloorplanRoles(self.roles).inspect(task, state["candidate"], state["evidence"])
+            if task.get("mode") == "reconstruct_floorplan"
+            else await GenerationRoles(self.roles).inspect(
+                task, state["candidate"], state["evidence"]
+            )
             if task.get("mode") == "generate_rectangular"
             else await self.roles.inspect(
                 task, state["intent"], state["candidate"], state["evidence"]
@@ -423,6 +456,18 @@ class Workflow:
         self.task(state, "repairing")
         count = state.get("repairs", 0)
         if count >= 3:
+            if self.store.task(state["task_id"])["mode"] == "reconstruct_floorplan":
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "waiting_input",
+                        "phase": "reviewing_floorplan",
+                        "draftId": self.store.task(state["task_id"])["generation"].get("draftId"),
+                        "message": "原图布局在三轮检查修复后仍有冲突，请明确校正草稿后重新确认；正式项目未改变。",
+                        "candidateId": (state.get("candidate") or {}).get("id"),
+                        "report": state.get("last_report"),
+                    },
+                }
             if self.store.task(state["task_id"])["mode"] == "generate_rectangular":
                 return {
                     "route": "end",
@@ -445,6 +490,11 @@ class Workflow:
         self.store.event(
             state["task_id"], "repair", {"round": count + 1, "report": state.get("last_report")}
         )
+        task = self.store.task(state["task_id"], internal=True)
+        if task["mode"] == "reconstruct_floorplan":
+            generation = task["generation"]
+            generation["repairsUsed"] = count + 1
+            self.store.update(task["id"], generation=generation)
         return {"repairs": count + 1, "route": "design"}
 
     async def commit(self, state: State):

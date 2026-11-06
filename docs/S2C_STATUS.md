@@ -7,7 +7,7 @@ The two user-provided real floorplan images have not been supplied. C0 and real-
 | Stage                                  | Status                 | Evidence                                                                                                           |
 | -------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | C0 source images and model feasibility | Pending user images    | No real images, annotations or recognition scores claimed                                                          |
-| C1 compiler and durable drafts         | Tool validation passed | Node 22/22; multiroom/L-shaped geometry, shared walls, scope, draft confirmation, idempotence, restart and history |
+| C1 compiler and durable drafts         | Tool validation passed | Node 24/24; multiroom/L-shaped geometry, shared walls, scope, draft confirmation, idempotence, restart and history |
 | C2 recognition and catalogue mapping   | In progress            | Real-image quality not verified                                                                                    |
 | C3 overlay confirmation UI             | Pending                |                                                                                                                    |
 | C4 four-role initialization            | Pending                |                                                                                                                    |

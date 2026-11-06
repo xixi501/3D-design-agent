@@ -1,4 +1,5 @@
 """Bounded image decoding and pixel primitives. No millimetre scene geometry lives here."""
+
 import base64
 import io
 import json
@@ -49,15 +50,31 @@ def inspect_image(content: bytes):
     lines = []
     for entry in found if found is not None else []:
         x1, y1, x2, y2 = (int(v) for v in entry[0])
-        if abs(x2-x1) > 3 and abs(y2-y1) > 3:
+        if abs(x2 - x1) > 3 and abs(y2 - y1) > 3:
             continue
-        lines.append({"a": {"x": round(x1*sx, 3), "y": round(y1*sy, 3)}, "b": {"x": round(x2*sx, 3), "y": round(y2*sy, 3)}})
-    lines.sort(key=lambda line: -((line["a"]["x"]-line["b"]["x"])**2+(line["a"]["y"]-line["b"]["y"])**2))
-    return {"width": image.width, "height": image.height, "format": format_name,
-            "orientation": orientation, "normalizedWidth": normalized.width,
-            "normalizedHeight": normalized.height, "pixelSpace": "exif-oriented original pixels",
-            "normalizedToPixel": {"x": sx, "y": sy}, "lineCandidates": lines[:400],
-            "normalized": base64.b64encode(png(normalized)).decode()}
+        lines.append(
+            {
+                "a": {"x": round(x1 * sx, 3), "y": round(y1 * sy, 3)},
+                "b": {"x": round(x2 * sx, 3), "y": round(y2 * sy, 3)},
+            }
+        )
+    lines.sort(
+        key=lambda line: (
+            -((line["a"]["x"] - line["b"]["x"]) ** 2 + (line["a"]["y"] - line["b"]["y"]) ** 2)
+        )
+    )
+    return {
+        "width": image.width,
+        "height": image.height,
+        "format": format_name,
+        "orientation": orientation,
+        "normalizedWidth": normalized.width,
+        "normalizedHeight": normalized.height,
+        "pixelSpace": "exif-oriented original pixels",
+        "normalizedToPixel": {"x": sx, "y": sy},
+        "lineCandidates": lines[:400],
+        "normalized": base64.b64encode(png(normalized)).decode(),
+    }
 
 
 def crop_image(content: bytes, box: list[float]):
@@ -72,9 +89,76 @@ def crop_image(content: bytes, box: list[float]):
     return png(crop)
 
 
+def overlay_image(content: bytes, draft: dict):
+    import math
+
+    from PIL import ImageDraw
+
+    image, _, _ = decode_image(content)
+    overlay = image.copy()
+    overlay.thumbnail((2048, 2048))
+    sx, sy = overlay.width / image.width, overlay.height / image.height
+    draw = ImageDraw.Draw(overlay)
+
+    def xy(point):
+        return (point["x"] * sx, point["y"] * sy)
+
+    for wall in draft["walls"]:
+        draw.line([xy(wall["a"]), xy(wall["b"])], fill="#dc2854", width=3)
+        draw.text(xy(wall["a"]), wall["id"], fill="#dc2854")
+    for opening in draft["openings"]:
+        wall = next((w for w in draft["walls"] if w["id"] == opening["wallId"]), None)
+        if not wall:
+            continue
+        a, b = wall["a"], wall["b"]
+        length = math.hypot(b["x"] - a["x"], b["y"] - a["y"])
+        if not length:
+            continue
+        points = []
+        for sign in [-1, 1]:
+            t = (opening["offset"] + sign * opening["width"] / 2) / length
+            points.append(
+                xy({"x": a["x"] + (b["x"] - a["x"]) * t, "y": a["y"] + (b["y"] - a["y"]) * t})
+            )
+        draw.line(points, fill="#146de0", width=5)
+    for room in draft["rooms"]:
+        at = xy(room["at"])
+        draw.ellipse((at[0] - 5, at[1] - 5, at[0] + 5, at[1] + 5), fill="#238331")
+        draw.text(at, room["id"], fill="#238331")
+    for symbol in draft["symbols"]:
+        angle = math.radians(symbol["rot"])
+        points = []
+        for x, y in [(-1, -1), (1, -1), (1, 1), (-1, 1)]:
+            dx, dy = x * symbol["w"] / 2, y * symbol["d"] / 2
+            points.append(
+                xy(
+                    {
+                        "x": symbol["x"] + dx * math.cos(angle) - dy * math.sin(angle),
+                        "y": symbol["y"] + dx * math.sin(angle) + dy * math.cos(angle),
+                    }
+                )
+            )
+        draw.line(points + [points[0]], fill="#9b42be", width=3)
+        draw.text(xy(symbol), symbol["id"], fill="#9b42be")
+    return png(overlay)
+
+
 if __name__ == "__main__":
     try:
-        print(json.dumps(inspect_image(sys.stdin.buffer.read(MAX_BYTES + 1))))
+        mode = sys.argv[1] if len(sys.argv) > 1 else "inspect"
+        content = sys.stdin.buffer.read(MAX_BYTES * 2 if mode != "inspect" else MAX_BYTES + 1)
+        if mode == "inspect":
+            result = inspect_image(content)
+        else:
+            payload = json.loads(content)
+            raw = base64.b64decode(payload["image"], validate=True)
+            output = (
+                crop_image(raw, payload["box"])
+                if mode == "crop"
+                else overlay_image(raw, payload["draft"])
+            )
+            result = {"png": base64.b64encode(output).decode()}
+        print(json.dumps(result))
     except Exception as error:
         print(json.dumps({"error": "INVALID_IMAGE", "message": str(error)[:500]}))
         sys.exit(1)

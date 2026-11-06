@@ -59,8 +59,9 @@ passed=true 需要代码检查通过、用户需求满足、图片证据完整�
 
 
 class GenerationRoles:
-    def __init__(self, base):
+    def __init__(self, base, asset_prompt=ASSET_PROMPT, prompt_version=VERSION):
         self.base, self.client, self.store = base, base.client, base.store
+        self.asset_prompt, self.asset_version = asset_prompt, prompt_version
 
     async def ground(self, task, project):
         @tool
@@ -95,7 +96,7 @@ class GenerationRoles:
                 "阅读椅": ["单人沙发", "armchair"],
             }
             result = []
-            for query in queries[:20]:
+            for query in queries[:50]:
                 terms = aliases.get(query, query.casefold().split())
                 items = [
                     f
@@ -123,7 +124,7 @@ class GenerationRoles:
         schema = asset_selection_schema(len(intent["additions"]), set(catalogue))
         result = await self.base.invoke(
             "assets",
-            ASSET_PROMPT,
+            self.asset_prompt,
             schema,
             [search_catalogue_batch],
             {
@@ -131,7 +132,7 @@ class GenerationRoles:
                 "requests": [{"request_index": i, **a} for i, a in enumerate(intent["additions"])],
             },
             task["id"],
-            prompt_version=VERSION,
+            prompt_version=self.asset_version,
         )
 
         return schema.model_validate(result).model_dump()

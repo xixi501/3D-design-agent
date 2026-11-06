@@ -98,6 +98,7 @@ def objects_summary(project: dict) -> dict:
         "nodes": plan["nodes"],
         "walls": plan["walls"],
         "openings": plan["openings"],
+        "rooms": plan.get("rooms", []),
     }
 
 

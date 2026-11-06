@@ -94,7 +94,8 @@ class TaskInput(StrictModel):
     requestId: str = Field(min_length=1, max_length=200)
     input: str = Field(min_length=1, max_length=4000)
     selectedIds: list[str] = Field(default_factory=list, max_length=20)
-    mode: Literal["edit", "generate_rectangular"] = "edit"
+    mode: Literal["edit", "generate_rectangular", "reconstruct_floorplan"] = "edit"
+    imageId: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class ResumeInput(StrictModel):

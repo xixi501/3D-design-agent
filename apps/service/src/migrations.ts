@@ -10,6 +10,9 @@ export function migrate(db: Database.Database) {
       500,
     );
   db.transaction(() => {
+    db.exec(`CREATE TABLE IF NOT EXISTS projects(id TEXT PRIMARY KEY,revision INTEGER NOT NULL,state TEXT NOT NULL,timeline TEXT NOT NULL,cursor INTEGER NOT NULL,updated TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS operations(project TEXT NOT NULL REFERENCES projects(id),id TEXT NOT NULL,hash TEXT NOT NULL,kind TEXT NOT NULL,response TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(project,id));
+      CREATE TABLE IF NOT EXISTS assets(id TEXT PRIMARY KEY,record TEXT NOT NULL);`);
     db.exec(`CREATE TABLE IF NOT EXISTS candidates(id TEXT PRIMARY KEY,project TEXT NOT NULL REFERENCES projects(id),request_id TEXT NOT NULL,request_hash TEXT NOT NULL,document TEXT NOT NULL,evidence TEXT NOT NULL DEFAULT '[]',review TEXT,committed TEXT,UNIQUE(project,request_id));
       CREATE INDEX IF NOT EXISTS candidates_project ON candidates(project);`);
     if (current < 3)

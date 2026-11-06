@@ -28,6 +28,8 @@ def fingerprint(value) -> str:
 def task_fingerprint(body: dict) -> str:
     # Adding a default mode must not invalidate old request identities.
     value = dict(body)
+    if value.get("imageId") is None:
+        value.pop("imageId", None)
     if value.get("mode", "edit") == "edit":
         value.pop("mode", None)
     return fingerprint(value)
@@ -150,8 +152,12 @@ class TaskStore:
     def create_task(self, conversation: str, body: dict):
         c = self.conversation(conversation)
         mode = body.get("mode", "edit")
-        if mode not in ("edit", "generate_rectangular"):
+        if mode not in ("edit", "generate_rectangular", "reconstruct_floorplan"):
             raise TaskError("INVALID_MODE", "未知任务模式")
+        if mode == "reconstruct_floorplan" and not body.get("imageId"):
+            raise TaskError("MISSING_IMAGE", "户型复现需要上传原图")
+        if mode != "reconstruct_floorplan" and body.get("imageId"):
+            raise TaskError("INVALID_MODE", "此任务模式不能携带户型图片")
         with self.transaction():
             old = self.db.execute(
                 "SELECT id,request_hash FROM tasks WHERE conversation_id=? AND request_id=?",
@@ -184,6 +190,11 @@ class TaskStore:
                 raise TaskError(
                     "PROJECT_BUSY", "此项目已有任务，请先完成澄清或取消该任务", 409
                 ) from e
+            if mode == "reconstruct_floorplan":
+                self.db.execute(
+                    "UPDATE tasks SET generation=? WHERE id=?",
+                    (json.dumps({"imageId": body["imageId"], "phase": "recognizing"}), id),
+                )
         self.event(id, "queued", {"message": "任务已持久保存"})
         self.event(id, "runtime", runtime_versions())
         return self.task(id)
@@ -309,6 +320,10 @@ class TaskStore:
                 "INSERT INTO actions VALUES(?,?,?)", (id, body["requestId"], fingerprint(body))
             )
             message = task["input"] + ("\n用户补充：" + body["input"] if body.get("input") else "")
+            if task["mode"] == "reconstruct_floorplan":
+                generation = self.task(id, internal=True)["generation"]
+                generation["resumeNonce"] = body["requestId"]
+                self.update(id, generation=generation)
             try:
                 self.update(
                     id,

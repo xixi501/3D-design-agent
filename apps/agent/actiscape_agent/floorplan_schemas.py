@@ -76,6 +76,23 @@ class FloorplanRecognition(StrictModel):
     uncertainties: list[Uncertainty] = Field(default_factory=list, max_length=100)
 
 
+def floorplan_recognition_schema(width: int, height: int):
+    """Bound image-space recipes before tool acceptance; never infer a mm conversion."""
+
+    class PixelSymbol(ImageSymbol):
+        w: FiniteFloat = Field(
+            gt=0, le=width, description="旋转前横向占地，原图像素；禁止填写毫米或目录默认尺寸"
+        )
+        d: FiniteFloat = Field(
+            gt=0, le=height, description="旋转前纵向占地，原图像素；禁止填写毫米或目录默认尺寸"
+        )
+
+    class PixelFloorplanRecognition(FloorplanRecognition):
+        symbols: list[PixelSymbol] = Field(default_factory=list, max_length=100)
+
+    return PixelFloorplanRecognition
+
+
 class DraftCorrections(StrictModel):
     question: str
     commands: list[dict] = Field(default_factory=list, max_length=100)

@@ -101,7 +101,7 @@ Agent 创建任务：
 
 模型结构化输出被截断或缺少最终结果时，允许一次保留原工具上下文的续答；续答也占用同一请求数和活动时间预算，不能构造替代结果。DeepSeek 适配器保留工具返回的真正图片数组、工具调用身份及思考模式所需字段。运行记录包含模型返回标识、用量、耗时、结束原因和格式恢复事件。
 
-真实整层样图试验发现，high 推理会把 8192 乃至 32768 Token 全部用于思考而没有结构化结果。整层识别阶段单独使用 `reasoning_effort=low`、`max_tokens=32768`、请求超时 180 秒；其他角色保持原推理配置、8192／120 秒。每次 `agent_start` 记录实际额度与推理配置，24 次请求／600 秒活动时间的总预算及一次格式续答上限保持不变。输出限额覆盖思考与最终输出，接口含义见 [DeepSeek Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/) 和 [思考强度](https://api-docs.deepseek.com/guides/thinking_mode/)。
+真实整层样图试验发现，high／low 推理均可能把 32768 Token 全部用于思考，再靠续答才产生草稿。像素识别阶段改为 `thinking.type=disabled`、`max_tokens=32768`、请求超时 180 秒；其他角色保持原推理配置、8192／120 秒。像素家具配方增加与实际图宽高一致的结构化上界，毫米误填会在模型结果工具中拒绝，不会猜测换算或写入项目。每次 `agent_start` 记录实际额度与推理配置，24 次请求／600 秒活动时间的总预算及一次格式续答上限保持不变。输出限额覆盖思考与最终输出，接口含义见 [DeepSeek Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/) 和 [思考模式](https://api-docs.deepseek.com/guides/thinking_mode/)。
 
 确认后的任何结构、比例、家具或目标区域修改均产生新草稿版本并撤销确认。提交前再次核对正式版本、草稿哈希、原图、固定候选、确定性检查及两张证据。家具只能位于选中房间；所有符号必须逐项匹配。保留门内侧 800 mm 局部净空规则；它不表示完整通道、支撑面或建筑规范已验证。
 

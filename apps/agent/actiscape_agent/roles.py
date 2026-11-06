@@ -171,6 +171,7 @@ class Roles:
                 "maxOutputTokens": options["max_tokens"],
                 "timeoutSeconds": options["timeout"],
                 "reasoningEffort": options["reasoning_effort"],
+                "thinkingMode": options.get("extra_body", {}).get("thinking", {}).get("type"),
             },
         )
         content = [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]

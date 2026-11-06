@@ -28,6 +28,7 @@ async def test_recognition_output_profile_reaches_model_without_changing_other_r
     assert wire["reasoning_effort"] == options.get(
         "reasoning_effort", model_settings()["reasoning_effort"]
     )
+    assert wire["extra_body"]["thinking"]["type"] == ("disabled" if recognition else "enabled")
     store = TaskStore(tmp_path)
     conversation = store.create_conversation("p")
     task = store.create_task(
@@ -54,9 +55,44 @@ async def test_recognition_output_profile_reaches_model_without_changing_other_r
         assert started["maxOutputTokens"] == wire["max_tokens"]
         assert started["timeoutSeconds"] == model.request_timeout
         assert started["reasoningEffort"] == wire["reasoning_effort"]
+        assert started["thinkingMode"] == wire["extra_body"]["thinking"]["type"]
         assert store.task(task["id"])["modelCalls"] == 1
     finally:
         store.close()
+
+
+def test_floorplan_pixel_schema_rejects_millimetre_footprints_but_keeps_real_scale_distances():
+    from actiscape_agent.floorplan_schemas import floorplan_recognition_schema
+
+    schema = floorplan_recognition_schema(736, 673)
+    data = {
+        "status": "draft",
+        "anchors": [
+            {
+                "a": {"x": 86, "y": 15},
+                "b": {"x": 631, "y": 15},
+                "distance": {"value": 9700, "unit": "mm"},
+                "basis": "exterior",
+                "evidence": "9700",
+            }
+        ],
+        "symbols": [
+            {
+                "id": "table",
+                "roomId": "living",
+                "category": "餐桌",
+                "x": 135,
+                "y": 285,
+                "w": 80,
+                "d": 45,
+                "rot": 0,
+            }
+        ],
+    }
+    assert schema.model_validate(data).anchors[0].distance.value == 9700
+    data["symbols"][0]["w"] = 1200
+    with pytest.raises(ValidationError, match="736"):
+        schema.model_validate(data)
 
 
 def test_intent_requires_consistent_delete_and_field_authorization():

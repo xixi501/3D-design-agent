@@ -3,6 +3,7 @@ import { api, post, ApiError, type EditBase } from "./api.js";
 import {
   catalogGroups,
   catalog,
+  collections,
   createFurniture,
   clone,
   newId,
@@ -59,6 +60,10 @@ const chat = new ChatPanel(
     const current = selection;
     return {
       projectId: project?.id,
+      blank:
+        !!project &&
+        collections.every((k) => project!.plan[k].length === 0) &&
+        !project.roomLabelArchive.length,
       selectedIds: current?.collection === "furniture" ? [current.id] : [],
       selectionLabel:
         current?.collection === "furniture"
@@ -66,8 +71,14 @@ const chat = new ChatPanel(
           : undefined,
     };
   },
-  async (id) => {
-    if (project?.id === id) await refresh();
+  async (id, generated) => {
+    if (project?.id === id) {
+      await refresh();
+      if (generated) {
+        planView.frame();
+        three.frame();
+      }
+    }
   },
 );
 for (const event of ["pointerup", "pointercancel"])
@@ -401,7 +412,14 @@ $("#open-project").onclick = async () => {
 };
 $("#close-dialog").onclick = () => $<HTMLDialogElement>("#dialog").close();
 $("#new-project").onclick = () =>
-  void post("/projects", {}).then(open).catch(fail);
+  void (async () => {
+    await open(await post("/projects", {}));
+    panel = "chat";
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-panel]")
+      .forEach((b) => b.classList.toggle("active", b.dataset.panel === "chat"));
+    await inspector();
+  })().catch(fail);
 $("#save-project").onclick = () => {
   lastFailure = false;
   void refresh()

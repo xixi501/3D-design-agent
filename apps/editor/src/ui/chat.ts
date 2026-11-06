@@ -4,6 +4,7 @@ type Context = {
   projectId?: string;
   selectedIds: string[];
   selectionLabel?: string;
+  blank?: boolean;
 };
 const active = new Set(["queued", "running", "waiting_input", "committing"]);
 const phases: Record<string, string> = {
@@ -58,6 +59,8 @@ export class ChatPanel {
   private cancel = node("button", "取消任务");
   private notice = node("p", undefined, "chat-notice muted");
   private connection = node("p", undefined, "chat-connection muted");
+  private brief = node("details", undefined, "chat-brief");
+  private briefTask?: string;
   private projectId?: string;
   private conversationId?: string;
   private tasks: any[] = [];
@@ -68,13 +71,14 @@ export class ChatPanel {
   private lastRefresh?: string;
   constructor(
     private getContext: () => Context,
-    private onCommit: (projectId: string) => Promise<void>,
+    private onCommit: (projectId: string, generated?: boolean) => Promise<void>,
   ) {
     this.input.placeholder =
       "例如：把这把椅子向左移动 200 毫米，再在旁边加一盏落地灯";
     this.input.setAttribute("aria-label", "对话需求");
     this.input.maxLength = 4000;
     this.input.rows = 4;
+    this.brief.open = true;
     const form = node("form"),
       actions = node("div", undefined, "chat-actions");
     actions.append(this.send, this.cancel);
@@ -85,6 +89,7 @@ export class ChatPanel {
       node("h2", "设计助手"),
       this.context,
       this.connection,
+      this.brief,
       this.messages,
       this.notice,
       form,
@@ -120,8 +125,117 @@ export class ChatPanel {
       this.conversationId = undefined;
       this.tasks = [];
       this.input.value = "";
+      this.briefTask = undefined;
       this.sequence++;
       void this.load();
+    }
+    this.renderMode();
+  }
+  private mode(): "edit" | "generate_rectangular" {
+    return (
+      this.current()?.mode ||
+      (this.getContext().blank ? "generate_rectangular" : "edit")
+    );
+  }
+  private renderMode() {
+    const generating = this.mode() === "generate_rectangular",
+      context = this.getContext();
+    this.context.textContent = generating
+      ? "生成房间 · 只在空白项目中创建一个矩形空间"
+      : context.selectionLabel
+        ? `当前选择：${context.selectionLabel}`
+        : "可先选中家具，再说“这把椅子”或“它”。";
+    this.input.placeholder = generating
+      ? "例如：设计一个客餐厅，室内净宽6米、净深4米，南墙入口距左侧400毫米，北墙窗居中。"
+      : "例如：把这把椅子向左移动 200 毫米，再在旁边加一盏落地灯";
+    const task =
+      this.current()?.mode === "generate_rectangular"
+        ? this.current()
+        : this.tasks
+            .slice()
+            .reverse()
+            .find((t) => t.mode === "generate_rectangular");
+    const g = task?.generation || task?.result?.generation;
+    this.brief.hidden = !generating && !g?.brief;
+    this.brief.replaceChildren(
+      node(
+        "summary",
+        task?.status === "completed" ? "生成时的需求摘要" : "房间需求摘要",
+      ),
+    );
+    if (!g?.brief) {
+      this.brief.append(
+        node(
+          "p",
+          "需要：横向净宽、纵向净深、用途、入口和窗的位置。可说明没有窗。",
+          "muted",
+        ),
+      );
+      return;
+    }
+    if (this.briefTask !== task.id) {
+      this.briefTask = task.id;
+      this.brief.open = task.status !== "completed";
+    }
+    const dimension = (v: any) => (v ? `${v.value} ${v.unit}` : "待补充");
+    const b = g.brief,
+      sides: Record<string, string> = {
+        north: "北／上墙",
+        east: "东／右墙",
+        south: "南／下墙",
+        west: "西／左墙",
+      };
+    this.brief.append(
+      node(
+        "p",
+        `用途：${b.purpose === "living_dining" ? "客餐厅" : b.purpose === "reading_lounge" ? "阅读会客间" : "待补充"}`,
+      ),
+      node("p", `室内净宽 ${dimension(b.width)} × 净深 ${dimension(b.depth)}`),
+    );
+    for (const [kind, label] of [
+      ["doors", "入口"],
+      ["windows", "窗"],
+    ]) {
+      const openings = b[kind];
+      if (!openings) this.brief.append(node("p", `${label}：待补充`));
+      else if (!openings.length) this.brief.append(node("p", `${label}：无`));
+      else
+        for (const [i, o] of openings.entries())
+          this.brief.append(
+            node(
+              "p",
+              `${label}${i + 1}：${sides[o.side] || "墙面待补充"}，${o.position === "center" ? "居中" : o.position === "offset" ? `距左／上侧 ${dimension(o.offset)}` : "位置待补充"}`,
+            ),
+          );
+    }
+    if (g.furniture?.length)
+      this.brief.append(
+        node(
+          "p",
+          `家具：${g.furniture.map((f: any) => `${f.query} × ${f.count}`).join("，")}`,
+        ),
+      );
+    if (g.style) this.brief.append(node("p", `风格：${g.style}`));
+    if (g.missing?.length)
+      this.brief.append(
+        node("p", `待确认：${g.missing.join("；")}`, "chat-missing"),
+      );
+    const used = g.skillsUsed || task.result?.skillsUsed;
+    if (used?.length)
+      this.brief.append(
+        node(
+          "p",
+          `设计技能：${used.map((s: any) => `${s.id} @ ${s.version}`).join("，")}`,
+          "muted",
+        ),
+      );
+    if (g.defaults?.length) {
+      const details = node("details");
+      details.append(
+        node("summary", "采用的默认值"),
+        node("p", g.defaults.join("；")),
+      );
+      this.brief.append(details);
     }
   }
   private async load() {
@@ -169,6 +283,7 @@ export class ChatPanel {
       .find((t) => active.has(t.status));
   }
   private render() {
+    this.renderMode();
     const nearBottom =
       this.messages.scrollHeight -
         this.messages.scrollTop -
@@ -179,7 +294,9 @@ export class ChatPanel {
       this.messages.append(
         node(
           "p",
-          "告诉我想调整哪些家具。首版支持增删、摆放、尺寸和颜色修改。",
+          this.mode() === "generate_rectangular"
+            ? "描述你的矩形房间和需求，缺少的尺寸与门窗信息会一起询问。"
+            : "告诉我想调整哪些家具。支持增删、摆放、尺寸和颜色修改。",
           "muted",
         ),
       );
@@ -198,7 +315,9 @@ export class ChatPanel {
       reply.append(
         node(
           "p",
-          task.result?.message ||
+          (active.has(task.status) && task.status !== "waiting_input"
+            ? task.phaseLabel || "正在处理已保存的任务…"
+            : task.result?.message) ||
             task.error ||
             task.phaseLabel ||
             "任务已保存，正在处理。",
@@ -208,6 +327,23 @@ export class ChatPanel {
         reply.append(node("p", "已请求取消，正在等待安全边界。", "muted"));
       const result = task.result;
       if (result?.status === "completed") {
+        if (result.generation?.dimensions) {
+          const d = result.generation.dimensions;
+          reply.append(
+            node(
+              "p",
+              `已生成净尺寸 ${d.width} × ${d.depth} mm 的矩形房间，墙体、门窗和家具作为一个事务保存。`,
+            ),
+          );
+          for (const skill of result.skillsUsed || [])
+            reply.append(
+              node(
+                "p",
+                `设计技能 ${skill.id} @ ${skill.version} · ${skill.contentHash.slice(0, 12)}`,
+                "muted",
+              ),
+            );
+        }
         const list = node("ul");
         for (const change of result.changes || []) {
           const label =
@@ -294,7 +430,11 @@ export class ChatPanel {
     this.send.disabled =
       this.sending || !!(current && current.status !== "waiting_input");
     this.send.textContent =
-      current?.status === "waiting_input" ? "补充说明" : "发送";
+      current?.status === "waiting_input"
+        ? "补充说明"
+        : this.mode() === "generate_rectangular"
+          ? "生成房间"
+          : "发送";
     if (nearBottom) this.messages.scrollTop = this.messages.scrollHeight;
   }
   private update(task: any) {
@@ -304,9 +444,11 @@ export class ChatPanel {
     this.render();
     if (task.status === "completed" && this.lastRefresh !== task.id) {
       this.lastRefresh = task.id;
-      void this.onCommit(task.projectId).catch((error) => {
-        this.notice.textContent = (error as Error).message;
-      });
+      void this.onCommit(task.projectId, !!task.result?.generation).catch(
+        (error) => {
+          this.notice.textContent = (error as Error).message;
+        },
+      );
     }
   }
   private watchActive() {
@@ -331,6 +473,8 @@ export class ChatPanel {
           id: task.id,
           phaseLabel: phases[e.data.phase] || "处理中",
         });
+      if (e.kind === "brief" || e.kind === "brief_frozen")
+        this.update({ id: task.id, generation: e.data });
     });
     events.addEventListener("snapshot", (event) => {
       if (seq !== this.sequence) return;
@@ -370,6 +514,7 @@ export class ChatPanel {
         route,
         input,
         selectedIds: context.selectedIds,
+        ...(!current && this.mode() !== "edit" ? { mode: this.mode() } : {}),
       });
       let previous: any;
       try {
@@ -382,6 +527,9 @@ export class ChatPanel {
               requestId: crypto.randomUUID(),
               input,
               selectedIds: context.selectedIds,
+              ...(!current && this.mode() !== "edit"
+                ? { mode: this.mode() }
+                : {}),
             };
       localStorage.setItem(pendingKey, JSON.stringify({ signature, body }));
       const task = await post<any>(route, body);

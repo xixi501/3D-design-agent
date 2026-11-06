@@ -111,7 +111,7 @@ def completion_result(task: dict, state: dict, candidate: dict, revision: int):
     path = f"/api/projects/{task['projectId']}/candidates/{candidate['id']}"
     result = {
         "status": "completed",
-        "message": f"已保存：{candidate['summary']}。本次修改作为一个事务提交，可撤销。",
+        "message": f"已保存：{candidate['summary'].rstrip('。；; .')}。本次修改作为一个事务提交，可撤销。",
         "projectId": task["projectId"],
         "candidateId": candidate["id"],
         "baseRevision": candidate["baseRevision"],
@@ -141,7 +141,7 @@ def completion_result(task: dict, state: dict, candidate: dict, revision: int):
             focusIds=conversation_focus(candidate),
         )
         if candidate["generation"]["brief"]["purpose"] == "reading_lounge" and result["focusIds"]:
-            result["message"] += f" 主要阅读座位：{result['focusIds'][0]}，可继续说“把它……”调整。"
+            result["message"] += " 已将一把单人沙发设为主要阅读座位，可继续说“把它……”调整。"
     return result
 
 

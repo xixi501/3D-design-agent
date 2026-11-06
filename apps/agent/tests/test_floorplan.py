@@ -546,3 +546,58 @@ async def test_primary_recognition_without_original_analysis_cannot_advance(tmp_
         assert client.draft is None and client.project["revision"] == 0 and not client.ledger
     finally:
         await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_readonly_tool_errors_are_feedback_and_terminal_submission_normalizes_optional_nulls(
+    tmp_path,
+):
+    from types import SimpleNamespace
+
+    from actiscape_agent.floorplan_tools import FloorplanToolset
+    from actiscape_agent.store import TaskStore
+
+    class Client(FloorplanScene):
+        async def request(self, path, body=None):
+            if path.endswith("/tools/analyze") and body.get("outlined"):
+                raise SceneFailure(
+                    422, {"error": "FLOORPLAN_TOOL_ERROR", "message": "real scale required"}
+                )
+            if path.endswith("/floorplan-preflight"):
+                assert "height" not in body["data"] and "wallThickness" not in body["data"]
+                return {"checks": {"passed": True, "issues": []}}
+            return await super().request(path, body)
+
+    store = TaskStore(tmp_path)
+    conversation = store.create_conversation("p")
+    task = store.create_task(
+        conversation["id"], {"requestId": "tool-feedback", "input": "measure", "selectedIds": []}
+    )
+    try:
+        base = SimpleNamespace(store=store, client=Client())
+        tools = FloorplanToolset(base, task, DATA["image"], "design")
+        analyze = tools.recognition()[0]
+        response = await analyze.ainvoke({"outlined": True})
+        assert json.loads(response[0]["text"])["error"] == "FLOORPLAN_TOOL_ERROR"
+        response = await analyze.ainvoke({})
+        assert "error" not in json.loads(response[0]["text"])
+        submit = next(t for t in tools.measurement() if t.name == "preview_floorplan")
+        assert submit.return_direct
+        value = {
+            "status": "draft",
+            **{k: v for k, v in DATA.items() if k != "image"},
+            "height": None,
+            "wallThickness": None,
+        }
+        await submit.ainvoke({"draft": value})
+        assert tools.submission["walls"] == value["walls"]
+        assert tools.submission["anchors"] == value["anchors"]
+        assert "height" not in tools.submission and "wallThickness" not in tools.submission
+        assert (
+            store.task(task["id"], internal=True)["generation"]["measurementSubmission"][
+                "recognition"
+            ]
+            == tools.submission
+        )
+    finally:
+        store.close()

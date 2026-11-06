@@ -6,12 +6,29 @@ import json
 from langchain_core.tools import tool
 
 from .client import SceneFailure
+from .floorplan_schemas import FloorplanRecognition, floorplan_recognition_schema
+from .store import fingerprint
 
 
 class FloorplanToolset:
     def __init__(self, base, task, image, role):
         self.base, self.store, self.client = base, base.store, base.client
         self.task, self.image, self.role = task, image, role
+        self.submission = None
+
+    async def request(self, mode, parameters):
+        try:
+            return await self.client.request(
+                f"/floorplan-images/{self.image['id']}/tools/{mode}", parameters
+            )
+        except SceneFailure as error:
+            return {
+                "error": error.code,
+                "message": str(error),
+                "details": error.data.get("details"),
+                "files": [],
+                "retryableParameters": error.status in (400, 422),
+            }
 
     async def result(self, name, record, pictures=True):
         generation = self.store.task(self.task["id"], internal=True)["generation"]
@@ -49,9 +66,7 @@ class FloorplanToolset:
             parameters = {"grayMax": gray_max, "satMax": sat_max, "outlined": outlined}
             if mm_per_pixel is not None:
                 parameters["mmPerPixel"] = mm_per_pixel
-            record = await self.client.request(
-                f"/floorplan-images/{self.image['id']}/tools/analyze", parameters
-            )
+            record = await self.request("analyze", parameters)
             return await self.result("analyze_floorplan", record)
 
         return [analyze_floorplan]
@@ -60,9 +75,7 @@ class FloorplanToolset:
         @tool
         async def fit_wall_faces(walls: list[dict]) -> list[dict]:
             """Run original wallfit.py for 1–20 walls. Each: {id,kind:'H'|'V',c,p0,p1,skip?:[[start,end]],search?:6..50}. c is cross-axis coordinate, p0/p1 run along wall, all in original pixels. Returns measured faces, center, thickness and sample count; exclude door/window spans."""
-            record = await self.client.request(
-                f"/floorplan-images/{self.image['id']}/tools/fit", {"walls": walls}
-            )
+            record = await self.request("fit", {"walls": walls})
             return await self.result("fit_wall_faces", record)
 
         @tool
@@ -74,8 +87,8 @@ class FloorplanToolset:
             samples: list[float] | None = None,
         ) -> list[dict]:
             """Run original axismap.py on increasing pixel ticks and actual adjacent labelled distances in mm. basis: interior/centerline/exterior. Cross-check scale/annotation bases; do not independently stretch X/Y or invent dimensions. Optional samples return diagnostic chain coordinates."""
-            record = await self.client.request(
-                f"/floorplan-images/{self.image['id']}/tools/axis",
+            record = await self.request(
+                "axis",
                 {
                     "ticks": ticks,
                     "distances": distances,
@@ -86,10 +99,15 @@ class FloorplanToolset:
             )
             return await self.result("measure_dimension_chain", record)
 
-        @tool
-        async def preview_floorplan(draft: dict) -> dict:
-            """Read-only TypeScript compilation of proposed recognition data. Exclude status/question/image. Returns exact invalid field, scale, closure, region and opening errors. No draft, project or history writes; fix only from original image evidence."""
-            data = {k: v for k, v in draft.items() if k not in ("status", "question", "image")}
+        @tool(return_direct=True)
+        async def preview_floorplan(draft: FloorplanRecognition) -> dict:
+            """Submit ONE measured recognition draft to read-only TypeScript compilation, as the final, separate tool call of this measurement round. Include status='draft'. The fixed graph decides any next repair round. No project/history writes; do not call repeatedly within a round."""
+            value = (
+                floorplan_recognition_schema(self.image["width"], self.image["height"])
+                .model_validate(draft.model_dump(exclude_none=True))
+                .model_dump(exclude_none=True)
+            )
+            data = {k: v for k, v in value.items() if k not in ("status", "question")}
             try:
                 response = await self.client.request(
                     f"/projects/{self.task['projectId']}/floorplan-preflight",
@@ -108,6 +126,15 @@ class FloorplanToolset:
                     "details": error.data.get("details"),
                 }
             await self.result("preview_floorplan", record, pictures=False)
+            self.submission = value
+            g = self.store.task(self.task["id"], internal=True)["generation"]
+            g["measurementSubmission"] = {
+                "recognition": value,
+                "attempt": g.get("measurementAttempts", 0),
+                "inputHash": fingerprint(self.task["input"]),
+                "checks": record.get("checks"),
+            }
+            self.store.update(self.task["id"], generation=g)
             return record
 
         return [fit_wall_faces, measure_dimension_chain, preview_floorplan]

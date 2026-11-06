@@ -1,0 +1,24 @@
+{
+  "purpose": "Same-image internal system capability comparison, not complete S2 acceptance",
+  "sourcePage": "https://floorplancreator.io/floor-plan-templates/one-bedroom-apartment",
+  "imageUrl": "https://floorplancreator.io/media/templates/v1/one-bedroom-apartment.png",
+  "sha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+  "width": 1200,
+  "height": 630,
+  "licensing": "Source credited for internal evaluation. No redistribution licence claimed; image is not checked into this repository.",
+  "userRequest": "识别这张户型图的整层结构，保留原图所有房间、墙体和门窗，复现客餐厅已有家具的类别、数量、位置和朝向。厨房与卧室只保留结构，不另外设计或填充家具。请先输出识别草稿和不确定项，不改变原有户型。",
+  "evaluationOnly": {
+    "rooms": ["Living Room", "Bedroom", "Bathroom"],
+    "relations": "left full-height living/dining, upper-right bedroom, lower-right bathroom",
+    "doors": 3,
+    "windows": 4,
+    "livingCoreFurniture": {
+      "sofa": 1,
+      "coffeeTable": 1,
+      "diningTable": 1,
+      "chair": 6,
+      "tvCabinet": 1
+    },
+    "neverSentToAgent": true
+  }
+}

@@ -51,7 +51,7 @@ def runtime_versions():
         "structuredOutputRecovery": "one-bounded-continuation-1",
         "modelConfigVersion": "per-role-output-budget-3",
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
-        "floorplanPromptVersion": "s2c-floorplan-6",
+        "floorplanPromptVersion": "s2c-floorplan-7",
         "floorplanToolAdapter": "hpd-adapter-1",
         "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
         "pillow": version("Pillow"),

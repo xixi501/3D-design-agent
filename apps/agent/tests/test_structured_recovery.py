@@ -12,6 +12,73 @@ class Output(BaseModel):
 
 
 @pytest.mark.asyncio
+async def test_terminal_measurement_tool_ends_real_agent_graph_without_format_retry(tmp_path):
+    from langchain_core.language_models.chat_models import BaseChatModel
+    from langchain_core.outputs import ChatGeneration, ChatResult
+    from langchain_core.tools import tool
+
+    submitted = {}
+
+    @tool(return_direct=True)
+    def measured_proposal(result: str) -> dict:
+        """Submit the measured proposal and stop this controlled round."""
+        submitted["result"] = result
+        return {"checks": {"passed": False, "issues": ["controlled geometry error"]}}
+
+    class Model(BaseChatModel):
+        calls: int = 0
+
+        @property
+        def _llm_type(self):
+            return "controlled-terminal-tool-model"
+
+        def bind_tools(self, tools, **kwargs):
+            return self
+
+        def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            self.calls += 1
+            assert self.calls == 1, "Terminal preflight must not start another model turn"
+            return ChatResult(
+                generations=[
+                    ChatGeneration(
+                        message=AIMessage(
+                            content="",
+                            tool_calls=[
+                                {
+                                    "name": "measured_proposal",
+                                    "args": {"result": "actual controlled tool input"},
+                                    "id": "tool-1",
+                                }
+                            ],
+                        )
+                    )
+                ]
+            )
+
+    store = TaskStore(tmp_path)
+    conversation = store.create_conversation("p")
+    task = store.create_task(
+        conversation["id"], {"requestId": "terminal", "input": "measure", "selectedIds": []}
+    )
+    model = Model()
+    try:
+        output = await Roles(store, None, model_factory=lambda: model).invoke(
+            "design",
+            "Call measured_proposal once",
+            Output,
+            [measured_proposal],
+            {},
+            task["id"],
+            terminal_result=lambda: submitted or None,
+        )
+        assert output == {"result": "actual controlled tool input"}
+        assert store.task(task["id"])["modelCalls"] == 1
+        assert not any(e["kind"] == "model_format_retry" for e in store.events(task["id"]))
+    finally:
+        store.close()
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("recognition", [False, True])
 async def test_recognition_output_profile_reaches_model_without_changing_other_roles(
     tmp_path, monkeypatch, recognition

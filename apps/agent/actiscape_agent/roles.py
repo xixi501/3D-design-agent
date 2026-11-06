@@ -2,7 +2,7 @@ import asyncio
 import base64
 import json
 import time
-from typing import Any
+from typing import Any, Callable
 
 import httpx
 from langchain.agents import create_agent
@@ -158,6 +158,7 @@ class Roles:
         images: list[bytes] | None = None,
         prompt_version: str = PROMPT_VERSION,
         model_options: dict | None = None,
+        terminal_result: Callable[[], dict | None] | None = None,
     ):
         options = {**model_settings(), **(model_options or {})}
         self.store.event(
@@ -201,6 +202,10 @@ class Roles:
                     },
                 )
                 structured = result.get("structured_response")
+                if structured is None and terminal_result is not None:
+                    submitted = terminal_result()
+                    if submitted is not None:
+                        structured = schema.model_validate(submitted)
                 if structured is None and not format_recovered:
                     # A length-truncated reasoning turn can finish without the result
                     # tool. Preserve its actual messages/tools and allow one bounded

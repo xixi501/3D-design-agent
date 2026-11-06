@@ -151,6 +151,24 @@ try {
   assert.equal((await api(root)).revision, 0);
   assert.equal((await api(root + "/history")).entries.length, 0);
   steps.push("upload produces draft, no formal write");
+  await page.waitForSelector('[data-testid="floorplan-tool-evidence"]');
+  await page.click('[data-testid="floorplan-tool-evidence"] summary');
+  await page.waitForFunction(() => {
+    const images = [
+      ...document.querySelectorAll(
+        '[data-testid="floorplan-tool-evidence"] img',
+      ),
+    ];
+    return (
+      images.length >= 2 &&
+      images.every((img) => img.complete && img.naturalWidth > 0)
+    );
+  });
+  await page.screenshot({
+    path: path.join(out, "measurement-evidence.png"),
+    fullPage: true,
+  });
+  steps.push("role-scoped original measurement evidence visible in browser");
   await page.waitForSelector("[data-testid=review-floorplan]");
   await page.locator("[data-testid=review-floorplan]").click();
   await page.waitForSelector(

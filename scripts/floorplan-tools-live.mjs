@@ -1,0 +1,194 @@
+/** Real DeepSeek same-image probe. Supplies PNG + ordinary request only; never edits/approves geometry. */
+import fs from "node:fs";
+import path from "node:path";
+import assert from "node:assert/strict";
+import { createHash, randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { blankPlan } from "../packages/scene-core/src/index.ts";
+
+const manifestFile = path.resolve(
+  "fixtures/s2c-real/one-bedroom-system-probe.json",
+);
+const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+const inputFile = process.argv[2];
+if (!inputFile)
+  throw Error(
+    "Usage: npm run test:floorplan:tools:live -- /absolute/path/to/original.png [1|2]",
+  );
+const repeats = Number(process.argv[3] || 2);
+assert.ok(Number.isInteger(repeats) && repeats >= 1 && repeats <= 2);
+const bytes = fs.readFileSync(inputFile);
+assert.equal(
+  createHash("sha256").update(bytes).digest("hex"),
+  manifest.sha256,
+  "Use the frozen original, not a substituted/corrected image",
+);
+const base = (
+  process.env.ACTISCAPE_SCENE_URL || "http://127.0.0.1:3001"
+).replace(/\/$/, "");
+const out = path.resolve(
+  "test-results/floorplan-tool-live",
+  new Date().toISOString().replace(/[:.]/g, "-"),
+);
+fs.mkdirSync(out, { recursive: true });
+const save = (file, value) =>
+  fs.writeFileSync(path.join(out, file), JSON.stringify(value, null, 2) + "\n");
+async function api(route, body) {
+  const response = await fetch(
+    base + "/api" + route,
+    body === undefined
+      ? {}
+      : {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        },
+  );
+  const value = await response.json();
+  if (!response.ok) throw Error(JSON.stringify(value));
+  return value;
+}
+const health = await api("/agent/health");
+assert.equal(health.modelConfigured, true);
+const codeCommit = execFileSync("git", ["rev-parse", "HEAD"], {
+  encoding: "utf8",
+}).trim();
+assert.equal(
+  health.versions.workingTreeModified,
+  false,
+  "Restart a clean fixed business version before a live comparison",
+);
+const context = {
+  manifest,
+  codeCommit,
+  serviceVersions: health.versions,
+  referenceSentToAgent: false,
+  manualGeometryOperations: 0,
+  completeS2Accepted: false,
+};
+save("manifest.json", context);
+const form = new FormData();
+form.append(
+  "file",
+  new Blob([bytes], { type: "image/png" }),
+  "public-one-bedroom-original.png",
+);
+const uploaded = await fetch(base + "/api/floorplan-images", {
+  method: "POST",
+  body: form,
+});
+assert.ok(uploaded.ok);
+const image = await uploaded.json();
+save("image.json", image);
+const results = [];
+for (let repeat = 1; repeat <= repeats; repeat++) {
+  const plan = blankPlan();
+  plan.name = `系统实测 · 原版读图工具 · ${repeat}`;
+  const before = await api("/projects", {
+    document: { formatVersion: 1, plan, roomLabelArchive: [] },
+  });
+  const conversation = await api("/agent/conversations", {
+    projectId: before.id,
+  });
+  const request = {
+    requestId: randomUUID(),
+    mode: "reconstruct_floorplan",
+    imageId: image.id,
+    input: manifest.userRequest,
+    selectedIds: [],
+  };
+  let task = await api(
+    `/agent/conversations/${conversation.id}/tasks`,
+    request,
+  );
+  save(`${repeat}-accepted.json`, {
+    projectId: before.id,
+    taskId: task.id,
+    conversationId: conversation.id,
+    request,
+  });
+  console.log(
+    JSON.stringify({ repeat, projectId: before.id, taskId: task.id }),
+  );
+  const deadline = Date.now() + 720000;
+  while (
+    ["queued", "running", "committing"].includes(task.status) &&
+    Date.now() < deadline
+  ) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    task = await api(`/agent/tasks/${task.id}`);
+  }
+  const trace = await api(`/agent/tasks/${task.id}/trace`),
+    after = await api(`/projects/${before.id}`);
+  assert.deepEqual(after.plan, before.plan);
+  assert.equal(after.revision, 0);
+  assert.deepEqual(after.history, { undo: 0, redo: 0 });
+  const record = { before, task, trace, after };
+  if (task.generation?.draftId) {
+    record.draft = await api(
+      `/projects/${before.id}/floorplan-drafts/${task.generation.draftId}`,
+    );
+    record.preview = await api(
+      `/projects/${before.id}/floorplan-drafts/${task.generation.draftId}/preview`,
+      { taskId: task.id },
+    );
+    const overlay = await fetch(
+      `${base}/api/projects/${before.id}/floorplan-drafts/${task.generation.draftId}/overlay`,
+    );
+    if (overlay.ok)
+      fs.writeFileSync(
+        path.join(out, `${repeat}-system-overlay.png`),
+        Buffer.from(await overlay.arrayBuffer()),
+      );
+  }
+  for (const entry of task.generation?.upstreamTools || []) {
+    for (const file of entry.record.files || []) {
+      const response = await fetch(base + "/api" + file.path);
+      assert.ok(response.ok);
+      const data = Buffer.from(await response.arrayBuffer());
+      assert.equal(
+        createHash("sha256").update(data).digest("hex"),
+        file.sha256,
+      );
+      fs.writeFileSync(
+        path.join(out, `${repeat}-${entry.record.id}-${file.name}`),
+        data,
+      );
+    }
+  }
+  save(`${repeat}-result.json`, record);
+  const result = {
+    repeat,
+    projectId: before.id,
+    taskId: task.id,
+    status: task.status,
+    error: task.error,
+    errorCode: task.result?.errorCode,
+    modelCalls: task.modelCalls,
+    activeSeconds: task.elapsedSeconds,
+    compilationPassed: record.preview?.checks?.passed === true,
+    toolRoles: [
+      ...new Set(
+        (task.generation?.upstreamTools || []).map(
+          (t) => t.role + ":" + t.tool,
+        ),
+      ),
+    ],
+    repairs: task.generation?.repairsUsed || 0,
+    formalRevision: after.revision,
+    imageFidelityAccepted: false,
+    manualGeometryOperations: 0,
+  };
+  results.push(result);
+  save("report.json", { ...context, results });
+  console.log(JSON.stringify(result));
+}
+console.log(
+  JSON.stringify({
+    output: out,
+    compilationPasses: results.filter((r) => r.compilationPassed).length,
+    total: results.length,
+    imageFidelityAccepted: false,
+    note: "Compilation is not image-fidelity acceptance; independently review all outputs and failures.",
+  }),
+);

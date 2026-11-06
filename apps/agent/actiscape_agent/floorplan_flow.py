@@ -32,6 +32,15 @@ class FloorplanFlow:
                 }
             )
             self.store.update(task["id"], generation=g)
+        submission = g.get("measurementSubmission")
+        if (
+            submission
+            and submission.get("attempt") == g.get("measurementAttempts")
+            and submission.get("inputHash") == fingerprint(task["input"])
+        ):
+            # The terminal tool can finish before the graph checkpoint is durable.
+            recognized = submission["recognition"]
+            g["pendingRecognition"] = recognized
         # Old pinned tasks keep the original workflow and request hashes.
         if (
             "fit_wall_faces" not in snapshot.get("requiredTools", [])
@@ -75,6 +84,7 @@ class FloorplanFlow:
                     {"round": g["repairsUsed"], "phase": "measuring_floorplan", "report": checks},
                 )
             g["measurementAttempts"] = attempts + 1
+            g.pop("measurementSubmission", None)
             self.store.update(task["id"], generation=g)
             recognized = await self.roles.measure(task, image, recognized, checks)
             checks = await preflight(recognized)

@@ -39,6 +39,7 @@ class ControlledRoles(Roles):
             if schema.__name__ == "DraftCorrections":
                 return {"question": "请通过草稿校正后重新确认", "commands": []}
             await available["floorplan_context"].ainvoke({})
+            await available["analyze_floorplan"].ainvoke({})
             return {
                 "status": "draft",
                 **{k: v for k, v in DATA.items() if k != "image"},
@@ -58,6 +59,33 @@ class ControlledRoles(Roles):
                 ]
             }
         if role == "design":
+            if schema.__name__ == "PixelFloorplanRecognition":
+                await available["fit_wall_faces"].ainvoke(
+                    {
+                        "walls": [
+                            {
+                                "id": "synthetic-top",
+                                "kind": "H",
+                                "c": 50,
+                                "p0": 60,
+                                "p1": 250,
+                            }
+                        ]
+                    }
+                )
+                await available["measure_dimension_chain"].ainvoke(
+                    {
+                        "ticks": [50, 950],
+                        "distances": [9000],
+                        "basis": "centerline",
+                        "evidence": "synthetic fixture labelled 9000 mm",
+                    }
+                )
+                checked = await available["preview_floorplan"].ainvoke(
+                    {"draft": payload["recognition"]}
+                )
+                assert checked["checks"]["passed"], checked
+                return payload["recognition"]
             await available["floorplan_context"].ainvoke({})
             checked = await available["precheck_floorplan"].ainvoke(
                 {"matches": payload["sourceMatches"]}
@@ -71,6 +99,7 @@ class ControlledRoles(Roles):
             image.startswith(b"\x89PNG") for image in images
         )
         checks = await available["candidate_checks"].ainvoke({})
+        await available["audit_floorplan_source"].ainvoke({})
         return {
             "passed": checks["passed"],
             "summary": "受控检查：真实代码检查及四张图片传输；不代表真实模型审核",

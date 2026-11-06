@@ -1,6 +1,6 @@
 {
   "id": "floorplan-reconstruction",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "确认单层正交户型结构，忠实复现指定客餐厅原图布局",
   "appliesTo": ["reconstruct_floorplan"],
   "requiredTools": ["floorplan_context", "analyze_floorplan", "fit_wall_faces", "measure_dimension_chain", "preview_floorplan", "search_catalogue_batch", "precheck_floorplan", "candidate_checks", "audit_floorplan_source"],

@@ -1,0 +1,314 @@
+{
+  "image": {
+    "id": "fp-7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+    "sha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+    "width": 1200,
+    "height": 630
+  },
+  "name": "Evaluation only: source reference, never Agent input",
+  "anchors": [
+    {
+      "a": {
+        "x": 361.5,
+        "y": 104
+      },
+      "b": {
+        "x": 878.5,
+        "y": 104
+      },
+      "distance": {
+        "value": 9150,
+        "unit": "mm"
+      },
+      "basis": "exterior",
+      "evidence": "Top outer dimension 9.15 m, outer wall faces"
+    }
+  ],
+  "walls": [
+    {
+      "id": "north",
+      "a": {
+        "x": 365.5,
+        "y": 108
+      },
+      "b": {
+        "x": 874.5,
+        "y": 108
+      },
+      "thicknessPx": 8
+    },
+    {
+      "id": "east",
+      "a": {
+        "x": 874.5,
+        "y": 108
+      },
+      "b": {
+        "x": 874.5,
+        "y": 503.5
+      },
+      "thicknessPx": 8
+    },
+    {
+      "id": "south",
+      "a": {
+        "x": 874.5,
+        "y": 503.5
+      },
+      "b": {
+        "x": 365.5,
+        "y": 503.5
+      },
+      "thicknessPx": 8
+    },
+    {
+      "id": "west",
+      "a": {
+        "x": 365.5,
+        "y": 503.5
+      },
+      "b": {
+        "x": 365.5,
+        "y": 108
+      },
+      "thicknessPx": 8
+    },
+    {
+      "id": "partition",
+      "a": {
+        "x": 676.5,
+        "y": 108
+      },
+      "b": {
+        "x": 676.5,
+        "y": 503.5
+      },
+      "thicknessPx": 8
+    },
+    {
+      "id": "division",
+      "a": {
+        "x": 676.5,
+        "y": 345.5
+      },
+      "b": {
+        "x": 874.5,
+        "y": 345.5
+      },
+      "thicknessPx": 8
+    }
+  ],
+  "openings": [
+    {
+      "id": "entry",
+      "wallId": "south",
+      "type": "door",
+      "offset": 366.5,
+      "width": 54
+    },
+    {
+      "id": "bed-door",
+      "wallId": "partition",
+      "type": "door",
+      "offset": 119,
+      "width": 47
+    },
+    {
+      "id": "bath-door",
+      "wallId": "partition",
+      "type": "door",
+      "offset": 317,
+      "width": 46
+    },
+    {
+      "id": "north-living",
+      "wallId": "north",
+      "type": "window",
+      "offset": 152,
+      "width": 101
+    },
+    {
+      "id": "north-bed",
+      "wallId": "north",
+      "type": "window",
+      "offset": 407,
+      "width": 77
+    },
+    {
+      "id": "west-window",
+      "wallId": "west",
+      "type": "window",
+      "offset": 177.5,
+      "width": 84
+    },
+    {
+      "id": "east-window",
+      "wallId": "east",
+      "type": "window",
+      "offset": 324.5,
+      "width": 39
+    }
+  ],
+  "rooms": [
+    {
+      "id": "living",
+      "name": "Living Room",
+      "at": {
+        "x": 510,
+        "y": 350
+      }
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "at": {
+        "x": 780,
+        "y": 280
+      }
+    },
+    {
+      "id": "bathroom",
+      "name": "Bathroom",
+      "at": {
+        "x": 780,
+        "y": 410
+      }
+    }
+  ],
+  "symbols": [
+    {
+      "id": "sofa",
+      "roomId": "living",
+      "category": "sofa",
+      "x": 518,
+      "y": 224,
+      "w": 126,
+      "d": 60,
+      "rot": 0
+    },
+    {
+      "id": "coffee",
+      "roomId": "living",
+      "category": "coffeeTable",
+      "x": 518,
+      "y": 295,
+      "w": 62,
+      "d": 34,
+      "rot": 0
+    },
+    {
+      "id": "dining",
+      "roomId": "living",
+      "category": "diningTable",
+      "x": 523.5,
+      "y": 402,
+      "w": 90,
+      "d": 50,
+      "rot": 0
+    },
+    {
+      "id": "tv",
+      "roomId": "living",
+      "category": "tvCabinet",
+      "x": 518,
+      "y": 139,
+      "w": 90,
+      "d": 26,
+      "rot": 0
+    },
+    {
+      "id": "books",
+      "roomId": "living",
+      "category": "bookshelf",
+      "x": 637,
+      "y": 306,
+      "w": 68,
+      "d": 20,
+      "rot": 90
+    },
+    {
+      "id": "plant",
+      "roomId": "living",
+      "category": "plant",
+      "x": 645.5,
+      "y": 142,
+      "w": 27,
+      "d": 27,
+      "rot": 0
+    },
+    {
+      "id": "rug",
+      "roomId": "living",
+      "category": "rug",
+      "x": 518,
+      "y": 284,
+      "w": 130,
+      "d": 90,
+      "rot": 0
+    },
+    {
+      "id": "chair-1",
+      "roomId": "living",
+      "category": "chair",
+      "x": 504,
+      "y": 370,
+      "w": 22,
+      "d": 22,
+      "rot": 180
+    },
+    {
+      "id": "chair-2",
+      "roomId": "living",
+      "category": "chair",
+      "x": 543,
+      "y": 370,
+      "w": 22,
+      "d": 22,
+      "rot": 180
+    },
+    {
+      "id": "chair-3",
+      "roomId": "living",
+      "category": "chair",
+      "x": 504,
+      "y": 434,
+      "w": 22,
+      "d": 22,
+      "rot": 0
+    },
+    {
+      "id": "chair-4",
+      "roomId": "living",
+      "category": "chair",
+      "x": 543,
+      "y": 434,
+      "w": 22,
+      "d": 22,
+      "rot": 0
+    },
+    {
+      "id": "chair-5",
+      "roomId": "living",
+      "category": "chair",
+      "x": 473,
+      "y": 402,
+      "w": 22,
+      "d": 22,
+      "rot": 90
+    },
+    {
+      "id": "chair-6",
+      "roomId": "living",
+      "category": "chair",
+      "x": 575,
+      "y": 402,
+      "w": 22,
+      "d": 22,
+      "rot": 270
+    }
+  ],
+  "targetRoomIds": [
+    "living"
+  ],
+  "uncertainties": []
+}

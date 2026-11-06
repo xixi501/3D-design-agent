@@ -1,0 +1,12 @@
+{
+  "file": "actiscape_agent-0.2.0-py3-none-any.whl",
+  "sha256": "64637d653a3d42662d99dc250c8eca7cbfaf55751e6737519eced2efa4e7e42d",
+  "skills": [
+    "actiscape_agent/skills/floorplan-reconstruction/LICENSE",
+    "actiscape_agent/skills/floorplan-reconstruction/SKILL.md",
+    "actiscape_agent/skills/floorplan-reconstruction/manifest.json",
+    "actiscape_agent/skills/rectangular-living-reading/LICENSE",
+    "actiscape_agent/skills/rectangular-living-reading/SKILL.md",
+    "actiscape_agent/skills/rectangular-living-reading/manifest.json"
+  ]
+}

@@ -1,0 +1,163 @@
+
+> actiscape@0.1.0 test:all
+> npm run test:reference && npm test && npm run build && npm run reference:build && npm run test:baseline && npm run test:baseline:extended && npm run test:browser && npm run test:parity && npm run test:catalog && npm run test:visual
+
+
+> actiscape@0.1.0 test:reference
+> node scripts/verify-reference.mjs
+
+Verified 10 immutable files and 7 extracted modules
+
+> actiscape@0.1.0 pretest
+> node scripts/image-runtime.mjs
+
+
+> actiscape@0.1.0 test
+> tsx --test tests/*.test.ts
+
+✔ scoped candidates freeze IDs, preserve projects/history, check boundaries and deduplicate creation (822.702114ms)
+✔ candidate commits require matching evidence/review, are atomic, replay-safe and survive restart (284.466986ms)
+✔ full legacy snapshot preserves identities, recipes and materials with no browser globals (47.57727ms)
+✔ catalogue is byte-data equivalent to executed upstream and every recipe creates independently (4.682114ms)
+✔ failed command batches do not mutate the source; copies have independent nested recipes (41.053107ms)
+✔ HouseSpec converts, unsupported floors and invalid geometry explicitly fail (17.343556ms)
+✔ room recovery archive survives removed walls and restores original label ID (30.711094ms)
+✔ scene checks identify intersecting footprints and wall penetration with object evidence (13.765918ms)
+✔ floorplan compiler preserves multiple regions, shared walls, scale and deterministic identities (496.783239ms)
+✔ floorplan compiler retains L-shaped geometry and rejects scale, topology, opening and identity failures (227.119115ms)
+✔ room-scoped checks reject furniture in a different valid room (67.795433ms)
+✔ ordered migration preserves existing project, history and candidate requests (67.705017ms)
+✔ durable floorplan upload, draft correction, exact confirmation and one-transaction initialization (1597.364382ms)
+✔ floorplan source images, overlays, crops, export/import and stale confirmations fail explicitly (1087.997729ms)
+✔ floorplan scoring separates first recognition, human corrections, topology and final fidelity (162.905266ms)
+✔ malformed draft batches and catalogue matches reject atomically with explicit errors (653.584448ms)
+✔ actual catalogue mapping is graded independently from confirmed symbol labels (87.511139ms)
+✔ rectangular compiler preserves net dimensions, units, stable references and rejects ambiguous/invalid openings (144.161247ms)
+✔ initialization previews and candidates leave projects unchanged; enforce quantities, doorway and empty-project scope (588.576267ms)
+✔ initialization commits are one durable transaction and migrate without changing old candidate hashes (122.883274ms)
+✔ HTTP transactions, duplicate requests, concurrency, branches and durable restart (401.958056ms)
+✔ 200 edit limit preserves cursor and operation audit (1974.022448ms)
+✔ textured GLB is content-addressed, survives restart; missing assets and malformed uploads reject (100.260704ms)
+✔ stopped data-directory backup restores the same scene, history cursor and asset bytes (51.768603ms)
+✔ renderer input validation rejects malformed optional fields and endpoints atomically with paths (51.185934ms)
+✔ all upstream defaults and fixed modelling gallery remain valid with extension fields preserved (83.688191ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4631.385036
+
+> actiscape@0.1.0 build
+> npm run typecheck && vite build --config apps/editor/vite.config.ts
+
+
+> actiscape@0.1.0 typecheck
+> tsc --noEmit
+
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 29 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/editor/render.html                      0.36 kB │ gzip:   0.27 kB
+dist/editor/index.html                       0.49 kB │ gzip:   0.33 kB
+dist/editor/assets/main-nALZXz-i.css         9.02 kB │ gzip:   2.83 kB
+dist/editor/assets/render-B57NL34r.js        1.73 kB │ gzip:   1.04 kB │ map:     5.32 kB
+dist/editor/assets/main-D9fzasbV.js         74.92 kB │ gzip:  26.77 kB │ map:   219.57 kB
+dist/editor/assets/three-view-DMV5vMdM.js  919.66 kB │ gzip: 255.75 kB │ map: 3,269.43 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 525ms
+
+> actiscape@0.1.0 reference:build
+> node scripts/prepare-reference.mjs
+
+{"out": "/workspace/3D-design-agent/reference/runtime/living-dining.html", "kb": 1978, "floors": 1, "walls": 4, "rooms": 1, "underlay": false, "walls_per_floor": {"演境 · 客餐厅基准": 4}}
+
+> actiscape@0.1.0 test:baseline
+> node scripts/baseline.mjs
+
+Renderer ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+PASS load structured single-floor scene
+PASS real pointer selection, drag, rotate and undo
+PASS cabinet and free shape parameters survive undo and redo
+PASS 3D scene and real geometry
+PASS save and reload complete scene equality
+PASS runtime catalogue and all 17 free-shape families are present
+PASS no uncaught page errors
+
+> actiscape@0.1.0 test:baseline:extended
+> node scripts/baseline-extended.mjs
+
+PASS entire original catalogue generates real geometry and finite bounds
+PASS all 17 free forms and customized cabinets render from fixed gallery
+PASS original cabinet columns and free-form parameters edited through actual UI
+PASS original structural properties and opening types edited through actual controls
+PASS original textured GLB import and local save/reload retain model and material
+PASS original undo history does not survive page reload (documented original limitation)
+PASS no uncaught original errors in executed coverage
+
+> actiscape@0.1.0 test:browser
+> node scripts/browser-acceptance.mjs
+
+PASS complete legacy snapshot loads with stable identity and data
+PASS real pointer select and drag, keyboard rotate, copy and independent cabinet editing
+PASS a drag keeps its starting revision when a tool changes the scene mid-gesture
+PASS free form UI, parameter editing, outline vertex drag and array
+PASS kitchen shape, per-run wall cabinets, room surfaces and custom tiles use real controls
+PASS wall drawing, opening placement and structural updates commit atomically
+PASS upload textured GLB using file input; transform, save and fresh browser context restore
+PASS external API edits are reflected through SSE and browser reload preserves undo/redo
+PASS two browser pages compete without silently overwriting and converge through SSE
+PASS service restart retains history and assets
+PASS split and 3D views, selection mapping, walkthrough movement, turn and exit
+PASS 3D pointer selects the visible object and commits one drag transaction
+PASS all 266 catalogue items generate finite geometry and render in real WebGL and Canvas2D
+PASS missing GLB mapping and unsupported multi-floor imports have explicit outcomes
+PASS failed network save keeps the last committed scene and shows no success
+PASS no uncaught browser errors
+
+> actiscape@0.1.0 test:parity
+> node --import tsx scripts/modeling-parity.mjs
+
+PASS free-box
+PASS free-roundBox
+PASS free-cyl
+PASS free-halfCyl
+PASS free-tube
+PASS free-sphere
+PASS free-hemi
+PASS free-cone
+PASS free-pyramid
+PASS free-wedge
+PASS free-arch
+PASS free-arcWall
+PASS free-slats
+PASS free-steps
+PASS free-torus
+PASS free-lathe
+PASS free-extrude
+PASS cabinet-all-columns
+PASS cabinet-L-sliding
+PASS kitchen-I
+PASS kitchen-L
+PASS kitchen-U
+PASS vanity-hanging-double
+PASS shower-arc
+
+> actiscape@0.1.0 test:catalog
+> node scripts/compare-catalog.mjs
+
+PASS 266 catalogue bodies: mesh counts, vertex counts and precise bounds match original
+
+> actiscape@0.1.0 test:visual
+> node --import tsx scripts/visual-baseline.mjs
+
+PASS fixed-view captures produced with shared camera, lights, resolution and input

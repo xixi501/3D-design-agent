@@ -2,6 +2,8 @@
 
 浏览器通过同源 `/api/agent` 访问 Python 服务。项目规则与修改继续由 Node 服务执行。Node OpenAPI 位于 `/api/openapi.json`，Agent OpenAPI 位于 `/api/agent/openapi.json`。
 
+S2-C 已增加户型图识别草稿与确认流程，见 [S2C_RUNBOOK.md](S2C_RUNBOOK.md)。真实图片验收状态见 [S2C_STATUS.md](S2C_STATUS.md)。
+
 S2-B 已增加矩形文字生成，操作与恢复见 [S2B_RUNBOOK.md](S2B_RUNBOOK.md)。原编辑请求保持兼容。
 
 ## 会话和任务
@@ -30,9 +32,9 @@ S2-B 已增加矩形文字生成，操作与恢复见 [S2B_RUNBOOK.md](S2B_RUNBO
 
 同一会话的同一 requestId 与相同内容返回原任务；不同内容返回 409。恢复请求同样使用独立 requestId 去重，并携带补充 input 和 selectedIds。原任务的预算不会因恢复而重置。每个项目的活动任务由 SQLite 唯一约束保护。
 
-任务可附 `mode: "edit" | "generate_rectangular"`，默认 edit。默认值不改变旧请求的去重哈希。生成任务仅在空白项目使用，后续澄清继续恢复同一任务；成功后新增的对话任务使用 edit。
+任务可附 `mode: "edit" | "generate_rectangular" | "reconstruct_floorplan"`，默认 edit。默认值不改变旧请求的去重哈希。生成任务仅在空白项目使用，后续澄清继续恢复同一任务；成功后新增的对话任务使用 edit。
 
-GET `/api/agent/skills` 返回首个可用设计 Skill 的身份、版本、哈希、来源、许可、适用用途与所需工具。任务的 `generation` 包含已收集 brief、missing、defaults、冻结状态和 skillsUsed；完整 Skill 正文只在服务端持久快照与角色上下文中保留。
+GET `/api/agent/skills` 返回可用设计 Skill 的身份、版本、哈希、来源、许可、适用用途与所需工具。任务的 `generation` 包含已收集 brief、missing、defaults、冻结状态和 skillsUsed；完整 Skill 正文只在服务端持久快照与角色上下文中保留。
 
 状态为 queued、running、waiting_input、committing、completed、failed、conflict、cancelled。只有服务确认固定候选已提交，才返回 completed 和 committedRevision。任务结果包含业务差异、具体字段变化、代码检查、检查角色意见及两个证据 URL。
 
@@ -42,7 +44,7 @@ GET `/api/agent/skills` 返回首个可用设计 Skill 的身份、版本、哈�
 
 候选入口 `/api/projects/:id/candidates`。创建请求包含 requestId、taskId、baseRevision、scope、edits 和摘要。相同请求身份必须对应完整相同内容，新增对象 ID 仅生成一次。
 
-scope 包含 targetIds、allowDeleteIds、allowAddKeys、requirements，可附 fieldMask 和 additionBounds。Agent 编排始终提供具体字段授权；未授权对象、结构和配方字段不可修改。数量按明确的 project 或 targets 范围统计。
+scope 包含 targetIds、allowDeleteIds、allowAddKeys、requirements，可附 fieldMask、additionBounds 和 allowedRoomIds。Agent 编排始终提供具体字段授权；未授权对象、结构和配方字段不可修改。数量按明确的 project 或 targets 范围统计。
 
 允许的编辑：
 

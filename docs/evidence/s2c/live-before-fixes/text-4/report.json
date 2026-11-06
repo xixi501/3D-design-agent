@@ -1,0 +1,44 @@
+{
+  "provider": "DeepSeek official",
+  "model": "deepseek-flash",
+  "liveModel": true,
+  "directory": "/workspace/3D-design-agent/test-results/generation-acceptance/2026-11-06T04-17-21-116Z",
+  "results": [
+    {
+      "name": "living-dining",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "93290113-f055-4c6f-b685-f25ef93281e2",
+      "taskId": "976fa037-a48e-4348-b356-d2c4610fb186",
+      "modelCalls": 9,
+      "repairs": 0
+    },
+    {
+      "name": "reading-lounge",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "6a3c0939-8e0e-4c3e-b8a2-d9c991195759",
+      "taskId": "af385d63-fa59-498a-9366-50e4b8447320",
+      "modelCalls": 9,
+      "repairs": 0
+    },
+    {
+      "name": "living-dining",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "12f4e456-fe08-4fb7-ab7f-db97e5465a0b",
+      "taskId": "19f780c7-fe94-4fc5-b8b2-34f030d0746b",
+      "modelCalls": 9,
+      "repairs": 0
+    },
+    {
+      "name": "reading-lounge",
+      "repeat": 2,
+      "status": "failed",
+      "error": "{\"status\":\"failed\",\"message\":\"模型没有返回可验证的结构化结果\",\"errorCode\":\"MODEL_FORMAT\"}\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n",
+      "projectId": "76df8ebe-8a5f-497c-98c2-fe9e23dbd15f",
+      "taskId": "6d70daf4-31d0-4667-a183-15afac5cc78d",
+      "modelCalls": 6
+    }
+  ]
+}

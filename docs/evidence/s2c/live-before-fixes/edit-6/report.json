@@ -1,0 +1,44 @@
+{
+  "liveModel": true,
+  "provider": "DeepSeek official",
+  "model": "deepseek-flash",
+  "results": [
+    {
+      "name": "reading-corner",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "18fbea75-8502-488f-982f-2423ffe741ce"
+    },
+    {
+      "name": "add-floor-lamp",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "9fcd3a16-3437-4925-b49c-fd56b36e826c"
+    },
+    {
+      "name": "size-color",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "c96c3a96-a9c5-4deb-9e48-cab5e0f60310"
+    },
+    {
+      "name": "delete",
+      "repeat": 1,
+      "status": "failed",
+      "error": "请指定要修改的家具或需要新增的物品\n+ actual - expected\n\n+ 'waiting_input'\n- 'completed'\n",
+      "projectId": "816cd877-f75d-4a43-bb9e-cc6390778f44"
+    },
+    {
+      "name": "multi-turn-reference",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "09731c89-2a8a-40a3-aab5-f97408a9f7d0"
+    },
+    {
+      "name": "clarification",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "287bcf64-7180-4573-a141-5d89e4df0bdc"
+    }
+  ]
+}

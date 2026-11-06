@@ -1,0 +1,196 @@
+{
+  "passed": false,
+  "realModel": true,
+  "realImageAcceptance": false,
+  "source": "labelled synthetic image",
+  "result": {
+    "seenText": "S",
+    "usedCrop": true
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "kind": "queued",
+      "data": {
+        "message": "任务已持久保存"
+      },
+      "createdAt": 1793937175.396317
+    },
+    {
+      "seq": 2,
+      "kind": "runtime",
+      "data": {
+        "codeCommit": "4385429ee0aa206ea926c1d18470844942223062",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "floorplanPromptVersion": "s2c-floorplan-1",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-1",
+        "generationPromptVersion": "s2b-rectangular-2"
+      },
+      "createdAt": 1793937175.4069595
+    },
+    {
+      "seq": 3,
+      "kind": "agent_start",
+      "data": {
+        "role": "main",
+        "promptVersion": "s2c-tool-image-smoke-1",
+        "promptHash": "85487142a86aea1af4024b8b6bfd2e178a1b730513c7dbae7266d47e13641285",
+        "model": "deepseek-flash"
+      },
+      "createdAt": 1793937175.4155138
+    },
+    {
+      "seq": 4,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 1
+      },
+      "createdAt": 1793937175.5969574
+    },
+    {
+      "seq": 5,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 0.856,
+        "usage": {
+          "input_tokens": 411,
+          "output_tokens": 60,
+          "total_tokens": 471,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "reasoning": 35
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937176.4538178
+    },
+    {
+      "seq": 6,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop",
+        "input": "{}"
+      },
+      "createdAt": 1793937176.456538
+    },
+    {
+      "seq": 7,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop"
+      },
+      "createdAt": 1793937176.732296
+    },
+    {
+      "seq": 8,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 2
+      },
+      "createdAt": 1793937176.73422
+    },
+    {
+      "seq": 9,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 14.897,
+        "usage": {
+          "input_tokens": 1502,
+          "output_tokens": 2276,
+          "total_tokens": 3778,
+          "input_token_details": {
+            "cache_read": 384
+          },
+          "output_token_details": {
+            "reasoning": 2251
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937191.6319394
+    },
+    {
+      "seq": 10,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop",
+        "input": "{}"
+      },
+      "createdAt": 1793937191.6344073
+    },
+    {
+      "seq": 11,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop"
+      },
+      "createdAt": 1793937191.6998842
+    },
+    {
+      "seq": 12,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 3
+      },
+      "createdAt": 1793937191.7017741
+    },
+    {
+      "seq": 13,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 8.603,
+        "usage": {
+          "input_tokens": 4809,
+          "output_tokens": 1313,
+          "total_tokens": 6122,
+          "input_token_details": {
+            "cache_read": 3712
+          },
+          "output_token_details": {
+            "reasoning": 1255
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937200.3056204
+    },
+    {
+      "seq": 14,
+      "kind": "agent_end",
+      "data": {
+        "role": "main",
+        "result": {
+          "seenText": "S",
+          "usedCrop": true
+        }
+      },
+      "createdAt": 1793937200.307021
+    }
+  ]
+}

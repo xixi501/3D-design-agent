@@ -311,6 +311,53 @@
         }
       }
     },
+    "/tasks/{id}/confirm-floorplan": {
+      "post": {
+        "summary": "Confirm Floorplan",
+        "operationId": "confirm_floorplan_tasks__id__confirm_floorplan_post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FloorplanConfirmInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tasks/{id}/resume": {
       "post": {
         "summary": "Resume",
@@ -474,6 +521,35 @@
         "required": ["projectId"],
         "title": "ConversationInput"
       },
+      "FloorplanConfirmInput": {
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Requestid"
+          },
+          "draftId": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Draftid"
+          },
+          "draftRevision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Draftrevision"
+          },
+          "draftHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Drafthash"
+          }
+        },
+        "type": "object",
+        "required": ["requestId", "draftId", "draftRevision", "draftHash"],
+        "title": "FloorplanConfirmInput"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -539,9 +615,22 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["edit", "generate_rectangular"],
+            "enum": ["edit", "generate_rectangular", "reconstruct_floorplan"],
             "title": "Mode",
             "default": "edit"
+          },
+          "imageId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageid"
           }
         },
         "additionalProperties": false,

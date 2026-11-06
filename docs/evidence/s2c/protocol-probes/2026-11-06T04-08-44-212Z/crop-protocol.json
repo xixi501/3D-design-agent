@@ -1,0 +1,147 @@
+{
+  "passed": true,
+  "realModel": true,
+  "realImageAcceptance": false,
+  "source": "labelled synthetic image",
+  "result": {
+    "seenText": "sofa 1",
+    "usedCrop": true
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "kind": "queued",
+      "data": {
+        "message": "任务已持久保存"
+      },
+      "createdAt": 1793938125.773936
+    },
+    {
+      "seq": 2,
+      "kind": "runtime",
+      "data": {
+        "codeCommit": "a55b7272a1c6b0f0a89614705998e75197658fe4",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "floorplanPromptVersion": "s2c-floorplan-2",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-1",
+        "generationPromptVersion": "s2b-rectangular-2"
+      },
+      "createdAt": 1793938125.7829108
+    },
+    {
+      "seq": 3,
+      "kind": "agent_start",
+      "data": {
+        "role": "main",
+        "promptVersion": "s2c-tool-image-smoke-1",
+        "promptHash": "85487142a86aea1af4024b8b6bfd2e178a1b730513c7dbae7266d47e13641285",
+        "model": "deepseek-flash"
+      },
+      "createdAt": 1793938125.7853127
+    },
+    {
+      "seq": 4,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 1
+      },
+      "createdAt": 1793938125.936363
+    },
+    {
+      "seq": 5,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 0.852,
+        "usage": {
+          "input_tokens": 411,
+          "output_tokens": 36,
+          "total_tokens": 447,
+          "input_token_details": {
+            "cache_read": 256
+          },
+          "output_token_details": {
+            "reasoning": 0
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793938126.7885742
+    },
+    {
+      "seq": 6,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop",
+        "input": "{}"
+      },
+      "createdAt": 1793938126.791165
+    },
+    {
+      "seq": 7,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop"
+      },
+      "createdAt": 1793938127.0682757
+    },
+    {
+      "seq": 8,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 2
+      },
+      "createdAt": 1793938127.0713463
+    },
+    {
+      "seq": 9,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 0.898,
+        "usage": {
+          "input_tokens": 809,
+          "output_tokens": 72,
+          "total_tokens": 881,
+          "input_token_details": {
+            "cache_read": 384
+          },
+          "output_token_details": {
+            "reasoning": 11
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793938127.970154
+    },
+    {
+      "seq": 10,
+      "kind": "agent_end",
+      "data": {
+        "role": "main",
+        "result": {
+          "seenText": "sofa 1",
+          "usedCrop": true
+        }
+      },
+      "createdAt": 1793938127.9725475
+    }
+  ]
+}

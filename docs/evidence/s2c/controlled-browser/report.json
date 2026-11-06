@@ -1,0 +1,1786 @@
+{
+  "passed": true,
+  "controlledModels": true,
+  "realImageAcceptance": false,
+  "source": "synthetic fixture only",
+  "steps": [
+    "upload produces draft, no formal write",
+    "calibration, actual pointer drag, draft reopen",
+    "four roles, real WebGL evidence, one atomic commit, undo/redo",
+    "stopped full backup and independent restore preserve original, draft, task and history"
+  ],
+  "task": {
+    "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9",
+    "conversationId": "960ad32b-8a95-4644-b510-51191b83c593",
+    "projectId": "14f279ed-d237-4f87-9d16-44bf463341e2",
+    "requestId": "9786e0ff-f72f-4451-9ace-c51e1ecc5def",
+    "input": "请识别这张单层户型图，保留整层结构，并复现客餐厅原图家具布局。先提供草稿供我确认。",
+    "selectedIds": [],
+    "status": "completed",
+    "result": {
+      "status": "completed",
+      "message": "已保存：合成样图工具与浏览器验证（受控模型）。本次修改作为一个事务提交，可撤销。 整层结构及客餐厅原图布局已保留，可继续选择家具进行局部编辑。",
+      "projectId": "14f279ed-d237-4f87-9d16-44bf463341e2",
+      "candidateId": "6debb90a-2e78-4d68-b671-c0e8301bacb2",
+      "baseRevision": 0,
+      "committedRevision": 1,
+      "diff": {
+        "added": [
+          "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:sofa1",
+          "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:coffee1",
+          "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:chair1",
+          "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:lamp1"
+        ],
+        "deleted": [],
+        "updated": []
+      },
+      "changes": [
+        {
+          "action": "added",
+          "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:sofa1",
+          "name": "三人沙发",
+          "fields": [
+            {
+              "field": "x",
+              "before": null,
+              "after": 2000
+            },
+            {
+              "field": "y",
+              "before": null,
+              "after": 1300
+            },
+            {
+              "field": "rot",
+              "before": null,
+              "after": 0
+            },
+            {
+              "field": "w",
+              "before": null,
+              "after": 2200
+            },
+            {
+              "field": "d",
+              "before": null,
+              "after": 900
+            },
+            {
+              "field": "h",
+              "before": null,
+              "after": 820
+            },
+            {
+              "field": "color",
+              "before": null,
+              "after": "#8e9aa8"
+            }
+          ]
+        },
+        {
+          "action": "added",
+          "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:coffee1",
+          "name": "茶几",
+          "fields": [
+            {
+              "field": "x",
+              "before": null,
+              "after": 3000
+            },
+            {
+              "field": "y",
+              "before": null,
+              "after": 3000
+            },
+            {
+              "field": "rot",
+              "before": null,
+              "after": 0
+            },
+            {
+              "field": "w",
+              "before": null,
+              "after": 1100
+            },
+            {
+              "field": "d",
+              "before": null,
+              "after": 600
+            },
+            {
+              "field": "h",
+              "before": null,
+              "after": 400
+            },
+            {
+              "field": "color",
+              "before": null,
+              "after": "#a47a55"
+            }
+          ]
+        },
+        {
+          "action": "added",
+          "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:chair1",
+          "name": "单人沙发",
+          "fields": [
+            {
+              "field": "x",
+              "before": null,
+              "after": 4600
+            },
+            {
+              "field": "y",
+              "before": null,
+              "after": 1300
+            },
+            {
+              "field": "rot",
+              "before": null,
+              "after": 90
+            },
+            {
+              "field": "w",
+              "before": null,
+              "after": 850
+            },
+            {
+              "field": "d",
+              "before": null,
+              "after": 850
+            },
+            {
+              "field": "h",
+              "before": null,
+              "after": 800
+            },
+            {
+              "field": "color",
+              "before": null,
+              "after": "#c98a5f"
+            }
+          ]
+        },
+        {
+          "action": "added",
+          "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:lamp1",
+          "name": "落地灯（可点亮）",
+          "fields": [
+            {
+              "field": "x",
+              "before": null,
+              "after": 4700
+            },
+            {
+              "field": "y",
+              "before": null,
+              "after": 2800
+            },
+            {
+              "field": "rot",
+              "before": null,
+              "after": 0
+            },
+            {
+              "field": "w",
+              "before": null,
+              "after": 350
+            },
+            {
+              "field": "d",
+              "before": null,
+              "after": 350
+            },
+            {
+              "field": "h",
+              "before": null,
+              "after": 1650
+            },
+            {
+              "field": "color",
+              "before": null,
+              "after": "#e8dcc6"
+            }
+          ]
+        }
+      ],
+      "checks": {
+        "passed": true,
+        "issues": [],
+        "coverage": [
+          "单层正交墙体、共用墙与连接",
+          "所有封闭区域及房间标签",
+          "门窗归属、范围与重叠",
+          "统一比例尺及标注交叉校验",
+          "已确认原图布局逐项一致",
+          "限定目标客餐厅",
+          "授权对象与结构逐字段保护",
+          "需求数量",
+          "封闭房间占地包含（20 mm 容差）",
+          "有效高度与原版参数化轮廓 SAT",
+          "基准问题对照"
+        ],
+        "limitations": [
+          "GLB 使用矩形占地，不是精确网格碰撞",
+          "未验证支撑面、通道可达性、照明或法规"
+        ]
+      },
+      "review": {
+        "passed": true,
+        "summary": "受控检查：真实代码检查及四张图片传输；不代表真实模型审核",
+        "issues": []
+      },
+      "evidence": [
+        {
+          "view": "top",
+          "sha256": "9381c9ddacb054457a3ba67063debb21885c4b6df1dd4ff4a9d10fc59d1de216",
+          "candidateHash": "3bcfc6d01348b19a55e4acca8334e2e3dea4b62c40a449e1d000288e221fe124",
+          "bytes": 174298,
+          "createdAt": "2026-11-06T05:00:25.265Z",
+          "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+          "url": "/api/projects/14f279ed-d237-4f87-9d16-44bf463341e2/candidates/6debb90a-2e78-4d68-b671-c0e8301bacb2/evidence/top"
+        },
+        {
+          "view": "oblique",
+          "sha256": "3a26940ee0641ca6fcca2d8e8c9b1b098cf317b8c2a4a68d7366dc9655dfc995",
+          "candidateHash": "3bcfc6d01348b19a55e4acca8334e2e3dea4b62c40a449e1d000288e221fe124",
+          "bytes": 177328,
+          "createdAt": "2026-11-06T05:00:25.266Z",
+          "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+          "url": "/api/projects/14f279ed-d237-4f87-9d16-44bf463341e2/candidates/6debb90a-2e78-4d68-b671-c0e8301bacb2/evidence/oblique"
+        }
+      ],
+      "repairs": 0,
+      "versionRetries": 0,
+      "generation": {
+        "mode": "reconstruct_floorplan",
+        "image": {
+          "id": "fp-7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+          "sha256": "7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+          "width": 1000,
+          "height": 800
+        },
+        "scale": {
+          "mmPerPixel": 10,
+          "origin": {
+            "x": 50,
+            "y": 50
+          }
+        },
+        "defaults": [
+          "层高 2800 mm",
+          "north 墙厚 200 mm",
+          "east 墙厚 200 mm",
+          "south 墙厚 200 mm",
+          "west 墙厚 200 mm",
+          "partition 墙厚 200 mm",
+          "division 墙厚 200 mm",
+          "entry 离地 0 / 顶高 2100 mm",
+          "window1 离地 900 / 顶高 2400 mm"
+        ],
+        "symbols": [
+          {
+            "id": "sofa1",
+            "roomId": "living",
+            "category": "三人沙发",
+            "x": 2000,
+            "y": 1300,
+            "w": 2200,
+            "d": 900,
+            "rot": 0,
+            "objectId": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:sofa1"
+          },
+          {
+            "id": "coffee1",
+            "roomId": "living",
+            "category": "茶几",
+            "x": 3000,
+            "y": 3000,
+            "w": 1100,
+            "d": 600,
+            "rot": 0,
+            "objectId": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:coffee1"
+          },
+          {
+            "id": "chair1",
+            "roomId": "living",
+            "category": "单人沙发",
+            "x": 4600,
+            "y": 1300,
+            "w": 850,
+            "d": 850,
+            "rot": 90,
+            "objectId": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:chair1"
+          },
+          {
+            "id": "lamp1",
+            "roomId": "living",
+            "category": "落地灯",
+            "x": 4700,
+            "y": 2800,
+            "w": 350,
+            "d": 350,
+            "rot": 0,
+            "objectId": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:lamp1"
+          }
+        ],
+        "rooms": [
+          {
+            "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:r:living",
+            "name": "客餐厅",
+            "area": 39.44,
+            "rects": [
+              {
+                "x": 100,
+                "y": 100,
+                "w": 5800,
+                "h": 6800
+              }
+            ]
+          },
+          {
+            "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:r:bedroom",
+            "name": "卧室",
+            "area": 9.24,
+            "rects": [
+              {
+                "x": 6100,
+                "y": 100,
+                "w": 2800,
+                "h": 3300
+              }
+            ]
+          },
+          {
+            "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:r:kitchen",
+            "name": "厨房",
+            "area": 9.24,
+            "rects": [
+              {
+                "x": 6100,
+                "y": 3600,
+                "w": 2800,
+                "h": 3300
+              }
+            ]
+          }
+        ],
+        "targetRoomIds": [
+          "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:r:living"
+        ],
+        "draftId": "80a4534f-70dd-4786-892a-bcdc966e074a",
+        "draftRevision": 2,
+        "draftHash": "830c38093afa1ec9c71bb68eae526544599094b69c9eb73a7643833ee90a7635",
+        "corrections": 1,
+        "skillsUsed": [
+          {
+            "id": "floorplan-reconstruction",
+            "version": "0.1.0",
+            "contentHash": "65f26c417678f53a0a8760be01fc82af9d9501642157f7d43c65cd3b5452a669",
+            "source": [
+              {
+                "title": "ActiScape S2-C approved reconstruction rules",
+                "uri": "repository:docs/S2C_RUNBOOK.md"
+              },
+              {
+                "title": "Upstream HouseSpec single-floor format",
+                "uri": "repository:reference/upstream"
+              }
+            ],
+            "license": "MIT"
+          }
+        ]
+      },
+      "skillsUsed": [
+        {
+          "id": "floorplan-reconstruction",
+          "version": "0.1.0",
+          "contentHash": "65f26c417678f53a0a8760be01fc82af9d9501642157f7d43c65cd3b5452a669",
+          "source": [
+            {
+              "title": "ActiScape S2-C approved reconstruction rules",
+              "uri": "repository:docs/S2C_RUNBOOK.md"
+            },
+            {
+              "title": "Upstream HouseSpec single-floor format",
+              "uri": "repository:reference/upstream"
+            }
+          ],
+          "license": "MIT"
+        }
+      ],
+      "structure": {
+        "nodes": {
+          "added": [
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:n:0,0",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:n:6000,0",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:n:9000,0",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:n:9000,3500",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:n:9000,7000",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:n:0,7000",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:n:6000,7000",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:n:6000,3500"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "walls": {
+          "added": [
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:0,0|6000,0",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:6000,0|9000,0",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:9000,0|9000,3500",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:9000,3500|9000,7000",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:0,7000|6000,7000",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:6000,7000|9000,7000",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:0,0|0,7000",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:6000,0|6000,3500",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:6000,3500|6000,7000",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:w:6000,3500|9000,3500"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "openings": {
+          "added": [
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:o:entry",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:o:window1"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "structs": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "beams": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "rooms": {
+          "added": [
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:r:living",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:r:bedroom",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:r:kitchen"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "measures": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "elec": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "voids": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        },
+        "comments": {
+          "added": [],
+          "deleted": [],
+          "updated": []
+        }
+      },
+      "focusIds": [
+        "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:sofa1",
+        "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:coffee1",
+        "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:chair1",
+        "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:lamp1"
+      ]
+    },
+    "error": null,
+    "cancelRequested": false,
+    "modelCalls": 4,
+    "elapsedSeconds": 4.862502336502075,
+    "createdAt": 1793941218.56337,
+    "updatedAt": 1793941226.3397636,
+    "mode": "reconstruct_floorplan",
+    "generation": {
+      "imageId": "fp-7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+      "phase": "matching_assets",
+      "skillsUsed": [
+        {
+          "id": "floorplan-reconstruction",
+          "version": "0.1.0",
+          "contentHash": "65f26c417678f53a0a8760be01fc82af9d9501642157f7d43c65cd3b5452a669",
+          "source": [
+            {
+              "title": "ActiScape S2-C approved reconstruction rules",
+              "uri": "repository:docs/S2C_RUNBOOK.md"
+            },
+            {
+              "title": "Upstream HouseSpec single-floor format",
+              "uri": "repository:reference/upstream"
+            }
+          ],
+          "license": "MIT"
+        }
+      ],
+      "rawRecognition": {
+        "status": "draft",
+        "question": "",
+        "name": "S2-C synthetic tool fixture (not image acceptance)",
+        "anchors": [
+          {
+            "a": {
+              "x": 50,
+              "y": 50
+            },
+            "b": {
+              "x": 950,
+              "y": 50
+            },
+            "distance": {
+              "value": 9,
+              "unit": "m"
+            },
+            "basis": "centerline",
+            "evidence": "synthetic 9000 mm centreline fixture"
+          }
+        ],
+        "walls": [
+          {
+            "id": "north",
+            "a": {
+              "x": 50,
+              "y": 50
+            },
+            "b": {
+              "x": 950,
+              "y": 50
+            }
+          },
+          {
+            "id": "east",
+            "a": {
+              "x": 950,
+              "y": 50
+            },
+            "b": {
+              "x": 950,
+              "y": 750
+            }
+          },
+          {
+            "id": "south",
+            "a": {
+              "x": 950,
+              "y": 750
+            },
+            "b": {
+              "x": 50,
+              "y": 750
+            }
+          },
+          {
+            "id": "west",
+            "a": {
+              "x": 50,
+              "y": 750
+            },
+            "b": {
+              "x": 50,
+              "y": 50
+            }
+          },
+          {
+            "id": "partition",
+            "a": {
+              "x": 650,
+              "y": 50
+            },
+            "b": {
+              "x": 650,
+              "y": 750
+            }
+          },
+          {
+            "id": "division",
+            "a": {
+              "x": 650,
+              "y": 400
+            },
+            "b": {
+              "x": 950,
+              "y": 400
+            }
+          }
+        ],
+        "openings": [
+          {
+            "id": "entry",
+            "wallId": "south",
+            "type": "door",
+            "offset": 750,
+            "width": 90
+          },
+          {
+            "id": "window1",
+            "wallId": "north",
+            "type": "window",
+            "offset": 300,
+            "width": 150
+          }
+        ],
+        "rooms": [
+          {
+            "id": "living",
+            "at": {
+              "x": 350,
+              "y": 550
+            },
+            "name": "客餐厅"
+          },
+          {
+            "id": "bedroom",
+            "at": {
+              "x": 800,
+              "y": 250
+            },
+            "name": "卧室"
+          },
+          {
+            "id": "kitchen",
+            "at": {
+              "x": 800,
+              "y": 550
+            },
+            "name": "厨房"
+          }
+        ],
+        "symbols": [
+          {
+            "id": "sofa1",
+            "roomId": "living",
+            "category": "三人沙发",
+            "x": 250,
+            "y": 180,
+            "w": 220,
+            "d": 90,
+            "rot": 0
+          },
+          {
+            "id": "coffee1",
+            "roomId": "living",
+            "category": "茶几",
+            "x": 350,
+            "y": 350,
+            "w": 110,
+            "d": 60,
+            "rot": 0
+          },
+          {
+            "id": "chair1",
+            "roomId": "living",
+            "category": "单人沙发",
+            "x": 520,
+            "y": 180,
+            "w": 85,
+            "d": 85,
+            "rot": 90
+          },
+          {
+            "id": "lamp1",
+            "roomId": "living",
+            "category": "落地灯",
+            "x": 520,
+            "y": 330,
+            "w": 35,
+            "d": 35,
+            "rot": 0
+          }
+        ],
+        "targetRoomIds": [
+          "living"
+        ],
+        "uncertainties": []
+      },
+      "recognitionAttempts": [
+        {
+          "response": {
+            "status": "draft",
+            "question": "",
+            "name": "S2-C synthetic tool fixture (not image acceptance)",
+            "anchors": [
+              {
+                "a": {
+                  "x": 50,
+                  "y": 50
+                },
+                "b": {
+                  "x": 950,
+                  "y": 50
+                },
+                "distance": {
+                  "value": 9,
+                  "unit": "m"
+                },
+                "basis": "centerline",
+                "evidence": "synthetic 9000 mm centreline fixture"
+              }
+            ],
+            "walls": [
+              {
+                "id": "north",
+                "a": {
+                  "x": 50,
+                  "y": 50
+                },
+                "b": {
+                  "x": 950,
+                  "y": 50
+                }
+              },
+              {
+                "id": "east",
+                "a": {
+                  "x": 950,
+                  "y": 50
+                },
+                "b": {
+                  "x": 950,
+                  "y": 750
+                }
+              },
+              {
+                "id": "south",
+                "a": {
+                  "x": 950,
+                  "y": 750
+                },
+                "b": {
+                  "x": 50,
+                  "y": 750
+                }
+              },
+              {
+                "id": "west",
+                "a": {
+                  "x": 50,
+                  "y": 750
+                },
+                "b": {
+                  "x": 50,
+                  "y": 50
+                }
+              },
+              {
+                "id": "partition",
+                "a": {
+                  "x": 650,
+                  "y": 50
+                },
+                "b": {
+                  "x": 650,
+                  "y": 750
+                }
+              },
+              {
+                "id": "division",
+                "a": {
+                  "x": 650,
+                  "y": 400
+                },
+                "b": {
+                  "x": 950,
+                  "y": 400
+                }
+              }
+            ],
+            "openings": [
+              {
+                "id": "entry",
+                "wallId": "south",
+                "type": "door",
+                "offset": 750,
+                "width": 90
+              },
+              {
+                "id": "window1",
+                "wallId": "north",
+                "type": "window",
+                "offset": 300,
+                "width": 150
+              }
+            ],
+            "rooms": [
+              {
+                "id": "living",
+                "at": {
+                  "x": 350,
+                  "y": 550
+                },
+                "name": "客餐厅"
+              },
+              {
+                "id": "bedroom",
+                "at": {
+                  "x": 800,
+                  "y": 250
+                },
+                "name": "卧室"
+              },
+              {
+                "id": "kitchen",
+                "at": {
+                  "x": 800,
+                  "y": 550
+                },
+                "name": "厨房"
+              }
+            ],
+            "symbols": [
+              {
+                "id": "sofa1",
+                "roomId": "living",
+                "category": "三人沙发",
+                "x": 250,
+                "y": 180,
+                "w": 220,
+                "d": 90,
+                "rot": 0
+              },
+              {
+                "id": "coffee1",
+                "roomId": "living",
+                "category": "茶几",
+                "x": 350,
+                "y": 350,
+                "w": 110,
+                "d": 60,
+                "rot": 0
+              },
+              {
+                "id": "chair1",
+                "roomId": "living",
+                "category": "单人沙发",
+                "x": 520,
+                "y": 180,
+                "w": 85,
+                "d": 85,
+                "rot": 90
+              },
+              {
+                "id": "lamp1",
+                "roomId": "living",
+                "category": "落地灯",
+                "x": 520,
+                "y": 330,
+                "w": 35,
+                "d": 35,
+                "rot": 0
+              }
+            ],
+            "targetRoomIds": [
+              "living"
+            ],
+            "uncertainties": []
+          },
+          "imageHash": "7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+          "sourceInputHash": "91e570877dbc742609e443afa8eab0095be46c2d62f76d2aa8b37cbbf5e9f52e"
+        }
+      ],
+      "draftId": "80a4534f-70dd-4786-892a-bcdc966e074a",
+      "floorplan": {
+        "id": "80a4534f-70dd-4786-892a-bcdc966e074a",
+        "projectId": "14f279ed-d237-4f87-9d16-44bf463341e2",
+        "baseRevision": 0,
+        "revision": 2,
+        "data": {
+          "name": "S2-C synthetic tool fixture (not image acceptance)",
+          "anchors": [
+            {
+              "a": {
+                "x": 50,
+                "y": 50
+              },
+              "b": {
+                "x": 950,
+                "y": 50
+              },
+              "distance": {
+                "value": 9000,
+                "unit": "mm"
+              },
+              "basis": "centerline",
+              "evidence": "用户在原图两点标定"
+            }
+          ],
+          "walls": [
+            {
+              "id": "north",
+              "a": {
+                "x": 50,
+                "y": 50
+              },
+              "b": {
+                "x": 950,
+                "y": 50
+              }
+            },
+            {
+              "id": "east",
+              "a": {
+                "x": 950,
+                "y": 50
+              },
+              "b": {
+                "x": 950,
+                "y": 750
+              }
+            },
+            {
+              "id": "south",
+              "a": {
+                "x": 950,
+                "y": 750
+              },
+              "b": {
+                "x": 50,
+                "y": 750
+              }
+            },
+            {
+              "id": "west",
+              "a": {
+                "x": 50,
+                "y": 750
+              },
+              "b": {
+                "x": 50,
+                "y": 50
+              }
+            },
+            {
+              "id": "partition",
+              "a": {
+                "x": 650,
+                "y": 50
+              },
+              "b": {
+                "x": 650,
+                "y": 750
+              }
+            },
+            {
+              "id": "division",
+              "a": {
+                "x": 650,
+                "y": 400
+              },
+              "b": {
+                "x": 950,
+                "y": 400
+              }
+            }
+          ],
+          "openings": [
+            {
+              "id": "entry",
+              "wallId": "south",
+              "type": "door",
+              "offset": 750,
+              "width": 90
+            },
+            {
+              "id": "window1",
+              "wallId": "north",
+              "type": "window",
+              "offset": 300,
+              "width": 150
+            }
+          ],
+          "rooms": [
+            {
+              "id": "living",
+              "at": {
+                "x": 350,
+                "y": 550
+              },
+              "name": "客餐厅"
+            },
+            {
+              "id": "bedroom",
+              "at": {
+                "x": 800,
+                "y": 250
+              },
+              "name": "卧室"
+            },
+            {
+              "id": "kitchen",
+              "at": {
+                "x": 800,
+                "y": 550
+              },
+              "name": "厨房"
+            }
+          ],
+          "symbols": [
+            {
+              "id": "sofa1",
+              "roomId": "living",
+              "category": "三人沙发",
+              "x": 250,
+              "y": 180,
+              "w": 220,
+              "d": 90,
+              "rot": 0
+            },
+            {
+              "id": "coffee1",
+              "roomId": "living",
+              "category": "茶几",
+              "x": 350,
+              "y": 350,
+              "w": 110,
+              "d": 60,
+              "rot": 0
+            },
+            {
+              "id": "chair1",
+              "roomId": "living",
+              "category": "单人沙发",
+              "x": 510,
+              "y": 180,
+              "w": 85,
+              "d": 85,
+              "rot": 90
+            },
+            {
+              "id": "lamp1",
+              "roomId": "living",
+              "category": "落地灯",
+              "x": 520,
+              "y": 330,
+              "w": 35,
+              "d": 35,
+              "rot": 0
+            }
+          ],
+          "targetRoomIds": [
+            "living"
+          ],
+          "uncertainties": [],
+          "image": {
+            "id": "fp-7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+            "sha256": "7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+            "width": 1000,
+            "height": 800
+          }
+        },
+        "hash": "830c38093afa1ec9c71bb68eae526544599094b69c9eb73a7643833ee90a7635",
+        "confirmed": {
+          "revision": 2,
+          "hash": "830c38093afa1ec9c71bb68eae526544599094b69c9eb73a7643833ee90a7635",
+          "projectRevision": 0,
+          "requestId": "59905b95-a7ea-4051-a24d-55b55ddecdda",
+          "confirmedAt": "2026-11-06T05:00:21.778Z"
+        },
+        "corrections": 1,
+        "createdAt": "2026-11-06T05:00:18.702Z"
+      },
+      "sourceInputHash": "91e570877dbc742609e443afa8eab0095be46c2d62f76d2aa8b37cbbf5e9f52e",
+      "recognitionQuestion": "",
+      "previewChecks": {
+        "passed": true,
+        "issues": [],
+        "coverage": [
+          "单层正交墙体、共用墙与连接",
+          "所有封闭区域及房间标签",
+          "门窗归属、范围与重叠",
+          "统一比例尺及标注交叉校验"
+        ],
+        "limitations": [
+          "家具匹配、实际模型和截图仍需候选检查"
+        ]
+      },
+      "defaults": [
+        "层高 2800 mm",
+        "north 墙厚 200 mm",
+        "east 墙厚 200 mm",
+        "south 墙厚 200 mm",
+        "west 墙厚 200 mm",
+        "partition 墙厚 200 mm",
+        "division 墙厚 200 mm",
+        "entry 离地 0 / 顶高 2100 mm",
+        "window1 离地 900 / 顶高 2400 mm"
+      ],
+      "compiledSymbols": [
+        {
+          "id": "sofa1",
+          "roomId": "living",
+          "category": "三人沙发",
+          "x": 2000,
+          "y": 1300,
+          "w": 2200,
+          "d": 900,
+          "rot": 0,
+          "objectId": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:sofa1"
+        },
+        {
+          "id": "coffee1",
+          "roomId": "living",
+          "category": "茶几",
+          "x": 3000,
+          "y": 3000,
+          "w": 1100,
+          "d": 600,
+          "rot": 0,
+          "objectId": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:coffee1"
+        },
+        {
+          "id": "chair1",
+          "roomId": "living",
+          "category": "单人沙发",
+          "x": 4600,
+          "y": 1300,
+          "w": 850,
+          "d": 850,
+          "rot": 90,
+          "objectId": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:chair1"
+        },
+        {
+          "id": "lamp1",
+          "roomId": "living",
+          "category": "落地灯",
+          "x": 4700,
+          "y": 2800,
+          "w": 350,
+          "d": 350,
+          "rot": 0,
+          "objectId": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:lamp1"
+        }
+      ],
+      "scale": {
+        "mmPerPixel": 10,
+        "origin": {
+          "x": 50,
+          "y": 50
+        }
+      },
+      "confirmation": {
+        "requestId": "59905b95-a7ea-4051-a24d-55b55ddecdda",
+        "draftId": "80a4534f-70dd-4786-892a-bcdc966e074a",
+        "draftRevision": 2,
+        "draftHash": "830c38093afa1ec9c71bb68eae526544599094b69c9eb73a7643833ee90a7635"
+      },
+      "resumeNonce": "59905b95-a7ea-4051-a24d-55b55ddecdda",
+      "frozen": true,
+      "symbolGroups": [
+        [
+          "sofa1"
+        ],
+        [
+          "coffee1"
+        ],
+        [
+          "chair1"
+        ],
+        [
+          "lamp1"
+        ]
+      ],
+      "matches": [
+        {
+          "symbolId": "sofa1",
+          "key": "sofa"
+        },
+        {
+          "symbolId": "coffee1",
+          "key": "coffeeTable"
+        },
+        {
+          "symbolId": "chair1",
+          "key": "armchair"
+        },
+        {
+          "symbolId": "lamp1",
+          "key": "floorLamp"
+        }
+      ],
+      "lastCandidateId": "6debb90a-2e78-4d68-b671-c0e8301bacb2",
+      "lastChecks": {
+        "passed": true,
+        "issues": [],
+        "coverage": [
+          "单层正交墙体、共用墙与连接",
+          "所有封闭区域及房间标签",
+          "门窗归属、范围与重叠",
+          "统一比例尺及标注交叉校验",
+          "已确认原图布局逐项一致",
+          "限定目标客餐厅",
+          "授权对象与结构逐字段保护",
+          "需求数量",
+          "封闭房间占地包含（20 mm 容差）",
+          "有效高度与原版参数化轮廓 SAT",
+          "基准问题对照"
+        ],
+        "limitations": [
+          "GLB 使用矩形占地，不是精确网格碰撞",
+          "未验证支撑面、通道可达性、照明或法规"
+        ]
+      }
+    }
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "kind": "queued",
+      "data": {
+        "message": "任务已持久保存"
+      },
+      "createdAt": 1793941218.564313
+    },
+    {
+      "seq": 2,
+      "kind": "runtime",
+      "data": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      },
+      "createdAt": 1793941218.5647836
+    },
+    {
+      "seq": 3,
+      "kind": "phase",
+      "data": {
+        "phase": "reading"
+      },
+      "createdAt": 1793941218.5774233
+    },
+    {
+      "seq": 4,
+      "kind": "phase",
+      "data": {
+        "phase": "understanding"
+      },
+      "createdAt": 1793941218.6189814
+    },
+    {
+      "seq": 5,
+      "kind": "skill_loaded",
+      "data": {
+        "id": "floorplan-reconstruction",
+        "version": "0.1.0",
+        "contentHash": "65f26c417678f53a0a8760be01fc82af9d9501642157f7d43c65cd3b5452a669",
+        "source": [
+          {
+            "title": "ActiScape S2-C approved reconstruction rules",
+            "uri": "repository:docs/S2C_RUNBOOK.md"
+          },
+          {
+            "title": "Upstream HouseSpec single-floor format",
+            "uri": "repository:reference/upstream"
+          }
+        ],
+        "license": "MIT"
+      },
+      "createdAt": 1793941218.6204846
+    },
+    {
+      "seq": 6,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 1
+      },
+      "createdAt": 1793941218.6752522
+    },
+    {
+      "seq": 7,
+      "kind": "agent_start",
+      "data": {
+        "role": "main",
+        "controlled": true,
+        "promptVersion": "s2c-floorplan-3"
+      },
+      "createdAt": 1793941218.6756413
+    },
+    {
+      "seq": 8,
+      "kind": "floorplan_draft",
+      "data": {
+        "draftId": "80a4534f-70dd-4786-892a-bcdc966e074a",
+        "draftRevision": 0,
+        "draftHash": "99c629c713b31e38f7b3050ba3e0212a850b9c5347320836f338094e832ac4d7",
+        "checks": {
+          "passed": true,
+          "issues": [],
+          "coverage": [
+            "单层正交墙体、共用墙与连接",
+            "所有封闭区域及房间标签",
+            "门窗归属、范围与重叠",
+            "统一比例尺及标注交叉校验"
+          ],
+          "limitations": [
+            "家具匹配、实际模型和截图仍需候选检查"
+          ]
+        }
+      },
+      "createdAt": 1793941218.8664021
+    },
+    {
+      "seq": 9,
+      "kind": "status",
+      "data": {
+        "status": "waiting_input",
+        "message": "请核对原图叠加、比例尺、整层结构及客餐厅家具，再点击“确认结构与原图布局”。"
+      },
+      "createdAt": 1793941218.8753939
+    },
+    {
+      "seq": 10,
+      "kind": "resumed",
+      "data": {
+        "message": "任务已恢复"
+      },
+      "createdAt": 1793941221.7858484
+    },
+    {
+      "seq": 11,
+      "kind": "floorplan_confirmed",
+      "data": {
+        "draftId": "80a4534f-70dd-4786-892a-bcdc966e074a",
+        "draftRevision": 2,
+        "draftHash": "830c38093afa1ec9c71bb68eae526544599094b69c9eb73a7643833ee90a7635"
+      },
+      "createdAt": 1793941221.78631
+    },
+    {
+      "seq": 12,
+      "kind": "phase",
+      "data": {
+        "phase": "reading"
+      },
+      "createdAt": 1793941221.7967165
+    },
+    {
+      "seq": 13,
+      "kind": "phase",
+      "data": {
+        "phase": "understanding"
+      },
+      "createdAt": 1793941221.8188167
+    },
+    {
+      "seq": 14,
+      "kind": "skill_loaded",
+      "data": {
+        "id": "floorplan-reconstruction",
+        "version": "0.1.0",
+        "contentHash": "65f26c417678f53a0a8760be01fc82af9d9501642157f7d43c65cd3b5452a669",
+        "source": [
+          {
+            "title": "ActiScape S2-C approved reconstruction rules",
+            "uri": "repository:docs/S2C_RUNBOOK.md"
+          },
+          {
+            "title": "Upstream HouseSpec single-floor format",
+            "uri": "repository:reference/upstream"
+          }
+        ],
+        "license": "MIT"
+      },
+      "createdAt": 1793941221.8196247
+    },
+    {
+      "seq": 15,
+      "kind": "floorplan_draft",
+      "data": {
+        "draftId": "80a4534f-70dd-4786-892a-bcdc966e074a",
+        "draftRevision": 2,
+        "draftHash": "830c38093afa1ec9c71bb68eae526544599094b69c9eb73a7643833ee90a7635",
+        "checks": {
+          "passed": true,
+          "issues": [],
+          "coverage": [
+            "单层正交墙体、共用墙与连接",
+            "所有封闭区域及房间标签",
+            "门窗归属、范围与重叠",
+            "统一比例尺及标注交叉校验"
+          ],
+          "limitations": [
+            "家具匹配、实际模型和截图仍需候选检查"
+          ]
+        }
+      },
+      "createdAt": 1793941221.8828335
+    },
+    {
+      "seq": 16,
+      "kind": "phase",
+      "data": {
+        "phase": "choosing_assets"
+      },
+      "createdAt": 1793941221.8852694
+    },
+    {
+      "seq": 17,
+      "kind": "model_start",
+      "data": {
+        "role": "assets",
+        "request": 2
+      },
+      "createdAt": 1793941221.9218538
+    },
+    {
+      "seq": 18,
+      "kind": "agent_start",
+      "data": {
+        "role": "assets",
+        "controlled": true,
+        "promptVersion": "s2c-floorplan-3"
+      },
+      "createdAt": 1793941221.9221778
+    },
+    {
+      "seq": 19,
+      "kind": "phase",
+      "data": {
+        "phase": "scoping"
+      },
+      "createdAt": 1793941221.9249244
+    },
+    {
+      "seq": 20,
+      "kind": "scope",
+      "data": {
+        "targetIds": [],
+        "allowDeleteIds": [],
+        "allowAddKeys": [
+          "sofa",
+          "coffeeTable",
+          "armchair",
+          "floorLamp"
+        ],
+        "allowedRoomIds": [
+          "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:r:living"
+        ],
+        "requirements": [
+          {
+            "key": "sofa",
+            "count": 1,
+            "scope": "project"
+          },
+          {
+            "key": "coffeeTable",
+            "count": 1,
+            "scope": "project"
+          },
+          {
+            "key": "armchair",
+            "count": 1,
+            "scope": "project"
+          },
+          {
+            "key": "floorLamp",
+            "count": 1,
+            "scope": "project"
+          }
+        ]
+      },
+      "createdAt": 1793941221.925774
+    },
+    {
+      "seq": 21,
+      "kind": "phase",
+      "data": {
+        "phase": "designing"
+      },
+      "createdAt": 1793941221.927172
+    },
+    {
+      "seq": 22,
+      "kind": "model_start",
+      "data": {
+        "role": "design",
+        "request": 3
+      },
+      "createdAt": 1793941221.9300125
+    },
+    {
+      "seq": 23,
+      "kind": "agent_start",
+      "data": {
+        "role": "design",
+        "controlled": true,
+        "promptVersion": "s2c-floorplan-3"
+      },
+      "createdAt": 1793941221.9302828
+    },
+    {
+      "seq": 24,
+      "kind": "phase",
+      "data": {
+        "phase": "prechecking"
+      },
+      "createdAt": 1793941222.267156
+    },
+    {
+      "seq": 25,
+      "kind": "candidate",
+      "data": {
+        "id": "6debb90a-2e78-4d68-b671-c0e8301bacb2",
+        "hash": "3bcfc6d01348b19a55e4acca8334e2e3dea4b62c40a449e1d000288e221fe124",
+        "diff": {
+          "added": [
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:sofa1",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:coffee1",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:chair1",
+            "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:lamp1"
+          ],
+          "deleted": [],
+          "updated": []
+        },
+        "checks": {
+          "passed": true,
+          "issues": [],
+          "coverage": [
+            "单层正交墙体、共用墙与连接",
+            "所有封闭区域及房间标签",
+            "门窗归属、范围与重叠",
+            "统一比例尺及标注交叉校验",
+            "已确认原图布局逐项一致",
+            "限定目标客餐厅",
+            "授权对象与结构逐字段保护",
+            "需求数量",
+            "封闭房间占地包含（20 mm 容差）",
+            "有效高度与原版参数化轮廓 SAT",
+            "基准问题对照"
+          ],
+          "limitations": [
+            "GLB 使用矩形占地，不是精确网格碰撞",
+            "未验证支撑面、通道可达性、照明或法规"
+          ]
+        }
+      },
+      "createdAt": 1793941222.4852877
+    },
+    {
+      "seq": 26,
+      "kind": "phase",
+      "data": {
+        "phase": "rendering"
+      },
+      "createdAt": 1793941222.4925542
+    },
+    {
+      "seq": 27,
+      "kind": "evidence",
+      "data": {
+        "candidateId": "6debb90a-2e78-4d68-b671-c0e8301bacb2",
+        "evidence": [
+          {
+            "view": "top",
+            "sha256": "9381c9ddacb054457a3ba67063debb21885c4b6df1dd4ff4a9d10fc59d1de216",
+            "candidateHash": "3bcfc6d01348b19a55e4acca8334e2e3dea4b62c40a449e1d000288e221fe124",
+            "bytes": 174298,
+            "createdAt": "2026-11-06T05:00:25.265Z",
+            "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据"
+          },
+          {
+            "view": "oblique",
+            "sha256": "3a26940ee0641ca6fcca2d8e8c9b1b098cf317b8c2a4a68d7366dc9655dfc995",
+            "candidateHash": "3bcfc6d01348b19a55e4acca8334e2e3dea4b62c40a449e1d000288e221fe124",
+            "bytes": 177328,
+            "createdAt": "2026-11-06T05:00:25.266Z",
+            "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据"
+          }
+        ]
+      },
+      "createdAt": 1793941225.609944
+    },
+    {
+      "seq": 28,
+      "kind": "phase",
+      "data": {
+        "phase": "checking"
+      },
+      "createdAt": 1793941225.6179392
+    },
+    {
+      "seq": 29,
+      "kind": "source_evidence",
+      "data": {
+        "imageHash": "7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+        "draftHash": "830c38093afa1ec9c71bb68eae526544599094b69c9eb73a7643833ee90a7635",
+        "imagePaths": [
+          "/floorplan-images/fp-7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd/file",
+          "/projects/14f279ed-d237-4f87-9d16-44bf463341e2/floorplan-drafts/80a4534f-70dd-4786-892a-bcdc966e074a/overlay",
+          "/projects/14f279ed-d237-4f87-9d16-44bf463341e2/candidates/6debb90a-2e78-4d68-b671-c0e8301bacb2/evidence/top",
+          "/projects/14f279ed-d237-4f87-9d16-44bf463341e2/candidates/6debb90a-2e78-4d68-b671-c0e8301bacb2/evidence/oblique"
+        ],
+        "imageHashes": [
+          "7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+          "25862b42e170226e705f4a54e3c51fc13be22fb93ee4ca7cb617f190d0512d56",
+          "9381c9ddacb054457a3ba67063debb21885c4b6df1dd4ff4a9d10fc59d1de216",
+          "3a26940ee0641ca6fcca2d8e8c9b1b098cf317b8c2a4a68d7366dc9655dfc995"
+        ]
+      },
+      "createdAt": 1793941226.046011
+    },
+    {
+      "seq": 30,
+      "kind": "model_start",
+      "data": {
+        "role": "check",
+        "request": 4
+      },
+      "createdAt": 1793941226.0472383
+    },
+    {
+      "seq": 31,
+      "kind": "agent_start",
+      "data": {
+        "role": "check",
+        "controlled": true,
+        "promptVersion": "s2c-floorplan-3"
+      },
+      "createdAt": 1793941226.0475638
+    },
+    {
+      "seq": 32,
+      "kind": "phase",
+      "data": {
+        "phase": "committing"
+      },
+      "createdAt": 1793941226.1444745
+    },
+    {
+      "seq": 33,
+      "kind": "committed",
+      "data": {
+        "revision": 1,
+        "candidateId": "6debb90a-2e78-4d68-b671-c0e8301bacb2",
+        "replayed": false
+      },
+      "createdAt": 1793941226.3222308
+    },
+    {
+      "seq": 34,
+      "kind": "status",
+      "data": {
+        "status": "completed",
+        "message": "已保存：合成样图工具与浏览器验证（受控模型）。本次修改作为一个事务提交，可撤销。 整层结构及客餐厅原图布局已保留，可继续选择家具进行局部编辑。"
+      },
+      "createdAt": 1793941226.338829
+    }
+  ],
+  "geometry": {
+    "passed": true,
+    "objects": [
+      {
+        "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:sofa1",
+        "key": "sofa",
+        "nominal": {
+          "w": 2200,
+          "d": 900,
+          "h": 820
+        },
+        "actual": {
+          "w": 2200.000047683716,
+          "d": 899.9999874830247,
+          "h": 925.2898074389375
+        },
+        "localCenter": {
+          "x": 0,
+          "y": 462.64490297441074,
+          "z": -0.000005662441265874563
+        },
+        "passed": true
+      },
+      {
+        "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:coffee1",
+        "key": "coffeeTable",
+        "nominal": {
+          "w": 1100,
+          "d": 600,
+          "h": 400
+        },
+        "actual": {
+          "w": 1100.000023841858,
+          "d": 600.0000238418579,
+          "h": 400.0000067055226
+        },
+        "localCenter": {
+          "x": 0,
+          "y": 199.99999620020392,
+          "z": 0
+        },
+        "passed": true
+      },
+      {
+        "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:chair1",
+        "key": "armchair",
+        "nominal": {
+          "w": 850,
+          "d": 850,
+          "h": 800
+        },
+        "actual": {
+          "w": 850.0000238418579,
+          "d": 850.0000238418579,
+          "h": 799.9999947845936
+        },
+        "localCenter": {
+          "x": 0,
+          "y": 399.9999966472388,
+          "z": 0
+        },
+        "passed": true
+      },
+      {
+        "id": "cbfae260-9e09-417e-a8cf-4b9ce6e63ba9:f:lamp1",
+        "key": "floorLamp",
+        "nominal": {
+          "w": 350,
+          "d": 350,
+          "h": 1650
+        },
+        "actual": {
+          "w": 280.0000011920929,
+          "d": 280.0000011920929,
+          "h": 1617.000006556511
+        },
+        "localCenter": {
+          "x": 0,
+          "y": 808.5000032782555,
+          "z": 0
+        },
+        "passed": true
+      }
+    ],
+    "coverage": [
+      "actual unrotated Three.js mesh bounds in mm",
+      "nominal/actual footprint deviation: max(100 mm,15%)",
+      "mesh horizontal centre offset <=150 mm"
+    ],
+    "limitations": [
+      "not triangle-level collision or support-surface validation"
+    ]
+  },
+  "errors": []
+}

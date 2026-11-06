@@ -1,0 +1,574 @@
+{
+  "businessCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+  "realImageAcceptance": false,
+  "rectangularCases": {
+    "passed": 4,
+    "total": 4
+  },
+  "localEditFlows": {
+    "passed": 6,
+    "total": 6
+  },
+  "sourceLocalEditTasks": {
+    "passed": 2,
+    "total": 2,
+    "initializationControlled": true
+  },
+  "note": "Deduplicate task IDs and event seq across waiting/resume snapshots. Sum logged model_end usage; these are development regressions, not S4 held-out evaluation.",
+  "groups": {
+    "rectangular-text": {
+      "uniqueTasks": 4,
+      "completed": 4,
+      "modelCalls": 38,
+      "activeSeconds": 329.222,
+      "modelSeconds": 313.139,
+      "totalTokens": 272522,
+      "formatRecoveries": 2
+    },
+    "local-edit": {
+      "uniqueTasks": 7,
+      "completed": 7,
+      "modelCalls": 49,
+      "activeSeconds": 102.966,
+      "modelSeconds": 77.233,
+      "totalTokens": 198550,
+      "formatRecoveries": 0
+    },
+    "source-local-edit": {
+      "uniqueTasks": 2,
+      "completed": 2,
+      "modelCalls": 12,
+      "activeSeconds": 25.948,
+      "modelSeconds": 19.154,
+      "totalTokens": 66323,
+      "formatRecoveries": 0
+    }
+  },
+  "tasks": [
+    {
+      "id": "fbe297fe-ee6f-4016-a779-c01afaff9669",
+      "group": "rectangular-text",
+      "status": "completed",
+      "mode": "generate_rectangular",
+      "modelCalls": 10,
+      "activeSeconds": 83.3,
+      "modelSeconds": 79.17,
+      "tokens": {
+        "input_tokens": 59923,
+        "output_tokens": 13146,
+        "total_tokens": 73069
+      },
+      "roles": {
+        "main": 2,
+        "assets": 2,
+        "design": 3,
+        "check": 3
+      },
+      "repairs": 0,
+      "formatRecoveries": 1,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "855a9d22-aa1b-43fb-882b-283e8b63c5ed",
+      "group": "rectangular-text",
+      "status": "completed",
+      "mode": "generate_rectangular",
+      "modelCalls": 10,
+      "activeSeconds": 96.82,
+      "modelSeconds": 92.365,
+      "tokens": {
+        "input_tokens": 64768,
+        "output_tokens": 16661,
+        "total_tokens": 81429
+      },
+      "roles": {
+        "main": 2,
+        "assets": 2,
+        "design": 3,
+        "check": 3
+      },
+      "repairs": 0,
+      "formatRecoveries": 1,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "ad2b6962-bd4c-48d5-adb6-51968e7d723e",
+      "group": "rectangular-text",
+      "status": "completed",
+      "mode": "generate_rectangular",
+      "modelCalls": 9,
+      "activeSeconds": 70.724,
+      "modelSeconds": 66.984,
+      "tokens": {
+        "input_tokens": 45829,
+        "output_tokens": 11598,
+        "total_tokens": 57427
+      },
+      "roles": {
+        "main": 2,
+        "assets": 2,
+        "design": 3,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "4ae1c82c-9171-463a-b410-720c998aa6f8",
+      "group": "rectangular-text",
+      "status": "completed",
+      "mode": "generate_rectangular",
+      "modelCalls": 9,
+      "activeSeconds": 78.378,
+      "modelSeconds": 74.62,
+      "tokens": {
+        "input_tokens": 47788,
+        "output_tokens": 12809,
+        "total_tokens": 60597
+      },
+      "roles": {
+        "main": 2,
+        "assets": 2,
+        "design": 3,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "f081e84b-fa5a-4dbe-a6ec-b2db480e63b4",
+      "group": "local-edit",
+      "status": "completed",
+      "mode": "edit",
+      "modelCalls": 6,
+      "activeSeconds": 13.11,
+      "modelSeconds": 8.78,
+      "tokens": {
+        "input_tokens": 24085,
+        "output_tokens": 1183,
+        "total_tokens": 25268
+      },
+      "roles": {
+        "main": 2,
+        "design": 2,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "45473ab8-b357-45f8-a7f6-ba65868e3709",
+      "group": "local-edit",
+      "status": "completed",
+      "mode": "edit",
+      "modelCalls": 9,
+      "activeSeconds": 19.125,
+      "modelSeconds": 15.733,
+      "tokens": {
+        "input_tokens": 35804,
+        "output_tokens": 1965,
+        "total_tokens": 37769
+      },
+      "roles": {
+        "main": 4,
+        "design": 3,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "290fe2c2-f6c5-4901-bd11-c4d90c5a56de",
+      "group": "local-edit",
+      "status": "completed",
+      "mode": "edit",
+      "modelCalls": 6,
+      "activeSeconds": 12.516,
+      "modelSeconds": 8.991,
+      "tokens": {
+        "input_tokens": 23153,
+        "output_tokens": 979,
+        "total_tokens": 24132
+      },
+      "roles": {
+        "main": 2,
+        "design": 2,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "57b71f7b-c763-4e42-a2c1-1e5a4ef7d360",
+      "group": "local-edit",
+      "status": "completed",
+      "mode": "edit",
+      "modelCalls": 6,
+      "activeSeconds": 13.091,
+      "modelSeconds": 9.398,
+      "tokens": {
+        "input_tokens": 22649,
+        "output_tokens": 895,
+        "total_tokens": 23544
+      },
+      "roles": {
+        "main": 2,
+        "design": 2,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "6c002df5-e93f-449b-bf9e-b2764cb6f089",
+      "group": "local-edit",
+      "status": "completed",
+      "mode": "edit",
+      "modelCalls": 7,
+      "activeSeconds": 13.88,
+      "modelSeconds": 10.531,
+      "tokens": {
+        "input_tokens": 28323,
+        "output_tokens": 1112,
+        "total_tokens": 29435
+      },
+      "roles": {
+        "main": 2,
+        "design": 3,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "2016b9ef-4176-4814-aa80-b113a731037f",
+      "group": "local-edit",
+      "status": "completed",
+      "mode": "edit",
+      "modelCalls": 7,
+      "activeSeconds": 12.6,
+      "modelSeconds": 9.369,
+      "tokens": {
+        "input_tokens": 28344,
+        "output_tokens": 1128,
+        "total_tokens": 29472
+      },
+      "roles": {
+        "main": 2,
+        "design": 3,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "237f2d62-dcb3-4ac0-ae44-50fab12399fe",
+      "group": "local-edit",
+      "status": "completed",
+      "mode": "edit",
+      "modelCalls": 8,
+      "activeSeconds": 18.644,
+      "modelSeconds": 14.431,
+      "tokens": {
+        "input_tokens": 27062,
+        "output_tokens": 1868,
+        "total_tokens": 28930
+      },
+      "roles": {
+        "main": 2,
+        "assets": 2,
+        "design": 2,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "82a6cc95-9f0f-48bb-834f-eebe288636f0",
+      "group": "source-local-edit",
+      "status": "completed",
+      "mode": "edit",
+      "modelCalls": 6,
+      "activeSeconds": 14.011,
+      "modelSeconds": 10.418,
+      "tokens": {
+        "input_tokens": 32106,
+        "output_tokens": 1239,
+        "total_tokens": 33345
+      },
+      "roles": {
+        "main": 2,
+        "design": 2,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    },
+    {
+      "id": "27fdee71-f881-436a-b377-c3e88b207c74",
+      "group": "source-local-edit",
+      "status": "completed",
+      "mode": "edit",
+      "modelCalls": 6,
+      "activeSeconds": 11.937,
+      "modelSeconds": 8.736,
+      "tokens": {
+        "input_tokens": 31959,
+        "output_tokens": 1019,
+        "total_tokens": 32978
+      },
+      "roles": {
+        "main": 2,
+        "design": 2,
+        "check": 2
+      },
+      "repairs": 0,
+      "formatRecoveries": 0,
+      "runtime": {
+        "codeCommit": "e0020510445cbe2cfbf78eba45e02d650ede165c",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "floorplanPromptVersion": "s2c-floorplan-3",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      }
+    }
+  ]
+}

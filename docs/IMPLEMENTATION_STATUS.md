@@ -1,4 +1,4 @@
-# S0 / S1 / S2-A / S2-B implementation status
+# S0 / S1 / S2-A / S2-B / S2-C implementation status
 
 Approved scope: single-floor editor; complete upstream parametric catalogue, cabinets and 17 free-form types; persistent projects/assets and undo/redo; real scene APIs. S2-A adds conversation-driven local furniture editing through four roles, frozen candidates, deterministic checks, real screenshots and one atomic commit.
 
@@ -45,6 +45,10 @@ The original S0 checkboxes cover member one's upstream/editor baseline. They do 
 | B4 regression and handoff             | Passed: Node 17 / Python 23, original full regression, six S2-A model flows, complete stopped backup/restore, Skill wheel resources and remote CI |
 
 The first formal batch passed 2/4; two asset request/instance indexing failures were rejected without changing projects. After strict per-request schema correction, a new complete batch passed 4/4. Both batches remain in [S2-B acceptance](S2B_ACCEPTANCE.md). Final generation prompt version is `s2b-rectangular-2`; the first real Skill is `rectangular-living-reading@0.1.0`.
+
+## S2-C floorplan inputs
+
+The orthogonal image draft compiler, durable image storage, overlay correction and explicit confirmation workflow are implemented. Four-role reconstruction retains confirmed positions and per-symbol sizes; catalogue decisions are separate from recognition. Controlled browser/WebGL, transaction and restart tests pass. The two real user floorplans and their quality matrix remain pending, so complete S2 is not accepted. See [S2-C status](S2C_STATUS.md) and [runbook](S2C_RUNBOOK.md).
 
 ## Remaining scope
 

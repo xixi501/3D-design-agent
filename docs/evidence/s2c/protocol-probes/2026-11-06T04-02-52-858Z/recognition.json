@@ -1,0 +1,1088 @@
+{
+  "passed": false,
+  "realModel": true,
+  "realImageAcceptance": false,
+  "source": "labelled synthetic image only",
+  "formalProjectUnchanged": true,
+  "task": {
+    "id": "41a67c1d-5039-405f-9e8a-c565b33cad35",
+    "conversationId": "48005551-17dc-4f85-9c4a-404196f37b54",
+    "projectId": "22c6b649-3e70-4828-90d4-bb8d7fb1d77a",
+    "requestId": "recognition",
+    "input": "请识别该合成单层平面图，提供整层结构和客餐厅家具草稿供确认。图上数字若读不清必须询问，不得猜测尺寸。",
+    "selectedIds": [],
+    "status": "failed",
+    "result": {
+      "status": "failed",
+      "message": "指定家具不在目录",
+      "errorCode": "INVALID_FLOORPLAN"
+    },
+    "error": "指定家具不在目录",
+    "cancelRequested": false,
+    "modelCalls": 5,
+    "elapsedSeconds": 57.14826536178589,
+    "createdAt": 1793937776.5244164,
+    "updatedAt": 1793937833.673555,
+    "mode": "reconstruct_floorplan",
+    "generation": {
+      "imageId": "fp-7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+      "phase": "recognizing",
+      "skillsUsed": [
+        {
+          "id": "floorplan-reconstruction",
+          "version": "0.1.0",
+          "contentHash": "65f26c417678f53a0a8760be01fc82af9d9501642157f7d43c65cd3b5452a669",
+          "source": [
+            {
+              "title": "ActiScape S2-C approved reconstruction rules",
+              "uri": "repository:docs/S2C_RUNBOOK.md"
+            },
+            {
+              "title": "Upstream HouseSpec single-floor format",
+              "uri": "repository:reference/upstream"
+            }
+          ],
+          "license": "MIT"
+        }
+      ],
+      "cropAttempts": 3,
+      "crops": [
+        {
+          "id": "b0ad3396392543a6acedc8e54b5615d50eea620317923cab4d2cc3b5f5e7aeb2",
+          "box": [
+            610,
+            370,
+            700,
+            780
+          ],
+          "width": 225,
+          "height": 1024,
+          "cropToPixel": {
+            "x0": 610,
+            "y0": 370,
+            "scaleX": 0.4,
+            "scaleY": 0.400390625
+          },
+          "processorVersion": "s2c-image-2",
+          "path": "/floorplan-images/fp-7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd/crops/b0ad3396392543a6acedc8e54b5615d50eea620317923cab4d2cc3b5f5e7aeb2/file",
+          "sha256": "2d9a51da5493bd20fd7cedc76dff29f34f615a8d9134a2aa24fe46cecfaabc50"
+        },
+        {
+          "id": "179e810fbc13ca40304c4b1f2183d5094104c8fcdae7cf1ba0de9fac86e67502",
+          "box": [
+            460,
+            290,
+            580,
+            370
+          ],
+          "width": 480,
+          "height": 320,
+          "cropToPixel": {
+            "x0": 460,
+            "y0": 290,
+            "scaleX": 0.25,
+            "scaleY": 0.25
+          },
+          "processorVersion": "s2c-image-2",
+          "path": "/floorplan-images/fp-7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd/crops/179e810fbc13ca40304c4b1f2183d5094104c8fcdae7cf1ba0de9fac86e67502/file",
+          "sha256": "7b71da65e2b14f2929e2272cd0f8e66fb01480b5cbba060260bac8b30b1ac112"
+        }
+      ],
+      "rawRecognition": {
+        "status": "draft",
+        "question": "请确认两点后我再提交正式编译：①9000 mm（wall centreline）是否指顶部外墙中线全长（我按 x=49→950 取，901px）？②中间竖墙没有门洞、卧室/厨房无出入口，是否照原图保留实墙？",
+        "name": "合成单层户型-客厅/卧室/厨房（草稿）",
+        "anchors": [
+          {
+            "a": {
+              "x": 49.0,
+              "y": 50.0
+            },
+            "b": {
+              "x": 950.0,
+              "y": 50.0
+            },
+            "distance": {
+              "value": 9000.0,
+              "unit": "mm"
+            },
+            "basis": "centerline",
+            "evidence": "顶部外墙上方标注原文：\"9000 mm (wall centreline)\"，取该墙中线两端 (49,50)-(950,50)，合901px"
+          }
+        ],
+        "walls": [
+          {
+            "id": "w_top",
+            "a": {
+              "x": 49.0,
+              "y": 50.0
+            },
+            "b": {
+              "x": 950.0,
+              "y": 50.0
+            },
+            "thicknessPx": 20.0
+          },
+          {
+            "id": "w_right",
+            "a": {
+              "x": 950.0,
+              "y": 50.0
+            },
+            "b": {
+              "x": 950.0,
+              "y": 749.0
+            },
+            "thicknessPx": 20.0
+          },
+          {
+            "id": "w_bot",
+            "a": {
+              "x": 49.0,
+              "y": 749.0
+            },
+            "b": {
+              "x": 950.0,
+              "y": 749.0
+            },
+            "thicknessPx": 20.0
+          },
+          {
+            "id": "w_left",
+            "a": {
+              "x": 49.0,
+              "y": 50.0
+            },
+            "b": {
+              "x": 49.0,
+              "y": 749.0
+            },
+            "thicknessPx": 20.0
+          },
+          {
+            "id": "w_part_v",
+            "a": {
+              "x": 650.0,
+              "y": 50.0
+            },
+            "b": {
+              "x": 650.0,
+              "y": 749.0
+            },
+            "thicknessPx": 20.0
+          },
+          {
+            "id": "w_part_bk",
+            "a": {
+              "x": 650.0,
+              "y": 400.0
+            },
+            "b": {
+              "x": 950.0,
+              "y": 400.0
+            },
+            "thicknessPx": 20.0
+          }
+        ],
+        "openings": [
+          {
+            "id": "o_win_top",
+            "wallId": "w_top",
+            "type": "window",
+            "offset": 301.0,
+            "width": 150.0
+          },
+          {
+            "id": "o_door_entry",
+            "wallId": "w_bot",
+            "type": "door",
+            "offset": 151.0,
+            "width": 90.0
+          }
+        ],
+        "rooms": [
+          {
+            "id": "r_living",
+            "at": {
+              "x": 350.0,
+              "y": 550.0
+            },
+            "name": "客厅"
+          },
+          {
+            "id": "r_bedroom",
+            "at": {
+              "x": 800.0,
+              "y": 250.0
+            },
+            "name": "卧室"
+          },
+          {
+            "id": "r_kitchen",
+            "at": {
+              "x": 810.0,
+              "y": 560.0
+            },
+            "name": "厨房"
+          }
+        ],
+        "symbols": [
+          {
+            "id": "s_sofa1",
+            "roomId": "r_living",
+            "category": "沙发",
+            "x": 248.5,
+            "y": 178.5,
+            "w": 219.0,
+            "d": 89.0,
+            "rot": 0.0,
+            "catalogKey": "sofa"
+          },
+          {
+            "id": "s_coffee1",
+            "roomId": "r_living",
+            "category": "茶几",
+            "x": 349.0,
+            "y": 349.0,
+            "w": 108.0,
+            "d": 58.0,
+            "rot": 0.0,
+            "catalogKey": "coffee_table"
+          },
+          {
+            "id": "s_chair1",
+            "roomId": "r_living",
+            "category": "单人椅",
+            "x": 518.5,
+            "y": 178.5,
+            "w": 83.0,
+            "d": 83.0,
+            "rot": 0.0,
+            "catalogKey": "armchair"
+          },
+          {
+            "id": "s_lamp1",
+            "roomId": "r_living",
+            "category": "落地灯",
+            "x": 519.5,
+            "y": 330.0,
+            "w": 35.0,
+            "d": 34.0,
+            "rot": 0.0,
+            "catalogKey": "floor_lamp"
+          }
+        ],
+        "targetRoomIds": [
+          "r_living"
+        ],
+        "uncertainties": [
+          {
+            "id": "u_dim9000",
+            "message": "标注 \"9000 mm (wall centreline)\" 只有文字、无尺寸界线与端点刻度，位置在顶部外墙中段偏右。我按\"顶部外墙中线全长\"取 (49,50)-(950,50)=901px（折算≈9.99mm/px，墙厚20px≈200mm）。请确认 9000 是否指整栋中线宽，而非某一段墙（例如窗右侧 x=426~950 那段）。若指某段，锚点需改。",
+            "blocking": true
+          },
+          {
+            "id": "u_no_inner_door",
+            "message": "中间竖向隔墙 x=650 从顶墙贯通到底墙，卧室与厨房在图上没有任何门洞（已裁剪局部核对为连续实墙）。按原图记录为实墙，未虚构门；若实际需要门请指出位置。",
+            "blocking": false
+          },
+          {
+            "id": "u_lamp_use",
+            "message": "lamp1 仅约 35×34px 方框、无图形细节，判定为落地灯，亦可能为小边几，用途待确认。",
+            "blocking": false
+          },
+          {
+            "id": "u_fixture_warn",
+            "message": "图面顶端红字为 \"SYNTHETIC TOOL FIXTURE - NOT REAL FLOORPLAN ACCEPTANCE\"，属合成测试图；层高、窗台高、门头高图上均无标注，全部留空。",
+            "blocking": false
+          }
+        ]
+      },
+      "recognitionAttempts": [
+        {
+          "response": {
+            "status": "draft",
+            "question": "请确认两点后我再提交正式编译：①9000 mm（wall centreline）是否指顶部外墙中线全长（我按 x=49→950 取，901px）？②中间竖墙没有门洞、卧室/厨房无出入口，是否照原图保留实墙？",
+            "name": "合成单层户型-客厅/卧室/厨房（草稿）",
+            "anchors": [
+              {
+                "a": {
+                  "x": 49.0,
+                  "y": 50.0
+                },
+                "b": {
+                  "x": 950.0,
+                  "y": 50.0
+                },
+                "distance": {
+                  "value": 9000.0,
+                  "unit": "mm"
+                },
+                "basis": "centerline",
+                "evidence": "顶部外墙上方标注原文：\"9000 mm (wall centreline)\"，取该墙中线两端 (49,50)-(950,50)，合901px"
+              }
+            ],
+            "walls": [
+              {
+                "id": "w_top",
+                "a": {
+                  "x": 49.0,
+                  "y": 50.0
+                },
+                "b": {
+                  "x": 950.0,
+                  "y": 50.0
+                },
+                "thicknessPx": 20.0
+              },
+              {
+                "id": "w_right",
+                "a": {
+                  "x": 950.0,
+                  "y": 50.0
+                },
+                "b": {
+                  "x": 950.0,
+                  "y": 749.0
+                },
+                "thicknessPx": 20.0
+              },
+              {
+                "id": "w_bot",
+                "a": {
+                  "x": 49.0,
+                  "y": 749.0
+                },
+                "b": {
+                  "x": 950.0,
+                  "y": 749.0
+                },
+                "thicknessPx": 20.0
+              },
+              {
+                "id": "w_left",
+                "a": {
+                  "x": 49.0,
+                  "y": 50.0
+                },
+                "b": {
+                  "x": 49.0,
+                  "y": 749.0
+                },
+                "thicknessPx": 20.0
+              },
+              {
+                "id": "w_part_v",
+                "a": {
+                  "x": 650.0,
+                  "y": 50.0
+                },
+                "b": {
+                  "x": 650.0,
+                  "y": 749.0
+                },
+                "thicknessPx": 20.0
+              },
+              {
+                "id": "w_part_bk",
+                "a": {
+                  "x": 650.0,
+                  "y": 400.0
+                },
+                "b": {
+                  "x": 950.0,
+                  "y": 400.0
+                },
+                "thicknessPx": 20.0
+              }
+            ],
+            "openings": [
+              {
+                "id": "o_win_top",
+                "wallId": "w_top",
+                "type": "window",
+                "offset": 301.0,
+                "width": 150.0
+              },
+              {
+                "id": "o_door_entry",
+                "wallId": "w_bot",
+                "type": "door",
+                "offset": 151.0,
+                "width": 90.0
+              }
+            ],
+            "rooms": [
+              {
+                "id": "r_living",
+                "at": {
+                  "x": 350.0,
+                  "y": 550.0
+                },
+                "name": "客厅"
+              },
+              {
+                "id": "r_bedroom",
+                "at": {
+                  "x": 800.0,
+                  "y": 250.0
+                },
+                "name": "卧室"
+              },
+              {
+                "id": "r_kitchen",
+                "at": {
+                  "x": 810.0,
+                  "y": 560.0
+                },
+                "name": "厨房"
+              }
+            ],
+            "symbols": [
+              {
+                "id": "s_sofa1",
+                "roomId": "r_living",
+                "category": "沙发",
+                "x": 248.5,
+                "y": 178.5,
+                "w": 219.0,
+                "d": 89.0,
+                "rot": 0.0,
+                "catalogKey": "sofa"
+              },
+              {
+                "id": "s_coffee1",
+                "roomId": "r_living",
+                "category": "茶几",
+                "x": 349.0,
+                "y": 349.0,
+                "w": 108.0,
+                "d": 58.0,
+                "rot": 0.0,
+                "catalogKey": "coffee_table"
+              },
+              {
+                "id": "s_chair1",
+                "roomId": "r_living",
+                "category": "单人椅",
+                "x": 518.5,
+                "y": 178.5,
+                "w": 83.0,
+                "d": 83.0,
+                "rot": 0.0,
+                "catalogKey": "armchair"
+              },
+              {
+                "id": "s_lamp1",
+                "roomId": "r_living",
+                "category": "落地灯",
+                "x": 519.5,
+                "y": 330.0,
+                "w": 35.0,
+                "d": 34.0,
+                "rot": 0.0,
+                "catalogKey": "floor_lamp"
+              }
+            ],
+            "targetRoomIds": [
+              "r_living"
+            ],
+            "uncertainties": [
+              {
+                "id": "u_dim9000",
+                "message": "标注 \"9000 mm (wall centreline)\" 只有文字、无尺寸界线与端点刻度，位置在顶部外墙中段偏右。我按\"顶部外墙中线全长\"取 (49,50)-(950,50)=901px（折算≈9.99mm/px，墙厚20px≈200mm）。请确认 9000 是否指整栋中线宽，而非某一段墙（例如窗右侧 x=426~950 那段）。若指某段，锚点需改。",
+                "blocking": true
+              },
+              {
+                "id": "u_no_inner_door",
+                "message": "中间竖向隔墙 x=650 从顶墙贯通到底墙，卧室与厨房在图上没有任何门洞（已裁剪局部核对为连续实墙）。按原图记录为实墙，未虚构门；若实际需要门请指出位置。",
+                "blocking": false
+              },
+              {
+                "id": "u_lamp_use",
+                "message": "lamp1 仅约 35×34px 方框、无图形细节，判定为落地灯，亦可能为小边几，用途待确认。",
+                "blocking": false
+              },
+              {
+                "id": "u_fixture_warn",
+                "message": "图面顶端红字为 \"SYNTHETIC TOOL FIXTURE - NOT REAL FLOORPLAN ACCEPTANCE\"，属合成测试图；层高、窗台高、门头高图上均无标注，全部留空。",
+                "blocking": false
+              }
+            ]
+          },
+          "imageHash": "7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+          "sourceInputHash": "9a65b8507e88f77313bf5ef0ff13ca1c71d8f6c32d567361cc4feaa73401bc5c"
+        }
+      ]
+    }
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "kind": "queued",
+      "data": {
+        "message": "任务已持久保存"
+      },
+      "createdAt": 1793937776.5247726
+    },
+    {
+      "seq": 2,
+      "kind": "runtime",
+      "data": {
+        "codeCommit": "7861ac4d9c89f7be4b2207ad71143ca35f47d3ad",
+        "workingTreeModified": true,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "floorplanPromptVersion": "s2c-floorplan-1",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-1",
+        "generationPromptVersion": "s2b-rectangular-2"
+      },
+      "createdAt": 1793937776.5249765
+    },
+    {
+      "seq": 3,
+      "kind": "phase",
+      "data": {
+        "phase": "reading"
+      },
+      "createdAt": 1793937776.5320938
+    },
+    {
+      "seq": 4,
+      "kind": "phase",
+      "data": {
+        "phase": "understanding"
+      },
+      "createdAt": 1793937776.5581024
+    },
+    {
+      "seq": 5,
+      "kind": "skill_loaded",
+      "data": {
+        "id": "floorplan-reconstruction",
+        "version": "0.1.0",
+        "contentHash": "65f26c417678f53a0a8760be01fc82af9d9501642157f7d43c65cd3b5452a669",
+        "source": [
+          {
+            "title": "ActiScape S2-C approved reconstruction rules",
+            "uri": "repository:docs/S2C_RUNBOOK.md"
+          },
+          {
+            "title": "Upstream HouseSpec single-floor format",
+            "uri": "repository:reference/upstream"
+          }
+        ],
+        "license": "MIT"
+      },
+      "createdAt": 1793937776.5588648
+    },
+    {
+      "seq": 6,
+      "kind": "agent_start",
+      "data": {
+        "role": "main",
+        "promptVersion": "s2c-floorplan-1",
+        "promptHash": "9f8647d03e192b378d260410a31a151aabdc9b3261deb93c96f0c2bb1b1e70fe",
+        "model": "deepseek-flash"
+      },
+      "createdAt": 1793937776.5907125
+    },
+    {
+      "seq": 7,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 1
+      },
+      "createdAt": 1793937776.6316485
+    },
+    {
+      "seq": 8,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 0.726,
+        "usage": {
+          "input_tokens": 2811,
+          "output_tokens": 36,
+          "total_tokens": 2847,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {
+            "reasoning": 0
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937777.3581588
+    },
+    {
+      "seq": 9,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "floorplan_context",
+        "input": "{}"
+      },
+      "createdAt": 1793937777.3620915
+    },
+    {
+      "seq": 10,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "floorplan_context"
+      },
+      "createdAt": 1793937777.3629909
+    },
+    {
+      "seq": 11,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 2
+      },
+      "createdAt": 1793937777.3680892
+    },
+    {
+      "seq": 12,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 20.911,
+        "usage": {
+          "input_tokens": 4947,
+          "output_tokens": 3923,
+          "total_tokens": 8870,
+          "input_token_details": {
+            "cache_read": 2816
+          },
+          "output_token_details": {
+            "reasoning": 3654
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937798.2797382
+    },
+    {
+      "seq": 13,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "request_crop",
+        "input": "{'x0': 30, 'y0': 10, 'x1': 560, 'y1': 100}"
+      },
+      "createdAt": 1793937798.282398
+    },
+    {
+      "seq": 14,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "request_crop",
+        "input": "{'x0': 610, 'y0': 370, 'x1': 700, 'y1': 780}"
+      },
+      "createdAt": 1793937798.2827709
+    },
+    {
+      "seq": 15,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "request_crop",
+        "input": "{'x0': 120, 'y0': 715, 'x1': 290, 'y1': 780}"
+      },
+      "createdAt": 1793937798.2830358
+    },
+    {
+      "seq": 16,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "request_crop"
+      },
+      "createdAt": 1793937798.6732414
+    },
+    {
+      "seq": 17,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "request_crop"
+      },
+      "createdAt": 1793937798.6737144
+    },
+    {
+      "seq": 18,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "request_crop"
+      },
+      "createdAt": 1793937798.678103
+    },
+    {
+      "seq": 19,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 3
+      },
+      "createdAt": 1793937798.6808922
+    },
+    {
+      "seq": 20,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 15.575,
+        "usage": {
+          "input_tokens": 9726,
+          "output_tokens": 2652,
+          "total_tokens": 12378,
+          "input_token_details": {
+            "cache_read": 8832
+          },
+          "output_token_details": {
+            "reasoning": 2530
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937814.2560456
+    },
+    {
+      "seq": 21,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "request_crop",
+        "input": "{'x0': 460, 'y0': 290, 'x1': 580, 'y1': 370}"
+      },
+      "createdAt": 1793937814.258088
+    },
+    {
+      "seq": 22,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "request_crop"
+      },
+      "createdAt": 1793937814.5241454
+    },
+    {
+      "seq": 23,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 4
+      },
+      "createdAt": 1793937814.5281239
+    },
+    {
+      "seq": 24,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 12.043,
+        "usage": {
+          "input_tokens": 12650,
+          "output_tokens": 2634,
+          "total_tokens": 15284,
+          "input_token_details": {
+            "cache_read": 12288
+          },
+          "output_token_details": {
+            "reasoning": 1150
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937826.5718405
+    },
+    {
+      "seq": 25,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 5
+      },
+      "createdAt": 1793937826.5766866
+    },
+    {
+      "seq": 26,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 7.062,
+        "usage": {
+          "input_tokens": 15385,
+          "output_tokens": 1743,
+          "total_tokens": 17128,
+          "input_token_details": {
+            "cache_read": 15232
+          },
+          "output_token_details": {
+            "reasoning": 260
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937833.6394157
+    },
+    {
+      "seq": 27,
+      "kind": "agent_end",
+      "data": {
+        "role": "main",
+        "result": {
+          "status": "draft",
+          "question": "请确认两点后我再提交正式编译：①9000 mm（wall centreline）是否指顶部外墙中线全长（我按 x=49→950 取，901px）？②中间竖墙没有门洞、卧室/厨房无出入口，是否照原图保留实墙？",
+          "name": "合成单层户型-客厅/卧室/厨房（草稿）",
+          "height": null,
+          "wallThickness": null,
+          "anchors": [
+            {
+              "a": {
+                "x": 49.0,
+                "y": 50.0
+              },
+              "b": {
+                "x": 950.0,
+                "y": 50.0
+              },
+              "distance": {
+                "value": 9000.0,
+                "unit": "mm"
+              },
+              "basis": "centerline",
+              "evidence": "顶部外墙上方标注原文：\"9000 mm (wall centreline)\"，取该墙中线两端 (49,50)-(950,50)，合901px"
+            }
+          ],
+          "walls": [
+            {
+              "id": "w_top",
+              "a": {
+                "x": 49.0,
+                "y": 50.0
+              },
+              "b": {
+                "x": 950.0,
+                "y": 50.0
+              },
+              "thicknessPx": 20.0
+            },
+            {
+              "id": "w_right",
+              "a": {
+                "x": 950.0,
+                "y": 50.0
+              },
+              "b": {
+                "x": 950.0,
+                "y": 749.0
+              },
+              "thicknessPx": 20.0
+            },
+            {
+              "id": "w_bot",
+              "a": {
+                "x": 49.0,
+                "y": 749.0
+              },
+              "b": {
+                "x": 950.0,
+                "y": 749.0
+              },
+              "thicknessPx": 20.0
+            },
+            {
+              "id": "w_left",
+              "a": {
+                "x": 49.0,
+                "y": 50.0
+              },
+              "b": {
+                "x": 49.0,
+                "y": 749.0
+              },
+              "thicknessPx": 20.0
+            },
+            {
+              "id": "w_part_v",
+              "a": {
+                "x": 650.0,
+                "y": 50.0
+              },
+              "b": {
+                "x": 650.0,
+                "y": 749.0
+              },
+              "thicknessPx": 20.0
+            },
+            {
+              "id": "w_part_bk",
+              "a": {
+                "x": 650.0,
+                "y": 400.0
+              },
+              "b": {
+                "x": 950.0,
+                "y": 400.0
+              },
+              "thicknessPx": 20.0
+            }
+          ],
+          "openings": [
+            {
+              "id": "o_win_top",
+              "wallId": "w_top",
+              "type": "window",
+              "offset": 301.0,
+              "width": 150.0,
+              "sill": null,
+              "head": null,
+              "side": null,
+              "hinge": null
+            },
+            {
+              "id": "o_door_entry",
+              "wallId": "w_bot",
+              "type": "door",
+              "offset": 151.0,
+              "width": 90.0,
+              "sill": null,
+              "head": null,
+              "side": null,
+              "hinge": null
+            }
+          ],
+          "rooms": [
+            {
+              "id": "r_living",
+              "at": {
+                "x": 350.0,
+                "y": 550.0
+              },
+              "name": "客厅"
+            },
+            {
+              "id": "r_bedroom",
+              "at": {
+                "x": 800.0,
+                "y": 250.0
+              },
+              "name": "卧室"
+            },
+            {
+              "id": "r_kitchen",
+              "at": {
+                "x": 810.0,
+                "y": 560.0
+              },
+              "name": "厨房"
+            }
+          ],
+          "symbols": [
+            {
+              "id": "s_sofa1",
+              "roomId": "r_living",
+              "category": "沙发",
+              "x": 248.5,
+              "y": 178.5,
+              "w": 219.0,
+              "d": 89.0,
+              "rot": 0.0,
+              "catalogKey": "sofa"
+            },
+            {
+              "id": "s_coffee1",
+              "roomId": "r_living",
+              "category": "茶几",
+              "x": 349.0,
+              "y": 349.0,
+              "w": 108.0,
+              "d": 58.0,
+              "rot": 0.0,
+              "catalogKey": "coffee_table"
+            },
+            {
+              "id": "s_chair1",
+              "roomId": "r_living",
+              "category": "单人椅",
+              "x": 518.5,
+              "y": 178.5,
+              "w": 83.0,
+              "d": 83.0,
+              "rot": 0.0,
+              "catalogKey": "armchair"
+            },
+            {
+              "id": "s_lamp1",
+              "roomId": "r_living",
+              "category": "落地灯",
+              "x": 519.5,
+              "y": 330.0,
+              "w": 35.0,
+              "d": 34.0,
+              "rot": 0.0,
+              "catalogKey": "floor_lamp"
+            }
+          ],
+          "targetRoomIds": [
+            "r_living"
+          ],
+          "uncertainties": [
+            {
+              "id": "u_dim9000",
+              "message": "标注 \"9000 mm (wall centreline)\" 只有文字、无尺寸界线与端点刻度，位置在顶部外墙中段偏右。我按\"顶部外墙中线全长\"取 (49,50)-(950,50)=901px（折算≈9.99mm/px，墙厚20px≈200mm）。请确认 9000 是否指整栋中线宽，而非某一段墙（例如窗右侧 x=426~950 那段）。若指某段，锚点需改。",
+              "blocking": true
+            },
+            {
+              "id": "u_no_inner_door",
+              "message": "中间竖向隔墙 x=650 从顶墙贯通到底墙，卧室与厨房在图上没有任何门洞（已裁剪局部核对为连续实墙）。按原图记录为实墙，未虚构门；若实际需要门请指出位置。",
+              "blocking": false
+            },
+            {
+              "id": "u_lamp_use",
+              "message": "lamp1 仅约 35×34px 方框、无图形细节，判定为落地灯，亦可能为小边几，用途待确认。",
+              "blocking": false
+            },
+            {
+              "id": "u_fixture_warn",
+              "message": "图面顶端红字为 \"SYNTHETIC TOOL FIXTURE - NOT REAL FLOORPLAN ACCEPTANCE\"，属合成测试图；层高、窗台高、门头高图上均无标注，全部留空。",
+              "blocking": false
+            }
+          ]
+        }
+      },
+      "createdAt": 1793937833.6468096
+    },
+    {
+      "seq": 28,
+      "kind": "status",
+      "data": {
+        "status": "failed",
+        "message": "指定家具不在目录",
+        "errorCode": "INVALID_FLOORPLAN"
+      },
+      "createdAt": 1793937833.6731188
+    }
+  ]
+}

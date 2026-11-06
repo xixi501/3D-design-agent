@@ -1,0 +1,44 @@
+{
+  "provider": "DeepSeek official",
+  "model": "deepseek-flash",
+  "liveModel": true,
+  "directory": "/workspace/3D-design-agent/test-results/generation-acceptance/2026-11-06T04-59-27-751Z",
+  "results": [
+    {
+      "name": "living-dining",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "10bd911f-e1ca-4182-84c0-54c87cfb1747",
+      "taskId": "855a9d22-aa1b-43fb-882b-283e8b63c5ed",
+      "modelCalls": 10,
+      "repairs": 0
+    },
+    {
+      "name": "reading-lounge",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "c31ba074-a9ee-415e-9ffd-099e5a651b74",
+      "taskId": "4ae1c82c-9171-463a-b410-720c998aa6f8",
+      "modelCalls": 9,
+      "repairs": 0
+    },
+    {
+      "name": "living-dining",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "39c99f8d-bf30-4726-9122-fc0d512b5160",
+      "taskId": "ad2b6962-bd4c-48d5-adb6-51968e7d723e",
+      "modelCalls": 9,
+      "repairs": 0
+    },
+    {
+      "name": "reading-lounge",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "de20257b-4013-4243-be48-95e664180c77",
+      "taskId": "fbe297fe-ee6f-4016-a779-c01afaff9669",
+      "modelCalls": 10,
+      "repairs": 0
+    }
+  ]
+}

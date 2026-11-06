@@ -1,6 +1,6 @@
 # 启动、验证与恢复
 
-本文保留 S1 基础运行说明。当前完整工作台含 Python Agent 服务，请优先按 [S2-A 启动与恢复](S2A_RUNBOOK.md) 安装与启动。
+本文保留 S1 基础运行说明。当前完整工作台含 Python Agent 服务与图片辅助处理，请按 [S2-C 启动与恢复](S2C_RUNBOOK.md) 安装与启动；原有 [S2-A 说明](S2A_RUNBOOK.md) 继续提供模型和对话服务配置细节。
 
 产品目录 `/workspace/3D-design-agent`，开发分支 `dev/core`。本工程不读取、安装或修改 SceneSmith 的环境。
 
@@ -8,7 +8,7 @@
 
 - Node.js 24（`.nvmrc` 固定 24.22.2），npm lockfile 固定依赖。
 - 前端 Three.js 0.160.0 / TypeScript / Vite；服务 Fastify 5 / better-sqlite3。
-- 基准重建另外使用 Python + Pillow；产品运行不需要 Python。
+- 当前完整产品使用 Python 3.13 Agent 及 Pillow/OpenCV 图片辅助处理；Node-only 场景服务仍可单独启动，图片功能需配置图片 Python 环境。
 - 浏览器验证使用真实 Chrome/Chromium，设置 `CHROME_PATH` 可指定位置。测试默认 SwiftShader 软件渲染。
 
 本机隔离 Node：`/workspace/.actiscape-tools/node-v24.22.2-linux-x64/bin`。下载包的官方 SHA-256 校验值：`48cc0e21e048790e54c0cf5749c2725005313d652651c40b7a21feb9697aaf75`。

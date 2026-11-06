@@ -2,6 +2,8 @@
 
 这是独立平台验收入口。完整四 Agent 业务在 `apps/agent`；本包用 AgentArts SDK 0.1.10 包装一个小型 LangGraph，验证模型真实读工具、移动测试对象、回读和撤销。本机 SDK 验证通过不代表已在 AgentArts 云端部署。
 
+当前交接业务版本 `e002051` 已含 S2-C 图片、草稿、确认与整层初始化工程；两张真实图片及完整 S2 仍待验收，见 [S2-C 状态](../../docs/S2C_STATUS.md)。本最小应用继续只验工具联通，不默认部署完整图片编排。后续完整编排需要外部持久检查点，以及可访问的原图、处理图和证据文件服务，不能只复制 SQLite 而遗漏文件。
+
 ## 已提供内容
 
 - `agent.py`：通过 `agentarts.sdk.AgentArtsRuntimeApp` 暴露 `/invocations` 和 `/ping`。

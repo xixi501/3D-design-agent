@@ -1,16 +1,20 @@
-# S2-C implementation status
+# S2-C 实施状态
 
-Base: `afc51eb`, product `/workspace/3D-design-agent`, branch `dev/core`.
+实施目录 `/workspace/3D-design-agent`，分支 `dev/core`，起点 `afc51eb`。业务版本 `e002051`；后续验收材料提交不改变该版本的业务实现。
 
-The two user-provided real floorplan images have not been supplied. C0 and real-image acceptance remain **pending**. Synthetic fixtures exercise tools and failure handling only; they are never scored as real-image acceptance. Complete S2 is not yet accepted.
+**工程链路已交付；两张真实户型图尚未提供，C0、真实图片质量验收和完整 S2 仍待验收。** 合成图、受控模型和真实模型协议试验分别记录，不代替真实图片验收。
 
-| Stage                                  | Status                 | Evidence                                                                                                           |
-| -------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| C0 source images and model feasibility | Pending user images    | No real images, annotations or recognition scores claimed                                                          |
-| C1 compiler and durable drafts         | Tool validation passed | Node 24/24; multiroom/L-shaped geometry, shared walls, scope, draft confirmation, idempotence, restart and history |
-| C2 recognition and catalogue mapping   | In progress            | Real-image quality not verified                                                                                    |
-| C3 overlay confirmation UI             | Pending                |                                                                                                                    |
-| C4 four-role initialization            | Pending                |                                                                                                                    |
-| C5 complete S2 regression              | Pending                |                                                                                                                    |
+| 阶段              | 当前状态                 | 已有证据及剩余门槛                                                                                      |
+| ----------------- | ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| C0 样图与可行性   | 待用户原图               | 没有登记两张真实图片、人工参考或真实识别评分                                                            |
+| C1 草稿与结构编译 | 工具验证通过             | 多房间、共享墙、L 形、比例、门窗归属、目标区域、版本、确认、迁移和历史；预览不写正式项目                |
+| C2 识别与目录映射 | 工程完成，真实质量待验证 | Pillow/OpenCV、工具图片及裁剪、识别草稿、独立资产选择和固定 Skill 已接入；官方 API 的合成图协议试验通过 |
+| C3 工作台确认     | 受控浏览器验证通过       | 实际文件上传、两点标定、画布拖动、草稿重开、原图叠加和确认；待两张真实图片复验                          |
+| C4 四角色提交闭环 | 受控集成验证通过         | 真实 LangGraph、HTTP、SQLite、WebGL、一次提交、撤销／重做和完整备份恢复；四角色模型响应明确使用受控替身 |
+| C5 完整 S2 验收   | 待验收                   | 原能力回归、自动检查和 CI 有记录；完整矩阵仍缺两图各两次及每图后续编辑                                  |
 
-The synthetic fixture and its generator are labelled explicitly. Original S2-A/S2-B acceptance reports remain historical evidence for their fixed versions, not proof of the new image workflow.
+工作台可通过“新建空白项目 → 对话 → 上传户型图复现客餐厅”使用。确认前草稿独立保存，正式项目保持空白；确认后资产与设计角色只能匹配真实目录，不能自行重排已确认布局。保存通过统一候选和原子历史机制完成。
+
+详细结果见 [验收报告](S2C_ACCEPTANCE.md)，操作、API、恢复和已知边界见 [运行说明](S2C_RUNBOOK.md)，真实图片评分输入见 [样图准备](../fixtures/s2c-real/README.md)。历史 S2-A／S2-B 报告继续保留，不自动升级为新图像流程的验收结果。
+
+下一步先提供两张清晰单层正交 PNG/JPEG 原图，登记尺寸含义、整层结构和客餐厅家具清单，冻结人工参考，再按每图两次运行图像矩阵。人工参考只用于评分，不传给识别器。完成该门槛前不宣布完整 S2 完成，也不进入以 S2 已通过为前提的结项。

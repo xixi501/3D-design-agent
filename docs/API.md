@@ -2,6 +2,8 @@
 
 S2-A 新增会话、持久候选、渲染取证和提交接口，见 [Agent 与候选 API](AGENT_API.md)。现有手工编辑接口继续可用。
 
+S2-C 的图片上传、版本化草稿、标定、叠加、确认和整层初始化接口见 [户型图 API 与恢复](S2C_RUNBOOK.md)。图片草稿使用校正后原图像素，正式项目仍使用毫米；不能混用两套坐标。真实图片质量与完整 S2 状态见 [验收报告](S2C_ACCEPTANCE.md)。
+
 入口 `/api`，运行时 OpenAPI：`GET /api/openapi.json`。本目录 `openapi.json` 是交付版本的静态副本。场景坐标、距离、实例及资产标称尺寸为毫米，x/y 是地面，z 是离地高度；旋转为度。Three.js 内部是米，坐标 `(x,z,y)/1000`，偏航为 `-rot`。
 
 资产 `normalization.center` 使用 GLB 源文件坐标单位，顺序为 `[中心 X, 底部 Y, 中心 Z]`；`normalization.scale` 是源文件单位转换到米的系数。渲染层先平移，再缩放，业务工具直接使用返回的 w/d/h 毫米尺寸。
@@ -11,9 +13,9 @@ S2-A 新增会话、持久候选、渲染取证和提交接口，见 [Agent 与�
 | GET `/health`                      | 服务与 SQLite 健康状态                                                         |
 | GET `/catalog`                     | 全部 266 项目录、默认配方、17 类自由造型、材质、家具风格及适用类型、门窗默认值 |
 | GET `/projects`                    | 持久项目列表                                                                   |
-| POST `/projects`                   | `{document, assetMap?}` 创建 / 导入；无 document 创建空项目                    |
+| POST `/projects`                   | `{document, assetMap?, imageMap?}` 创建 / 导入；无 document 创建空项目         |
 | GET `/projects/:id`                | 完整快照、修订号、资产身份、历史位置                                           |
-| GET `/projects/:id/export`         | JSON 快照与资产清单                                                            |
+| GET `/projects/:id/export`         | JSON 快照、资产清单和可选原图来源清单                                          |
 | POST `/projects/:id/commands`      | 原子命令批次                                                                   |
 | GET `/projects/:id/history`        | 最近 200 个编辑事务、当前位置与操作记录                                        |
 | POST `/projects/:id/undo`、`/redo` | 持久撤销 / 重做，生成新修订号                                                  |

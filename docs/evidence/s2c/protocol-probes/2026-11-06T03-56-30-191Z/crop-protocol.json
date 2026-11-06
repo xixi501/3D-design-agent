@@ -1,0 +1,196 @@
+{
+  "passed": false,
+  "realModel": true,
+  "realImageAcceptance": false,
+  "source": "labelled synthetic image",
+  "result": {
+    "seenText": "（无明显可读文字：裁剪区域内仅见白色底图、一条细竖线与一个很小的空心矩形，未出现可辨认的短标签文字）",
+    "usedCrop": true
+  },
+  "trace": [
+    {
+      "seq": 1,
+      "kind": "queued",
+      "data": {
+        "message": "任务已持久保存"
+      },
+      "createdAt": 1793937391.4448674
+    },
+    {
+      "seq": 2,
+      "kind": "runtime",
+      "data": {
+        "codeCommit": "fd1cfb9eb676b68318afba9be7c298c27dfbac17",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "floorplanPromptVersion": "s2c-floorplan-1",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-1",
+        "generationPromptVersion": "s2b-rectangular-2"
+      },
+      "createdAt": 1793937391.4526832
+    },
+    {
+      "seq": 3,
+      "kind": "agent_start",
+      "data": {
+        "role": "main",
+        "promptVersion": "s2c-tool-image-smoke-1",
+        "promptHash": "85487142a86aea1af4024b8b6bfd2e178a1b730513c7dbae7266d47e13641285",
+        "model": "deepseek-flash"
+      },
+      "createdAt": 1793937391.4552128
+    },
+    {
+      "seq": 4,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 1
+      },
+      "createdAt": 1793937391.583137
+    },
+    {
+      "seq": 5,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 0.851,
+        "usage": {
+          "input_tokens": 411,
+          "output_tokens": 36,
+          "total_tokens": 447,
+          "input_token_details": {
+            "cache_read": 256
+          },
+          "output_token_details": {
+            "reasoning": 11
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937392.4338994
+    },
+    {
+      "seq": 6,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop",
+        "input": "{}"
+      },
+      "createdAt": 1793937392.4364767
+    },
+    {
+      "seq": 7,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop"
+      },
+      "createdAt": 1793937392.721669
+    },
+    {
+      "seq": 8,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 2
+      },
+      "createdAt": 1793937392.723493
+    },
+    {
+      "seq": 9,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 1.617,
+        "usage": {
+          "input_tokens": 9084,
+          "output_tokens": 147,
+          "total_tokens": 9231,
+          "input_token_details": {
+            "cache_read": 384
+          },
+          "output_token_details": {
+            "reasoning": 122
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937394.3411338
+    },
+    {
+      "seq": 10,
+      "kind": "tool_start",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop",
+        "input": "{}"
+      },
+      "createdAt": 1793937394.3426201
+    },
+    {
+      "seq": 11,
+      "kind": "tool_end",
+      "data": {
+        "role": "main",
+        "tool": "request_original_crop"
+      },
+      "createdAt": 1793937394.383792
+    },
+    {
+      "seq": 12,
+      "kind": "model_start",
+      "data": {
+        "role": "main",
+        "request": 3
+      },
+      "createdAt": 1793937394.385354
+    },
+    {
+      "seq": 13,
+      "kind": "model_end",
+      "data": {
+        "role": "main",
+        "seconds": 2.262,
+        "usage": {
+          "input_tokens": 17868,
+          "output_tokens": 281,
+          "total_tokens": 18149,
+          "input_token_details": {
+            "cache_read": 9216
+          },
+          "output_token_details": {
+            "reasoning": 151
+          }
+        },
+        "model": "deepseek-flash",
+        "fingerprint": "bc19ba97cbe016479903222bb1578db6"
+      },
+      "createdAt": 1793937396.6474493
+    },
+    {
+      "seq": 14,
+      "kind": "agent_end",
+      "data": {
+        "role": "main",
+        "result": {
+          "seenText": "（无明显可读文字：裁剪区域内仅见白色底图、一条细竖线与一个很小的空心矩形，未出现可辨认的短标签文字）",
+          "usedCrop": true
+        }
+      },
+      "createdAt": 1793937396.6488874
+    }
+  ]
+}

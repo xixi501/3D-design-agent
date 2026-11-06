@@ -76,18 +76,44 @@ export function candidateRoutes(
           "Create a candidate from scoped furniture edits. requestId deduplicates creation and allocated object IDs.",
         body: {
           type: "object",
-          required: ["requestId", "taskId", "baseRevision", "scope", "edits"],
+          required: ["requestId", "taskId", "baseRevision"],
           properties: {
             requestId: { type: "string", minLength: 1, maxLength: 200 },
             taskId: { type: "string", minLength: 1, maxLength: 200 },
             baseRevision: { type: "integer", minimum: 0 },
             summary: { type: "string", maxLength: 200 },
-            kind: { type: "string", enum: ["edit", "initialize"] },
+            kind: {
+              type: "string",
+              enum: ["edit", "initialize", "initialize_floorplan"],
+            },
+            floorplan: {
+              type: "object",
+              additionalProperties: false,
+              required: ["draftId", "draftRevision", "draftHash"],
+              properties: {
+                draftId: { type: "string" },
+                draftRevision: { type: "integer", minimum: 0 },
+                draftHash: { type: "string", pattern: "^[a-f0-9]{64}$" },
+              },
+            },
+            matches: {
+              type: "array",
+              maxItems: 50,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["symbolId", "key"],
+                properties: {
+                  symbolId: { type: "string" },
+                  key: { type: "string" },
+                },
+              },
+            },
             brief: { type: "object", additionalProperties: true },
             scope: { type: "object", additionalProperties: true },
             edits: {
               type: "array",
-              minItems: 1,
+              minItems: 0,
               maxItems: 50,
               items: { type: "object", additionalProperties: true },
             },

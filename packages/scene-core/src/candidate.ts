@@ -42,6 +42,7 @@ export interface EditScope {
   allowAddKeys: string[];
   fieldMask?: Record<string, string[]>;
   additionBounds?: { x0: number; y0: number; x1: number; y1: number };
+  allowedRoomIds?: string[];
   requirements: { key: string; count: number; scope: "project" | "targets" }[];
 }
 export interface CandidateIssue {
@@ -80,6 +81,7 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     "requirements",
     "additionBounds",
     "fieldMask",
+    "allowedRoomIds",
   ]);
   const ids = new Set(plan.furniture.map((f) => f.id));
   for (const name of ["targetIds", "allowDeleteIds", "allowAddKeys"] as const) {
@@ -121,6 +123,16 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
       !["project", "targets"].includes(r.scope)
     )
       fail("数量要求需要有效目录类型、范围与整数数量");
+  }
+  if (s.allowedRoomIds !== undefined) {
+    const rooms = new Set(plan.rooms.map((r) => r.id));
+    if (
+      !Array.isArray(s.allowedRoomIds) ||
+      !s.allowedRoomIds.length ||
+      s.allowedRoomIds.some((id) => !rooms.has(id)) ||
+      new Set(s.allowedRoomIds).size !== s.allowedRoomIds.length
+    )
+      fail("目标房间身份无效");
   }
   if (s.additionBounds) {
     keys(s.additionBounds, ["x0", "y0", "x1", "y1"]);
@@ -314,24 +326,26 @@ export function checkCandidate(
     add("ROOM_UNVERIFIED", [...changed], "没有可验证的封闭房间，无法自动提交");
   for (const f of after.plan.furniture.filter((f) => changed.has(f.id))) {
     const polygons = Zg(f) as Point[][];
-    const contained = regions.some((room: any) =>
-      polygons.every((poly) => {
-        const total = area(poly),
-          intersection = room.rects.reduce(
-            (sum: number, r: any) => sum + area(clip(poly, r)),
+    const contained = regions.some(
+      (room: any) =>
+        (!scope.allowedRoomIds || scope.allowedRoomIds.includes(room.key)) &&
+        polygons.every((poly) => {
+          const total = area(poly),
+            intersection = room.rects.reduce(
+              (sum: number, r: any) => sum + area(clip(poly, r)),
+              0,
+            );
+          const perimeter = poly.reduce(
+            (sum, p, i) =>
+              sum +
+              Math.hypot(
+                p.x - poly[(i + 1) % poly.length].x,
+                p.y - poly[(i + 1) % poly.length].y,
+              ),
             0,
           );
-        const perimeter = poly.reduce(
-          (sum, p, i) =>
-            sum +
-            Math.hypot(
-              p.x - poly[(i + 1) % poly.length].x,
-              p.y - poly[(i + 1) % poly.length].y,
-            ),
-          0,
-        );
-        return total - intersection <= perimeter * 10 + 400;
-      }),
+          return total - intersection <= perimeter * 10 + 400;
+        }),
     );
     if (regions.length && !contained)
       add(

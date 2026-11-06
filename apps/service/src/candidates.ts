@@ -2,6 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { ProjectStore, canonical } from "./store.js";
+import { FloorplanStore } from "./floorplans.js";
+import {
+  compileFloorplan,
+  materializeFloorplan,
+  checkFloorplanInitialization,
+  type FloorplanBinding,
+  type SymbolMatch,
+} from "../../../packages/scene-core/src/floorplan.js";
 import {
   applyCommands,
   assetReferences,
@@ -47,21 +55,10 @@ export interface CandidateReview {
   issues: string[];
 }
 export class CandidateStore {
-  constructor(public projects: ProjectStore) {
-    if (Number(projects.db.pragma("user_version", { simple: true })) > 2)
-      throw new SceneError(
-        "UNSUPPORTED_DATABASE",
-        "数据库版本高于当前业务版本，请使用对应版本恢复",
-        500,
-      );
-    projects.db
-      .transaction(() => {
-        projects.db
-          .exec(`CREATE TABLE IF NOT EXISTS candidates(id TEXT PRIMARY KEY,project TEXT NOT NULL REFERENCES projects(id),request_id TEXT NOT NULL,request_hash TEXT NOT NULL,document TEXT NOT NULL,evidence TEXT NOT NULL DEFAULT '[]',review TEXT,committed TEXT,UNIQUE(project,request_id));
-      CREATE INDEX IF NOT EXISTS candidates_project ON candidates(project);`);
-        projects.db.pragma("user_version = 2");
-      })
-      .immediate();
+  constructor(
+    public projects: ProjectStore,
+    public floorplans = new FloorplanStore(projects),
+  ) {
     fs.mkdirSync(path.join(projects.directory, "evidence"), {
       recursive: true,
     });
@@ -112,10 +109,12 @@ export class CandidateStore {
       requestId: string;
       taskId: string;
       baseRevision: number;
-      scope: EditScope;
-      edits: CandidateEdit[];
+      scope?: EditScope;
+      edits?: CandidateEdit[];
       summary?: string;
-      kind?: "edit" | "initialize";
+      kind?: "edit" | "initialize" | "initialize_floorplan";
+      floorplan?: FloorplanBinding;
+      matches?: SymbolMatch[];
       brief?: RectangularBrief;
     },
   ) {
@@ -166,32 +165,78 @@ export class CandidateStore {
         };
         if (
           request.kind !== undefined &&
-          !["edit", "initialize"].includes(request.kind)
+          !["edit", "initialize", "initialize_floorplan"].includes(request.kind)
         )
           throw new SceneError("INVALID_REQUEST", "未知候选类型");
         const initialization = request.kind === "initialize";
+        const reconstruction = request.kind === "initialize_floorplan";
         if (!initialization && request.brief !== undefined)
           throw new SceneError("INVALID_REQUEST", "编辑候选不能改变房间结构");
-        if (initialization) requireBlank(before);
+        if (
+          !reconstruction &&
+          (request.floorplan !== undefined || request.matches !== undefined)
+        )
+          throw new SceneError(
+            "INVALID_REQUEST",
+            "编辑候选不能携带户型初始化字段",
+          );
+        if (initialization || reconstruction) requireBlank(before);
+        const draft = reconstruction
+          ? this.floorplans.confirmed(project, request.floorplan!)
+          : undefined;
+        if (draft && draft.baseRevision !== base.revision)
+          throw new SceneError(
+            "REVISION_CONFLICT",
+            "草稿确认对应的正式项目版本已变化",
+            409,
+          );
+        if (reconstruction && request.edits?.length)
+          throw new SceneError(
+            "INVALID_REQUEST",
+            "户型复现只能使用已确认符号，不能另传编辑布局",
+          );
+        const reconstructed = draft
+          ? materializeFloorplan(
+              draft.data,
+              request.taskId,
+              request.floorplan!,
+              request.matches!,
+            )
+          : undefined;
         const compiled = initialization
           ? compileRectangular(request.brief!, request.taskId)
           : undefined;
         const source = compiled?.state || before;
-        const scope = validateScope(request.scope, source.plan),
-          edits = materializeEdits(source, scope, request.edits),
-          commands = [...(compiled?.commands || []), ...edits],
+        const scope =
+            reconstructed?.scope || validateScope(request.scope, source.plan),
+          edits = reconstructed
+            ? []
+            : materializeEdits(source, scope, request.edits!),
+          commands = reconstructed?.commands || [
+            ...(compiled?.commands || []),
+            ...edits,
+          ],
           state = applyCommands(before, commands);
         for (const id of assetReferences(state.plan)) this.projects.asset(id);
         const id = newId(),
-          checks = initialization
-            ? checkInitialization(
+          checks = reconstructed
+            ? checkFloorplanInitialization(
                 before,
                 state,
-                request.brief!,
+                draft.data,
                 request.taskId,
-                scope,
+                request.floorplan!,
+                request.matches!,
               )
-            : checkCandidate(before, state, scope),
+            : initialization
+              ? checkInitialization(
+                  before,
+                  state,
+                  request.brief!,
+                  request.taskId,
+                  scope,
+                )
+              : checkCandidate(before, state, scope),
           diff = businessDiff(base.plan, state.plan);
         if (!diff.added.length && !diff.updated.length && !diff.deleted.length)
           throw new SceneError("NO_CHANGE", "候选没有产生业务修改");
@@ -208,6 +253,30 @@ export class CandidateStore {
           summary: request.summary || "Agent 局部编辑",
           operationId: `candidate:${id}`,
           createdAt: new Date().toISOString(),
+          ...(reconstructed
+            ? {
+                kind: "initialize_floorplan",
+                floorplan: {
+                  binding: request.floorplan,
+                  data: draft.data,
+                  matches: request.matches,
+                },
+                generation: {
+                  mode: "reconstruct_floorplan",
+                  image: draft.data.image,
+                  scale: reconstructed.scale,
+                  defaults: reconstructed.defaults,
+                  symbols: reconstructed.symbols,
+                  rooms: reconstructed.rooms,
+                  targetRoomIds: reconstructed.targetRoomIds,
+                  draftId: draft.id,
+                  draftRevision: draft.revision,
+                  draftHash: draft.hash,
+                  corrections: draft.corrections,
+                },
+                structure: structuralDiff(base.plan, state.plan),
+              }
+            : {}),
           ...(compiled
             ? {
                 kind: "initialize",
@@ -370,6 +439,11 @@ export class CandidateStore {
         const { hash, before, ...frozen } = c;
         if (sha256(frozen) !== hash)
           throw new SceneError("CANDIDATE_INVALID", "候选内容校验失败", 409);
+        if (c.kind === "initialize_floorplan") {
+          const draft = this.floorplans.confirmed(project, c.floorplan.binding);
+          if (sha256(draft.data) !== sha256(c.floorplan.data))
+            throw new SceneError("DRAFT_CONFLICT", "确认草稿与候选不一致", 409);
+        }
         const replay = applyCommands(
           { plan: current.plan, roomLabelArchive: current.roomLabelArchive },
           c.commands as Command[],
@@ -377,15 +451,24 @@ export class CandidateStore {
         if (
           sha256(replay) !== sha256(c.state) ||
           !(
-            c.kind === "initialize"
-              ? checkInitialization(
+            c.kind === "initialize_floorplan"
+              ? checkFloorplanInitialization(
                   before,
                   replay,
-                  c.generation.brief,
+                  c.floorplan.data,
                   c.taskId,
-                  c.scope,
+                  c.floorplan.binding,
+                  c.floorplan.matches,
                 )
-              : checkCandidate(before, replay, c.scope)
+              : c.kind === "initialize"
+                ? checkInitialization(
+                    before,
+                    replay,
+                    c.generation.brief,
+                    c.taskId,
+                    c.scope,
+                  )
+                : checkCandidate(before, replay, c.scope)
           ).passed
         )
           throw new SceneError("CHECK_FAILED", "候选未通过确定性检查", 409);

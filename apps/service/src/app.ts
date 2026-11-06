@@ -21,6 +21,8 @@ import {
 import { ProjectStore } from "./store.js";
 import { inspectGlb } from "./assets.js";
 import { candidateRoutes } from "./candidate-routes.js";
+import { FloorplanStore } from "./floorplans.js";
+import { floorplanRoutes } from "./floorplan-routes.js";
 import { agentProxy } from "./agent-proxy.js";
 
 export async function createApp(options: {
@@ -75,6 +77,8 @@ export async function createApp(options: {
   );
   app.get("/api/openapi.json", async () => app.swagger());
   const candidates = candidateRoutes(app, store, notify);
+  const floorplans = new FloorplanStore(store);
+  floorplanRoutes(app, floorplans);
   agentProxy(app);
   app.get(
     "/api/catalog",
@@ -115,6 +119,10 @@ export async function createApp(options: {
           type: "object",
           properties: {
             document: { type: "object", additionalProperties: true },
+            imageMap: {
+              type: "object",
+              additionalProperties: { type: "string" },
+            },
             assetMap: {
               type: "object",
               additionalProperties: { type: "string" },
@@ -127,7 +135,13 @@ export async function createApp(options: {
       const body = req.body as any;
       return reply
         .code(201)
-        .send(store.create(body.document ?? blankPlan(), body.assetMap));
+        .send(
+          store.create(
+            body.document ?? blankPlan(),
+            body.assetMap,
+            body.imageMap,
+          ),
+        );
     },
   );
   app.get("/api/projects/:id", async (req) =>
@@ -143,6 +157,13 @@ export async function createApp(options: {
       .send({
         ...project,
         assetManifest: project.assets.map((id) => store.asset(id)),
+        ...(project.plan.source?.kind === "floorplan"
+          ? {
+              sourceImageManifest: [
+                floorplans.image(project.plan.source.imageId),
+              ],
+            }
+          : {}),
       });
   });
   app.get("/api/projects/:id/history", async (req) =>
@@ -262,5 +283,5 @@ export async function createApp(options: {
     for (const set of streams.values()) for (const stream of set) stream.end();
   });
   app.addHook("onClose", async () => store.close());
-  return { app, store, candidates };
+  return { app, store, candidates, floorplans };
 }

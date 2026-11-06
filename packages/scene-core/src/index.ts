@@ -90,6 +90,22 @@ export function validatePlan(plan: Plan) {
       "仅支持原版单层 v2 或 ActiScape v1 项目",
     );
   finite(plan.height, "层高", 100, 20000);
+  if (plan.source !== undefined) {
+    const s = plan.source;
+    if (
+      !s ||
+      typeof s !== "object" ||
+      Array.isArray(s) ||
+      s.kind !== "floorplan" ||
+      typeof s.imageId !== "string" ||
+      !/^fp-[a-f0-9]{64}$/.test(s.imageId) ||
+      !/^[a-f0-9]{64}$/.test(s.imageHash)
+    )
+      throw new SceneError("INVALID_DOCUMENT", "户型来源信息无效");
+    finite(s.mmPerPixel, "source.mmPerPixel", 0.001, 10000);
+    finite(s.origin?.x, "source.origin.x");
+    finite(s.origin?.y, "source.origin.y");
+  }
   const ids = new Set<string>();
   for (const collection of collections) {
     if (!Array.isArray(plan[collection]))
@@ -312,7 +328,7 @@ export function applyCommands(
     )
       throw new SceneError("INVALID_COMMAND", "修改命令需要对象类型的 patch");
     if (command.type === "project") {
-      const allowed = ["name", "height", "look", "north", "phase"];
+      const allowed = ["name", "height", "look", "north", "phase", "source"];
       if (Object.keys(command.patch).some((k) => !allowed.includes(k)))
         throw new SceneError("INVALID_COMMAND", "项目字段不允许修改");
       merge(plan, command.patch);

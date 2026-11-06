@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import { migrate } from "./migrations.js";
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -50,6 +51,7 @@ export class ProjectStore {
       .exec(`CREATE TABLE IF NOT EXISTS projects(id TEXT PRIMARY KEY,revision INTEGER NOT NULL,state TEXT NOT NULL,timeline TEXT NOT NULL,cursor INTEGER NOT NULL,updated TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS operations(project TEXT NOT NULL REFERENCES projects(id),id TEXT NOT NULL,hash TEXT NOT NULL,kind TEXT NOT NULL,response TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(project,id));
       CREATE TABLE IF NOT EXISTS assets(id TEXT PRIMARY KEY,record TEXT NOT NULL);`);
+    migrate(this.db);
   }
   close() {
     this.db.close();
@@ -125,6 +127,29 @@ export class ProjectStore {
     return this.asset(record.id);
   }
   private checkAssets(state: SceneState) {
+    const source = state.plan.source;
+    if (source?.kind === "floorplan") {
+      const image = this.db
+        .prepare("SELECT record FROM floorplan_images WHERE id=?")
+        .get(source.imageId) as any;
+      const file = path.join(
+        this.directory,
+        "floorplan-images",
+        source.imageId,
+        "original",
+      );
+      if (
+        !image ||
+        JSON.parse(image.record).sha256 !== source.imageHash ||
+        !fs.existsSync(file)
+      )
+        throw new SceneError(
+          "MISSING_SOURCE_IMAGES",
+          "请上传缺失户型原图并提供 imageMap 映射",
+          422,
+          { missing: [source.imageId] },
+        );
+    }
     const missing = assetReferences(state.plan).filter(
       (id) => !this.db.prepare("SELECT id FROM assets WHERE id=?").get(id),
     );
@@ -136,8 +161,30 @@ export class ProjectStore {
         { missing },
       );
   }
-  create(input: any, assetMap: Record<string, string> = {}) {
+  create(
+    input: any,
+    assetMap: Record<string, string> = {},
+    imageMap: Record<string, string> = {},
+  ) {
     const state = importDocument(input, assetMap);
+    if (
+      state.plan.source?.kind === "floorplan" &&
+      imageMap[state.plan.source.imageId]
+    ) {
+      const mapped = this.db
+        .prepare("SELECT record FROM floorplan_images WHERE id=?")
+        .get(imageMap[state.plan.source.imageId]) as any;
+      if (!mapped)
+        throw new SceneError("MISSING_SOURCE_IMAGES", "图片映射不存在", 422);
+      const image = JSON.parse(mapped.record);
+      if (image.sha256 !== state.plan.source.imageHash)
+        throw new SceneError(
+          "SOURCE_IMAGE_INVALID",
+          "映射原图校验值不同，不能替换已确认布局的来源",
+          422,
+        );
+      state.plan.source.imageId = image.id;
+    }
     this.checkAssets(state);
     const row: Row = {
       id: newId(),

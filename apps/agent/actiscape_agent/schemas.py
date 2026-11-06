@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, FiniteFloat
+from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, model_validator
 
 
 class StrictModel(BaseModel):
@@ -31,6 +31,23 @@ class Intent(StrictModel):
     )
     additions: list[Addition] = Field(default_factory=list)
     area: Literal["local", "room"] = "local"
+
+    @model_validator(mode="after")
+    def consistent_authorization(self):
+        if self.status != "ready":
+            return self
+        if any(id not in self.target_ids for id in self.delete_ids):
+            raise ValueError("删除 ID 必须同时出现在 target_ids 和 delete_ids，不能仅填 delete_ids")
+        if not self.target_ids and not self.additions:
+            raise ValueError("ready 需要明确目标或新增请求；不明确请返回 clarify")
+        if any(id not in self.target_ids for id in self.field_permissions):
+            raise ValueError("字段授权不能超出 target_ids")
+        if any(
+            id not in self.delete_ids and not self.field_permissions.get(id)
+            for id in self.target_ids
+        ):
+            raise ValueError("非删除目标需要明确字段授权；只作参考的对象放 reference_ids")
+        return self
 
 
 class AssetChoice(StrictModel):

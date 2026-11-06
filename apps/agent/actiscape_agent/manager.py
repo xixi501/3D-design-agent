@@ -216,11 +216,33 @@ class TaskManager:
                     else f"任务未完成（{type(error).__name__}）"
                 )
                 status = "cancelled" if code == "CANCELLED" else "failed"
+                result = {"status": status, "message": message, "errorCode": code}
+                current = self.store.task(id)
+                if current.get("mode") == "generate_rectangular" and status == "failed":
+                    generation = current.get("generation", {})
+                    if generation.get("lastCandidateId"):
+                        result.update(
+                            candidateId=generation["lastCandidateId"],
+                            report=generation.get("lastChecks"),
+                            generation=generation,
+                        )
+                        blocking = [
+                            i["message"]
+                            for i in (generation.get("lastChecks") or {}).get("issues", [])
+                            if i.get("blocking")
+                        ]
+                        if blocking:
+                            message += (
+                                "。尚未解决："
+                                + "；".join(blocking[:3])
+                                + "。本任务没有提交，请调整家具清单或尺寸后重新提交需求。"
+                            )
+                            result["message"] = message
                 self.store.update(
                     id,
                     status=status,
                     error=message,
-                    result={"status": status, "message": message, "errorCode": code},
+                    result=result,
                 )
                 self.store.event(
                     id, "status", {"status": status, "message": message, "errorCode": code}

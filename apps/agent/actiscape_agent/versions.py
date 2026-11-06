@@ -46,5 +46,5 @@ def runtime_versions():
         "reasoningEffort": model_settings()["reasoning_effort"],
         "tools": "scene-candidate-v2",
         "promptVersion": "s2a-local-edit-1",
-        "generationPromptVersion": "s2b-rectangular-1",
+        "generationPromptVersion": "s2b-rectangular-2",
     }

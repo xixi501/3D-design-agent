@@ -77,6 +77,20 @@ class GenerationScene(FakeScene):
                     "structure": {"walls": {"added": [w["id"] for w in plan["walls"]]}},
                     "committed": None,
                 }
+                if self.bad_checks:
+                    self.candidates[id]["checks"] = {
+                        "passed": False,
+                        "issues": [
+                            {
+                                "code": "OUTSIDE_ROOM",
+                                "objectIds": [chair["id"]],
+                                "message": "家具超出固定房间",
+                                "blocking": True,
+                            }
+                        ],
+                        "coverage": [],
+                        "limitations": [],
+                    }
             return copy.deepcopy(self.candidates[id])
         if path.endswith("/commit") and self.interfere:
             self.interfere = False
@@ -223,5 +237,28 @@ async def test_manual_edit_stops_initialization_without_overwrite(tmp_path):
         assert client.project["revision"] == 1 and len(client.ledger) == 0
         assert not client.project["plan"]["walls"]
         assert len(client.project["plan"]["furniture"]) == 1
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_generation_budget_failure_keeps_specific_candidate_problem(tmp_path):
+    class BudgetRoles(ControlledRoles):
+        async def invoke(self, role, *args, **kwargs):
+            if role == "design" and self.client.design_calls:
+                task_id = args[4]
+                self.store.db.execute("UPDATE tasks SET model_calls=24 WHERE id=?", (task_id,))
+            return await super().invoke(role, *args, **kwargs)
+
+    client = GenerationScene(bad_checks=True)
+    manager = TaskManager(tmp_path, client, BudgetRoles)
+    try:
+        task = await start_generation(manager)
+        result = await finished(manager, task["id"])
+        assert result["status"] == "failed", result
+        assert result["result"]["errorCode"] == "BUDGET_EXHAUSTED"
+        assert result["result"]["candidateId"]
+        assert "家具超出固定房间" in result["result"]["message"]
+        assert client.project["revision"] == 0 and not client.ledger
     finally:
         await manager.close()

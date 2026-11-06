@@ -410,13 +410,31 @@ export class ChatPanel {
           node("p", "候选和检查记录已保留，正式场景尚未确认修改。", "muted"),
         );
       if (
+        task.status !== "completed" &&
+        result?.report?.issues?.some((i: any) => i.blocking)
+      ) {
+        const problems = node("details"),
+          list = node("ul");
+        problems.append(node("summary", "尚未解决的问题"));
+        for (const issue of result.report.issues.filter((i: any) => i.blocking))
+          list.append(node("li", issue.message || issue.description));
+        problems.append(list);
+        reply.append(problems);
+      }
+      if (
         task.status === "failed" &&
         result?.errorCode &&
         !task.cancelRequested
       ) {
-        const retry = node("button", "重试此任务");
-        retry.onclick = () => void this.retry(task.id);
-        reply.append(retry);
+        if (task.modelCalls >= 24 || task.elapsedSeconds >= 600)
+          reply.append(
+            node("p", "本任务预算已耗尽，请重新提交完整需求。", "muted"),
+          );
+        else {
+          const retry = node("button", "重试此任务");
+          retry.onclick = () => void this.retry(task.id);
+          reply.append(retry);
+        }
       }
       entry.append(reply);
       this.messages.append(entry);

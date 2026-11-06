@@ -1,8 +1,9 @@
 import shutil
 
 import pytest
+from pydantic import ValidationError
 
-from actiscape_agent.generation_schemas import resolve_request
+from actiscape_agent.generation_schemas import asset_selection_schema, resolve_request
 from actiscape_agent.skill_registry import GENERATION_TOOLS, SKILL_ROOT, load_design_skill
 from actiscape_agent.store import TaskError, TaskStore, fingerprint
 
@@ -25,6 +26,21 @@ def test_missing_geometry_cannot_be_filled_by_model_defaults():
     assert "是否有窗及窗的位置" in resolved["missing"]
     assert "width" not in resolved["brief"]
     assert resolved["furniture"] and "层高 2800 mm" in resolved["defaults"]
+
+
+def test_asset_choices_are_per_request_not_per_instance():
+    schema = asset_selection_schema(2, {"chair", "floorLamp"})
+    good = [
+        {"request_index": 0, "key": "chair", "reason": "four instances, one recipe"},
+        {"request_index": 1, "key": "floorLamp", "reason": "one lamp"},
+    ]
+    assert len(schema.model_validate({"choices": good}).choices) == 2
+    with pytest.raises(ValidationError):
+        schema.model_validate({"choices": good + [good[0]]})
+    with pytest.raises(ValidationError):
+        schema.model_validate({"choices": [good[0], good[0]]})
+    with pytest.raises(ValidationError):
+        schema.model_validate({"choices": [good[0], {**good[1], "key": "invented"}]})
 
 
 def test_explicit_geometry_and_corrections_preserve_units_and_no_window():

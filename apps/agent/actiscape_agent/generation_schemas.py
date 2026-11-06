@@ -1,8 +1,26 @@
 from typing import Literal
 
-from pydantic import Field, FiniteFloat
+from pydantic import Field, FiniteFloat, field_validator
 
-from .schemas import Addition, StrictModel
+from .schemas import Addition, AssetChoice, AssetSelection, StrictModel
+
+
+def asset_selection_schema(count: int, allowed_keys: set[str]):
+    class GenerationAssetSelection(AssetSelection):
+        choices: list[AssetChoice] = Field(min_length=count, max_length=count)
+
+        @field_validator("choices")
+        @classmethod
+        def exact_requests(cls, choices):
+            if sorted(c.request_index for c in choices) != list(range(count)):
+                raise ValueError(
+                    "每项请求只返回一个配方，request_index 必须完整对应给定的零基索引；不要按实例数量展开"
+                )
+            if any(c.key not in allowed_keys for c in choices):
+                raise ValueError("key 必须来自真实目录查询")
+            return choices
+
+    return GenerationAssetSelection
 
 
 class Dimension(StrictModel):

@@ -7,6 +7,7 @@ from langchain_core.messages import AIMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 from pydantic import Field
 
+from actiscape_agent.generation_schemas import asset_selection_schema
 from actiscape_agent.roles import Roles
 from actiscape_agent.schemas import Proposal
 from actiscape_agent.store import TaskError, TaskStore
@@ -36,6 +37,29 @@ class ControlledModel(BaseChatModel):
             raise httpx.ReadTimeout("controlled private transport detail")
         if self.failure == "rate-limit":
             raise RateLimited("controlled private provider detail")
+        if self.failure == "asset-choice-correction":
+            choices = [
+                {"request_index": 0, "key": "chair", "reason": "four chairs use one recipe"},
+                {"request_index": 1, "key": "floorLamp", "reason": "one lamp"},
+            ]
+            if self.calls[0] == 1:
+                choices.append(choices[0])
+            return ChatResult(
+                generations=[
+                    ChatGeneration(
+                        message=AIMessage(
+                            content="",
+                            tool_calls=[
+                                {
+                                    "name": "GenerationAssetSelection",
+                                    "id": f"selection-{self.calls[0]}",
+                                    "args": {"choices": choices},
+                                }
+                            ],
+                        )
+                    )
+                ]
+            )
         return ChatResult(
             generations=[
                 ChatGeneration(
@@ -88,5 +112,29 @@ async def test_model_failures_are_bounded_counted_and_sanitized(tmp_path, monkey
             assert raised.value.code == "MODEL_ERROR"
             assert model.calls[0] == store.task(task["id"])["modelCalls"] == 3
             assert len([e for e in store.events(task["id"]) if e["kind"] == "model_retry"]) == 2
+    finally:
+        store.close()
+
+
+@pytest.mark.asyncio
+async def test_wrong_asset_instance_expansion_gets_structured_feedback_then_corrects(tmp_path):
+    store = TaskStore(tmp_path)
+    try:
+        c = store.create_conversation("p")
+        task = store.create_task(
+            c["id"], {"requestId": "assets", "input": "four chairs and one lamp", "selectedIds": []}
+        )
+        model = ControlledModel(failure="asset-choice-correction")
+        roles = Roles(store, None, model_factory=lambda: model)
+        result = await roles.invoke(
+            "assets",
+            "controlled schema correction",
+            asset_selection_schema(2, {"chair", "floorLamp"}),
+            [],
+            {},
+            task["id"],
+        )
+        assert len(result["choices"]) == 2
+        assert model.calls[0] == store.task(task["id"])["modelCalls"] == 2
     finally:
         store.close()

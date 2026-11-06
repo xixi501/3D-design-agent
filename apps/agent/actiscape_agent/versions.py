@@ -43,6 +43,7 @@ def runtime_versions():
         "langgraph": version("langgraph"),
         "langchain": version("langchain"),
         "deepseekAdapter": version("langchain-deepseek"),
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
         "model": model_settings()["model"],
         "modelProvider": urlparse(model_settings()["base_url"]).netloc,
         "reasoningEffort": model_settings()["reasoning_effort"],

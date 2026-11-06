@@ -4,6 +4,7 @@ import {
   floorplanScale,
   type FloorplanData,
 } from "./floorplan.js";
+import { solveMeasurement } from "./floorplan-measurement.js";
 import { wallGeometry } from "./index.js";
 const ratio = (n: number, d: number) => (d ? n / d : 1);
 const angle = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180);
@@ -271,9 +272,39 @@ export function scoreFloorplan(
   corrections: number,
   aliases: Record<string, string> = {},
 ) {
+  const measurement =
+    confirmed.measurementVersion === 2
+      ? solveMeasurement(confirmed)
+      : undefined;
+  const spatial: FloorplanData = measurement
+    ? {
+        ...confirmed,
+        walls: measurement.walls.map((w) => ({
+          ...w,
+          a: {
+            x: w.a.x / measurement.scale + measurement.origin.x,
+            y: w.a.y / measurement.scale + measurement.origin.y,
+          },
+          b: {
+            x: w.b.x / measurement.scale + measurement.origin.x,
+            y: w.b.y / measurement.scale + measurement.origin.y,
+          },
+          thicknessPx: w.t / measurement.scale,
+        })),
+        openings: confirmed.openings.map((o) => ({
+          ...o,
+          offset:
+            measurement.openings.find((p) => p.id === o.id)!.pos /
+            measurement.scale,
+          width:
+            measurement.openings.find((p) => p.id === o.id)!.width /
+            measurement.scale,
+        })),
+      }
+    : confirmed;
   const scale = floorplanScale(reference),
     rawWalls = wallQuality(raw, reference, scale),
-    finalWalls = wallQuality(confirmed, reference, scale);
+    finalWalls = wallQuality(spatial, reference, scale);
   const compareOpenings = (d: FloorplanData) =>
     pairs(
       openingPoints(d, scale),
@@ -285,7 +316,7 @@ export function scoreFloorplan(
       distance,
     );
   const rawOpenings = compareOpenings(raw),
-    finalOpenings = compareOpenings(confirmed);
+    finalOpenings = compareOpenings(spatial);
   const expected = symbols(reference, scale, aliases),
     first = symbols(raw, scale, aliases),
     last = symbols(confirmed, scale, aliases);
@@ -326,20 +357,60 @@ export function scoreFloorplan(
     rawFurniture.precision >= 0.9 &&
     rawFurniture.recall >= 0.9;
   const structure = topology(confirmed, reference, aliases);
-  const dimensions = confirmed.anchors.map((a) => ({
-    evidence: a.evidence,
-    error: Math.abs(
-      distance(a.a, a.b) * floorplanScale(confirmed) -
-        a.distance.value * { mm: 1, cm: 10, m: 1000 }[a.distance.unit],
-    ),
-  }));
-  const referenceDimensions = reference.anchors.map((a) => ({
-    evidence: a.evidence,
-    error: Math.abs(
-      distance(a.a, a.b) * floorplanScale(confirmed) -
-        a.distance.value * { mm: 1, cm: 10, m: 1000 }[a.distance.unit],
-    ),
-  }));
+  const dimensions = measurement
+    ? measurement.report.dimensions.map((d) => ({
+        evidence: d.id,
+        error: Math.abs(d.residualMm),
+      }))
+    : confirmed.anchors.map((a) => ({
+        evidence: a.evidence,
+        error: Math.abs(
+          distance(a.a, a.b) * floorplanScale(confirmed) -
+            a.distance.value * { mm: 1, cm: 10, m: 1000 }[a.distance.unit],
+        ),
+      }));
+  const referenceDimensions = measurement
+    ? reference.anchors.map((a) => {
+        const axis =
+          Math.abs(a.a.x - a.b.x) >= Math.abs(a.a.y - a.b.y) ? "x" : "y";
+        const features = measurement.report.features.filter(
+          (f) =>
+            f.axis === axis &&
+            confirmed.features!.find((v) => v.id === f.id)!.kind ===
+              (a.basis === "centerline" ? "wall_center" : "wall_face"),
+        );
+        const nearest = (p: any) =>
+          features
+            .map((f) => ({
+              ...f,
+              error: Math.abs(
+                f.observedMm / measurement.scale +
+                  measurement.origin[axis] -
+                  p[axis],
+              ),
+            }))
+            .sort((a, b) => a.error - b.error)[0];
+        const first = nearest(a.a),
+          last = nearest(a.b);
+        return {
+          evidence: a.evidence,
+          error:
+            first && last
+              ? Math.abs(
+                  Math.abs(last.actualMm - first.actualMm) -
+                    a.distance.value *
+                      { mm: 1, cm: 10, m: 1000 }[a.distance.unit],
+                )
+              : Infinity,
+        };
+      })
+    : reference.anchors.map((a) => ({
+        evidence: a.evidence,
+        error: Math.abs(
+          distance(a.a, a.b) * floorplanScale(confirmed) -
+            a.distance.value * { mm: 1, cm: 10, m: 1000 }[a.distance.unit],
+        ),
+      }));
   const dimensionsPassed =
     dimensions.every((d) => d.error <= 1.001) &&
     referenceDimensions.every((d) => d.error <= 1.001) &&
@@ -355,11 +426,11 @@ export function scoreFloorplan(
     structure.passed &&
     dimensionsPassed;
   return {
-    passed: rawPassed && finalPassed && corrections <= 5,
+    passed: rawPassed && finalPassed && corrections <= (measurement ? 0 : 5),
     rawPassed,
     finalPassed,
     corrections,
-    correctionLimit: 5,
+    correctionLimit: measurement ? 0 : 5,
     raw: { walls: rawWalls, openings: rawOpenings, furniture: rawFurniture },
     confirmed: {
       walls: finalWalls,
@@ -371,7 +442,7 @@ export function scoreFloorplan(
       referenceDimensions,
       dimensionsPassed,
     },
-    thresholdVersion: "s2c-1",
+    thresholdVersion: measurement ? "s2c-2" : "s2c-1",
   };
 }
 

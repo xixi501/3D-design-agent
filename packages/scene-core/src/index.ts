@@ -117,6 +117,20 @@ export function validatePlan(plan: Plan) {
     )
       throw new SceneError("INVALID_DOCUMENT", "来源草稿版本无效");
     finite(s.mmPerPixel, "source.mmPerPixel", 0.001, 10000);
+    if (s.measurementVersion !== undefined) {
+      if (
+        s.measurementVersion !== 2 ||
+        s.measurement?.kernelVersion !== "axis-constraints-1" ||
+        !Array.isArray(s.measurement.dimensions) ||
+        !Array.isArray(s.measurement.features)
+      )
+        throw new SceneError("UNSUPPORTED_FORMAT", "不支持的户型测量来源版本");
+      for (const d of s.measurement.dimensions) {
+        finite(d.actualMm, "source.dimension.actualMm");
+        finite(d.expectedMm, "source.dimension.expectedMm");
+        finite(d.residualMm, "source.dimension.residualMm");
+      }
+    }
     finite(s.origin?.x, "source.origin.x");
     finite(s.origin?.y, "source.origin.y");
   }

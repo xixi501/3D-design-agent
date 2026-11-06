@@ -174,7 +174,7 @@ test("ordered migration preserves existing project, history and candidate reques
     store.db.pragma("user_version=2");
     store.close();
     store = new ProjectStore(dir);
-    assert.equal(store.db.pragma("user_version", { simple: true }), 3);
+    assert.equal(store.db.pragma("user_version", { simple: true }), 4);
     assert.equal(store.get(p.id).revision, 0);
     assert.equal(new CandidateStore(store).list(p.id).length, 0);
     assert.deepEqual(store.history(p.id).entries, []);

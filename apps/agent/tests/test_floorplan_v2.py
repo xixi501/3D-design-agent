@@ -57,7 +57,9 @@ async def test_four_concurrent_crops_are_atomic_shared_idempotent_and_restartabl
         base.store = store
         restored = FloorplanEvidence(base, task, image, "check")
         parts = await restored.crop_tool().ainvoke({"x0": 1, "y0": 0, "x1": 2, "y1": 1})
-        assert base64.b64decode(parts[1]["image_url"]["url"].split(",")[1]) == b"controlled crop 1"
+        assert (
+            base64.b64decode(parts[1]["image_url"]["url"].split(",")[1]) == b"controlled crop 1.0"
+        )
         assert client.calls == 4
     finally:
         store.close()

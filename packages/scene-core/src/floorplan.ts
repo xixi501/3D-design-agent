@@ -19,6 +19,12 @@ import {
   type CheckReport,
 } from "./candidate.js";
 import { millimetres, requireBlank, type Dimension } from "./rectangular.js";
+import {
+  solveMeasurement,
+  validateMeasurement,
+  type MeasurementFeature,
+  type MeasurementDimension,
+} from "./floorplan-measurement.js";
 
 export interface ImageReference {
   id: string;
@@ -67,6 +73,9 @@ export interface ImageSymbol {
   catalogKey?: string;
 }
 export interface FloorplanData {
+  measurementVersion?: 1 | 2;
+  features?: MeasurementFeature[];
+  dimensions?: MeasurementDimension[];
   image: ImageReference;
   name: string;
   height?: number;
@@ -141,6 +150,9 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       "symbols",
       "targetRoomIds",
       "uncertainties",
+      "measurementVersion",
+      "features",
+      "dimensions",
     ],
     "draft",
   );
@@ -287,6 +299,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     text(u.message, u.id + ".message", 1000);
     if (typeof u.blocking !== "boolean") invalid("不确定项缺少阻断标志", u.id);
   }
+  validateMeasurement(data);
   return clone(data);
 }
 export function floorplanScale(data: FloorplanData) {
@@ -351,11 +364,13 @@ export function compileFloorplan(
   if (!/^[\w-]{1,100}$/.test(seed)) invalid("初始化身份无效", "taskId");
   if (data.walls.length < 4 || !data.rooms.length)
     invalid("请补齐整层墙体和房间标签", "walls");
-  const scale = floorplanScale(data),
+  const measurement =
+    data.measurementVersion === 2 ? solveMeasurement(data) : undefined;
+  const scale = measurement?.scale ?? floorplanScale(data),
     height = data.height ?? 2800,
     defaults: string[] = [];
   if (data.height === undefined) defaults.push("层高 2800 mm");
-  const origin = {
+  const origin = measurement?.origin ?? {
     x: Math.min(...data.walls.flatMap((w) => [w.a.x, w.b.x])),
     y: Math.min(...data.walls.flatMap((w) => [w.a.y, w.b.y])),
   };
@@ -367,6 +382,15 @@ export function compileFloorplan(
   plan.name = data.name;
   plan.height = height;
   const raw = data.walls.map((w) => {
+    if (measurement) {
+      const solved = measurement.walls.find((v) => v.id === w.id)!;
+      return {
+        ...w,
+        a: { x: rounded(solved.a.x), y: rounded(solved.a.y) },
+        b: { x: rounded(solved.b.x), y: rounded(solved.b.y) },
+        t: rounded(solved.t),
+      };
+    }
     const a = transform(w.a),
       b = transform(w.b);
     if (Math.abs(w.a.x - w.b.x) <= 1) a.x = b.x = rounded((a.x + b.x) / 2);
@@ -384,9 +408,12 @@ export function compileFloorplan(
     const k = key(p);
     if (!points.has(k)) {
       points.set(k, p);
-      plan.nodes.push({ id: `${seed}:n:${k}`, ...p });
+      plan.nodes.push({
+        id: `${seed}:n:${measurement ? points.size : k}`,
+        ...p,
+      });
     }
-    return `${seed}:n:${k}`;
+    return plan.nodes.find((n) => n.x === p.x && n.y === p.y)!.id;
   };
   const on = (p: Point, w: (typeof raw)[number]) =>
     Math.abs(w.a.x === w.b.x ? p.x - w.a.x : p.y - w.a.y) < 0.01 &&
@@ -423,7 +450,7 @@ export function compileFloorplan(
         prior.sources.add(w.id);
         continue;
       }
-      const id = `${seed}:w:${k}`;
+      const id = `${seed}:w:${measurement ? w.id + ":" + i : k}`;
       segments.set(k, { id, a, b, t: w.t, sources: new Set([w.id]) });
       plan.walls.push({ id, a: node(a), b: node(b), t: w.t });
     }
@@ -476,8 +503,13 @@ export function compileFloorplan(
   for (const o of data.openings) {
     const host = raw.find((w) => w.id === o.wallId)!,
       len = Math.hypot(host.b.x - host.a.x, host.b.y - host.a.y),
-      position = o.offset * scale,
-      width = rounded(o.width * scale);
+      position =
+        measurement?.openings.find((v) => v.id === o.id)?.pos ??
+        o.offset * scale,
+      width = rounded(
+        measurement?.openings.find((v) => v.id === o.id)?.width ??
+          o.width * scale,
+      );
     if (position - width / 2 < -1 || position + width / 2 > len + 1)
       invalid("门窗超出所属墙的范围", o.id, {
         stage: "openings",
@@ -592,6 +624,9 @@ export function compileFloorplan(
     imageWidth: data.image.width,
     imageHeight: data.image.height,
     mmPerPixel: scale,
+    ...(measurement
+      ? { measurementVersion: 2, measurement: measurement.report }
+      : {}),
     origin,
     ...binding,
     symbolObjects: Object.fromEntries(symbols.map((s) => [s.id, s.objectId])),
@@ -617,6 +652,7 @@ export function compileFloorplan(
     targetRoomIds,
     defaults: [...new Set(defaults)],
     scale: { mmPerPixel: scale, origin },
+    ...(measurement ? { measurement: measurement.report } : {}),
     rooms: regions.map((r: any) => ({
       id: r.key,
       name: plan.rooms.find((p) => p.id === r.key)?.name,

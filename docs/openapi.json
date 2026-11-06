@@ -567,6 +567,23 @@
     "/api/projects/{id}/floorplan-drafts/{draft}/source-audit": {
       "post": {
         "description": "Run original wallaudit and furnoverlay against a compiled draft, frozen to its hash. Heuristic source evidence, not permission to commit.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "pattern": "^[\\w-]{1,100}$"
+                  }
+                }
+              }
+            }
+          }
+        },
         "parameters": [
           {
             "schema": {

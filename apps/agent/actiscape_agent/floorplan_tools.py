@@ -144,7 +144,8 @@ class FloorplanToolset:
         async def audit_floorplan_source() -> list[dict]:
             """Run original wallaudit.py and furnoverlay.py against the frozen, TypeScript-compiled draft. Read source mismatches and furniture orientation overlay. Heuristics cannot waive deterministic checks or authorize edits."""
             record = await self.client.request(
-                f"/projects/{self.task['projectId']}/floorplan-drafts/{draft_id}/source-audit", {}
+                f"/projects/{self.task['projectId']}/floorplan-drafts/{draft_id}/source-audit",
+                {"taskId": self.task["id"]},
             )
             return await self.result("audit_floorplan_source", record)
 

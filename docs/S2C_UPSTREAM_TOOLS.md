@@ -25,10 +25,12 @@
 - `POST .../tools/fit`：`{walls:[{id,kind:"H"|"V",c,p0,p1,skip?,search?}]}`，每次 1–20 段，返回墙面、中心、厚度及采样数。
 - `POST .../tools/axis`：`{ticks,distances,samples?,basis,evidence}`，距离为真实相邻标注的毫米值，刻度为严格递增原图像素，返回尺寸链诊断。
 - `POST /api/projects/:id/floorplan-preflight`：`{imageId,data}`，未持久草稿的只读 TypeScript 编译；返回错误字段，不更改项目、草稿、历史。
-- `POST /api/projects/:id/floorplan-drafts/:draft/source-audit`：按服务端编译几何序列化只读 HouseSpec，运行原版对账和家具叠图；调用方不能提交任意文件路径或替代几何。
+- `POST /api/projects/:id/floorplan-drafts/:draft/source-audit`：按服务端编译几何序列化只读 HouseSpec，运行原版对账和家具叠图；检查角色固定传入 `{taskId}`，使问题及对象清单与候选／最终场景身份一致。省略时用于独立草稿诊断。调用方不能提交任意文件路径或替代几何。
 - `GET /api/floorplan-images/:image/tools/:toolId/files/:name`：读取经过哈希验证的 PNG。工具记录及 PNG 保存在 `data/floorplan-images/<image>/tools/<hash>/`，随整个停服数据目录备份恢复。
 
 工具结果缓存身份覆盖原图哈希、参数、上游来源、适配版本和（对账时）草稿哈希；修改草稿会取得不同证据。文件缺失、损坏、越界或非法参数明确失败。任务 `generation.upstreamTools` 与 `floorplan_tool_result` 事件保存角色、工具和完整证据引用。工作台“识别与测量证据”显示最新角色结果与原图核对图，失败任务也可查看已有证据。
+
+原图对账额外返回 `objectIds.walls/furniture`。检查角色使用与候选同一 taskId 编译；该身份也进入证据缓存，避免将草稿临时身份作为正式对象问题报告。此映射已由真实脚本 API 与受控四角色浏览器复验，图像识别批次仍固定在各自原始业务提交。
 
 ## 验证状态
 

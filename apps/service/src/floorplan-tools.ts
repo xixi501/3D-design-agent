@@ -146,9 +146,9 @@ export class FloorplanTools {
       projectRevision: project.revision,
     };
   }
-  async audit(project: string, draftId: string) {
+  async audit(project: string, draftId: string, taskId = draftId) {
     const draft = this.store.get(project, draftId),
-      preview = this.store.preview(project, draftId);
+      preview = this.store.preview(project, draftId, taskId);
     if (!("state" in preview))
       throw new SceneError(
         "FLOORPLAN_NOT_READY",
@@ -196,7 +196,20 @@ export class FloorplanTools {
         rot: s.rot,
       })),
     };
-    return this.run(draft.data.image.id, "evidence", {}, spec, draft.hash);
+    const record = await this.run(
+      draft.data.image.id,
+      "evidence",
+      {},
+      spec,
+      draft.hash,
+    );
+    return {
+      ...record,
+      objectIds: {
+        walls: spec.walls.map((w) => w.id),
+        furniture: spec.furniture.map((f: any) => f.id),
+      },
+    };
   }
 }
 
@@ -262,9 +275,20 @@ export function floorplanToolRoutes(
       schema: {
         description:
           "Run original wallaudit and furnoverlay against a compiled draft, frozen to its hash. Heuristic source evidence, not permission to commit.",
+        body: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            taskId: { type: "string", pattern: "^[\\w-]{1,100}$" },
+          },
+        },
       },
     },
     async (req) =>
-      tools.audit((req.params as any).id, (req.params as any).draft),
+      tools.audit(
+        (req.params as any).id,
+        (req.params as any).draft,
+        (req.body as any)?.taskId,
+      ),
   );
 }

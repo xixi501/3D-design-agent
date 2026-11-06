@@ -106,6 +106,24 @@ test("original image tools expose measured evidence without changing project/dra
     assert.ok(
       audit.result.issues.every((i: any) => typeof i.objectId === "string"),
     );
+    const seeded = (await call(auditUrl, { taskId: "candidate-task" })).json();
+    assert.ok(seeded.objectIds.walls.length > 0);
+    assert.ok(
+      seeded.objectIds.walls.every((id: string) =>
+        id.startsWith("candidate-task:w:"),
+      ),
+    );
+    assert.ok(
+      seeded.objectIds.furniture.every((id: string) =>
+        id.startsWith("candidate-task:f:"),
+      ),
+    );
+    assert.ok(
+      seeded.result.issues.every((i: any) =>
+        seeded.objectIds.walls.includes(i.objectId),
+      ),
+    );
+    assert.notEqual(seeded.id, audit.id);
     assert.deepEqual(running.floorplans.get(project.id, draft.id), draft);
     assert.deepEqual(running.store.get(project.id), project);
     assert.deepEqual(running.store.history(project.id).entries, []);

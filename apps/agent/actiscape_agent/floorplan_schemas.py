@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field, FiniteFloat
 
@@ -143,18 +143,49 @@ class RecognitionV2(FloorplanRecognition):
     dimensions: list[MeasurementDimension] = Field(default_factory=list, max_length=100)
 
 
-class DraftCommand(StrictModel):
-    type: Literal["patch", "upsert", "delete", "calibrate", "targets", "defaults"]
-    collection: (
-        Literal["walls", "openings", "rooms", "symbols", "uncertainties", "features", "dimensions"]
-        | None
-    ) = None
-    id: str | None = None
-    patch: dict | None = None
-    object: dict | None = None
-    anchors: list[ScaleAnchor] | None = None
-    roomIds: list[str] | None = None
-    values: dict | None = None
+DraftCollection = Literal[
+    "walls", "openings", "rooms", "symbols", "uncertainties", "features", "dimensions"
+]
+
+
+class PatchDraft(StrictModel):
+    type: Literal["patch"]
+    collection: DraftCollection
+    id: str
+    patch: dict
+
+
+class UpsertDraft(StrictModel):
+    type: Literal["upsert"]
+    collection: DraftCollection
+    object: dict
+
+
+class DeleteDraft(StrictModel):
+    type: Literal["delete"]
+    collection: DraftCollection
+    id: str
+
+
+class CalibrateDraft(StrictModel):
+    type: Literal["calibrate"]
+    anchors: list[ScaleAnchor]
+
+
+class TargetsDraft(StrictModel):
+    type: Literal["targets"]
+    roomIds: list[str]
+
+
+class DefaultsDraft(StrictModel):
+    type: Literal["defaults"]
+    values: dict
+
+
+DraftCommand = Annotated[
+    PatchDraft | UpsertDraft | DeleteDraft | CalibrateDraft | TargetsDraft | DefaultsDraft,
+    Field(discriminator="type"),
+]
 
 
 class ChangeEvidence(StrictModel):

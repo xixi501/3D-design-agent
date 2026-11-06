@@ -82,7 +82,34 @@ class FloorplanEvidence:
                 requests[key] = {"role": self.role, "box": box, "status": "reserved"}
                 return requests[key]
 
-            previous = self.store.mutate_generation(self.task["id"], reserve)
+            try:
+                previous = self.store.mutate_generation(self.task["id"], reserve)
+            except TaskError as error:
+                if error.code != "CROP_LIMIT":
+                    raise
+                available = await self.context()
+                self.store.event(
+                    self.task["id"],
+                    "crop_limit",
+                    {
+                        "role": self.role,
+                        "message": str(error),
+                        "availableIds": [r["id"] for r in available["evidence"]],
+                    },
+                )
+                return [
+                    {
+                        "type": "text",
+                        "text": json.dumps(
+                            {
+                                "error": "CROP_LIMIT",
+                                "message": "额度已用完，不要继续请求新裁剪；使用原图和以下共享证据，信息仍不足时报告阻断。",
+                                "availableEvidence": available["evidence"],
+                            },
+                            ensure_ascii=False,
+                        ),
+                    }
+                ]
             if previous.get("record"):
                 return await self.parts(previous["record"])
             try:

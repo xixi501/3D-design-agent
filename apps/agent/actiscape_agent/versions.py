@@ -53,6 +53,7 @@ def runtime_versions():
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
         "floorplanPromptVersion": "s2c-floorplan-v2-1",
         "floorplanToolAdapter": "hpd-adapter-3",
+        "floorplanUpdateContract": "discriminated-commands-2",
         "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
         "pillow": version("Pillow"),
         "opencv": version("opencv-python-headless"),

@@ -3,6 +3,7 @@
 import asyncio
 import base64
 import hashlib
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -49,8 +50,10 @@ async def test_four_concurrent_crops_are_atomic_shared_idempotent_and_restartabl
     g = store.task(task["id"], internal=True)["generation"]
     assert len(g["evidenceIndex"]) == 4 and len(g["cropRequests"]) == 4
     assert len(await design.images()) == 4
-    with pytest.raises(TaskError, match="预算"):
-        await design.crop_tool().ainvoke({"x0": 5, "y0": 0, "x1": 6, "y1": 1})
+    exhausted = await design.crop_tool().ainvoke({"x0": 5, "y0": 0, "x1": 6, "y1": 1})
+    assert json.loads(exhausted[0]["text"])["error"] == "CROP_LIMIT"
+    assert client.calls == 4
+    assert len(store.task(task["id"], internal=True)["generation"]["cropRequests"]) == 4
     store.close()
     store = TaskStore(tmp_path)
     try:
@@ -276,3 +279,41 @@ async def test_pending_v2_update_recovers_after_lost_response_without_repeating_
         assert len(client.actions) == 1
     finally:
         store.close()
+
+
+def test_delete_rejects_patch_reason_at_schema_boundary():
+    from pydantic import ValidationError
+
+    from actiscape_agent.floorplan_schemas import MeasuredDraftUpdate
+
+    value = {
+        "baseDraftRevision": 0,
+        "baseDraftHash": "a" * 64,
+        "commands": [
+            {
+                "type": "delete",
+                "collection": "symbols",
+                "id": "wrong-chair",
+                "patch": {"reason": "misplaced explanation"},
+            }
+        ],
+        "changeReasons": [],
+        "evidenceRefs": [],
+        "summary": "controlled reproduction of captured command error",
+    }
+    with pytest.raises(ValidationError) as error:
+        MeasuredDraftUpdate.model_validate(value)
+    assert any(
+        e["type"] == "extra_forbidden" and e["loc"][-1] == "patch" for e in error.value.errors()
+    )
+    del value["commands"][0]["patch"]
+    value["changeReasons"] = [
+        {
+            "collection": "symbols",
+            "id": "wrong-chair",
+            "reason": "source verification",
+            "evidenceRefs": ["image:" + "a" * 64],
+        }
+    ]
+    result = MeasuredDraftUpdate.model_validate(value).model_dump(exclude_none=True)
+    assert set(result["commands"][0]) == {"type", "collection", "id"}

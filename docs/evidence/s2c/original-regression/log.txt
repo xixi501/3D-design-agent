@@ -69,7 +69,7 @@ dist/editor/assets/render-B57NL34r.js        1.73 kB │ gzip:   1.04 kB │ map
 dist/editor/assets/main-D9fzasbV.js         74.92 kB │ gzip:  26.77 kB │ map:   219.57 kB
 dist/editor/assets/three-view-DMV5vMdM.js  919.66 kB │ gzip: 255.75 kB │ map: 3,269.43 kB
 
-[plugin builtin:vite-reporter] 
+[plugin builtin:vite-reporter]
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting

@@ -40,7 +40,9 @@
     "test:initialization": "node --import tsx scripts/initialization-acceptance.mjs",
     "tools:generation-demo": "node scripts/generation-demo.mjs",
     "test:generation:live": "node scripts/generation-acceptance.mjs",
-    "test:generation:browser": "node scripts/generation-browser-acceptance.mjs"
+    "test:generation:browser": "node scripts/generation-browser-acceptance.mjs",
+    "test:floorplan": "node --import tsx scripts/floorplan-acceptance.mjs",
+    "test:floorplan:live": "node --import tsx scripts/floorplan-live.mjs"
   },
   "dependencies": {
     "@fastify/multipart": "10.1.7",

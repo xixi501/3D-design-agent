@@ -1,10 +1,12 @@
 import asyncio
+import contextlib
 import json
 import os
 from contextlib import asynccontextmanager
 from importlib.metadata import version
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, Header, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
@@ -111,15 +113,15 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
         manager().enqueue(task["id"])
         return task
 
-    @app.get("/tasks/{id}")
-    async def task(id: str):
+    async def reconcile(id: str):
         from .client import SceneFailure
 
-        try:
+        with contextlib.suppress(SceneFailure, TaskError, httpx.HTTPError):
             await manager().reconcile_floorplan_confirmation(id)
-        except SceneFailure as e:
-            if e.status < 500:
-                raise TaskError(e.code, str(e), e.status) from None
+
+    @app.get("/tasks/{id}")
+    async def task(id: str):
+        await reconcile(id)
         return manager().store.task(id)
 
     @app.get("/tasks/{id}/trace")
@@ -153,6 +155,7 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
         async def stream():
             nonlocal cursor
             while not await request.is_disconnected():
+                await reconcile(id)
                 for event in manager().store.events(id, cursor):
                     cursor = event["seq"]
                     yield f"id: {cursor}\nevent: progress\ndata: {json.dumps(event, ensure_ascii=False)}\n\n"

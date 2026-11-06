@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 from pathlib import Path
 
+import httpx
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from .client import SceneClient, SceneFailure
@@ -35,7 +36,7 @@ class TaskManager:
         for row in self.store.db.execute(
             "SELECT id FROM tasks WHERE mode='reconstruct_floorplan' AND status='waiting_input'"
         ).fetchall():
-            with contextlib.suppress(SceneFailure, TaskError):
+            with contextlib.suppress(SceneFailure, TaskError, httpx.HTTPError):
                 await self.reconcile_floorplan_confirmation(row["id"])
 
     async def confirm_floorplan(self, id: str, body: dict):
@@ -56,6 +57,14 @@ class TaskManager:
             f"/projects/{task['projectId']}/floorplan-drafts/{body['draftId']}/confirm",
             {k: v for k, v in body.items() if k != "draftId"},
         )
+        current = self.store.task(id, internal=True)
+        if current["cancelRequested"] or current["status"] == "cancelled":
+            raise TaskError("CANCELLED", "任务已取消，未提交场景", 409)
+        if current["status"] not in ("waiting_input", "failed", "conflict"):
+            if current["generation"].get("confirmation") == body:
+                return self.store.task(id)
+            raise TaskError("INVALID_STATE", "任务已经恢复，请读取当前进度", 409)
+        g = dict(current["generation"])
         g.update(confirmation=body, floorplan=record)
         self.store.update(id, generation=g)
         resumed = self.store.resume(
@@ -80,6 +89,33 @@ class TaskManager:
             or task["status"] != "waiting_input"
             or not task["generation"].get("draftId")
         ):
+            return
+        project = await self.client.request(f"/projects/{task['projectId']}")
+        if self.store.task(id)["status"] != "waiting_input":
+            return
+        if any(
+            project["plan"].get(k)
+            for k in (
+                "nodes",
+                "walls",
+                "openings",
+                "furniture",
+                "rooms",
+                "structs",
+                "beams",
+                "measures",
+                "elec",
+                "voids",
+                "comments",
+            )
+        ) or project.get("roomLabelArchive"):
+            result = {
+                "status": "failed",
+                "errorCode": "PROJECT_NOT_EMPTY",
+                "message": "手工编辑使项目非空，户型初始化已停止；现有场景没有被覆盖。",
+            }
+            self.store.update(id, status="failed", result=result, error=result["message"])
+            self.store.event(id, "status", result)
             return
         d = await self.client.request(
             f"/projects/{task['projectId']}/floorplan-drafts/{task['generation']['draftId']}"

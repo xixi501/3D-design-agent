@@ -404,3 +404,19 @@ async def test_new_confirmation_and_restart_do_not_reset_global_repair_budget(tm
         assert result["modelCalls"] > latest["modelCalls"] and not client.ledger
     finally:
         await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_manual_edit_during_confirmation_wait_stops_initialization(tmp_path):
+    client = FloorplanScene()
+    manager = TaskManager(tmp_path, client, ControlledFloorplanRoles)
+    try:
+        task = await start(manager)
+        client.project["revision"] = 1
+        client.project["plan"]["furniture"] = [copy.deepcopy(FIXTURE["furniture"][0])]
+        await manager.reconcile_floorplan_confirmation(task["id"])
+        result = manager.store.task(task["id"])
+        assert result["status"] == "failed" and result["result"]["errorCode"] == "PROJECT_NOT_EMPTY"
+        assert len(client.project["plan"]["furniture"]) == 1 and not client.ledger
+    finally:
+        await manager.close()

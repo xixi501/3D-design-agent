@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
+import { imagePython } from "../../../scripts/image-runtime.mjs";
 import { ProjectStore, canonical } from "./store.js";
 import {
   clone,
@@ -25,10 +26,8 @@ const identity = (v: any) => {
 async function imageProcess(bytes: Buffer, mode = "inspect"): Promise<any> {
   return await new Promise((resolve, reject) => {
     const child = spawn(
-      process.env.ACTISCAPE_AGENT_PYTHON ||
-        process.env.ACTISCAPE_PYTHON ||
-        path.resolve(".venv/bin/python"),
-      ["-m", "actiscape_agent.floorplan_image", mode],
+      imagePython(),
+      [path.resolve("apps/agent/actiscape_agent/floorplan_image.py"), mode],
       { stdio: ["pipe", "pipe", "pipe"] },
     );
     let output = Buffer.alloc(0),

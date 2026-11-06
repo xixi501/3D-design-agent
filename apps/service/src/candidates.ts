@@ -10,7 +10,15 @@ import {
   SceneError,
   type Command,
   type SceneState,
+  collections,
 } from "../../../packages/scene-core/src/index.js";
+import {
+  compileRectangular,
+  checkInitialization,
+  requireBlank,
+  structuralDiff,
+  type RectangularBrief,
+} from "../../../packages/scene-core/src/rectangular.js";
 import {
   materializeEdits,
   validateScope,
@@ -40,7 +48,7 @@ export interface CandidateReview {
 }
 export class CandidateStore {
   constructor(public projects: ProjectStore) {
-    if (Number(projects.db.pragma("user_version", { simple: true })) > 1)
+    if (Number(projects.db.pragma("user_version", { simple: true })) > 2)
       throw new SceneError(
         "UNSUPPORTED_DATABASE",
         "数据库版本高于当前业务版本，请使用对应版本恢复",
@@ -51,7 +59,7 @@ export class CandidateStore {
         projects.db
           .exec(`CREATE TABLE IF NOT EXISTS candidates(id TEXT PRIMARY KEY,project TEXT NOT NULL REFERENCES projects(id),request_id TEXT NOT NULL,request_hash TEXT NOT NULL,document TEXT NOT NULL,evidence TEXT NOT NULL DEFAULT '[]',review TEXT,committed TEXT,UNIQUE(project,request_id));
       CREATE INDEX IF NOT EXISTS candidates_project ON candidates(project);`);
-        projects.db.pragma("user_version = 1");
+        projects.db.pragma("user_version = 2");
       })
       .immediate();
     fs.mkdirSync(path.join(projects.directory, "evidence"), {
@@ -107,6 +115,8 @@ export class CandidateStore {
       scope: EditScope;
       edits: CandidateEdit[];
       summary?: string;
+      kind?: "edit" | "initialize";
+      brief?: RectangularBrief;
     },
   ) {
     if (
@@ -154,12 +164,34 @@ export class CandidateStore {
           plan: base.plan,
           roomLabelArchive: base.roomLabelArchive,
         };
-        const scope = validateScope(request.scope, base.plan),
-          commands = materializeEdits(before, scope, request.edits),
+        if (
+          request.kind !== undefined &&
+          !["edit", "initialize"].includes(request.kind)
+        )
+          throw new SceneError("INVALID_REQUEST", "未知候选类型");
+        const initialization = request.kind === "initialize";
+        if (!initialization && request.brief !== undefined)
+          throw new SceneError("INVALID_REQUEST", "编辑候选不能改变房间结构");
+        if (initialization) requireBlank(before);
+        const compiled = initialization
+          ? compileRectangular(request.brief!, request.taskId)
+          : undefined;
+        const source = compiled?.state || before;
+        const scope = validateScope(request.scope, source.plan),
+          edits = materializeEdits(source, scope, request.edits),
+          commands = [...(compiled?.commands || []), ...edits],
           state = applyCommands(before, commands);
         for (const id of assetReferences(state.plan)) this.projects.asset(id);
         const id = newId(),
-          checks = checkCandidate(before, state, scope),
+          checks = initialization
+            ? checkInitialization(
+                before,
+                state,
+                request.brief!,
+                request.taskId,
+                scope,
+              )
+            : checkCandidate(before, state, scope),
           diff = businessDiff(base.plan, state.plan);
         if (!diff.added.length && !diff.updated.length && !diff.deleted.length)
           throw new SceneError("NO_CHANGE", "候选没有产生业务修改");
@@ -176,6 +208,18 @@ export class CandidateStore {
           summary: request.summary || "Agent 局部编辑",
           operationId: `candidate:${id}`,
           createdAt: new Date().toISOString(),
+          ...(compiled
+            ? {
+                kind: "initialize",
+                generation: {
+                  brief: compiled.brief,
+                  dimensions: compiled.dimensions,
+                  openings: compiled.openings,
+                  defaults: compiled.defaults,
+                },
+                structure: structuralDiff(base.plan, state.plan),
+              }
+            : {}),
         };
         const document = { ...frozen, hash: sha256(frozen), before };
         this.projects.db
@@ -282,7 +326,7 @@ export class CandidateStore {
         "检查意见必须包含有效结论和两个证据校验值",
       );
     const validIds = new Set([
-      ...c.state.plan.furniture.map((f: any) => f.id),
+      ...collections.flatMap((key) => c.state.plan[key].map((o: any) => o.id)),
       ...c.diff.deleted,
     ]);
     if (review.objectIds.some((id) => !validIds.has(id)))
@@ -332,7 +376,17 @@ export class CandidateStore {
         );
         if (
           sha256(replay) !== sha256(c.state) ||
-          !checkCandidate(before, replay, c.scope).passed
+          !(
+            c.kind === "initialize"
+              ? checkInitialization(
+                  before,
+                  replay,
+                  c.generation.brief,
+                  c.taskId,
+                  c.scope,
+                )
+              : checkCandidate(before, replay, c.scope)
+          ).passed
         )
           throw new SceneError("CHECK_FAILED", "候选未通过确定性检查", 409);
         this.verifyEvidence(project, id);

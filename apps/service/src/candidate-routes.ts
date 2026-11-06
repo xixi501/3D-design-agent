@@ -4,6 +4,10 @@ import { CandidateStore } from "./candidates.js";
 import { ProjectStore } from "./store.js";
 import { RenderWorker } from "./render-worker.js";
 import { SceneError } from "../../../packages/scene-core/src/index.js";
+import {
+  compileRectangular,
+  requireBlank,
+} from "../../../packages/scene-core/src/rectangular.js";
 
 export function candidateRoutes(
   app: FastifyInstance,
@@ -15,6 +19,45 @@ export function candidateRoutes(
   const root = "/api/projects/:id/candidates",
     item = root + "/:candidate";
   const params = (req: any) => [req.params.id, req.params.candidate] as const;
+  app.post(
+    "/api/projects/:id/initialization-preview",
+    {
+      schema: {
+        description:
+          "Read-only rectangular structure preview for an empty project; fixed task ID gives stable structure IDs",
+        body: {
+          type: "object",
+          required: ["taskId", "baseRevision", "brief"],
+          additionalProperties: false,
+          properties: {
+            taskId: { type: "string", minLength: 1, maxLength: 100 },
+            baseRevision: { type: "integer", minimum: 0 },
+            brief: { type: "object", additionalProperties: true },
+          },
+        },
+      },
+    },
+    async (req) => {
+      const body = req.body as any,
+        p = store.get((req.params as any).id);
+      if (p.revision !== body.baseRevision)
+        throw new SceneError("REVISION_CONFLICT", "项目版本已变化", 409, {
+          currentRevision: p.revision,
+        });
+      requireBlank(p);
+      return {
+        ...compileRectangular(body.brief, body.taskId),
+        projectId: p.id,
+        baseRevision: p.revision,
+        checks: {
+          passed: true,
+          issues: [],
+          coverage: ["矩形净尺寸、门窗范围与重叠、有效封闭房间"],
+          limitations: ["结构预览不包含家具和最终检查"],
+        },
+      };
+    },
+  );
   app.get(
     root,
     {
@@ -39,6 +82,8 @@ export function candidateRoutes(
             taskId: { type: "string", minLength: 1, maxLength: 200 },
             baseRevision: { type: "integer", minimum: 0 },
             summary: { type: "string", maxLength: 200 },
+            kind: { type: "string", enum: ["edit", "initialize"] },
+            brief: { type: "object", additionalProperties: true },
             scope: { type: "object", additionalProperties: true },
             edits: {
               type: "array",

@@ -447,12 +447,68 @@ export function checkScene(plan: Plan) {
           metric: Ts(polygons, wallPolygons),
         });
     }
+  // Project layout heuristic: reserve 800 mm in each valid interior side of a doorway.
+  // This checks a local entrance zone, not full accessibility or building regulations.
+  const doorTypes = new Set([
+    "door",
+    "double",
+    "unequal",
+    "sliding",
+    "folding",
+    "pocket",
+    "hole",
+    "garage",
+  ]);
+  for (const w of geo.active)
+    for (const op of w.ops) {
+      if (!doorTypes.has(op.o.type) || op.o.sill > 20) continue;
+      for (const side of [-1, 1]) {
+        const middle = (op.s0 + op.s1) / 2,
+          probe = {
+            x: w.a.x + w.u.x * middle + w.n.x * side * (w.ht + 1),
+            y: w.a.y + w.u.y * middle + w.n.y * side * (w.ht + 1),
+          };
+        if (
+          !regions.some((r: any) =>
+            r.rects.some(
+              (b: any) =>
+                probe.x >= b.x &&
+                probe.x <= b.x + b.w &&
+                probe.y >= b.y &&
+                probe.y <= b.y + b.h,
+            ),
+          )
+        )
+          continue;
+        const zone = [
+          [op.s0, side * w.ht],
+          [op.s1, side * w.ht],
+          [op.s1, side * (w.ht + 800)],
+          [op.s0, side * (w.ht + 800)],
+        ].map(([along, normal]) => ({
+          x: w.a.x + w.u.x * along + w.n.x * normal,
+          y: w.a.y + w.u.y * along + w.n.y * normal,
+        }));
+        for (const { f, polygons, z } of boxes) {
+          const penetration = Ts(polygons, [zone]);
+          if (z < op.o.head && z + f.h > 20 && penetration > 20)
+            issues.push({
+              code: "DOORWAY_BLOCKED",
+              objectIds: [f.id, op.o.id],
+              message: `${f.name} 占用门洞内侧 800 mm 净空区（项目布局规则）`,
+              level: "error",
+              metric: penetration,
+            });
+        }
+      }
+    }
   return {
     issues,
     coverage: [
       "结构引用与尺寸校验",
       "原版参数化轮廓 SAT 相交与垂直区间",
       "家具轮廓与墙体及洞口",
+      "门洞内侧 800 mm 局部净空（项目布局规则）",
     ],
     limitations: [
       "不等同于精确网格碰撞检测；GLB 使用矩形占地",

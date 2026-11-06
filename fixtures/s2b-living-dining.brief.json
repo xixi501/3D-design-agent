@@ -1,0 +1,13 @@
+{
+  "purpose": "living_dining",
+  "width": { "value": 6, "unit": "m" },
+  "depth": { "value": 4, "unit": "m" },
+  "doors": [
+    {
+      "side": "south",
+      "position": "offset",
+      "offset": { "value": 400, "unit": "mm" }
+    }
+  ],
+  "windows": [{ "side": "north", "position": "center" }]
+}

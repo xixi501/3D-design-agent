@@ -1,0 +1,13 @@
+{
+  "purpose": "reading_lounge",
+  "width": { "value": 5000, "unit": "mm" },
+  "depth": { "value": 360, "unit": "cm" },
+  "doors": [
+    {
+      "side": "south",
+      "position": "offset",
+      "offset": { "value": 3500, "unit": "mm" }
+    }
+  ],
+  "windows": [{ "side": "east", "position": "center" }]
+}

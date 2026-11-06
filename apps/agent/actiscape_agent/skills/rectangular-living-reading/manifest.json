@@ -1,0 +1,9 @@
+{
+  "id": "rectangular-living-reading",
+  "version": "0.1.0",
+  "description": "矩形客餐厅与阅读会客组合：保留真实净尺寸和门窗，选择目录家具并生成可检查布局",
+  "appliesTo": ["living_dining", "reading_lounge"],
+  "requiredTools": ["search_catalogue_batch", "precheck_initialization", "candidate_checks"],
+  "source": ["ZWD11/house-plan-designer@b94183f9ce2215db9a178da89a90d2ecefb18497/reference/spec-format.md", "ActiScape S2-B project layout rules"],
+  "license": "MIT"
+}

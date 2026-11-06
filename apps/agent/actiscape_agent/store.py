@@ -25,6 +25,14 @@ def fingerprint(value) -> str:
     ).hexdigest()
 
 
+def task_fingerprint(body: dict) -> str:
+    # Adding a default mode must not invalidate old request identities.
+    value = dict(body)
+    if value.get("mode", "edit") == "edit":
+        value.pop("mode", None)
+    return fingerprint(value)
+
+
 class TaskStore:
     def __init__(self, directory: Path):
         directory.mkdir(parents=True, exist_ok=True)
@@ -33,6 +41,8 @@ class TaskStore:
             directory / "tasks.sqlite", check_same_thread=False, isolation_level=None
         )
         self.db.row_factory = sqlite3.Row
+        if self.db.execute("PRAGMA user_version").fetchone()[0] > 1:
+            raise TaskError("UNSUPPORTED_DATABASE", "Agent 数据库版本高于当前程序", 500)
         self.db.executescript("""
         PRAGMA journal_mode=WAL;
         PRAGMA synchronous=FULL;
@@ -45,6 +55,15 @@ class TaskStore:
         CREATE INDEX IF NOT EXISTS events_task ON events(task_id,seq);
         CREATE TABLE IF NOT EXISTS actions(task_id TEXT NOT NULL,request_id TEXT NOT NULL,hash TEXT NOT NULL,PRIMARY KEY(task_id,request_id));
         """)
+        with self.transaction():
+            columns = {row["name"] for row in self.db.execute("PRAGMA table_info(tasks)")}
+            if "mode" not in columns:
+                self.db.execute("ALTER TABLE tasks ADD COLUMN mode TEXT NOT NULL DEFAULT 'edit'")
+            if "generation" not in columns:
+                self.db.execute(
+                    "ALTER TABLE tasks ADD COLUMN generation TEXT NOT NULL DEFAULT '{}'"
+                )
+            self.db.execute("PRAGMA user_version=1")
 
     @contextmanager
     def transaction(self):
@@ -108,7 +127,14 @@ class TaskStore:
             "elapsedSeconds": row["elapsed"],
             "createdAt": row["created"],
             "updatedAt": row["updated"],
+            "mode": row["mode"],
         }
+        generation = json.loads(row["generation"])
+        data["generation"] = (
+            generation
+            if internal
+            else {k: v for k, v in generation.items() if k != "skillSnapshot"}
+        )
         if internal:
             data["activeStarted"] = row["active_started"]
         return data
@@ -123,31 +149,35 @@ class TaskStore:
 
     def create_task(self, conversation: str, body: dict):
         c = self.conversation(conversation)
+        mode = body.get("mode", "edit")
+        if mode not in ("edit", "generate_rectangular"):
+            raise TaskError("INVALID_MODE", "未知任务模式")
         with self.transaction():
             old = self.db.execute(
                 "SELECT id,request_hash FROM tasks WHERE conversation_id=? AND request_id=?",
                 (conversation, body["requestId"]),
             ).fetchone()
             if old:
-                if old["request_hash"] != fingerprint(body):
+                if old["request_hash"] != task_fingerprint(body):
                     raise TaskError("OPERATION_CONFLICT", "相同请求身份对应不同内容", 409)
                 return self.task(old["id"])
             id = str(uuid.uuid4())
             now = time.time()
             try:
                 self.db.execute(
-                    "INSERT INTO tasks(id,conversation_id,project_id,request_id,request_hash,input,selected,status,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO tasks(id,conversation_id,project_id,request_id,request_hash,input,selected,status,created,updated,mode) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
                     (
                         id,
                         conversation,
                         c["projectId"],
                         body["requestId"],
-                        fingerprint(body),
+                        task_fingerprint(body),
                         body["input"],
                         json.dumps(body.get("selectedIds", [])),
                         "queued",
                         now,
                         now,
+                        mode,
                     ),
                 )
             except sqlite3.IntegrityError as e:
@@ -192,12 +222,13 @@ class TaskStore:
             "active_started",
             "input",
             "selected",
+            "generation",
         }
         if set(fields) - allowed:
             raise ValueError("Unknown task fields")
         values = {
             k: json.dumps(v, ensure_ascii=False)
-            if k in ("result", "selected") and v is not None
+            if k in ("result", "selected", "generation") and v is not None
             else v
             for k, v in fields.items()
         }

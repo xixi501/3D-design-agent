@@ -94,6 +94,7 @@ class TaskInput(StrictModel):
     requestId: str = Field(min_length=1, max_length=200)
     input: str = Field(min_length=1, max_length=4000)
     selectedIds: list[str] = Field(default_factory=list, max_length=20)
+    mode: Literal["edit", "generate_rectangular"] = "edit"
 
 
 class ResumeInput(StrictModel):

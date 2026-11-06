@@ -1,0 +1,28 @@
+{
+  "baseline": "e6161f5",
+  "previousClassificationCorrection": "preview was requested, nested draft.change_reasons failed validation; return_direct plus generic structured recovery exited without successful preflight",
+  "cases": [
+    {
+      "case": 1,
+      "taskId": "20698d8e-6230-43d7-957f-7afd3ca5b0bb",
+      "sourceSha256": "41320356024ea2268af87e1fba3c1a7f6e04d78c82d7b2217e0df230eaedd8cf",
+      "cropStarts": 4,
+      "cropRecords": 2
+    },
+    {
+      "case": 2,
+      "taskId": "bbe5da44-0d2b-46ca-ab11-052db06084ae",
+      "sourceSha256": "1b6db81f7792c3013da40c3c81d69923118c9a8c6a072744532de79605f7b187",
+      "cropStarts": 4,
+      "cropRecords": 2,
+      "parameterErrors": [
+        {
+          "loc": [
+            "change_reasons"
+          ],
+          "type": "extra_forbidden"
+        }
+      ]
+    }
+  ]
+}

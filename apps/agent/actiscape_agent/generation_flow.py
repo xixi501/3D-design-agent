@@ -49,7 +49,7 @@ class GenerationFlow:
                     "final": {
                         "status": "failed",
                         "message": generation["question"] or "当前仅支持单个矩形客餐厅或阅读会客间",
-                        "generation": generation,
+                        "generation": {k: v for k, v in generation.items() if k != "skillSnapshot"},
                     },
                 }
             if generation["missing"]:

@@ -122,6 +122,30 @@ try {
   assert.equal(task.status, "completed");
   assert.equal(task.modelCalls, lastTask.model_calls);
   assert.deepEqual(task.result, JSON.parse(lastTask.result));
+  const generation = JSON.parse(lastTask.generation || "{}");
+  assert.equal(task.mode, lastTask.mode || "edit");
+  assert.deepEqual(
+    task.generation,
+    Object.fromEntries(
+      Object.entries(generation).filter(([key]) => key !== "skillSnapshot"),
+    ),
+  );
+  const restoredTasks = new Database(
+    path.join(restored, "agent/tasks.sqlite"),
+    { readonly: true },
+  );
+  try {
+    assert.deepEqual(
+      JSON.parse(
+        restoredTasks
+          .prepare("SELECT generation FROM tasks WHERE id=?")
+          .get(lastTask.id).generation,
+      ),
+      generation,
+    );
+  } finally {
+    restoredTasks.close();
+  }
   const candidate = await api(
     `/projects/${projectId}/candidates/${task.result.candidateId}`,
   );
@@ -171,6 +195,7 @@ try {
         taskCount,
         candidateEvidenceHashes: true,
         assetBytes: true,
+        generationBriefAndSkill: true,
         checkpointFileCopied: fs.existsSync(
           path.join(restored, "agent/checkpoints.sqlite"),
         ),

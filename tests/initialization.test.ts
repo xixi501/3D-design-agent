@@ -178,6 +178,47 @@ test("initialization previews and candidates leave projects unchanged; enforce q
       () =>
         s.candidates.create(p.id, {
           ...body,
+          requestId: "change-structure",
+          edits: [
+            ...edits,
+            {
+              type: "update",
+              id: preview.json().state.plan.nodes[0].id,
+              values: { x: 900 },
+            },
+          ],
+        }),
+      /授权范围/,
+    );
+    const small = s.candidates.create(p.id, {
+      ...body,
+      requestId: "too-small",
+      brief: {
+        ...brief,
+        width: { value: 2000, unit: "mm" },
+        depth: { value: 1800, unit: "mm" },
+        doors: [{ side: "south", position: "center" }],
+        windows: [],
+      },
+      scope: {
+        targetIds: [],
+        allowDeleteIds: [],
+        allowAddKeys: ["sofa"],
+        requirements: [{ key: "sofa", count: 1, scope: "project" }],
+      },
+      edits: [{ type: "create", key: "sofa", values: { x: 1000, y: 700 } }],
+    });
+    assert.ok(
+      small.checks.issues.some(
+        (i: any) => i.code === "OUTSIDE_ROOM" && i.blocking,
+      ),
+    );
+    assert.equal(small.generation.dimensions.width, 2000);
+    assert.deepEqual(s.store.get(p.id), p);
+    assert.throws(
+      () =>
+        s.candidates.create(p.id, {
+          ...body,
           requestId: "forbidden-edit",
           kind: "edit",
         }),

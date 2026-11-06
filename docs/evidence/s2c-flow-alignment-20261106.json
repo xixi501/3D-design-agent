@@ -1,0 +1,683 @@
+{
+  "date": "2026-11-06",
+  "scope": "S2-C original-flow alignment; fixed single-image two-run gate, not complete S2",
+  "baseCodeCommit": "e6161f578d7e2a3fe02b79aadce6cfc6e8365bb8",
+  "liveBatchCodeCommit": "bad45a330252b5830ddc022e05ca9c9f0364eca5",
+  "offlineOnlyFixCommit": "e76cb56b39d73ae0c86826806182308968181cdc",
+  "versions": {
+    "codeCommit": "bad45a330252b5830ddc022e05ca9c9f0364eca5",
+    "workingTreeModified": false,
+    "python": "3.13.13",
+    "langgraph": "1.2.20",
+    "langchain": "1.4.9",
+    "deepseekAdapter": "1.1.1",
+    "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+    "model": "deepseek-flash",
+    "modelProvider": "api.deepseek.com",
+    "reasoningEffort": "high",
+    "tools": "scene-candidate-v3",
+    "structuredOutputRecovery": "one-bounded-continuation-1",
+    "modelConfigVersion": "per-role-output-budget-3",
+    "floorplanRecognitionOptions": {
+      "max_tokens": 32768,
+      "timeout": 180,
+      "reasoning_effort": "low",
+      "extra_body": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    },
+    "floorplanPromptVersion": "s2c-floorplan-v2-1",
+    "floorplanToolAdapter": "hpd-adapter-3",
+    "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+    "pillow": "13.0.0",
+    "opencv": "4.14.0.94",
+    "promptVersion": "s2a-local-edit-2",
+    "generationPromptVersion": "s2b-rectangular-2"
+  },
+  "reference": {
+    "purpose": "Frozen development scoring reference; NEVER supplied to Agent, production service or recognition tools",
+    "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+    "referenceSha256": "2b6e646602f0e96cdb6d5246b1a8ead6551917ce2c5e68e9b8bf3ece3a0c559e",
+    "referenceFile": "one-bedroom.evaluation-only.json",
+    "sourceCommit": "553446095a290541df6187d31cbbd99b13fcf4cb",
+    "coordinateSpace": "EXIF-oriented original image pixels",
+    "annotationMethod": "Independent visual reading of original only; no model draft copied",
+    "limits": "Raster positions approximate; existing metric tolerances apply unchanged. A single exterior anchor determines reference scale; other source dimensions are cross-check evidence, not contradictory exact pixel anchors.",
+    "manualObjectCorrectionLimit": 0,
+    "requiredRuns": 2,
+    "aliases": {
+      "客餐厅": "livingroom",
+      "客厅": "livingroom",
+      "卧室": "bedroom",
+      "卫生间": "bathroom",
+      "浴室": "bathroom",
+      "三人沙发": "sofa",
+      "沙发": "sofa",
+      "茶几": "coffeetable",
+      "餐桌": "diningtable",
+      "餐椅": "chair",
+      "电视柜": "tvcabinet",
+      "书柜": "bookshelf",
+      "置物架": "bookshelf",
+      "盆栽": "plant",
+      "绿植": "plant",
+      "地毯": "rug",
+      "Dining Chair": "chair",
+      "Dining Table": "diningtable",
+      "Coffee Table": "coffeetable",
+      "TV Cabinet": "tvcabinet",
+      "Sofa": "sofa",
+      "Bookshelf": "bookshelf",
+      "Plant": "plant",
+      "Rug": "rug"
+    },
+    "scoringVersion": "s2c-2",
+    "dimensionPolicy": "Measure the solved feature distance, not reference-pixel length times candidate scale. Raster localization thresholds unchanged.",
+    "allowedCatalogueKeys": {
+      "sofa": [
+        "sofa",
+        "modularSofa"
+      ],
+      "coffee": [
+        "coffeeTable"
+      ],
+      "dining": [
+        "diningTable",
+        "diningTable6"
+      ],
+      "tv": [
+        "tvCabinet",
+        "cabTV"
+      ],
+      "books": [
+        "cabTall"
+      ],
+      "plant": [
+        "plant",
+        "bigPlant"
+      ],
+      "rug": [
+        "rug"
+      ],
+      "chair-1": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-2": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-3": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-4": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-5": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-6": [
+        "chair",
+        "armDiningChair"
+      ]
+    }
+  },
+  "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+  "ordinaryRequest": "识别这张户型图的整层结构，保留原图所有房间、墙体和门窗，复现客餐厅已有家具的类别、数量、位置和朝向。厨房与卧室只保留结构，不另外设计或填充家具。请先输出识别草稿和不确定项，不改变原有户型。",
+  "budget": {
+    "modelRequests": 24,
+    "activeSeconds": 600,
+    "repairsAfterInitial": 3,
+    "sharedCropLimit": 4,
+    "mainCropLimit": 2
+  },
+  "referenceSentToAgent": false,
+  "manualGeometryOperations": 0,
+  "confirmedRuns": 0,
+  "passedRuns": 0,
+  "requiredRuns": 2,
+  "singleImageAccepted": false,
+  "completeS2Accepted": false,
+  "stoppedAfterFixedBatch": true,
+  "additionalLiveCallsForOfflineFixes": 0,
+  "cases": [
+    {
+      "repeat": 1,
+      "taskId": "1f6ce0ee-2d20-4bc2-a215-db9d2e99d7e9",
+      "projectId": "d15a61f4-c13b-4fce-9ca3-f59752fc34e9",
+      "artifact": {
+        "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-result.json",
+        "sha256": "26c34702fd3387c92460e12f0d194177c5c24fa27ca1b0ee5eb1bf78bb479676",
+        "bytes": 117816
+      },
+      "scoringArtifact": {
+        "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-scoring.json",
+        "sha256": "07fd7142ccc928e1a4a040fda30af37bf3cd0cacae2ca925ced588465e9ffdd7",
+        "bytes": 727
+      },
+      "status": "failed",
+      "errorCode": "MODEL_FORMAT",
+      "error": "模型在一次格式恢复后仍未返回可验证的结构化结果",
+      "modelCalls": 6,
+      "activeSeconds": 113.60021233558655,
+      "recordedTotalTokens": 206582,
+      "rolesActuallyInvoked": [
+        "main",
+        "check"
+      ],
+      "modelFinishReasons": [
+        {
+          "role": "main",
+          "seconds": 1.519,
+          "finishReason": "tool_calls",
+          "outputTokens": 66,
+          "reasoningTokens": null
+        },
+        {
+          "role": "main",
+          "seconds": 1.31,
+          "finishReason": "tool_calls",
+          "outputTokens": 63,
+          "reasoningTokens": null
+        },
+        {
+          "role": "main",
+          "seconds": 1.393,
+          "finishReason": "tool_calls",
+          "outputTokens": 171,
+          "reasoningTokens": null
+        },
+        {
+          "role": "main",
+          "seconds": 15.432,
+          "finishReason": "tool_calls",
+          "outputTokens": 4157,
+          "reasoningTokens": null
+        },
+        {
+          "role": "check",
+          "seconds": 44.116,
+          "finishReason": "length",
+          "outputTokens": 8192,
+          "reasoningTokens": 8192
+        },
+        {
+          "role": "check",
+          "seconds": 47.569,
+          "finishReason": "length",
+          "outputTokens": 8192,
+          "reasoningTokens": 8192
+        }
+      ],
+      "skillsUsed": [
+        {
+          "id": "floorplan-reconstruction",
+          "version": "0.4.0",
+          "contentHash": "547a2b51eca88a8c78a59dd2b7de90531e6d8dc3608a76b1f3eec852cbac0ca2",
+          "source": [
+            {
+              "title": "ActiScape S2-C approved reconstruction rules",
+              "uri": "repository:docs/S2C_RUNBOOK.md"
+            },
+            {
+              "title": "house-plan-designer image measurement workflow (MIT), pinned b94183f9",
+              "uri": "https://github.com/ZWD11/house-plan-designer/tree/b94183f9ce2215db9a178da89a90d2ecefb18497"
+            }
+          ],
+          "license": "MIT"
+        }
+      ],
+      "cropReservations": 2,
+      "cropStates": [
+        "completed",
+        "completed"
+      ],
+      "firstRecognition": {
+        "passed": false,
+        "walls": {
+          "precision": 1,
+          "recall": 1,
+          "allMatched": true
+        },
+        "openings": {
+          "matches": [
+            {
+              "i": 4,
+              "j": 2
+            }
+          ],
+          "precision": 0.16666666666666666,
+          "recall": 0.14285714285714285
+        },
+        "furniture": {
+          "matches": [],
+          "precision": 0,
+          "recall": 0
+        },
+        "thresholdVersion": "s2c-1"
+      },
+      "firstCategoryScoreCaveat": "Free descriptions in category fail frozen exact alias matching; zero does not mean no furniture detected.",
+      "rawObjectCounts": {
+        "walls": 6,
+        "openings": 6,
+        "rooms": 4,
+        "symbols": 16
+      },
+      "repairRounds": 0,
+      "formalRevision": 0,
+      "history": {
+        "undo": 0,
+        "redo": 0
+      },
+      "manualObjectCorrections": 0,
+      "confirmationSimulated": false,
+      "real3DPassed": false,
+      "solvedGeometryFromRealImagePassed": false
+    },
+    {
+      "repeat": 2,
+      "taskId": "3a43424e-696a-4b8a-a0ed-26c0a6f86664",
+      "projectId": "34a98db3-05a2-4e99-a7c2-b2ab962ead74",
+      "artifact": {
+        "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-result.json",
+        "sha256": "8f99e273054b3ad2cdf4c4ae569da76fdfb6bf54356e7926a5f82acb3add5be9",
+        "bytes": 214759
+      },
+      "scoringArtifact": {
+        "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-scoring.json",
+        "sha256": "7569b658cc319fd8839595b37599411416500e04a62d40bdada1dcab2597aca9",
+        "bytes": 1201
+      },
+      "status": "failed",
+      "errorCode": "CROP_LIMIT",
+      "error": "裁剪预算已用完；请读取已有共享证据",
+      "modelCalls": 10,
+      "activeSeconds": 127.54395604133606,
+      "recordedTotalTokens": 398578,
+      "rolesActuallyInvoked": [
+        "main",
+        "check",
+        "design"
+      ],
+      "modelFinishReasons": [
+        {
+          "role": "main",
+          "seconds": 1.124,
+          "finishReason": "tool_calls",
+          "outputTokens": 85,
+          "reasoningTokens": null
+        },
+        {
+          "role": "main",
+          "seconds": 1.537,
+          "finishReason": "tool_calls",
+          "outputTokens": 230,
+          "reasoningTokens": null
+        },
+        {
+          "role": "main",
+          "seconds": 13.52,
+          "finishReason": "tool_calls",
+          "outputTokens": 3556,
+          "reasoningTokens": null
+        },
+        {
+          "role": "check",
+          "seconds": 45.586,
+          "finishReason": "length",
+          "outputTokens": 8192,
+          "reasoningTokens": 8192
+        },
+        {
+          "role": "check",
+          "seconds": 20.488,
+          "finishReason": "tool_calls",
+          "outputTokens": 3364,
+          "reasoningTokens": 946
+        },
+        {
+          "role": "design",
+          "seconds": 1.278,
+          "finishReason": "tool_calls",
+          "outputTokens": 115,
+          "reasoningTokens": null
+        },
+        {
+          "role": "design",
+          "seconds": 3.491,
+          "finishReason": "tool_calls",
+          "outputTokens": 691,
+          "reasoningTokens": null
+        },
+        {
+          "role": "design",
+          "seconds": 33.717,
+          "finishReason": "tool_calls",
+          "outputTokens": 9616,
+          "reasoningTokens": null
+        },
+        {
+          "role": "design",
+          "seconds": 1.36,
+          "finishReason": "tool_calls",
+          "outputTokens": 22,
+          "reasoningTokens": null
+        },
+        {
+          "role": "design",
+          "seconds": 1.359,
+          "finishReason": "tool_calls",
+          "outputTokens": 188,
+          "reasoningTokens": null
+        }
+      ],
+      "skillsUsed": [
+        {
+          "id": "floorplan-reconstruction",
+          "version": "0.4.0",
+          "contentHash": "547a2b51eca88a8c78a59dd2b7de90531e6d8dc3608a76b1f3eec852cbac0ca2",
+          "source": [
+            {
+              "title": "ActiScape S2-C approved reconstruction rules",
+              "uri": "repository:docs/S2C_RUNBOOK.md"
+            },
+            {
+              "title": "house-plan-designer image measurement workflow (MIT), pinned b94183f9",
+              "uri": "https://github.com/ZWD11/house-plan-designer/tree/b94183f9ce2215db9a178da89a90d2ecefb18497"
+            }
+          ],
+          "license": "MIT"
+        }
+      ],
+      "cropReservations": 4,
+      "cropStates": [
+        "completed",
+        "completed",
+        "completed",
+        "failed"
+      ],
+      "firstRecognition": {
+        "passed": false,
+        "walls": {
+          "precision": 1,
+          "recall": 1,
+          "allMatched": true
+        },
+        "openings": {
+          "matches": [
+            {
+              "i": 0,
+              "j": 3
+            }
+          ],
+          "precision": 0.14285714285714285,
+          "recall": 0.14285714285714285
+        },
+        "furniture": {
+          "matches": [
+            {
+              "i": 3,
+              "j": 3
+            },
+            {
+              "i": 2,
+              "j": 1
+            },
+            {
+              "i": 5,
+              "j": 2
+            },
+            {
+              "i": 0,
+              "j": 0
+            },
+            {
+              "i": 9,
+              "j": 10
+            },
+            {
+              "i": 7,
+              "j": 8
+            },
+            {
+              "i": 8,
+              "j": 9
+            },
+            {
+              "i": 6,
+              "j": 7
+            }
+          ],
+          "precision": 0.8,
+          "recall": 0.6153846153846154
+        },
+        "thresholdVersion": "s2c-1"
+      },
+      "firstCategoryScoreCaveat": null,
+      "rawObjectCounts": {
+        "walls": 6,
+        "openings": 7,
+        "rooms": 3,
+        "symbols": 12
+      },
+      "repairRounds": 1,
+      "formalRevision": 0,
+      "history": {
+        "undo": 0,
+        "redo": 0
+      },
+      "manualObjectCorrections": 0,
+      "confirmationSimulated": false,
+      "real3DPassed": false,
+      "solvedGeometryFromRealImagePassed": false
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-29989c0a9faedeecc28b5349d5da03f7a449cb3ff9e56a0fc8a47a31deb26bc5-observed.png",
+      "sha256": "c90f434091207250b0ea1efd57308b85f52a7cdf181f98cb324f510ffe9df9e4",
+      "bytes": 65752
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-8be3d487b405895b61a45b4c97e5de4064da69cafb9a9ce8497ed2e196943ee7-3c9bae69c89c81964e90ef012a917e41f93ffe80bd41e1a446516e4d77588097.png",
+      "sha256": "3c9bae69c89c81964e90ef012a917e41f93ffe80bd41e1a446516e4d77588097",
+      "bytes": 81587
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-accepted.json",
+      "sha256": "dd629c80812ffd2d92b027870c3babfc93cd18d340c77c44b8511ade863b1735",
+      "bytes": 691
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-eea661f60fb3ec213be607bd1c6aef5d534ea82496db827cf48719a865dcc1f6-analysis.png",
+      "sha256": "9fb89b69afdca49a67eaf62adca7280823b9472433c48f2c39a4e4e414823c0d",
+      "bytes": 64052
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-eea661f60fb3ec213be607bd1c6aef5d534ea82496db827cf48719a865dcc1f6-mask.png",
+      "sha256": "f1e3b1f24f32286b638ac253a9aeb438210f09ea89cdf919ce5386d87c0990b2",
+      "bytes": 3495
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-f24d803b4358082716e3dd8d20833d650d1ee7f2640d533e62358be8910653e6-7e01f2992a50706f562672215f7f57303a9f576f9cee413d48c1cc0598fb8bbf.png",
+      "sha256": "7e01f2992a50706f562672215f7f57303a9f576f9cee413d48c1cc0598fb8bbf",
+      "bytes": 83447
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-result.json",
+      "sha256": "26c34702fd3387c92460e12f0d194177c5c24fa27ca1b0ee5eb1bf78bb479676",
+      "bytes": 117816
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-scoring.json",
+      "sha256": "07fd7142ccc928e1a4a040fda30af37bf3cd0cacae2ca925ced588465e9ffdd7",
+      "bytes": 727
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/1-system-overlay.png",
+      "sha256": "c90f434091207250b0ea1efd57308b85f52a7cdf181f98cb324f510ffe9df9e4",
+      "bytes": 65752
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-17ad5b69f77b59e485c0a95e3e22fe3bff7e4c7b189949cf18b7d98fad1eb728-1e2f3166b9a8010385ab93d72dafbade25c2876b2bf1ce0a8893e5b6c9ed92d1.png",
+      "sha256": "1e2f3166b9a8010385ab93d72dafbade25c2876b2bf1ce0a8893e5b6c9ed92d1",
+      "bytes": 123688
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-2ebae04d5db354834886ec7e6b04524ea2fc22e546cc80f639ddf0870ee00070-measured.png",
+      "sha256": "61874d50afe2635821b496a5327fa01cf75126b8209c9dbdbf238beae7ebefeb",
+      "bytes": 54678
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-446edcd75c2e989c05be6e9566d65fdfec049752010ae7e17615a4a12fff3fdd-analysis.png",
+      "sha256": "55705f96fd4728ab4b965318f9a6eafd74d5d1afb00a24ae70b007b0f317b1de",
+      "bytes": 64616
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-446edcd75c2e989c05be6e9566d65fdfec049752010ae7e17615a4a12fff3fdd-mask.png",
+      "sha256": "aa602f97efa2ceb66e1b8831b9d33fb3eecffd969940c0274387f3f0dc005711",
+      "bytes": 3435
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-44d6ee8e9b0600a6218bcd22c1ff4af51ba3190995eaf7107471297d6ba9ff6d-observed.png",
+      "sha256": "4d30a8fa9f687925c0cf0a370b7fadabc6f8969ca18e4b53067a860e6dcbe556",
+      "bytes": 61198
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-835366382b1073ede38caf082233e042728be51ed853a6a6c8f43166ff63ff3f-767a082cf62460c31b140cd5b6cbe8f307fd128b07a8914a6fd6e92294640c55.png",
+      "sha256": "767a082cf62460c31b140cd5b6cbe8f307fd128b07a8914a6fd6e92294640c55",
+      "bytes": 101032
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-87e7d05d8cd60bbbe02ef5f7a83793b32b9dd303c55b7f3e266ea7d69c630de0-31cd9b71633bbdd95bdb5dbadb0748f91c9a683eaf0594eb84ca968e80d552a3.png",
+      "sha256": "31cd9b71633bbdd95bdb5dbadb0748f91c9a683eaf0594eb84ca968e80d552a3",
+      "bytes": 94805
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-accepted.json",
+      "sha256": "e520894e9727a9979871002dee14d1841a688299d52ca3dbd775683aacaf7ce0",
+      "bytes": 691
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-result.json",
+      "sha256": "8f99e273054b3ad2cdf4c4ae569da76fdfb6bf54356e7926a5f82acb3add5be9",
+      "bytes": 214759
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-scoring.json",
+      "sha256": "7569b658cc319fd8839595b37599411416500e04a62d40bdada1dcab2597aca9",
+      "bytes": 1201
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/2-system-overlay.png",
+      "sha256": "4d30a8fa9f687925c0cf0a370b7fadabc6f8969ca18e4b53067a860e6dcbe556",
+      "bytes": 61198
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/image.json",
+      "sha256": "87c98c96e3bc164fcb75f7c6471b66a8dab2a1817a19ddb2b59837b1294f4c6f",
+      "bytes": 46680
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/manifest.json",
+      "sha256": "a309989d2272e8e46b17fa0566e22575edd3e5fc783859c222bf5f4ef17511fd",
+      "bytes": 5179
+    },
+    {
+      "path": "test-results/floorplan-tool-live/2026-11-06T10-22-07-684Z/report.json",
+      "sha256": "8e5258e632fee652d52d8735433f9f3af519c72327116dc19f8cc4fbe699e956",
+      "bytes": 8671
+    }
+  ],
+  "engineering": {
+    "nodeTests": {
+      "passed": 33,
+      "failed": 0
+    },
+    "pythonTests": {
+      "passed": 52,
+      "failed": 0
+    },
+    "typecheckAndBuildPassed": true,
+    "ruffFIAndFormatPassed": true,
+    "fullOriginalRegressionPassed": true,
+    "legacyControlledBrowser": {
+      "path": "test-results/floorplan-tools/report.json",
+      "sha256": "8ad9814bdb11ae7197d561adc075ef4a37344a44749f50dd05ab7fdcd81b1b91",
+      "bytes": 100196
+    },
+    "v2ControlledBrowser": {
+      "path": "test-results/floorplan-v2-tools/report.json",
+      "sha256": "b77cca6ba8c637577871a1a5bc15a5b385601d8844bdf73660897f49440e645e",
+      "bytes": 156618
+    },
+    "v2ControlledBrowserRealImageAcceptance": false,
+    "fullOriginalRegressionLog": {
+      "path": "test-results/floorplan-v2-full-regression.log",
+      "sha256": "f73bd47c111cd5aaf7bcecf44260a15e079e0f36450f3901e14e5c9d7cb56567",
+      "bytes": 8852
+    },
+    "pythonFinalLog": {
+      "path": "test-results/floorplan-v2-python-final.log",
+      "sha256": "5ccc05cc2e6b8fecca15862df957a35447a5d8f9b79301a08c585708ddfbe802",
+      "bytes": 99
+    },
+    "browserFinalLog": {
+      "path": "test-results/floorplan-v2-browser-final.log",
+      "sha256": "e06071f3024afe875ffa6c3938c2ad1f8860d8b62da77654e6221d23aa6380aa",
+      "bytes": 601
+    },
+    "proofs": [
+      {
+        "path": "test-results/floorplan-v2-alignment-20261106/recovery-proof.json",
+        "sha256": "aea7c1c6282f3ef24ae03bc5a31036d097462914a617028eb96b125e133e84c0",
+        "bytes": 9936
+      },
+      {
+        "path": "test-results/floorplan-v2-alignment-20261106/after-runs-sha256.json",
+        "sha256": "730a61295012aab6e0c6a7366d52d7754fb6515851c3380e008b828da258e864",
+        "bytes": 55283
+      },
+      {
+        "path": "test-results/floorplan-v2-alignment-20261106/before-v4-sha256.json",
+        "sha256": "eac27737d33fe7a078a8354c84b6df9241660b23e255faa629e005536a253937",
+        "bytes": 49569
+      },
+      {
+        "path": "test-results/floorplan-v2-alignment-20261106/final-wheel-proof.json",
+        "sha256": "21058083de59f6dda42c7cd1e90c10b1166e777da8d11b6228ef557a3bcb6e7a",
+        "bytes": 1061
+      }
+    ],
+    "recovery": {
+      "passed": true,
+      "backupFiles": 272,
+      "databaseTablesAndEvidenceUnchanged": true,
+      "modelRequests": 0
+    },
+    "ci": [
+      {
+        "codeCommit": "bad45a330252b5830ddc022e05ca9c9f0364eca5",
+        "conclusion": "success",
+        "url": "https://github.com/xixi501/3D-design-agent/actions/runs/42202127540"
+      },
+      {
+        "codeCommit": "e76cb56b39d73ae0c86826806182308968181cdc",
+        "conclusion": "success",
+        "url": "https://github.com/xixi501/3D-design-agent/actions/runs/42203954554"
+      }
+    ]
+  },
+  "remaining": [
+    "Structured early checker exhausts high-thinking output before producing Review.",
+    "Recognition category vocabulary, doors/windows, dimensions and symbol counts remain wrong.",
+    "Captured command-variant and crop-limit defects fixed offline only; no new real run.",
+    "No real asset matching, final source review, 3D candidate or post-generation local edit reached.",
+    "Second image and complete S2 matrix did not start."
+  ]
+}

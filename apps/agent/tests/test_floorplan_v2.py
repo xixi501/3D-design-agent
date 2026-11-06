@@ -41,12 +41,14 @@ async def test_four_concurrent_crops_are_atomic_shared_idempotent_and_restartabl
     image = {"id": "image", "sha256": "a" * 64}
     main = FloorplanEvidence(base, task, image, "main")
     design = FloorplanEvidence(base, task, image, "design")
-    await asyncio.gather(
+    # The rejected fifth request must not cancel one of the four in-flight crops.
+    concurrent = await asyncio.gather(
         *[
             owner.crop_tool().ainvoke({"x0": i, "y0": 0, "x1": i + 1, "y1": 1})
-            for owner, i in [(main, 1), (main, 2), (design, 3), (design, 4)]
+            for owner, i in [(main, 1), (main, 2), (design, 3), (design, 4), (design, 5)]
         ]
     )
+    assert json.loads(concurrent[4][0]["text"])["error"] == "CROP_LIMIT"
     g = store.task(task["id"], internal=True)["generation"]
     assert len(g["evidenceIndex"]) == 4 and len(g["cropRequests"]) == 4
     assert len(await design.images()) == 4

@@ -90,6 +90,14 @@ def test_floorplan_pixel_schema_rejects_millimetre_footprints_but_keeps_real_sca
         ],
     }
     assert schema.model_validate(data).anchors[0].distance.value == 9700
+    data["wallThickness"] = 10
+    with pytest.raises(ValidationError, match="20"):
+        schema.model_validate(data)
+    data["wallThickness"] = None
+    data["height"] = 0
+    with pytest.raises(ValidationError, match="100"):
+        schema.model_validate(data)
+    data["height"] = None
     data["symbols"][0]["w"] = 1200
     with pytest.raises(ValidationError, match="736"):
         schema.model_validate(data)

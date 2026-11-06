@@ -65,8 +65,12 @@ class FloorplanRecognition(StrictModel):
     status: Literal["draft", "unsupported"]
     question: str = ""
     name: str = Field(default="户型图复现", max_length=100)
-    height: FiniteFloat | None = None
-    wallThickness: FiniteFloat | None = None
+    height: FiniteFloat | None = Field(
+        default=None, ge=100, le=20000, description="层高毫米；图中未知则 null，不得填0"
+    )
+    wallThickness: FiniteFloat | None = Field(
+        default=None, ge=20, le=1000, description="默认墙厚毫米；未知则 null，不能填写像素墙宽"
+    )
     anchors: list[ScaleAnchor] = Field(default_factory=list, max_length=20)
     walls: list[ImageWall] = Field(default_factory=list, max_length=150)
     openings: list[ImageOpening] = Field(default_factory=list, max_length=100)

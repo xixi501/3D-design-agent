@@ -51,7 +51,7 @@ def runtime_versions():
         "structuredOutputRecovery": "one-bounded-continuation-1",
         "modelConfigVersion": "per-role-output-budget-3",
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
-        "floorplanPromptVersion": "s2c-floorplan-4",
+        "floorplanPromptVersion": "s2c-floorplan-5",
         "pillow": version("Pillow"),
         "opencv": version("opencv-python-headless"),
         "promptVersion": "s2a-local-edit-2",

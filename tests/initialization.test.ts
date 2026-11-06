@@ -214,7 +214,7 @@ test("initialization commits are one durable transaction and migrate without cha
   let store = new ProjectStore(dir),
     candidates = new CandidateStore(store);
   try {
-    const p = store.create(blankPlan()),
+    const p = store.create({ ...blankPlan(), prices: { preserved: 10 } }),
       c = candidates.create(p.id, {
         kind: "initialize",
         requestId: "draft",

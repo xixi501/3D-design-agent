@@ -156,9 +156,21 @@ export function compileRectangular(brief: RectangularBrief, seed: string) {
       if (side < 0 || !["center", "offset"].includes(op.position))
         invalid("门窗需要明确墙面和位置", field);
       const span = horizontal ? width : depth,
-        w = dim(op.width, type === "door" ? 900 : 1500, `${field}.宽度`),
-        sill = dim(op.sill, type === "door" ? 0 : 900, `${field}.离地`),
-        head = dim(op.head, type === "door" ? 2100 : 2400, `${field}.顶高`);
+        w = dim(
+          op.width,
+          type === "door" ? 900 : 1500,
+          `${type === "door" ? "入口" : "窗"}${i + 1}宽度`,
+        ),
+        sill = dim(
+          op.sill,
+          type === "door" ? 0 : 900,
+          `${type === "door" ? "入口" : "窗"}${i + 1}离地`,
+        ),
+        head = dim(
+          op.head,
+          type === "door" ? 2100 : 2400,
+          `${type === "door" ? "入口" : "窗"}${i + 1}顶高`,
+        );
       if (op.position === "offset" && op.offset === undefined)
         invalid("偏移位置需要距离（水平自左、竖直自上）", `${field}.offset`);
       if (op.position === "center" && op.offset !== undefined)
@@ -294,7 +306,7 @@ export function checkInitialization(
   scope: EditScope,
 ) {
   requireBlank(before);
-  const shell = compileRectangular(brief, seed).state;
+  const shell = applyCommands(before, compileRectangular(brief, seed).commands);
   // Check furniture with the exact generated structure as the protected baseline.
   const report = checkCandidate(shell, after, validateScope(scope, shell.plan));
   if (

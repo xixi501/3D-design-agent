@@ -1,0 +1,769 @@
+{
+  "businessCommit": "71226cfeab012673207356b9b14a4c420ad2aa45",
+  "versions": {
+    "codeCommit": "71226cfeab012673207356b9b14a4c420ad2aa45",
+    "workingTreeModified": false,
+    "python": "3.13.13",
+    "langgraph": "1.2.20",
+    "langchain": "1.4.9",
+    "deepseekAdapter": "1.1.1",
+    "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+    "model": "deepseek-flash",
+    "modelProvider": "api.deepseek.com",
+    "reasoningEffort": "high",
+    "tools": "scene-candidate-v3",
+    "structuredOutputRecovery": "one-bounded-continuation-1",
+    "modelConfigVersion": "per-role-output-budget-3",
+    "floorplanRecognitionOptions": {
+      "max_tokens": 32768,
+      "timeout": 180,
+      "reasoning_effort": "low",
+      "extra_body": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    },
+    "floorplanPromptVersion": "s2c-floorplan-8",
+    "floorplanToolAdapter": "hpd-adapter-2",
+    "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+    "pillow": "13.0.0",
+    "opencv": "4.14.0.94",
+    "promptVersion": "s2a-local-edit-2",
+    "generationPromptVersion": "s2b-rectangular-2"
+  },
+  "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+  "evaluation": {
+    "purpose": "Frozen development scoring reference; NEVER supplied to Agent, production service or recognition tools",
+    "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+    "referenceSha256": "2b6e646602f0e96cdb6d5246b1a8ead6551917ce2c5e68e9b8bf3ece3a0c559e",
+    "referenceFile": "one-bedroom.evaluation-only.json",
+    "sourceCommit": "553446095a290541df6187d31cbbd99b13fcf4cb",
+    "coordinateSpace": "EXIF-oriented original image pixels",
+    "annotationMethod": "Independent visual reading of original only; no model draft copied",
+    "limits": "Raster positions approximate; existing metric tolerances apply unchanged. A single exterior anchor determines reference scale; other source dimensions are cross-check evidence, not contradictory exact pixel anchors.",
+    "manualObjectCorrectionLimit": 0,
+    "requiredRuns": 2,
+    "aliases": {
+      "客餐厅": "livingroom",
+      "客厅": "livingroom",
+      "卧室": "bedroom",
+      "卫生间": "bathroom",
+      "浴室": "bathroom",
+      "三人沙发": "sofa",
+      "沙发": "sofa",
+      "茶几": "coffeetable",
+      "餐桌": "diningtable",
+      "餐椅": "chair",
+      "电视柜": "tvcabinet",
+      "书柜": "bookshelf",
+      "置物架": "bookshelf",
+      "盆栽": "plant",
+      "绿植": "plant",
+      "地毯": "rug",
+      "Dining Chair": "chair",
+      "Dining Table": "diningtable",
+      "Coffee Table": "coffeetable",
+      "TV Cabinet": "tvcabinet",
+      "Sofa": "sofa",
+      "Bookshelf": "bookshelf",
+      "Plant": "plant",
+      "Rug": "rug"
+    }
+  },
+  "zeroManualGeometryOperations": true,
+  "noReferenceSentToAgent": true,
+  "completeS2Accepted": false,
+  "singleImageAccepted": false,
+  "sampleChanged": false,
+  "thresholdsChanged": false,
+  "controlledTests": {
+    "node": 28,
+    "python": 47,
+    "fullOriginalRegression": true,
+    "floorplanBrowser": "controlled models, real browser/WebGL"
+  },
+  "ci": "https://github.com/xixi501/3D-design-agent/actions/runs/42193144927",
+  "cases": [
+    {
+      "repeat": 1,
+      "projectId": "5efba01f-9c97-4e13-819e-66e7008165b7",
+      "taskId": "20698d8e-6230-43d7-957f-7afd3ca5b0bb",
+      "status": "waiting_input",
+      "error": "请核对原图叠加、比例尺、整层结构及客餐厅家具，再点击“确认结构与原图布局”。 待处理：明确尺寸在统一比例下仍有超过 1 mm 的差异，请核对标定端点；不能分别拉伸图片",
+      "modelCalls": 16,
+      "activeSeconds": 95.16566920280457,
+      "compilationPassed": false,
+      "firstRecognition": {
+        "passed": false,
+        "walls": {
+          "precision": 0.8115146645239052,
+          "recall": 0.8353798126951093,
+          "allMatched": false
+        },
+        "openings": {
+          "matches": [],
+          "precision": 0,
+          "recall": 0
+        },
+        "furniture": {
+          "matches": [
+            {
+              "i": 3,
+              "j": 3
+            },
+            {
+              "i": 0,
+              "j": 0
+            },
+            {
+              "i": 12,
+              "j": 8
+            },
+            {
+              "i": 5,
+              "j": 5
+            },
+            {
+              "i": 1,
+              "j": 1
+            },
+            {
+              "i": 16,
+              "j": 12
+            },
+            {
+              "i": 2,
+              "j": 6
+            },
+            {
+              "i": 10,
+              "j": 2
+            },
+            {
+              "i": 14,
+              "j": 10
+            },
+            {
+              "i": 15,
+              "j": 11
+            },
+            {
+              "i": 11,
+              "j": 7
+            },
+            {
+              "i": 13,
+              "j": 9
+            }
+          ],
+          "precision": 0.7058823529411765,
+          "recall": 0.9230769230769231
+        },
+        "thresholdVersion": "s2c-1"
+      },
+      "scoring": {
+        "passed": false,
+        "reason": "明确尺寸在统一比例下仍有超过 1 mm 的差异，请核对标定端点；不能分别拉伸图片"
+      },
+      "toolRoles": [
+        "main:analyze_floorplan",
+        "design:measure_dimension_chain",
+        "design:fit_wall_faces",
+        "design:preview_floorplan"
+      ],
+      "repairs": 3,
+      "formalRevision": 0,
+      "imageFidelityAccepted": false,
+      "manualGeometryOperations": 0,
+      "rawCounts": {
+        "walls": 6,
+        "openings": 13,
+        "rooms": 3,
+        "symbols": 17,
+        "anchors": 4,
+        "uncertainties": 8
+      },
+      "lastMeasuredCounts": {
+        "walls": 6,
+        "openings": 7,
+        "rooms": 3,
+        "symbols": 15,
+        "anchors": 4,
+        "uncertainties": 9
+      },
+      "lastIssues": {
+        "passed": false,
+        "issues": [
+          {
+            "code": "INVALID_FLOORPLAN",
+            "message": "明确尺寸在统一比例下仍有超过 1 mm 的差异，请核对标定端点；不能分别拉伸图片",
+            "field": "anchors",
+            "objectIds": [],
+            "details": {
+              "field": "anchors",
+              "stage": "scale",
+              "uniformMmPerPixel": 17.69825918762089,
+              "anchors": [
+                {
+                  "index": 0,
+                  "a": {
+                    "x": 361,
+                    "y": 103.5
+                  },
+                  "b": {
+                    "x": 878,
+                    "y": 103.5
+                  },
+                  "basis": "exterior",
+                  "evidence": "顶部尺寸链 9.15 m，刻度位于北墙外皮；实测北墙外皮 y=103.5，西端 x≈361、东端外皮 x≈877.5–878",
+                  "distanceMm": 9150,
+                  "pixelLength": 517,
+                  "mmPerPixel": 17.69825918762089,
+                  "relativeScaleDifference": 0,
+                  "residualMm": 0
+                },
+                {
+                  "index": 1,
+                  "a": {
+                    "x": 365,
+                    "y": 111.5
+                  },
+                  "b": {
+                    "x": 869.5,
+                    "y": 111.5
+                  },
+                  "basis": "interior",
+                  "evidence": "顶部第二道尺寸链 8.85 m，内墙面到内墙面；实测北墙内皮 y=111.5、东墙内皮 x=869.5",
+                  "distanceMm": 8850,
+                  "pixelLength": 504.5,
+                  "mmPerPixel": 17.542120911793855,
+                  "relativeScaleDifference": -0.008822239191538572,
+                  "residualMm": 78.77176015473924
+                },
+                {
+                  "index": 2,
+                  "a": {
+                    "x": 361,
+                    "y": 103.5
+                  },
+                  "b": {
+                    "x": 361,
+                    "y": 507.5
+                  },
+                  "basis": "exterior",
+                  "evidence": "左侧尺寸链 7.15 m，北墙外皮 103.5 至南墙外皮 507.5",
+                  "distanceMm": 7150,
+                  "pixelLength": 404,
+                  "mmPerPixel": 17.698019801980198,
+                  "relativeScaleDifference": -1.3525942758274567e-5,
+                  "residualMm": 0.0967117988402606
+                },
+                {
+                  "index": 3,
+                  "a": {
+                    "x": 335,
+                    "y": 111.5
+                  },
+                  "b": {
+                    "x": 335,
+                    "y": 499.5
+                  },
+                  "basis": "interior",
+                  "evidence": "左侧第二道尺寸链 6.85 m，北墙内皮 111.5 至南墙内皮 499.5（西墙内皮 x=335）",
+                  "distanceMm": 6850,
+                  "pixelLength": 388,
+                  "mmPerPixel": 17.65463917525773,
+                  "relativeScaleDifference": -0.0024646498788801763,
+                  "residualMm": 16.924564796905543
+                }
+              ],
+              "instruction": "核对标注及其真实端点：净尺寸取内墙面，中线尺寸取墙中线，外尺寸取外墙面。不得删除冲突标注、改标注数字或独立拉伸 X/Y。像素测量不是精确尺寸；无法确认时保留阻断项。"
+            },
+            "level": "error",
+            "blocking": true
+          },
+          {
+            "code": "FLOORPLAN_UNEXPLAINED_REMOVAL",
+            "blocking": true,
+            "stage": "preservation",
+            "objectIds": ["anchors:0", "symbols:s_chair5", "symbols:s_chair6"],
+            "message": "删除已识别对象或修改尺寸标注必须在 change_reasons 中逐项提供原图证据，不可静默减少要求",
+            "details": [
+              {
+                "collection": "anchors",
+                "id": "0",
+                "kind": "changed",
+                "before": {
+                  "a": {
+                    "x": 360,
+                    "y": 79
+                  },
+                  "b": {
+                    "x": 879,
+                    "y": 79
+                  },
+                  "distance": {
+                    "value": 9.15,
+                    "unit": "m"
+                  },
+                  "basis": "exterior",
+                  "evidence": "顶部尺寸链标注 9.15 m，箭头端点位于墙体外边界"
+                },
+                "after": {
+                  "a": {
+                    "x": 361,
+                    "y": 103.5
+                  },
+                  "b": {
+                    "x": 878,
+                    "y": 103.5
+                  },
+                  "distance": {
+                    "value": 9150,
+                    "unit": "mm"
+                  },
+                  "basis": "exterior",
+                  "evidence": "顶部尺寸链 9.15 m，刻度位于北墙外皮；实测北墙外皮 y=103.5，西端 x≈361、东端外皮 x≈877.5–878"
+                }
+              },
+              {
+                "collection": "symbols",
+                "id": "s_chair5",
+                "kind": "removed",
+                "before": {
+                  "id": "s_chair5",
+                  "roomId": "r_lr",
+                  "category": "餐椅",
+                  "x": 462,
+                  "y": 407,
+                  "w": 26,
+                  "d": 28,
+                  "rot": 270
+                },
+                "after": null
+              },
+              {
+                "collection": "symbols",
+                "id": "s_chair6",
+                "kind": "removed",
+                "before": {
+                  "id": "s_chair6",
+                  "roomId": "r_lr",
+                  "category": "餐椅",
+                  "x": 572,
+                  "y": 407,
+                  "w": 26,
+                  "d": 28,
+                  "rot": 90
+                },
+                "after": null
+              }
+            ]
+          }
+        ],
+        "coverage": [],
+        "limitations": ["结构尚不可验证"]
+      },
+      "toolErrors": [
+        {
+          "tool": "measure_dimension_chain",
+          "message": "尺寸刻度必须严格递增",
+          "details": null
+        }
+      ],
+      "toolReuseCount": 0,
+      "draftExists": true,
+      "formalHistory": {
+        "undo": 0,
+        "redo": 0
+      },
+      "artifact": "test-results/floorplan-tool-live/2026-11-06T09-10-58-367Z/1-result.json",
+      "artifactSha256": "41320356024ea2268af87e1fba3c1a7f6e04d78c82d7b2217e0df230eaedd8cf",
+      "recordedTotalTokens": 304865,
+      "successfulMeasurementSubmissions": 4
+    },
+    {
+      "repeat": 2,
+      "projectId": "20623cf1-eefa-4322-a1b0-f20b400c90ac",
+      "taskId": "bbe5da44-0d2b-46ca-ab11-052db06084ae",
+      "status": "failed",
+      "error": "空间设计尚未实际使用测量与预检工具：preview_floorplan",
+      "errorCode": "FLOORPLAN_TOOLS_UNUSED",
+      "modelCalls": 16,
+      "activeSeconds": 106.08238315582275,
+      "compilationPassed": false,
+      "firstRecognition": {
+        "passed": false,
+        "walls": {
+          "precision": 1,
+          "recall": 1,
+          "allMatched": true
+        },
+        "openings": {
+          "matches": [
+            {
+              "i": 0,
+              "j": 3
+            }
+          ],
+          "precision": 0.16666666666666666,
+          "recall": 0.14285714285714285
+        },
+        "furniture": {
+          "matches": [
+            {
+              "i": 9,
+              "j": 11
+            },
+            {
+              "i": 2,
+              "j": 1
+            },
+            {
+              "i": 7,
+              "j": 7
+            },
+            {
+              "i": 11,
+              "j": 9
+            },
+            {
+              "i": 8,
+              "j": 8
+            },
+            {
+              "i": 10,
+              "j": 12
+            },
+            {
+              "i": 12,
+              "j": 10
+            },
+            {
+              "i": 0,
+              "j": 0
+            }
+          ],
+          "precision": 0.5333333333333333,
+          "recall": 0.6153846153846154
+        },
+        "thresholdVersion": "s2c-1"
+      },
+      "scoring": {
+        "passed": false,
+        "reason": "No complete draft"
+      },
+      "toolRoles": [
+        "main:analyze_floorplan",
+        "design:measure_dimension_chain",
+        "design:fit_wall_faces",
+        "design:preview_floorplan"
+      ],
+      "repairs": 3,
+      "formalRevision": 0,
+      "imageFidelityAccepted": false,
+      "manualGeometryOperations": 0,
+      "rawCounts": {
+        "walls": 6,
+        "openings": 6,
+        "rooms": 3,
+        "symbols": 15,
+        "anchors": 6,
+        "uncertainties": 7
+      },
+      "lastMeasuredCounts": {
+        "walls": 18,
+        "openings": 6,
+        "rooms": 3,
+        "symbols": 13,
+        "anchors": 4,
+        "uncertainties": 10
+      },
+      "lastIssues": {
+        "passed": false,
+        "issues": [
+          {
+            "code": "INVALID_FLOORPLAN",
+            "message": "明确尺寸在统一比例下仍有超过 1 mm 的差异，请核对标定端点；不能分别拉伸图片",
+            "field": "anchors",
+            "objectIds": [],
+            "details": {
+              "field": "anchors",
+              "stage": "scale",
+              "uniformMmPerPixel": 17.664092664092664,
+              "anchors": [
+                {
+                  "index": 0,
+                  "a": {
+                    "x": 361,
+                    "y": 104
+                  },
+                  "b": {
+                    "x": 879,
+                    "y": 104
+                  },
+                  "basis": "exterior",
+                  "evidence": "顶部上层尺寸链 9.15 m，端点取实测外墙外皮 y=104（faces 103.5/111.5）",
+                  "distanceMm": 9150,
+                  "pixelLength": 518,
+                  "mmPerPixel": 17.664092664092664,
+                  "relativeScaleDifference": 0,
+                  "residualMm": 0
+                },
+                {
+                  "index": 1,
+                  "a": {
+                    "x": 365,
+                    "y": 112
+                  },
+                  "b": {
+                    "x": 874,
+                    "y": 112
+                  },
+                  "basis": "interior",
+                  "evidence": "顶部下层尺寸链 8.85 m，端点取外墙内皮 x=365 与 874（faces 369.5/869.5）",
+                  "distanceMm": 8850,
+                  "pixelLength": 509,
+                  "mmPerPixel": 17.387033398821217,
+                  "relativeScaleDifference": -0.015684885181487362,
+                  "residualMm": 141.0231660231657
+                },
+                {
+                  "index": 2,
+                  "a": {
+                    "x": 314,
+                    "y": 104
+                  },
+                  "b": {
+                    "x": 314,
+                    "y": 508
+                  },
+                  "basis": "exterior",
+                  "evidence": "左侧外层尺寸链 7.15 m，端点取实测外墙外皮 y=104→508",
+                  "distanceMm": 7150,
+                  "pixelLength": 404,
+                  "mmPerPixel": 17.698019801980198,
+                  "relativeScaleDifference": 0.0019206838716658847,
+                  "residualMm": -13.706563706564339
+                },
+                {
+                  "index": 3,
+                  "a": {
+                    "x": 314,
+                    "y": 112
+                  },
+                  "b": {
+                    "x": 314,
+                    "y": 500
+                  },
+                  "basis": "interior",
+                  "evidence": "左侧内层尺寸链 6.85 m，端点取外墙内皮 y=112→500（faces 111.5/499.5）",
+                  "distanceMm": 6850,
+                  "pixelLength": 388,
+                  "mmPerPixel": 17.65463917525773,
+                  "relativeScaleDifference": -0.0005351811165568154,
+                  "residualMm": 3.667953667953043
+                }
+              ],
+              "instruction": "核对标注及其真实端点：净尺寸取内墙面，中线尺寸取墙中线，外尺寸取外墙面。不得删除冲突标注、改标注数字或独立拉伸 X/Y。像素测量不是精确尺寸；无法确认时保留阻断项。"
+            },
+            "level": "error",
+            "blocking": true
+          },
+          {
+            "code": "FLOORPLAN_UNEXPLAINED_REMOVAL",
+            "blocking": true,
+            "stage": "preservation",
+            "objectIds": [
+              "walls:W_bottom",
+              "walls:W_left",
+              "walls:W_mid_v",
+              "walls:W_top",
+              "symbols:S_chair_s1",
+              "symbols:S_chair_s2"
+            ],
+            "message": "删除已识别对象或修改尺寸标注必须在 change_reasons 中逐项提供原图证据，不可静默减少要求",
+            "details": [
+              {
+                "collection": "walls",
+                "id": "W_bottom",
+                "kind": "removed",
+                "before": {
+                  "id": "W_bottom",
+                  "a": {
+                    "x": 361,
+                    "y": 503.5
+                  },
+                  "b": {
+                    "x": 879,
+                    "y": 503.5
+                  },
+                  "thicknessPx": 9
+                },
+                "after": null
+              },
+              {
+                "collection": "walls",
+                "id": "W_left",
+                "kind": "removed",
+                "before": {
+                  "id": "W_left",
+                  "a": {
+                    "x": 365,
+                    "y": 104
+                  },
+                  "b": {
+                    "x": 365,
+                    "y": 508
+                  },
+                  "thicknessPx": 9
+                },
+                "after": null
+              },
+              {
+                "collection": "walls",
+                "id": "W_mid_v",
+                "kind": "removed",
+                "before": {
+                  "id": "W_mid_v",
+                  "a": {
+                    "x": 676.5,
+                    "y": 108.5
+                  },
+                  "b": {
+                    "x": 676.5,
+                    "y": 503.5
+                  },
+                  "thicknessPx": 9
+                },
+                "after": null
+              },
+              {
+                "collection": "walls",
+                "id": "W_top",
+                "kind": "removed",
+                "before": {
+                  "id": "W_top",
+                  "a": {
+                    "x": 361,
+                    "y": 108.5
+                  },
+                  "b": {
+                    "x": 879,
+                    "y": 108.5
+                  },
+                  "thicknessPx": 9
+                },
+                "after": null
+              },
+              {
+                "collection": "symbols",
+                "id": "S_chair_s1",
+                "kind": "removed",
+                "before": {
+                  "id": "S_chair_s1",
+                  "roomId": "R_ldk",
+                  "category": "餐椅",
+                  "x": 495,
+                  "y": 431,
+                  "w": 22,
+                  "d": 24,
+                  "rot": 0
+                },
+                "after": null
+              },
+              {
+                "collection": "symbols",
+                "id": "S_chair_s2",
+                "kind": "removed",
+                "before": {
+                  "id": "S_chair_s2",
+                  "roomId": "R_ldk",
+                  "category": "餐椅",
+                  "x": 553,
+                  "y": 431,
+                  "w": 22,
+                  "d": 24,
+                  "rot": 0
+                },
+                "after": null
+              }
+            ]
+          }
+        ],
+        "coverage": [],
+        "limitations": ["结构尚不可验证"]
+      },
+      "toolErrors": [],
+      "toolReuseCount": 4,
+      "draftExists": false,
+      "formalHistory": {
+        "undo": 0,
+        "redo": 0
+      },
+      "artifact": "test-results/floorplan-tool-live/2026-11-06T09-10-58-367Z/2-result.json",
+      "artifactSha256": "1b6db81f7792c3013da40c3c81d69923118c9a8c6a072744532de79605f7b187",
+      "recordedTotalTokens": 334844,
+      "successfulMeasurementSubmissions": 3
+    }
+  ],
+  "recovery": {
+    "file": "test-results/s2c-single-auto-20261106/recovery-proof.json",
+    "sha256": "0922c2484edd8ecb2fde82d38ca7734126cbf0865240773b996052f8af03e470",
+    "proof": {
+      "backupFiles": 246,
+      "independentCopyHashesMatch": true,
+      "cases": [
+        {
+          "taskId": "20698d8e-6230-43d7-957f-7afd3ca5b0bb",
+          "projectId": "5efba01f-9c97-4e13-819e-66e7008165b7",
+          "copies": [
+            {
+              "base": "http://127.0.0.1:3001",
+              "status": "waiting_input",
+              "modelCallsUnchanged": true,
+              "generationUnchanged": true,
+              "projectUnchanged": true,
+              "verifiedEvidenceFiles": 2
+            },
+            {
+              "base": "http://127.0.0.1:3031",
+              "status": "waiting_input",
+              "modelCallsUnchanged": true,
+              "generationUnchanged": true,
+              "projectUnchanged": true,
+              "verifiedEvidenceFiles": 2
+            }
+          ]
+        },
+        {
+          "taskId": "bbe5da44-0d2b-46ca-ab11-052db06084ae",
+          "projectId": "20623cf1-eefa-4322-a1b0-f20b400c90ac",
+          "copies": [
+            {
+              "base": "http://127.0.0.1:3001",
+              "status": "failed",
+              "modelCallsUnchanged": true,
+              "generationUnchanged": true,
+              "projectUnchanged": true,
+              "verifiedEvidenceFiles": 2
+            },
+            {
+              "base": "http://127.0.0.1:3031",
+              "status": "failed",
+              "modelCallsUnchanged": true,
+              "generationUnchanged": true,
+              "projectUnchanged": true,
+              "verifiedEvidenceFiles": 2
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "fullRegressionLog": {
+    "file": "test-results/s2c-single-auto-20261106/full-regression.log",
+    "sha256": "868d7ed308ae3f0f6470d48d2995b22fb64c673a362f30bdb1ff45015827246b"
+  }
+}

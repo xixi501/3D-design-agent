@@ -1,5 +1,7 @@
 # 原版读图工具适配与验证
 
+后续 `71226cf` 增加尺寸链参数反馈、几何错误定位、测量复用与识别差异保护；新版同图两次仍失败，按停止条件未进入第二图和完整 S2。最新实现、独立评分及结果见 [单图自动复现记录](S2C_SINGLE_IMAGE.md)。下方为历史版本记录。
+
 产品 `dev/core`，固定来源为 `ZWD11/house-plan-designer@b94183f9ce2215db9a178da89a90d2ecefb18497`，MIT。新增工具原样保存于 `apps/agent/actiscape_agent/vendor/house_plan_designer`，逐文件哈希在其 `provenance.json`，不改动原 S0 的 `reference/upstream`。每次辅助进程执行前验证哈希，工具响应保留来源版本、适配版本、参数、原图哈希和证据文件哈希。
 
 ## 角色与执行边界

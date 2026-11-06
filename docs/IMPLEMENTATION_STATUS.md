@@ -48,6 +48,8 @@ The first formal batch passed 2/4; two asset request/instance indexing failures 
 
 ## S2-C floorplan inputs
 
+Latest single-image engineering update `71226cf`: structured measurement diagnostics, persistent evidence reuse and recognition-preservation checks pass Node 28 / Python 47, full original regression and controlled browser tests. Two real fixed-image runs remain 0/2; no formal writes. See [single-image report](S2C_SINGLE_IMAGE.md). The second image and complete S2 matrix did not start under the agreed stop condition.
+
 The orthogonal image draft compiler, durable image storage, overlay correction and explicit confirmation workflow are implemented. Four-role reconstruction retains confirmed positions and per-symbol sizes; catalogue decisions are separate from recognition. Controlled browser/WebGL, transaction and restart tests pass. The two real user floorplans and their quality matrix remain pending, so complete S2 is not accepted. See [S2-C status](S2C_STATUS.md) and [runbook](S2C_RUNBOOK.md).
 
 ## Remaining scope

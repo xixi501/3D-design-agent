@@ -85,7 +85,13 @@ def crop_image(content: bytes, box: list[float]):
     if not (0 <= x0 < x1 <= image.width and 0 <= y0 < y1 <= image.height):
         raise ValueError("裁剪超出原图")
     crop = image.crop(tuple(int(round(v)) for v in box))
-    crop.thumbnail((1600, 1600))
+    longest = max(crop.size)
+    factor = min(4, 1024 / longest) if longest < 1024 else min(1, 1600 / longest)
+    if factor != 1:
+        crop = crop.resize(
+            (max(1, round(crop.width * factor)), max(1, round(crop.height * factor))),
+            Image.Resampling.LANCZOS,
+        )
     return png(crop)
 
 

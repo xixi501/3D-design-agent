@@ -98,7 +98,10 @@ class FloorplanRoles:
             self.store.update(task["id"], generation=g)
             content = await self.client.image(crop["path"])
             return [
-                {"type": "text", "text": f"原图裁剪范围 {crop['box']}；所有返回坐标映回原图。"},
+                {
+                    "type": "text",
+                    "text": f"原图裁剪范围 {crop['box']}，本图 {crop.get('width')}×{crop.get('height')}；局部坐标映回原图变换 {crop.get('cropToPixel')}，所有返回坐标用原图像素。",
+                },
                 {
                     "type": "image_url",
                     "image_url": {

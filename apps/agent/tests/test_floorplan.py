@@ -344,14 +344,16 @@ async def test_source_layout_conflict_uses_three_repairs_then_waits_without_auto
 
 def test_image_decoder_preserves_orientation_and_crop_pixels_and_rejects_bad_inputs(monkeypatch):
     image = Image.new("RGB", (80, 40), "white")
-    image.putpixel((10, 10), (255, 0, 0))
+    for x in range(8, 16):
+        for y in range(8, 16):
+            image.putpixel((x, y), (255, 0, 0))
     out = io.BytesIO()
     image.save(out, format="PNG")
     content = out.getvalue()
     info = inspect_image(content)
     assert info["width"] == 80 and info["height"] == 40
     with Image.open(io.BytesIO(crop_image(content, [0, 0, 40, 20]))) as cropped:
-        assert cropped.size == (40, 20) and cropped.getpixel((10, 10)) == (255, 0, 0)
+        assert cropped.size == (160, 80) and cropped.getpixel((48, 48)) == (255, 0, 0)
     jpeg = io.BytesIO()
     exif = Image.Exif()
     exif[274] = 6

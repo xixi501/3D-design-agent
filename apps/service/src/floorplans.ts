@@ -188,8 +188,27 @@ export class FloorplanStore {
     return this.verifyImage(id);
   }
   async crop(imageId: string, box: number[]) {
-    const image = this.verifyImage(imageId),
-      requestHash = hash({ image: image.sha256, box }),
+    const image = this.verifyImage(imageId);
+    if (
+      !Array.isArray(box) ||
+      box.length !== 4 ||
+      box.some((v) => !Number.isFinite(v)) ||
+      box[0] < 0 ||
+      box[1] < 0 ||
+      box[2] > image.width ||
+      box[3] > image.height ||
+      box[0] >= box[2] ||
+      box[1] >= box[3]
+    )
+      throw new SceneError("INVALID_IMAGE", "裁剪超出原图或范围无效", 422);
+    box = box.map((v) => Math.round(v));
+    if (box[2] <= box[0] || box[3] <= box[1])
+      throw new SceneError("INVALID_IMAGE", "裁剪范围不足一个像素", 422);
+    const requestHash = hash({
+        image: image.sha256,
+        box,
+        processorVersion: "s2c-image-2",
+      }),
       directory = path.join(
         this.projects.directory,
         "floorplan-images",
@@ -216,6 +235,15 @@ export class FloorplanStore {
       record = {
         id: requestHash,
         box,
+        width: bytes.readUInt32BE(16),
+        height: bytes.readUInt32BE(20),
+        cropToPixel: {
+          x0: box[0],
+          y0: box[1],
+          scaleX: (box[2] - box[0]) / bytes.readUInt32BE(16),
+          scaleY: (box[3] - box[1]) / bytes.readUInt32BE(20),
+        },
+        processorVersion: "s2c-image-2",
         path: `/floorplan-images/${imageId}/crops/${requestHash}/file`,
         sha256: createHash("sha256").update(bytes).digest("hex"),
       };

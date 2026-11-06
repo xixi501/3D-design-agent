@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
+import { geometryProof } from "./floorplan-geometry.mjs";
 import { scoreFloorplan } from "../packages/scene-core/src/floorplan-metrics.ts";
 import {
   validateFloorplan,
@@ -173,6 +174,7 @@ if (stage === "start") {
     } catch {
       rawValid = false;
     }
+    const geometry = await geometryProof(base, run.projectId, candidate);
     const scores = scoreFloorplan(
       raw,
       confirmed,
@@ -218,6 +220,7 @@ if (stage === "start") {
     }
     const passed =
       rawValid &&
+      geometry.passed &&
       scores.passed &&
       checks.passed &&
       realRoles &&
@@ -230,6 +233,7 @@ if (stage === "start") {
       passed,
       pending: false,
       rawValid,
+      geometry,
       scores,
       checks,
       realRoles,

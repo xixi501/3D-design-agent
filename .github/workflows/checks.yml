@@ -14,7 +14,11 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
       - run: npm ci
+      - run: npm run setup:agent
       - run: npm test
       - run: npm run build
       - run: npm run test:reference
@@ -24,7 +28,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.13'
+          python-version: "3.13"
           cache: pip
           cache-dependency-path: apps/agent/requirements.lock
       - run: python -m pip install -r apps/agent/requirements.lock -e apps/agent

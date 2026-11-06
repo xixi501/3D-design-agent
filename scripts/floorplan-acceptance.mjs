@@ -6,6 +6,7 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { geometryProof } from "./floorplan-geometry.mjs";
 import { createApp } from "../apps/service/src/app.ts";
 import { launch } from "../reference/upstream/scripts/browser.mjs";
 const out = path.resolve("test-results/floorplan-tools"),
@@ -211,6 +212,11 @@ try {
   assert.equal(saved.plan.furniture.length, 4);
   assert.equal(saved.plan.rooms.length, 3);
   assert.equal((await api(root + "/history")).entries.length, 1);
+  const frozenCandidate = await api(
+    `${root}/candidates/${complete.result.candidateId}`,
+  );
+  const geometry = await geometryProof(base, p.id, frozenCandidate);
+  assert.equal(geometry.passed, true, JSON.stringify(geometry));
   const trace = await api("/agent/tasks/" + task.id + "/trace"),
     roles = new Set(
       trace.filter((e) => e.kind === "agent_start").map((e) => e.data.role),
@@ -291,6 +297,7 @@ try {
         steps,
         task: complete,
         trace,
+        geometry,
         errors,
       },
       null,

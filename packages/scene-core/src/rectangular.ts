@@ -2,6 +2,7 @@ import {
   applyCommands,
   blankPlan,
   clone,
+  catalog,
   collections,
   detectRooms,
   importDocument,
@@ -310,6 +311,17 @@ export function checkInitialization(
       blocking: true,
     });
   const diff = businessDiff(shell.plan, after.plan);
+  for (const f of after.plan.furniture) {
+    const recipe = catalog[f.key];
+    if (recipe && (["w", "d", "h"] as const).some((k) => f[k] !== recipe[k]))
+      report.issues.push({
+        code: "FURNITURE_SIZE_CHANGED",
+        objectIds: [f.id],
+        message: `${f.name} 未使用目录默认尺寸；初始生成不能通过缩小家具绕过空间要求，可在生成后明确编辑尺寸`,
+        level: "error",
+        blocking: true,
+      });
+  }
   if (diff.deleted.length || diff.updated.length)
     report.issues.push({
       code: "INITIALIZATION_SCOPE",

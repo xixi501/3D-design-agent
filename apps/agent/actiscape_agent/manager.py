@@ -7,7 +7,7 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from .client import SceneClient, SceneFailure
 from .roles import Roles
 from .store import TaskError, TaskStore, fingerprint
-from .workflow import Workflow, completion_result
+from .workflow import Workflow, completion_result, conversation_focus
 
 
 class TaskManager:
@@ -59,7 +59,7 @@ class TaskManager:
         c = state.get("candidate")
         if not c:
             return None
-        task = self.store.task(id)
+        task = self.store.task(id, internal=True)
         path = f"/projects/{task['projectId']}/candidates/{c['id']}"
         current = await self.client.request(path)
         if current.get("committed") is None:
@@ -75,7 +75,7 @@ class TaskManager:
         else:
             revision = current["committed"]
         result = completion_result(task, state, c, revision)
-        self.store.focus(task["conversationId"], c["diff"]["added"] or c["diff"]["updated"])
+        self.store.focus(task["conversationId"], conversation_focus(c))
         self.store.event(id, "commit_reconciled", {"candidateId": c["id"], "revision": revision})
         return result
 
@@ -103,6 +103,14 @@ class TaskManager:
                         continue
                 previous = await self.graph.aget_state(config)
                 input_hash = fingerprint({"input": task["input"], "selected": task["selectedIds"]})
+                if task.get("mode") == "generate_rectangular":
+                    input_hash = fingerprint(
+                        {
+                            "input": task["input"],
+                            "selected": task["selectedIds"],
+                            "mode": task["mode"],
+                        }
+                    )
                 fresh = not previous.values or previous.values.get("input_hash") != input_hash
                 if fresh:
                     state = {

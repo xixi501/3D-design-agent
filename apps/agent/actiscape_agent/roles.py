@@ -153,13 +153,14 @@ class Roles:
         payload: dict,
         task_id: str,
         images: list[bytes] | None = None,
+        prompt_version: str = PROMPT_VERSION,
     ):
         self.store.event(
             task_id,
             "agent_start",
             {
                 "role": role,
-                "promptVersion": PROMPT_VERSION,
+                "promptVersion": prompt_version,
                 "promptHash": fingerprint(prompt),
                 "model": model_settings()["model"],
             },

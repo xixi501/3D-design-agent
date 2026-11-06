@@ -44,6 +44,7 @@ def runtime_versions():
         "deepseekAdapter": version("langchain-deepseek"),
         "model": model_settings()["model"],
         "reasoningEffort": model_settings()["reasoning_effort"],
-        "tools": "scene-candidate-v1",
+        "tools": "scene-candidate-v2",
         "promptVersion": "s2a-local-edit-1",
+        "generationPromptVersion": "s2b-rectangular-1",
     }

@@ -161,6 +161,19 @@ test("initialization previews and candidates leave projects unchanged; enforce q
         (i: any) => i.code === "QUANTITY_REQUIREMENT" && i.blocking,
       ),
     );
+    const shrunk = s.candidates.create(p.id, {
+      ...body,
+      requestId: "shrunk",
+      edits: [
+        { ...edits[0], values: { ...edits[0].values, w: 100 } },
+        ...edits.slice(1),
+      ],
+    });
+    assert.ok(
+      shrunk.checks.issues.some(
+        (i: any) => i.code === "FURNITURE_SIZE_CHANGED" && i.blocking,
+      ),
+    );
     assert.throws(
       () =>
         s.candidates.create(p.id, {

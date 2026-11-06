@@ -3,6 +3,8 @@ from typing import TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from .client import SceneClient, SceneFailure
+from .generation_flow import COLLECTIONS, GenerationFlow
+from .generation_roles import GenerationRoles
 from .roles import Roles
 from .store import TaskError, TaskStore
 
@@ -23,6 +25,8 @@ class State(TypedDict, total=False):
     version_retries: int
     route: str
     final: dict | None
+    generation: dict
+    layout_project: dict
 
 
 def ambiguous_name(task: dict, project: dict, conversation: dict) -> str | None:
@@ -66,6 +70,29 @@ def ambiguous_name(task: dict, project: dict, conversation: dict) -> str | None:
     return None
 
 
+def conversation_focus(candidate: dict):
+    if (
+        candidate.get("kind") == "initialize"
+        and candidate["generation"]["brief"]["purpose"] == "reading_lounge"
+    ):
+        chairs = [f for f in candidate["state"]["plan"]["furniture"] if f["type"] == "armchair"]
+        g = candidate["generation"]
+        if chairs:
+            windows = [o for o in g["openings"] if o["type"] == "window"]
+            if windows:
+                o = windows[0]
+                w, d = g["dimensions"]["width"], g["dimensions"]["depth"]
+                x, y = {
+                    "north": (o["from"] + o["width"] / 2, 0),
+                    "south": (o["from"] + o["width"] / 2, d),
+                    "east": (w, o["from"] + o["width"] / 2),
+                    "west": (0, o["from"] + o["width"] / 2),
+                }[o["side"]]
+                chairs.sort(key=lambda f: (f["x"] - x) ** 2 + (f["y"] - y) ** 2)
+            return [chairs[0]["id"]]
+    return candidate["diff"]["added"] or candidate["diff"]["updated"]
+
+
 def completion_result(task: dict, state: dict, candidate: dict, revision: int):
     before = {f["id"]: f for f in state["project"]["plan"]["furniture"]}
     after = {f["id"]: f for f in candidate["state"]["plan"]["furniture"]}
@@ -82,7 +109,7 @@ def completion_result(task: dict, state: dict, candidate: dict, revision: int):
                 {"action": action, "id": id, "name": (new or old)["name"], "fields": fields}
             )
     path = f"/api/projects/{task['projectId']}/candidates/{candidate['id']}"
-    return {
+    result = {
         "status": "completed",
         "message": f"已保存：{candidate['summary']}。本次修改作为一个事务提交，可撤销。",
         "projectId": task["projectId"],
@@ -100,6 +127,22 @@ def completion_result(task: dict, state: dict, candidate: dict, revision: int):
         "repairs": state.get("repairs", 0),
         "versionRetries": state.get("version_retries", 0),
     }
+    if candidate.get("kind") == "initialize":
+        g = task.get("generation", {})
+        result.update(
+            generation={
+                **candidate["generation"],
+                "style": g.get("style"),
+                "furniture": g.get("furniture", []),
+                "skillsUsed": g.get("skillsUsed", []),
+            },
+            skillsUsed=g.get("skillsUsed", []),
+            structure=candidate["structure"],
+            focusIds=conversation_focus(candidate),
+        )
+        if candidate["generation"]["brief"]["purpose"] == "reading_lounge" and result["focusIds"]:
+            result["message"] += f" 主要阅读座位：{result['focusIds'][0]}，可继续说“把它……”调整。"
+    return result
 
 
 def compile_scope(project: dict, intent: dict, assets: dict, catalogue: dict) -> dict:
@@ -203,6 +246,13 @@ class Workflow:
 
     async def ground(self, state: State):
         task = self.task(state, "understanding")
+        if task.get("mode") == "generate_rectangular":
+            try:
+                return await GenerationFlow(self.store, self.client, self.roles).ground(state, task)
+            except SceneFailure as e:
+                if e.code == "REVISION_CONFLICT":
+                    return self.conflict(state)
+                raise
         conversation = self.store.conversation(task["conversationId"])
         history = [
             {"user": t["input"], "assistant": (t["result"] or {}).get("message", t["error"])}
@@ -246,6 +296,8 @@ class Workflow:
 
     async def assets(self, state: State):
         task = self.task(state, "choosing_assets")
+        if task.get("mode") == "generate_rectangular":
+            return {"assets": await GenerationRoles(self.roles).assets(task, state["intent"])}
         return {"assets": await self.roles.assets(task, state["intent"])}
 
     async def scope(self, state: State):
@@ -266,6 +318,16 @@ class Workflow:
 
     async def design(self, state: State):
         task = self.task(state, "designing")
+        if task.get("mode") == "generate_rectangular":
+            return {
+                "proposal": await GenerationRoles(self.roles).design(
+                    task,
+                    state["layout_project"],
+                    state["scope"],
+                    state.get("last_report"),
+                    state.get("repairs", 0),
+                )
+            }
         proposal = await self.roles.design(
             task,
             state["project"],
@@ -279,7 +341,12 @@ class Workflow:
     async def prepare(self, state: State):
         task = self.task(state, "prechecking")
         try:
-            c = await self.roles.candidate(
+            role = (
+                GenerationRoles(self.roles)
+                if task.get("mode") == "generate_rectangular"
+                else self.roles
+            )
+            c = await role.candidate(
                 task, state["project"], state["scope"], state["proposal"], state.get("repairs", 0)
             )
             self.store.event(
@@ -319,12 +386,16 @@ class Workflow:
 
     async def inspect(self, state: State):
         task = self.task(state, "checking")
-        review = await self.roles.inspect(
-            task, state["intent"], state["candidate"], state["evidence"]
+        review = (
+            await GenerationRoles(self.roles).inspect(task, state["candidate"], state["evidence"])
+            if task.get("mode") == "generate_rectangular"
+            else await self.roles.inspect(
+                task, state["intent"], state["candidate"], state["evidence"]
+            )
         )
-        valid_ids = {f["id"] for f in state["candidate"]["state"]["plan"]["furniture"]} | set(
-            state["candidate"]["diff"]["deleted"]
-        )
+        valid_ids = {
+            o["id"] for k in COLLECTIONS for o in state["candidate"]["state"]["plan"].get(k, [])
+        } | set(state["candidate"]["diff"]["deleted"])
         reported = [id for issue in review["issues"] for id in issue["object_ids"]]
         if any(id not in valid_ids for id in reported):
             raise TaskError("INVALID_REVIEW", "检查角色返回未知对象身份，候选没有提交")
@@ -352,6 +423,16 @@ class Workflow:
         self.task(state, "repairing")
         count = state.get("repairs", 0)
         if count >= 3:
+            if self.store.task(state["task_id"])["mode"] == "generate_rectangular":
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "waiting_input",
+                        "message": "在固定尺寸与家具要求下，初稿后三轮修复仍未得到通过检查的布局。请调整家具清单或尺寸后继续；正式项目未改变。",
+                        "candidateId": (state.get("candidate") or {}).get("id"),
+                        "report": state.get("last_report"),
+                    },
+                }
             return {
                 "route": "end",
                 "final": {
@@ -398,7 +479,7 @@ class Workflow:
                 "replayed": committed["replayed"],
             },
         )
-        self.store.focus(task["conversationId"], c["diff"]["added"] or c["diff"]["updated"])
+        self.store.focus(task["conversationId"], conversation_focus(c))
         return {"route": "end", "final": result}
 
     def compile(self, checkpointer):
@@ -419,7 +500,9 @@ class Workflow:
         builder.add_edge(START, "snapshot")
         builder.add_edge("snapshot", "ground")
         builder.add_conditional_edges(
-            "ground", lambda s: s["route"], {"end": END, "assets": "assets", "scope": "scope"}
+            "ground",
+            lambda s: s["route"],
+            {"end": END, "assets": "assets", "scope": "scope", "rebase": "snapshot"},
         )
         builder.add_edge("assets", "scope")
         builder.add_conditional_edges(

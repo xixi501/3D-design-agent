@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from .config import model_settings, state_directory
 from .manager import TaskManager
 from .schemas import ResumeInput, TaskInput
+from .skill_registry import GENERATION_TOOLS, load_design_skill, skill_record
 from .store import TERMINAL, TaskError
 from .versions import runtime_versions
 
@@ -41,6 +42,20 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
 
     def manager():
         return app.state.manager
+
+    @app.get("/skills")
+    async def skills():
+        snapshot = load_design_skill(GENERATION_TOOLS)
+        return {
+            "items": [
+                {
+                    **skill_record(snapshot),
+                    "description": snapshot["description"],
+                    "appliesTo": snapshot["appliesTo"],
+                    "requiredTools": snapshot["requiredTools"],
+                }
+            ]
+        }
 
     @app.get("/health")
     async def health():

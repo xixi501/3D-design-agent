@@ -1,0 +1,424 @@
+{
+  "date": "2026-11-06",
+  "imageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+  "sourcePage": "https://floorplancreator.io/floor-plan-templates/one-bedroom-apartment",
+  "referenceSentToAgent": false,
+  "manualGeometryOperations": 0,
+  "imageFidelityAccepted": false,
+  "completeS2Accepted": false,
+  "batches": [
+    {
+      "name": "before",
+      "codeCommit": "d74244dbfa19b3a126df747f2bfd89c19b7a28e2",
+      "serviceVersions": {
+        "codeCommit": "87af662d2476e405e6cb9b9613e774ddc87036ac",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "modelConfigVersion": "per-role-output-budget-3",
+        "floorplanRecognitionOptions": {
+          "max_tokens": 32768,
+          "timeout": 180,
+          "reasoning_effort": "low",
+          "extra_body": {
+            "thinking": {
+              "type": "disabled"
+            }
+          }
+        },
+        "floorplanPromptVersion": "s2c-floorplan-5",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      },
+      "directory": "test-results/floorplan-system-eval-20261106/baseline-2026-11-06T07-54-07-578Z",
+      "reportSha256": "7c9bc91654cd88485cd32c7bd51e69546d00bb3a3ff4891bb2949efda6ee6ecf",
+      "cases": [
+        {
+          "repeat": 1,
+          "projectId": "d78c7f55-123f-4e33-b46b-8b3d7b0820b9",
+          "taskId": "5b9813cf-8b8e-49e8-8e91-25f2f5f8eff3",
+          "status": "waiting_input",
+          "modelCalls": 6,
+          "activeSeconds": 19.223327159881592,
+          "error": "请核对原图叠加、比例尺、整层结构及客餐厅家具，再点击“确认结构与原图布局”。 待处理：尺寸标注比例相差超过 3%，请核对标注含义或图片是否被拉伸",
+          "errorCode": null,
+          "compilationPassed": false,
+          "checks": {
+            "passed": false,
+            "issues": [
+              {
+                "code": "INVALID_FLOORPLAN",
+                "message": "尺寸标注比例相差超过 3%，请核对标注含义或图片是否被拉伸",
+                "field": "anchors",
+                "objectIds": [],
+                "level": "error",
+                "blocking": true
+              }
+            ],
+            "coverage": [],
+            "limitations": ["结构尚不可验证"]
+          },
+          "initialCounts": {
+            "walls": 8,
+            "openings": 7,
+            "rooms": 3,
+            "symbols": 16
+          },
+          "measuredCounts": {
+            "walls": 8,
+            "openings": 7,
+            "rooms": 3,
+            "symbols": 16
+          },
+          "repairs": 0,
+          "measurementAttempts": 0,
+          "toolRoles": [],
+          "toolErrors": {},
+          "formalRevision": 0,
+          "history": {
+            "undo": 0,
+            "redo": 0
+          },
+          "manualGeometryOperations": 0,
+          "resultFile": "test-results/floorplan-system-eval-20261106/baseline-2026-11-06T07-54-07-578Z/1-result.json",
+          "resultSha256": "03ef2dfbc58482e96d6e5d6af1315916084d721b9ee3e1c48421fe14682f5ce8"
+        },
+        {
+          "repeat": 2,
+          "projectId": "792161dd-2336-4beb-9d0d-849aa3f800ee",
+          "taskId": "f55b2dde-74f2-48f2-9148-064eb2e94313",
+          "status": "waiting_input",
+          "modelCalls": 6,
+          "activeSeconds": 18.30978035926819,
+          "error": "请核对原图叠加、比例尺、整层结构及客餐厅家具，再点击“确认结构与原图布局”。 待处理：尺寸标注比例相差超过 3%，请核对标注含义或图片是否被拉伸",
+          "errorCode": null,
+          "compilationPassed": false,
+          "checks": {
+            "passed": false,
+            "issues": [
+              {
+                "code": "INVALID_FLOORPLAN",
+                "message": "尺寸标注比例相差超过 3%，请核对标注含义或图片是否被拉伸",
+                "field": "anchors",
+                "objectIds": [],
+                "level": "error",
+                "blocking": true
+              }
+            ],
+            "coverage": [],
+            "limitations": ["结构尚不可验证"]
+          },
+          "initialCounts": {
+            "walls": 8,
+            "openings": 7,
+            "rooms": 3,
+            "symbols": 14
+          },
+          "measuredCounts": {
+            "walls": 8,
+            "openings": 7,
+            "rooms": 3,
+            "symbols": 14
+          },
+          "repairs": 0,
+          "measurementAttempts": 0,
+          "toolRoles": [],
+          "toolErrors": {},
+          "formalRevision": 0,
+          "history": {
+            "undo": 0,
+            "redo": 0
+          },
+          "manualGeometryOperations": 0,
+          "resultFile": "test-results/floorplan-system-eval-20261106/baseline-2026-11-06T07-54-07-578Z/2-result.json",
+          "resultSha256": "eadb4e6f3ab6acf9fa666c19c32f7d800fddcd35d8795e2b033059690af9a4b6"
+        }
+      ]
+    },
+    {
+      "name": "first-adapter",
+      "codeCommit": "d12dbe09a787eceb3f2bbab7e8c13b53fdf55a07",
+      "serviceVersions": {
+        "codeCommit": "d12dbe09a787eceb3f2bbab7e8c13b53fdf55a07",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "modelConfigVersion": "per-role-output-budget-3",
+        "floorplanRecognitionOptions": {
+          "max_tokens": 32768,
+          "timeout": 180,
+          "reasoning_effort": "low",
+          "extra_body": {
+            "thinking": {
+              "type": "disabled"
+            }
+          }
+        },
+        "floorplanPromptVersion": "s2c-floorplan-6",
+        "floorplanToolAdapter": "hpd-adapter-1",
+        "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      },
+      "directory": "test-results/floorplan-system-eval-20261106/upstream-after-2026-11-06T08-25-14-748Z",
+      "reportSha256": "7d55df7677c4dcf50b82d0b8a17a2ccea22c21bd071cc644ae37813379b83875",
+      "cases": [
+        {
+          "repeat": 1,
+          "projectId": "19122c58-0c8c-4e0a-8363-58382f43c149",
+          "taskId": "9168cfcd-e7e2-4e88-b777-955faae541ef",
+          "status": "failed",
+          "modelCalls": 20,
+          "activeSeconds": 107.61665940284729,
+          "error": "design 模型调用失败（GraphRecursionError，HTTP 无）",
+          "errorCode": "MODEL_ERROR",
+          "compilationPassed": false,
+          "checks": null,
+          "initialCounts": {
+            "walls": 6,
+            "openings": 6,
+            "rooms": 3,
+            "symbols": 12
+          },
+          "measuredCounts": {
+            "walls": 6,
+            "openings": 6,
+            "rooms": 3,
+            "symbols": 12
+          },
+          "repairs": 0,
+          "measurementAttempts": 1,
+          "toolRoles": [
+            "design:fit_wall_faces",
+            "design:measure_dimension_chain",
+            "design:preview_floorplan",
+            "main:analyze_floorplan"
+          ],
+          "toolErrors": {},
+          "formalRevision": 0,
+          "history": {
+            "undo": 0,
+            "redo": 0
+          },
+          "manualGeometryOperations": 0,
+          "resultFile": "test-results/floorplan-system-eval-20261106/upstream-after-2026-11-06T08-25-14-748Z/1-result.json",
+          "resultSha256": "43ff5544f05e30d602d5db82a782b26b0b4afc9f1da417dda80cdc8bb7cd6acb"
+        },
+        {
+          "repeat": 2,
+          "projectId": "0e80fcc0-62d1-49b8-9c55-d800cac7fdef",
+          "taskId": "4ee38956-3199-4de3-97df-88b9c3e57b6c",
+          "status": "failed",
+          "modelCalls": 1,
+          "activeSeconds": 1.205733060836792,
+          "error": "main 模型调用失败（SceneFailure，HTTP 无）",
+          "errorCode": "MODEL_ERROR",
+          "compilationPassed": false,
+          "checks": null,
+          "initialCounts": null,
+          "measuredCounts": null,
+          "repairs": 0,
+          "measurementAttempts": 0,
+          "toolRoles": [],
+          "toolErrors": {},
+          "formalRevision": 0,
+          "history": {
+            "undo": 0,
+            "redo": 0
+          },
+          "manualGeometryOperations": 0,
+          "resultFile": "test-results/floorplan-system-eval-20261106/upstream-after-2026-11-06T08-25-14-748Z/2-result.json",
+          "resultSha256": "57e0c76e399192a489516adaefb6edeb4646dfaa31388825b2b199947876c86b"
+        }
+      ]
+    },
+    {
+      "name": "bounded-adapter",
+      "codeCommit": "601eb83e41b04f9cc5c16b102ff3494482d1fdde",
+      "serviceVersions": {
+        "codeCommit": "601eb83e41b04f9cc5c16b102ff3494482d1fdde",
+        "workingTreeModified": false,
+        "python": "3.13.13",
+        "langgraph": "1.2.20",
+        "langchain": "1.4.9",
+        "deepseekAdapter": "1.1.1",
+        "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+        "model": "deepseek-flash",
+        "modelProvider": "api.deepseek.com",
+        "reasoningEffort": "high",
+        "tools": "scene-candidate-v3",
+        "structuredOutputRecovery": "one-bounded-continuation-1",
+        "modelConfigVersion": "per-role-output-budget-3",
+        "floorplanRecognitionOptions": {
+          "max_tokens": 32768,
+          "timeout": 180,
+          "reasoning_effort": "low",
+          "extra_body": {
+            "thinking": {
+              "type": "disabled"
+            }
+          }
+        },
+        "floorplanPromptVersion": "s2c-floorplan-7",
+        "floorplanToolAdapter": "hpd-adapter-1",
+        "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+        "pillow": "13.0.0",
+        "opencv": "4.14.0.94",
+        "promptVersion": "s2a-local-edit-2",
+        "generationPromptVersion": "s2b-rectangular-2"
+      },
+      "directory": "test-results/floorplan-tool-live/2026-11-06T08-35-00-433Z",
+      "reportSha256": "972eec49a4f76c778581858d0aa5ac0814afd3c5a547f0ffa1f14fc37805350a",
+      "cases": [
+        {
+          "repeat": 1,
+          "projectId": "d3a6da66-5b7d-4001-8ded-09bf7aa0a6de",
+          "taskId": "d410b6b3-1948-4a44-8a46-7359332eab36",
+          "status": "waiting_input",
+          "modelCalls": 20,
+          "activeSeconds": 92.82868242263794,
+          "error": "请核对原图叠加、比例尺、整层结构及客餐厅家具，再点击“确认结构与原图布局”。 待处理：明确尺寸在统一比例下仍有超过 1 mm 的差异，请核对标定端点；不能分别拉伸图片",
+          "errorCode": null,
+          "compilationPassed": false,
+          "checks": {
+            "passed": false,
+            "issues": [
+              {
+                "code": "INVALID_FLOORPLAN",
+                "message": "明确尺寸在统一比例下仍有超过 1 mm 的差异，请核对标定端点；不能分别拉伸图片",
+                "field": "anchors",
+                "objectIds": [],
+                "level": "error",
+                "blocking": true
+              }
+            ],
+            "coverage": [],
+            "limitations": ["结构尚不可验证"]
+          },
+          "initialCounts": {
+            "walls": 6,
+            "openings": 7,
+            "rooms": 3,
+            "symbols": 14
+          },
+          "measuredCounts": {
+            "walls": 6,
+            "openings": 8,
+            "rooms": 3,
+            "symbols": 13
+          },
+          "repairs": 3,
+          "measurementAttempts": 4,
+          "toolRoles": [
+            "design:fit_wall_faces",
+            "design:measure_dimension_chain",
+            "design:preview_floorplan",
+            "main:analyze_floorplan"
+          ],
+          "toolErrors": {
+            "尺寸段数量与刻度不符": 6
+          },
+          "formalRevision": 0,
+          "history": {
+            "undo": 0,
+            "redo": 0
+          },
+          "manualGeometryOperations": 0,
+          "resultFile": "test-results/floorplan-tool-live/2026-11-06T08-35-00-433Z/1-result.json",
+          "resultSha256": "a39ba6854b7699b911d04fc11cbe9847a86d755dcdc56e6dbe6dce6d925a47b7"
+        },
+        {
+          "repeat": 2,
+          "projectId": "58c77603-4f75-46bf-bcbf-93e96d577eb7",
+          "taskId": "d161b18c-7a4d-4f1b-86fd-ab9d18d3d66d",
+          "status": "waiting_input",
+          "modelCalls": 24,
+          "activeSeconds": 112.84836196899414,
+          "error": "请核对原图叠加、比例尺、整层结构及客餐厅家具，再点击“确认结构与原图布局”。 待处理：发现未连接墙端，请校正缺口或多余墙线",
+          "errorCode": null,
+          "compilationPassed": false,
+          "checks": {
+            "passed": false,
+            "issues": [
+              {
+                "code": "INVALID_FLOORPLAN",
+                "message": "发现未连接墙端，请校正缺口或多余墙线",
+                "field": "walls",
+                "objectIds": [],
+                "level": "error",
+                "blocking": true
+              }
+            ],
+            "coverage": [],
+            "limitations": ["结构尚不可验证"]
+          },
+          "initialCounts": {
+            "walls": 6,
+            "openings": 7,
+            "rooms": 3,
+            "symbols": 8
+          },
+          "measuredCounts": {
+            "walls": 7,
+            "openings": 7,
+            "rooms": 3,
+            "symbols": 9
+          },
+          "repairs": 3,
+          "measurementAttempts": 4,
+          "toolRoles": [
+            "design:fit_wall_faces",
+            "design:measure_dimension_chain",
+            "design:preview_floorplan",
+            "main:analyze_floorplan"
+          ],
+          "toolErrors": {
+            "尺寸段数量与刻度不符": 8
+          },
+          "formalRevision": 0,
+          "history": {
+            "undo": 0,
+            "redo": 0
+          },
+          "manualGeometryOperations": 0,
+          "resultFile": "test-results/floorplan-tool-live/2026-11-06T08-35-00-433Z/2-result.json",
+          "resultSha256": "4c3db443ff6be9cee05cc8fe0de4625ce2f95d9ade79cb87f1f368492351c201"
+        }
+      ]
+    }
+  ],
+  "controlledValidation": {
+    "nodeTests": 27,
+    "pythonTests": 44,
+    "typecheck": true,
+    "build": true,
+    "referenceHashes": true,
+    "browser": "test-results/floorplan-tools/report.json",
+    "realImageAcceptance": false
+  },
+  "businessCI": {
+    "codeCommit": "601eb83e41b04f9cc5c16b102ff3494482d1fdde",
+    "url": "https://github.com/xixi501/3D-design-agent/actions/runs/42188681581",
+    "result": "success"
+  }
+}

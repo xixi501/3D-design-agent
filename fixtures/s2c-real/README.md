@@ -2,6 +2,8 @@
 
 The user currently selected one real "92" floorplan for a feasibility pilot; the earlier image was superseded and is not a second acceptance case. Originals, task traces and drafts stay in the local data/test-results directories. The two-case acceptance manifest and frozen references remain pending. Do not substitute the synthetic tool fixture or duplicate the active image for this gate.
 
+Correction: the user rejected the manually built "92" layout as structurally different. Its fidelity claim has been withdrawn; rendering/storage success does not count as recognition. The current internal tool probe uses one frozen published FloorPlan Creator image (`one-bedroom-system-probe.json`), without manual geometry or reference data in the Agent input. Its before/after runs all failed; this is not the formal two-image acceptance set. See `docs/S2C_UPSTREAM_TOOLS.md` for the six preserved runs and limitations.
+
 Create an operator-owned manifest outside Git, with exactly two cases:
 
 ```json

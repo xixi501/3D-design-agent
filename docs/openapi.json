@@ -448,6 +448,150 @@
         }
       }
     },
+    "/api/floorplan-images/{image}/tools/{tool}": {
+      "post": {
+        "description": "Read-only pinned house-plan-designer pixel tools; no project/draft/history writes. Coordinates are EXIF-oriented original pixels.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "image",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["analyze", "fit", "axis"]
+            },
+            "in": "path",
+            "name": "tool",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/floorplan-images/{image}/tools/{toolId}/files/{file}": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "image",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "toolId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "file",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/floorplan-preflight": {
+      "post": {
+        "description": "Read-only TypeScript compilation feedback before persisting a recognized draft.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["imageId", "data"],
+                "additionalProperties": false,
+                "properties": {
+                  "imageId": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/floorplan-drafts/{draft}/source-audit": {
+      "post": {
+        "description": "Run original wallaudit and furnoverlay against a compiled draft, frozen to its hash. Heuristic source evidence, not permission to commit.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "draft",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
     "/api/floorplan-images": {
       "post": {
         "description": "Upload a decoded PNG/JPEG floorplan, max 20 MB / 25 MP. Originals and normalized pixels are durable; never modifies projects.",

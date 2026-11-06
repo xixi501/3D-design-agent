@@ -5,7 +5,9 @@ const base = (process.env.ACTISCAPE_URL || "http://127.0.0.1:3001").replace(
   /\/$/,
   "",
 );
-const out = path.resolve("test-results/agent-acceptance");
+const out = path.resolve(
+  process.env.ACTISCAPE_ACCEPTANCE_OUT || "test-results/agent-acceptance",
+);
 fs.mkdirSync(out, { recursive: true });
 const terminal = new Set([
   "completed",
@@ -55,7 +57,11 @@ const cases = [
   "multi-turn-reference",
   "clarification",
 ];
-for (let repeat = 1; repeat <= 2; repeat++)
+for (
+  let repeat = 1;
+  repeat <= Number(process.env.ACTISCAPE_ACCEPTANCE_REPEATS || 2);
+  repeat++
+)
   for (const name of cases) {
     const record = {
       name,

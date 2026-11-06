@@ -101,3 +101,7 @@ node scripts/import-asset.mjs fixtures/textured-vase.glb PROJECT_ID 2200 2200 42
 Agent 终止预检工具增加可选 `change_reasons`：以 `anchors:0`、`symbols:chair1` 等集合与身份为键说明原图依据。差异保存于任务测量记录，未解释删除或标注变化会阻断；这不是正式场景 API 写入权限。相同原图及参数的成功测量可复用，改变参数或失败结果不复用，重启继续使用原任务证据。预算保持不变。
 
 当前提示词 8、适配器 2、Skill 0.3.0 的两次真实单图仍失败，没有可交付三维结果。零对象人工校正门槛及复现、评分、全部失败见 [单图实测](S2C_SINGLE_IMAGE.md)。
+
+## 第二版户型图测量
+
+第二版数据、measurement-updates、diagnostics、review、fit-bound 的参数与兼容说明见 [流程对齐接口](S2C_FLOW_ALIGNMENT.md)。新增测量结果不直接写正式项目；最终提交继续使用冻结候选与版本/去重机制。

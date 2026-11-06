@@ -328,6 +328,18 @@ export function solveMeasurement(data: FloorplanData) {
       (a.kind !== "wall_center" || b.kind !== "wall_center")
     )
       fail("中线尺寸须绑定墙中线", { objectIds: [d.id] });
+    if (
+      d.basis !== "centerline" &&
+      (a.kind === "wall_center" ||
+        b.kind === "wall_center" ||
+        (a.kind === "wall_face" &&
+          a.side !== (d.basis === "interior" ? "max" : "min")) ||
+        (b.kind === "wall_face" &&
+          b.side !== (d.basis === "interior" ? "min" : "max")))
+    )
+      fail("净尺寸或外尺寸绑定了错误方向的墙面", {
+        objectIds: [d.id, a.id, b.id],
+      });
     equations.push({
       a: sub(exprs.get(d.to)!, exprs.get(d.from)!),
       b: millimetres(d.distance, d.id),
@@ -349,6 +361,15 @@ export function solveMeasurement(data: FloorplanData) {
         y: number;
       };
     const length = Math.hypot(w.b.x - w.a.x, w.b.y - w.a.y) * scale;
+    const centerShift = c - [...v.c].reduce((s, [i, k]) => s + x[i] * k, 0),
+      oldT = [...v.t].reduce((s, [i, k]) => s + x[i] * k, 0);
+    if (
+      Math.max(
+        Math.abs(centerShift + (t - oldT) / 2),
+        Math.abs(centerShift - (t - oldT) / 2),
+      ) > Math.max(100, length * 0.02)
+    )
+      fail("墙面校准明显偏离原图观测", { objectIds: [w.id] });
     if (
       t < 20 ||
       t > 1000 ||

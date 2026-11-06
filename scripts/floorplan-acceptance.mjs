@@ -9,7 +9,10 @@ import { createHash } from "node:crypto";
 import { geometryProof } from "./floorplan-geometry.mjs";
 import { createApp } from "../apps/service/src/app.ts";
 import { launch } from "../reference/upstream/scripts/browser.mjs";
-const out = path.resolve("test-results/floorplan-tools"),
+const v2 = process.argv.includes("--v2");
+const out = path.resolve(
+    v2 ? "test-results/floorplan-v2-tools" : "test-results/floorplan-tools",
+  ),
   directory = fs.mkdtempSync(path.join(os.tmpdir(), "s2c-browser-"));
 fs.mkdirSync(out, { recursive: true });
 const base = "http://127.0.0.1:3125",
@@ -51,6 +54,7 @@ async function start(dataDir) {
         ACTISCAPE_AGENT_DATA_DIR: path.join(dataDir, "agent"),
         ACTISCAPE_SCENE_URL: base,
         AGENT_PORT: String(agentPort),
+        ACTISCAPE_TEST_WORKFLOW: v2 ? "2" : "1",
       },
       stdio: ["ignore", "ignore", "pipe"],
     },
@@ -175,54 +179,91 @@ try {
     '.floorplan-controls input[aria-label="户型名称"]',
   );
   await button("适应原图", ".floorplan-dialog");
-  await button("在图上选两点标定", ".floorplan-dialog");
-  const a = await drawPoint(50, 50),
-    b = await drawPoint(950, 50);
-  await page.mouse.click(a.x, a.y);
-  await page.mouse.click(b.x, b.y);
-  await fill('.floorplan-controls input[aria-label="标定实际距离毫米"]', 9000);
-  await page.select(".floorplan-controls select:first-of-type", "centerline");
-  const scaled = page.waitForResponse(
-    (r) => r.request().method() === "POST" && r.url().endsWith("/commands"),
-  );
-  await button("保存比例尺", ".floorplan-dialog");
-  assert.equal((await scaled).status(), 200);
-  await page.waitForFunction(
-    () => !document.querySelector("[data-testid=confirm-floorplan]")?.disabled,
-  );
-  await page.select(".floorplan-controls > select:nth-of-type(2)", "symbols");
-  await page.select(".floorplan-controls > select:nth-of-type(3)", "chair1");
-  const from = await drawPoint(520, 180),
-    to = await drawPoint(510, 180),
-    dragged = page.waitForResponse(
+  if (!v2) {
+    await button("在图上选两点标定", ".floorplan-dialog");
+    const a = await drawPoint(50, 50),
+      b = await drawPoint(950, 50);
+    await page.mouse.click(a.x, a.y);
+    await page.mouse.click(b.x, b.y);
+    await fill(
+      '.floorplan-controls input[aria-label="标定实际距离毫米"]',
+      9000,
+    );
+    await page.select(".floorplan-controls select:first-of-type", "centerline");
+    const scaled = page.waitForResponse(
       (r) => r.request().method() === "POST" && r.url().endsWith("/commands"),
     );
-  await page.mouse.move(from.x, from.y);
-  await page.mouse.down();
-  await page.mouse.move(to.x, to.y, { steps: 8 });
-  await page.mouse.up();
-  assert.equal((await dragged).status(), 200);
-  await page.waitForFunction(
-    () => !document.querySelector("[data-testid=confirm-floorplan]")?.disabled,
-  );
-  const draft = await api(
-    root + "/floorplan-drafts/" + waiting.generation.draftId,
-  );
-  assert.equal(draft.corrections, 1);
-  assert.ok(
-    Math.abs(draft.data.symbols.find((s) => s.id === "chair1").x - 510) < 1,
-  );
-  await page.screenshot({ path: path.join(out, "draft-overlay.png") });
-  await button("关闭", ".floorplan-dialog");
-  await page.reload({ waitUntil: "load" });
-  await page.click("[data-panel=chat]");
-  await page.waitForSelector("[data-testid=review-floorplan]");
-  await page.locator("[data-testid=review-floorplan]").click();
-  await page.waitForFunction(
-    () => !document.querySelector("[data-testid=confirm-floorplan]")?.disabled,
-  );
-  assert.equal((await api(root)).revision, 0);
-  steps.push("calibration, actual pointer drag, draft reopen");
+    await button("保存比例尺", ".floorplan-dialog");
+    assert.equal((await scaled).status(), 200);
+    await page.waitForFunction(
+      () =>
+        !document.querySelector("[data-testid=confirm-floorplan]")?.disabled,
+    );
+    await page.select(".floorplan-controls > select:nth-of-type(2)", "symbols");
+    await page.select(".floorplan-controls > select:nth-of-type(3)", "chair1");
+    const from = await drawPoint(520, 180),
+      to = await drawPoint(510, 180),
+      dragged = page.waitForResponse(
+        (r) => r.request().method() === "POST" && r.url().endsWith("/commands"),
+      );
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(to.x, to.y, { steps: 8 });
+    await page.mouse.up();
+    assert.equal((await dragged).status(), 200);
+    await page.waitForFunction(
+      () =>
+        !document.querySelector("[data-testid=confirm-floorplan]")?.disabled,
+    );
+    const draft = await api(
+      root + "/floorplan-drafts/" + waiting.generation.draftId,
+    );
+    assert.equal(draft.corrections, 1);
+    assert.ok(
+      Math.abs(draft.data.symbols.find((s) => s.id === "chair1").x - 510) < 1,
+    );
+    await page.screenshot({ path: path.join(out, "draft-overlay.png") });
+    await button("关闭", ".floorplan-dialog");
+    await page.reload({ waitUntil: "load" });
+    await page.click("[data-panel=chat]");
+    await page.waitForSelector("[data-testid=review-floorplan]");
+    await page.locator("[data-testid=review-floorplan]").click();
+    await page.waitForFunction(
+      () =>
+        !document.querySelector("[data-testid=confirm-floorplan]")?.disabled,
+    );
+    assert.equal((await api(root)).revision, 0);
+    steps.push("calibration, actual pointer drag, draft reopen");
+  } else {
+    const draft = await api(
+      root + "/floorplan-drafts/" + waiting.generation.draftId,
+    );
+    assert.equal(draft.data.measurementVersion, 2);
+    assert.equal(draft.corrections, 0);
+    assert.equal(draft.sourceReview.hash, draft.hash);
+    assert.ok(draft.sourceReview.review.passed);
+    const preview = await api(
+      root + "/floorplan-drafts/" + draft.id + "/preview",
+      {},
+    );
+    assert.equal(preview.measurement.dimensions.length, 4);
+    assert.ok(
+      preview.measurement.dimensions.every((d) => Math.abs(d.residualMm) <= 1),
+    );
+    await page.screenshot({ path: path.join(out, "draft-overlay.png") });
+    await button("关闭", ".floorplan-dialog");
+    await page.reload({ waitUntil: "load" });
+    await page.click("[data-panel=chat]");
+    await page.waitForSelector("[data-testid=review-floorplan]");
+    await page.locator("[data-testid=review-floorplan]").click();
+    await page.waitForFunction(
+      () =>
+        !document.querySelector("[data-testid=confirm-floorplan]")?.disabled,
+    );
+    steps.push(
+      "v2 feature constraints, zero user corrections, current source review, diagnostic evidence and reopen",
+    );
+  }
   await page.click("[data-testid=confirm-floorplan]");
   const complete = await waitTask(task.id, ["completed"]);
   const saved = await api(root);

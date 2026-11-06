@@ -1,0 +1,372 @@
+{
+  "image": {
+    "id": "fp-0000000000000000000000000000000000000000000000000000000000000000",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "width": 1000,
+    "height": 800
+  },
+  "name": "S2-C synthetic tool fixture (not image acceptance)",
+  "anchors": [
+    {
+      "a": {
+        "x": 40,
+        "y": 50
+      },
+      "b": {
+        "x": 960,
+        "y": 50
+      },
+      "distance": {
+        "value": 9200,
+        "unit": "mm"
+      },
+      "basis": "exterior",
+      "evidence": "controlled labelled dimension"
+    },
+    {
+      "a": {
+        "x": 60,
+        "y": 50
+      },
+      "b": {
+        "x": 940,
+        "y": 50
+      },
+      "distance": {
+        "value": 8800,
+        "unit": "mm"
+      },
+      "basis": "interior",
+      "evidence": "controlled labelled dimension"
+    },
+    {
+      "a": {
+        "x": 50,
+        "y": 40
+      },
+      "b": {
+        "x": 50,
+        "y": 760
+      },
+      "distance": {
+        "value": 7200,
+        "unit": "mm"
+      },
+      "basis": "exterior",
+      "evidence": "controlled labelled dimension"
+    },
+    {
+      "a": {
+        "x": 50,
+        "y": 60
+      },
+      "b": {
+        "x": 50,
+        "y": 740
+      },
+      "distance": {
+        "value": 6800,
+        "unit": "mm"
+      },
+      "basis": "interior",
+      "evidence": "controlled labelled dimension"
+    }
+  ],
+  "walls": [
+    {
+      "id": "north",
+      "a": {
+        "x": 50,
+        "y": 50
+      },
+      "b": {
+        "x": 950,
+        "y": 50
+      }
+    },
+    {
+      "id": "east",
+      "a": {
+        "x": 950,
+        "y": 50
+      },
+      "b": {
+        "x": 950,
+        "y": 750
+      }
+    },
+    {
+      "id": "south",
+      "a": {
+        "x": 950,
+        "y": 750
+      },
+      "b": {
+        "x": 50,
+        "y": 750
+      }
+    },
+    {
+      "id": "west",
+      "a": {
+        "x": 50,
+        "y": 750
+      },
+      "b": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "id": "partition",
+      "a": {
+        "x": 650,
+        "y": 50
+      },
+      "b": {
+        "x": 650,
+        "y": 750
+      }
+    },
+    {
+      "id": "division",
+      "a": {
+        "x": 650,
+        "y": 400
+      },
+      "b": {
+        "x": 950,
+        "y": 400
+      }
+    }
+  ],
+  "openings": [
+    {
+      "id": "entry",
+      "wallId": "south",
+      "type": "door",
+      "offset": 750,
+      "width": 90
+    },
+    {
+      "id": "window1",
+      "wallId": "north",
+      "type": "window",
+      "offset": 300,
+      "width": 150
+    }
+  ],
+  "rooms": [
+    {
+      "id": "living",
+      "at": {
+        "x": 350,
+        "y": 550
+      },
+      "name": "客餐厅"
+    },
+    {
+      "id": "bedroom",
+      "at": {
+        "x": 800,
+        "y": 250
+      },
+      "name": "卧室"
+    },
+    {
+      "id": "kitchen",
+      "at": {
+        "x": 800,
+        "y": 550
+      },
+      "name": "厨房"
+    }
+  ],
+  "symbols": [
+    {
+      "id": "sofa1",
+      "roomId": "living",
+      "category": "三人沙发",
+      "x": 250,
+      "y": 180,
+      "w": 220,
+      "d": 90,
+      "rot": 0
+    },
+    {
+      "id": "coffee1",
+      "roomId": "living",
+      "category": "茶几",
+      "x": 350,
+      "y": 350,
+      "w": 110,
+      "d": 60,
+      "rot": 0
+    },
+    {
+      "id": "chair1",
+      "roomId": "living",
+      "category": "单人沙发",
+      "x": 520,
+      "y": 180,
+      "w": 85,
+      "d": 85,
+      "rot": 90
+    },
+    {
+      "id": "lamp1",
+      "roomId": "living",
+      "category": "落地灯",
+      "x": 520,
+      "y": 330,
+      "w": 35,
+      "d": 35,
+      "rot": 0
+    }
+  ],
+  "targetRoomIds": [
+    "living"
+  ],
+  "uncertainties": [],
+  "measurementVersion": 2,
+  "features": [
+    {
+      "id": "wl",
+      "objectId": "west",
+      "axis": "x",
+      "side": "min",
+      "kind": "wall_face",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "wr",
+      "objectId": "west",
+      "axis": "x",
+      "side": "max",
+      "kind": "wall_face",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "el",
+      "objectId": "east",
+      "axis": "x",
+      "side": "min",
+      "kind": "wall_face",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "er",
+      "objectId": "east",
+      "axis": "x",
+      "side": "max",
+      "kind": "wall_face",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "nt",
+      "objectId": "north",
+      "axis": "y",
+      "side": "min",
+      "kind": "wall_face",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "nb",
+      "objectId": "north",
+      "axis": "y",
+      "side": "max",
+      "kind": "wall_face",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "st",
+      "objectId": "south",
+      "axis": "y",
+      "side": "min",
+      "kind": "wall_face",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "sb",
+      "objectId": "south",
+      "axis": "y",
+      "side": "max",
+      "kind": "wall_face",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "outer-x",
+      "anchorIndex": 0,
+      "from": "wl",
+      "to": "er",
+      "distance": {
+        "value": 9200,
+        "unit": "mm"
+      },
+      "basis": "exterior",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "inner-x",
+      "anchorIndex": 1,
+      "from": "wr",
+      "to": "el",
+      "distance": {
+        "value": 8800,
+        "unit": "mm"
+      },
+      "basis": "interior",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "outer-y",
+      "anchorIndex": 2,
+      "from": "nt",
+      "to": "sb",
+      "distance": {
+        "value": 7200,
+        "unit": "mm"
+      },
+      "basis": "exterior",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "inner-y",
+      "anchorIndex": 3,
+      "from": "nb",
+      "to": "st",
+      "distance": {
+        "value": 6800,
+        "unit": "mm"
+      },
+      "basis": "interior",
+      "evidenceRefs": [
+        "image:0000000000000000000000000000000000000000000000000000000000000000"
+      ]
+    }
+  ]
+}

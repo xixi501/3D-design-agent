@@ -250,6 +250,14 @@ export class FloorplanPanel {
   private path() {
     return `/projects/${this.projectId}/floorplan-drafts/${this.draftId}`;
   }
+  private ready() {
+    return (
+      this.preview?.checks.passed &&
+      (this.draft?.data.measurementVersion !== 2 ||
+        (this.draft.sourceReview?.hash === this.draft.hash &&
+          this.draft.sourceReview?.review?.passed === true))
+    );
+  }
   private async load() {
     this.draft = await api(this.path());
     this.preview = await post(this.path() + "/preview", {
@@ -315,9 +323,23 @@ export class FloorplanPanel {
       ),
       el(
         "p",
-        `目标家具 ${d.symbols.filter((s) => d.targetRoomIds.includes(s.roomId)).length} 件 · 累计对象校正 ${this.draft.corrections} 项`,
+        `目标家具 ${d.symbols.filter((s) => d.targetRoomIds.includes(s.roomId) && s.included !== false).length} 件 · 累计对象校正 ${this.draft.corrections} 项`,
       ),
     );
+    if (d.measurementVersion === 2) {
+      const dims = this.preview.measurement?.dimensions || [];
+      this.summary.append(
+        el(
+          "p",
+          `标注尺寸 ${dims.length} 项 · ${this.draft.sourceReview?.review?.passed ? "原图审核通过" : "原图审核待通过"}`,
+        ),
+      );
+      for (const f of this.preview.measurement?.features || [])
+        if (Math.abs(f.adjustmentMm) > 0.01)
+          this.summary.append(
+            el("p", `${f.id} 校准 ${f.adjustmentMm.toFixed(1)} mm`),
+          );
+    }
     const name = el("input");
     name.value = d.name;
     name.setAttribute("aria-label", "户型名称");
@@ -381,7 +403,7 @@ export class FloorplanPanel {
       );
       this.checks.append(detail);
     }
-    this.confirm.disabled = this.busy || !this.preview.checks.passed;
+    this.confirm.disabled = this.busy || !this.ready();
   }
   private renderObjects() {
     if (!this.draft) return;
@@ -574,11 +596,11 @@ export class FloorplanPanel {
       await this.load().catch(() => {});
     } finally {
       this.busy = false;
-      this.confirm.disabled = !this.preview?.checks.passed;
+      this.confirm.disabled = !this.ready();
     }
   }
   private async confirmDraft() {
-    if (this.busy || !this.preview?.checks.passed) return;
+    if (this.busy || !this.ready()) return;
     this.busy = true;
     this.confirm.disabled = true;
     const key = `actiscape-floorplan-confirm:${this.taskId}`,
@@ -606,7 +628,7 @@ export class FloorplanPanel {
       await this.load().catch(() => {});
     } finally {
       this.busy = false;
-      this.confirm.disabled = !this.preview?.checks.passed;
+      this.confirm.disabled = !this.ready();
     }
   }
   private async add() {

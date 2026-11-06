@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import Field, FiniteFloat
+from pydantic import ConfigDict, Field, FiniteFloat
 
 from .generation_schemas import Dimension
 from .schemas import StrictModel
@@ -45,6 +45,10 @@ class ImageRoom(StrictModel):
 
 
 class ImageSymbol(StrictModel):
+    functionalArea: Literal["living", "dining", "kitchen", "other"] | None = None
+    included: bool | None = None
+    exclusionReason: str | None = None
+    evidenceRefs: list[str] | None = None
     id: str
     roomId: str
     category: str
@@ -110,3 +114,60 @@ class SymbolMatch(StrictModel):
 class ReconstructionProposal(StrictModel):
     summary: str = Field(max_length=200)
     matches: list[SymbolMatch] = Field(min_length=1, max_length=50)
+
+
+class MeasurementFeature(StrictModel):
+    id: str
+    objectId: str
+    kind: Literal["wall_center", "wall_face", "wall_end", "opening_edge"]
+    axis: Literal["x", "y"]
+    side: Literal["min", "max"] | None = None
+    endpoint: Literal["a", "b"] | None = None
+    evidenceRefs: list[str] = Field(min_length=1, max_length=20)
+
+
+class MeasurementDimension(StrictModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str
+    anchorIndex: int = Field(ge=0, le=19)
+    from_: str = Field(alias="from")
+    to: str
+    distance: Dimension
+    basis: Literal["interior", "centerline", "exterior"]
+    evidenceRefs: list[str] = Field(min_length=1, max_length=20)
+
+
+class RecognitionV2(FloorplanRecognition):
+    measurementVersion: Literal[2] = 2
+    features: list[MeasurementFeature] = Field(default_factory=list, max_length=500)
+    dimensions: list[MeasurementDimension] = Field(default_factory=list, max_length=100)
+
+
+class DraftCommand(StrictModel):
+    type: Literal["patch", "upsert", "delete", "calibrate", "targets", "defaults"]
+    collection: (
+        Literal["walls", "openings", "rooms", "symbols", "uncertainties", "features", "dimensions"]
+        | None
+    ) = None
+    id: str | None = None
+    patch: dict | None = None
+    object: dict | None = None
+    anchors: list[ScaleAnchor] | None = None
+    roomIds: list[str] | None = None
+    values: dict | None = None
+
+
+class ChangeEvidence(StrictModel):
+    collection: str
+    id: str
+    reason: str
+    evidenceRefs: list[str] = Field(min_length=1, max_length=20)
+
+
+class MeasuredDraftUpdate(StrictModel):
+    baseDraftRevision: int = Field(ge=0)
+    baseDraftHash: str
+    commands: list[DraftCommand] = Field(max_length=100)
+    changeReasons: list[ChangeEvidence] = Field(default_factory=list, max_length=100)
+    evidenceRefs: list[str] = Field(default_factory=list, max_length=100)
+    summary: str

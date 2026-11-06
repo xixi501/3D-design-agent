@@ -159,6 +159,7 @@ class Roles:
         prompt_version: str = PROMPT_VERSION,
         model_options: dict | None = None,
         terminal_result: Callable[[], dict | None] | None = None,
+        bounded_schema: bool = False,
     ):
         options = {**model_settings(), **(model_options or {})}
         self.store.event(
@@ -186,12 +187,38 @@ class Roles:
                 }
             )
         format_recovered = False
+        schema_errors = 0
+
+        def recover_schema(error):
+            nonlocal schema_errors
+            schema_errors += 1
+            self.store.event(
+                task_id,
+                "schema_error",
+                {
+                    "role": role,
+                    "attempt": schema_errors,
+                    "message": str(error)[:3000],
+                    "toolCalls": getattr(getattr(error, "ai_message", None), "tool_calls", []),
+                },
+            )
+            if schema_errors > 1:
+                raise TaskError("MODEL_FORMAT", "结构化参数在一次纠正后仍无效，预检未执行")
+            return (
+                "参数结构错误，请仅按 "
+                + schema.__name__
+                + " 的顶层结构纠正。不要把 changeReasons/evidenceRefs 放入对象内部。具体错误："
+                + str(error)[:2000]
+            )
+
         for attempt in range(3):
             try:
                 agent = create_agent(
                     self.model_factory(**(model_options or {})),
                     tools,
-                    response_format=ToolStrategy(schema),
+                    response_format=ToolStrategy(
+                        schema, handle_errors=recover_schema if bounded_schema else True
+                    ),
                     system_prompt=prompt,
                 )
                 result = await agent.ainvoke(

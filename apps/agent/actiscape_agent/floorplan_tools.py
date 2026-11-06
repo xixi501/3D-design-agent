@@ -40,12 +40,18 @@ class FloorplanToolset:
         self.submission = None
 
     async def request(self, mode, parameters):
+        adapter = (
+            "hpd-adapter-3"
+            if self.store.task(self.task["id"], internal=True)["generation"].get("workflowVersion")
+            == 2
+            else "hpd-adapter-2"
+        )
         key = fingerprint(
             {
                 "image": self.image["sha256"],
                 "mode": mode,
                 "parameters": parameters,
-                "adapter": "hpd-adapter-2",
+                "adapter": adapter,
             }
         )
         g = self.store.task(self.task["id"], internal=True)["generation"]
@@ -55,7 +61,8 @@ class FloorplanToolset:
                 return {**record, "reused": True}
         try:
             record = await self.client.request(
-                f"/floorplan-images/{self.image['id']}/tools/{mode}", parameters
+                f"/floorplan-images/{self.image['id']}/tools/{mode}",
+                {**parameters, "adapterVersion": adapter},
             )
             return {**record, "requestHash": key, "parameters": parameters}
         except SceneFailure as error:

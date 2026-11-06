@@ -14,11 +14,11 @@ import sys
 import tempfile
 from pathlib import Path
 
-from floorplan_image import MAX_BYTES, decode_image, png
+from floorplan_image import MAX_BYTES, decode_image, overlay_image, png
 from PIL import Image
 
 ROOT = Path(__file__).parent / "vendor" / "house_plan_designer"
-VERSION = "hpd-adapter-2"
+VERSION = "hpd-adapter-3"
 
 
 class ParameterError(ValueError):
@@ -129,7 +129,7 @@ def analyze(image, image_path, args, out):
     }
 
 
-def fits(image, image_path, args):
+def fits(image, image_path, args, out):
     if (
         set(args) != {"walls"}
         or not isinstance(args["walls"], list)
@@ -162,7 +162,27 @@ def fits(image, image_path, args):
             else {"center": None, "n": 0}
         )
         measured.append({"id": str(wall.get("id", ""))[:100], **result})
-    return {"result": measured, "limitations": ["像素墙面测量，不决定墙体语义；n=0 不代表无墙"]}
+    from PIL import ImageDraw
+
+    overlay = image.copy()
+    draw = ImageDraw.Draw(overlay)
+    for wall, result in zip(args["walls"], measured):
+        c = result.get("center")
+        if c is None:
+            continue
+        points = (
+            [(c, wall["p0"]), (c, wall["p1"])]
+            if wall["kind"] == "V"
+            else [(wall["p0"], c), (wall["p1"], c)]
+        )
+        draw.line(points, fill=(220, 30, 60), width=3)
+        draw.text(points[0], str(wall.get("id", "")), fill=(220, 30, 60))
+    overlay.save(out / "measured.png")
+    return {
+        "result": measured,
+        "files": {"measured.png": artifact(out / "measured.png")},
+        "limitations": ["像素墙面测量，不决定墙体语义；n=0 不代表无墙"],
+    }
 
 
 def axis(args):
@@ -265,9 +285,21 @@ def process(payload):
         if mode == "analyze":
             result = analyze(image, image_path, args, out)
         elif mode == "fit":
-            result = fits(image, image_path, args)
+            result = fits(image, image_path, args, out)
         elif mode == "evidence":
             result = evidence(image_path, payload["spec"], out)
+        elif mode == "diagnostics":
+            spec = payload["spec"]
+            files = {}
+            for name, data in [("observed.png", spec["draft"]), ("solved.png", spec.get("solved"))]:
+                if data is not None:
+                    file = out / name
+                    file.write_bytes(overlay_image(raw, data))
+                    files[name] = artifact(file)
+            result = {
+                "files": files,
+                "coverage": ["原始像素草稿", "实际毫米几何按统一配准回投（可编译时）"],
+            }
         else:
             raise ValueError("未知读图工具")
         return {**source, "pixelSpace": "exif-oriented original pixels", **result}

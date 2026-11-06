@@ -62,6 +62,10 @@ export interface ImageRoom {
   name: string;
 }
 export interface ImageSymbol {
+  functionalArea?: "living" | "dining" | "kitchen" | "other";
+  included?: boolean;
+  exclusionReason?: string;
+  evidenceRefs?: string[];
   id: string;
   roomId: string;
   category: string;
@@ -276,7 +280,21 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
   for (const f of data.symbols) {
     object(
       f,
-      ["id", "roomId", "category", "x", "y", "w", "d", "rot", "catalogKey"],
+      [
+        "id",
+        "roomId",
+        "category",
+        "x",
+        "y",
+        "w",
+        "d",
+        "rot",
+        "catalogKey",
+        "functionalArea",
+        "included",
+        "exclusionReason",
+        "evidenceRefs",
+      ],
       "symbols." + f.id,
     );
     if (!rooms.has(f.roomId)) invalid("家具符号缺少房间引用", f.id + ".roomId");
@@ -285,6 +303,20 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     number(f.w, f.id + ".w", 0.1, data.image.width);
     number(f.d, f.id + ".d", 0.1, data.image.height);
     number(f.rot, f.id + ".rot", -360, 360);
+    if (
+      f.functionalArea !== undefined &&
+      !["living", "dining", "kitchen", "other"].includes(f.functionalArea)
+    )
+      invalid("未知家具功能区", f.id);
+    if (f.included !== undefined && typeof f.included !== "boolean")
+      invalid("家具纳入状态无效", f.id);
+    if (
+      f.included === false &&
+      (!f.exclusionReason?.trim() ||
+        !Array.isArray(f.evidenceRefs) ||
+        !f.evidenceRefs.length)
+    )
+      invalid("排除原图符号须给出用途与证据", f.id);
     if (f.catalogKey !== undefined && !Object.hasOwn(catalog, f.catalogKey))
       invalid("指定家具不在目录", f.id + ".catalogKey");
   }
@@ -606,7 +638,9 @@ export function compileFloorplan(
     invalid("请选择需要复现家具的客厅和餐厅", "targetRoomIds");
   const targetRoomIds = data.targetRoomIds.map((id) => `${seed}:r:${id}`);
   const symbols = data.symbols
-    .filter((s) => data.targetRoomIds.includes(s.roomId))
+    .filter(
+      (s) => data.targetRoomIds.includes(s.roomId) && s.included !== false,
+    )
     .map((s) => ({
       ...s,
       ...transform(s),
@@ -625,7 +659,19 @@ export function compileFloorplan(
     imageHeight: data.image.height,
     mmPerPixel: scale,
     ...(measurement
-      ? { measurementVersion: 2, measurement: measurement.report }
+      ? {
+          measurementVersion: 2,
+          measurement: {
+            ...measurement.report,
+            inputs: {
+              anchors: data.anchors,
+              features: data.features,
+              dimensions: data.dimensions,
+              walls: data.walls,
+              openings: data.openings,
+            },
+          },
+        }
       : {}),
     origin,
     ...binding,

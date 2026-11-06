@@ -448,6 +448,60 @@
         }
       }
     },
+    "/api/projects/{id}/floorplan-drafts/{draft}/measurement-updates": {
+      "post": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "draft",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/floorplan-drafts/{draft}/review": {
+      "post": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "draft",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
     "/api/floorplan-images/{image}/tools/{tool}": {
       "post": {
         "description": "Read-only pinned house-plan-designer pixel tools; no project/draft/history writes. Coordinates are EXIF-oriented original pixels.",
@@ -474,7 +528,7 @@
           {
             "schema": {
               "type": "string",
-              "enum": ["analyze", "fit", "axis"]
+              "enum": ["analyze", "fit", "axis", "fit-bound"]
             },
             "in": "path",
             "name": "tool",
@@ -513,6 +567,33 @@
             },
             "in": "path",
             "name": "file",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{id}/floorplan-drafts/{draft}/diagnostics": {
+      "post": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "draft",
             "required": true
           }
         ],

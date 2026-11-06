@@ -1,7 +1,7 @@
 from .client import SceneFailure
 from .floorplan_roles import FloorplanRoles
 from .generation_flow import COLLECTIONS
-from .skill_registry import FLOORPLAN_TOOLS, load_design_skill, skill_record
+from .skill_registry import load_legacy_floorplan_skill, skill_record
 from .store import TaskError, fingerprint
 
 
@@ -136,6 +136,15 @@ class FloorplanFlow:
         return recognized
 
     async def ground(self, state, task):
+        if task["generation"].get("workflowVersion") == 2:
+            from .floorplan_v2 import FloorplanV2
+
+            return await FloorplanV2(self.store, self.client, self.roles.base).ground(
+                state, task, self._ground_legacy
+            )
+        return await self._ground_legacy(state, task)
+
+    async def _ground_legacy(self, state, task):
         project = state["project"]
         if any(project["plan"].get(k) for k in COLLECTIONS) or project.get("roomLabelArchive"):
             raise TaskError(
@@ -143,9 +152,7 @@ class FloorplanFlow:
             )
         g = dict(task["generation"])
         prefix = f"/projects/{task['projectId']}/floorplan-drafts"
-        snapshot = g.get("skillSnapshot") or load_design_skill(
-            FLOORPLAN_TOOLS, skill_id="floorplan-reconstruction"
-        )
+        snapshot = g.get("skillSnapshot") or load_legacy_floorplan_skill()
         g.update(skillSnapshot=snapshot, skillsUsed=[skill_record(snapshot)])
         self.store.update(task["id"], generation=g)
         self.store.event(task["id"], "skill_loaded", skill_record(snapshot))
@@ -266,7 +273,9 @@ class FloorplanFlow:
                 },
             }
         symbols = [
-            s for s in draft["data"]["symbols"] if s["roomId"] in draft["data"]["targetRoomIds"]
+            s
+            for s in draft["data"]["symbols"]
+            if s["roomId"] in draft["data"]["targetRoomIds"] and s.get("included") is not False
         ]
         groups = {}
         for s in symbols:

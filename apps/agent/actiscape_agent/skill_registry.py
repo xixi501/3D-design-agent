@@ -7,6 +7,8 @@ from .store import TaskError
 SKILL_ROOT = Path(__file__).parent / "skills"
 FLOORPLAN_TOOLS = {
     "floorplan_context",
+    "fit_wall_candidates",
+    "request_crop",
     "search_catalogue_batch",
     "precheck_floorplan",
     "candidate_checks",
@@ -53,3 +55,21 @@ def load_design_skill(
 
 def skill_record(snapshot: dict) -> dict:
     return {k: snapshot[k] for k in ("id", "version", "contentHash", "source", "license")}
+
+
+def load_legacy_floorplan_skill():
+    snapshot = json.loads(
+        (SKILL_ROOT / "floorplan-reconstruction" / "legacy-0.3.0.json").read_text()
+    )
+    manifest = {k: v for k, v in snapshot.items() if k not in ("contentHash", "content")}
+    license_text = (SKILL_ROOT / "floorplan-reconstruction" / "LICENSE").read_text()
+    digest = hashlib.sha256(
+        json.dumps(
+            {"manifest": manifest, "content": snapshot["content"], "license": license_text},
+            ensure_ascii=False,
+            sort_keys=True,
+        ).encode()
+    ).hexdigest()
+    if digest != snapshot["contentHash"]:
+        raise TaskError("SKILL_INVALID", "旧工作流快照校验失败")
+    return snapshot

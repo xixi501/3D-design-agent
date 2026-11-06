@@ -27,13 +27,14 @@ export async function imageProcess(
   bytes: Buffer,
   mode = "inspect",
   upstream = false,
+  legacy = false,
 ): Promise<any> {
   return await new Promise((resolve, reject) => {
     const child = spawn(
       imagePython(),
       [
         path.resolve(
-          `apps/agent/actiscape_agent/${upstream ? "floorplan_upstream" : "floorplan_image"}.py`,
+          `apps/agent/actiscape_agent/${upstream ? (legacy ? "floorplan_upstream_legacy" : "floorplan_upstream") : "floorplan_image"}.py`,
         ),
         mode,
       ],
@@ -107,6 +108,12 @@ export interface FloorplanImage extends ImageReference {
   status: "ready";
 }
 export class FloorplanStore {
+  evidenceVerifier?: (data: FloorplanData) => void;
+  evidenceRefVerifier?: (
+    data: FloorplanData,
+    refs: string[],
+    draftHash?: string,
+  ) => void;
   constructor(public projects: ProjectStore) {
     fs.mkdirSync(path.join(projects.directory, "floorplan-images"), {
       recursive: true,
@@ -522,15 +529,24 @@ export class FloorplanStore {
       })
       .immediate();
   }
-  commands(project: string, id: string, body: any) {
+  commands(project: string, id: string, body: any, system = false) {
     return this.action(project, id, body, (record) => {
       if (
         !Array.isArray(body.commands) ||
-        !body.commands.length ||
+        (!system && !body.commands.length) ||
         body.commands.length > 100
       )
         throw new SceneError("INVALID_REQUEST", "需要 1–100 条草稿校正");
       const data = clone(record.data) as FloorplanData;
+      if (
+        system &&
+        (data.measurementVersion !== 2 || body.draftHash !== record.hash)
+      )
+        throw new SceneError(
+          "DRAFT_CONFLICT",
+          "测量更新须绑定当前第二版草稿哈希",
+          409,
+        );
       let corrections = record.corrections;
       for (const c of body.commands) {
         if (!c || typeof c !== "object" || Array.isArray(c))
@@ -541,6 +557,7 @@ export class FloorplanStore {
           defaults: ["type", "values"],
           upsert: ["type", "collection", "object"],
           delete: ["type", "collection", "id"],
+          patch: ["type", "collection", "id", "patch"],
         };
         if (
           !allowed[c.type] ||
@@ -562,7 +579,11 @@ export class FloorplanStore {
               throw new SceneError("INVALID_REQUEST", "未知草稿默认字段");
             (data as any)[k] = clone(c.values[k]);
           }
-        } else if (c.type === "upsert" || c.type === "delete") {
+        } else if (
+          c.type === "upsert" ||
+          c.type === "delete" ||
+          c.type === "patch"
+        ) {
           if (
             ![
               "walls",
@@ -570,6 +591,9 @@ export class FloorplanStore {
               "rooms",
               "symbols",
               "uncertainties",
+              ...(data.measurementVersion === 2
+                ? ["features", "dimensions"]
+                : []),
             ].includes(c.collection)
           )
             throw new SceneError("INVALID_REQUEST", "未知草稿集合");
@@ -581,12 +605,119 @@ export class FloorplanStore {
             if (index < 0)
               throw new SceneError("NOT_FOUND", "草稿对象不存在", 404);
             list.splice(index, 1);
+          } else if (c.type === "patch") {
+            if (
+              index < 0 ||
+              !c.patch ||
+              typeof c.patch !== "object" ||
+              Array.isArray(c.patch) ||
+              Object.hasOwn(c.patch, "id")
+            )
+              throw new SceneError("INVALID_REQUEST", "对象字段修改无效");
+            list[index] = { ...list[index], ...clone(c.patch) };
           } else if (index < 0) list.push(clone(c.object));
           else list[index] = clone(c.object);
-          corrections++;
+          if (!system) corrections++;
         } else throw new SceneError("INVALID_REQUEST", "未知草稿操作");
       }
       validateFloorplan(data);
+      const ledger = clone(record.changeLedger || []);
+      if (system)
+        this.evidenceRefVerifier?.(data, [
+          ...(body.evidenceRefs || []),
+          ...(body.changeReasons || []).flatMap(
+            (r: any) => r.evidenceRefs || [],
+          ),
+        ]);
+      if (system) {
+        const reasons = body.changeReasons || [];
+        for (const field of [
+          "name",
+          "height",
+          "wallThickness",
+          "targetRoomIds",
+        ]) {
+          const before = (record.data as any)[field] ?? null,
+            after = (data as any)[field] ?? null;
+          if (canonical(before) === canonical(after)) continue;
+          const reason = reasons.find(
+            (r: any) => r.collection === "defaults" && r.id === field,
+          );
+          if (
+            !reason?.reason?.trim() ||
+            !Array.isArray(reason.evidenceRefs) ||
+            !reason.evidenceRefs.length
+          )
+            throw new SceneError(
+              "CHANGE_EVIDENCE_REQUIRED",
+              "默认值或目标区域变化须说明依据",
+              422,
+              { collection: "defaults", id: field },
+            );
+          ledger.push({
+            collection: "defaults",
+            id: field,
+            beforeHash: hash(before),
+            afterHash: hash(after),
+            reason: reason.reason,
+            evidenceRefs: reason.evidenceRefs,
+          });
+        }
+        for (const collection of [
+          "anchors",
+          "walls",
+          "openings",
+          "rooms",
+          "symbols",
+          "features",
+          "dimensions",
+        ]) {
+          const old = (record.data[collection] || []) as any[],
+            next = ((data as any)[collection] || []) as any[];
+          for (const [index, prior] of old.entries()) {
+            const identity = String(prior.id ?? index),
+              after = prior.id
+                ? next.find((o) => o.id === prior.id)
+                : next[index];
+            if (canonical(prior) === canonical(after ?? null)) continue;
+            const beforeHash = hash(prior),
+              afterHash = hash(after ?? null),
+              saved = ledger.find(
+                (l: any) =>
+                  l.collection === collection &&
+                  l.id === identity &&
+                  l.beforeHash === beforeHash &&
+                  l.afterHash === afterHash,
+              );
+            const reason = reasons.find(
+              (r: any) => r.collection === collection && r.id === identity,
+            );
+            if (
+              !saved &&
+              (!reason ||
+                typeof reason.reason !== "string" ||
+                !reason.reason.trim() ||
+                !Array.isArray(reason.evidenceRefs) ||
+                !reason.evidenceRefs.length)
+            )
+              throw new SceneError(
+                "CHANGE_EVIDENCE_REQUIRED",
+                "修改已有观测必须附对应原图依据",
+                422,
+                { collection, id: identity, beforeHash, afterHash },
+              );
+            if (!saved)
+              ledger.push({
+                collection,
+                id: identity,
+                beforeHash,
+                afterHash,
+                reason: reason.reason,
+                evidenceRefs: reason.evidenceRefs,
+              });
+          }
+        }
+      }
       const revision = record.revision + 1,
         next = {
           ...record,
@@ -594,6 +725,13 @@ export class FloorplanStore {
           revision,
           hash: hash({ id, revision, data }),
           confirmed: null,
+          sourceReview: null,
+          ...(system
+            ? {
+                changeLedger: ledger,
+                agentEdits: (record.agentEdits || 0) + body.commands.length,
+              }
+            : {}),
           corrections,
         };
       this.projects.db
@@ -602,6 +740,36 @@ export class FloorplanStore {
         )
         .run(id, revision, JSON.stringify(next));
       return next;
+    });
+  }
+  review(project: string, id: string, body: any) {
+    return this.action(project, id, body, (record) => {
+      if (
+        record.data.measurementVersion !== 2 ||
+        body.draftHash !== record.hash ||
+        typeof body.review?.passed !== "boolean" ||
+        !Array.isArray(body.review?.issues) ||
+        typeof body.review?.summary !== "string" ||
+        (body.review.passed && body.review.issues.length)
+      )
+        throw new SceneError(
+          "DRAFT_CONFLICT",
+          "审核必须绑定当前草稿，且结果完整",
+          409,
+        );
+      this.evidenceRefVerifier?.(
+        record.data,
+        body.evidenceRefs || [],
+        record.hash,
+      );
+      return {
+        ...record,
+        sourceReview: {
+          hash: record.hash,
+          review: body.review,
+          evidenceRefs: body.evidenceRefs || [],
+        },
+      };
     });
   }
   preview(project: string, id: string, seed = id) {
@@ -624,6 +792,7 @@ export class FloorplanStore {
             level: "error",
             blocking: true,
           }));
+      if (data.measurementVersion === 2) this.evidenceVerifier?.(data);
       return {
         ...compiled,
         checks: {
@@ -669,6 +838,16 @@ export class FloorplanStore {
       if (record.hash !== body.draftHash)
         throw new SceneError("DRAFT_CONFLICT", "确认哈希与草稿不一致", 409);
       const preview = this.preview(project, id);
+      if (
+        record.data.measurementVersion === 2 &&
+        (record.sourceReview?.hash !== record.hash ||
+          record.sourceReview?.review?.passed !== true)
+      )
+        throw new SceneError(
+          "SOURCE_REVIEW_REQUIRED",
+          "当前草稿尚未通过独立原图审核",
+          422,
+        );
       if (!preview.checks.passed)
         throw new SceneError(
           "FLOORPLAN_NOT_READY",

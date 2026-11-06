@@ -131,7 +131,9 @@ function symbols(
   aliases: Record<string, string>,
 ) {
   return data.symbols
-    .filter((s) => data.targetRoomIds.includes(s.roomId))
+    .filter(
+      (s) => data.targetRoomIds.includes(s.roomId) && s.included !== false,
+    )
     .map((s) => ({
       ...s,
       x: s.x * scale,
@@ -473,8 +475,8 @@ export function catalogueMappingProof(
       passed: covered && !!f && keys.includes(f.key),
     };
   });
-  const expected = reference.symbols.filter((s) =>
-    reference.targetRoomIds.includes(s.roomId),
+  const expected = reference.symbols.filter(
+    (s) => reference.targetRoomIds.includes(s.roomId) && s.included !== false,
   ).length;
   return {
     passed: objects.length === expected && objects.every((o) => o.passed),

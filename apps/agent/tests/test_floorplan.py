@@ -17,6 +17,29 @@ from actiscape_agent.floorplan_image import crop_image, decode_image, inspect_im
 from actiscape_agent.manager import TaskManager
 from actiscape_agent.store import TaskError, fingerprint, task_fingerprint
 
+
+@pytest.fixture(autouse=True)
+def pin_legacy_floorplan_contract(monkeypatch):
+    # This file verifies persisted v1 tasks; v2 has a separate suite.
+    from actiscape_agent.store import TaskStore
+
+    original = TaskStore.create_task
+
+    def create(self, conversation, body):
+        task = original(self, conversation, body)
+        if body.get("mode") == "reconstruct_floorplan":
+            g = self.task(task["id"], internal=True)["generation"]
+            g.update(
+                workflowVersion=1,
+                skillSnapshot=json.loads(Path("fixtures/s2c-legacy-skill.json").read_text()),
+            )
+            self.update(task["id"], generation=g)
+            task = self.task(task["id"])
+        return task
+
+    monkeypatch.setattr(TaskStore, "create_task", create)
+
+
 DATA = json.loads(
     (Path(__file__).resolve().parents[3] / "fixtures/s2c-synthetic.floorplan.json").read_text()
 )
@@ -319,7 +342,7 @@ async def test_restart_between_node_confirmation_and_python_resume_reconciles_sa
     )
     await manager.close()
     monkeypatch.setattr(
-        "actiscape_agent.floorplan_flow.load_design_skill",
+        "actiscape_agent.floorplan_flow.load_legacy_floorplan_skill",
         lambda *a, **k: (_ for _ in ()).throw(AssertionError("must use pinned Skill")),
     )
     manager = TaskManager(tmp_path, client, ControlledFloorplanRoles)

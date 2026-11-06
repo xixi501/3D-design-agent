@@ -193,7 +193,16 @@ class TaskStore:
             if mode == "reconstruct_floorplan":
                 self.db.execute(
                     "UPDATE tasks SET generation=? WHERE id=?",
-                    (json.dumps({"imageId": body["imageId"], "phase": "recognizing"}), id),
+                    (
+                        json.dumps(
+                            {
+                                "imageId": body["imageId"],
+                                "phase": "recognizing",
+                                "workflowVersion": 2,
+                            }
+                        ),
+                        id,
+                    ),
                 )
         self.event(id, "queued", {"message": "任务已持久保存"})
         self.event(id, "runtime", runtime_versions())

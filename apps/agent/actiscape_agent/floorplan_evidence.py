@@ -41,6 +41,8 @@ class FloorplanEvidence:
         g = self.store.task(self.task["id"], internal=True)["generation"]
         result, seen = [], set()
         for record in g.get("evidenceIndex", {}).values():
+            if record.get("mode") == "diagnostics":
+                continue
             for f in record.get("files", []):
                 if f["sha256"] not in seen:
                     raw = await self.client.image(f["path"])

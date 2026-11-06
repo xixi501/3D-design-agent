@@ -143,3 +143,17 @@ test("v2 scoring measures resolved feature distances rather than exact reference
   assert.equal(score.thresholdVersion, "s2c-2");
   assert.equal(score.passed, true);
 });
+
+test("open-kitchen observations can be explicitly excluded without entering target furniture", () => {
+  const data = measuredFixture();
+  data.symbols.push({
+    ...data.symbols[0],
+    id: "kitchen-only",
+    category: "厨房操作台",
+    functionalArea: "kitchen",
+    included: false,
+    exclusionReason: "source request retains kitchen structure only",
+    evidenceRefs: ["image:" + data.image.sha256],
+  });
+  assert.equal(compileFloorplan(data, "functional-area").symbols.length, 4);
+});

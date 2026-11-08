@@ -35,11 +35,34 @@ class GenerationScene(FakeScene):
         for key in COLLECTIONS:
             self.project["plan"][key] = []
         self.interfere = False
+        self.scene_draft = None
 
     async def image(self, path):
         return b"controlled-image-transport"
 
     async def request(self, path, body=None):
+        if path == "/projects/p/scene-drafts" and body is not None:
+            if self.scene_draft is None:
+                self.scene_draft = {
+                    "id": "scene-draft-1",
+                    "revision": 0,
+                    "hash": "a" * 64,
+                    "draft": body["draft"],
+                }
+            return {
+                "id": self.scene_draft["id"],
+                "revision": self.scene_draft["revision"],
+                "hash": self.scene_draft["hash"],
+            }
+        if path.endswith("/scene-drafts/scene-draft-1/patches") and body is not None:
+            assert body["draftRevision"] == self.scene_draft["revision"]
+            self.scene_draft["revision"] += 1
+            self.scene_draft["hash"] = f"{self.scene_draft['revision']:064x}"
+            return {
+                "id": self.scene_draft["id"],
+                "revision": self.scene_draft["revision"],
+                "hash": self.scene_draft["hash"],
+            }
         if path.endswith("/initialization-preview"):
             shell = copy.deepcopy(FIXTURE)
             shell["furniture"] = []
@@ -187,6 +210,8 @@ async def test_generation_clarifies_then_resumes_same_task_without_changing_proj
         result = await finished(manager, task["id"])
         assert result["status"] == "completed", result
         assert result["modelCalls"] > calls and client.project["revision"] == 1
+        assert result["generation"]["sceneDraftId"] == "scene-draft-1"
+        assert result["generation"]["sceneDraftRevision"] >= 2
         assert result["result"]["skillSelection"]["primarySkillId"] == "rectangular-living-reading"
         assert (
             result["result"]["skillsUsed"][0]["contentHash"]

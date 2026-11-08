@@ -108,6 +108,8 @@ A data-driven scene registry now owns room status, Skill mapping, materials, def
 
 This foundation does not migrate the floorplan recognition flow, reconstruct whole-home furniture, activate reserved rooms or claim photo input. Those remain later gates in [Scene Architecture](SCENE_ARCHITECTURE.md). Executed results are in [scene foundation evidence](evidence/scene-foundation-v1-20261109.json).
 
+The text-generation and local-edit task paths now maintain a task-bound generic draft alongside the existing candidate and commit path. Text is projected into IntentSpec, imported project state into baseline authority, and shell/candidate plans into SceneProgram with catalogue asset resolutions. This is a compatibility bridge; floorplan recognition is not yet migrated and the generic draft is not yet the formal commit source.
+
 ## Remaining scope
 
 S2-A provides local multi-agent editing. S2-B adds initial rectangular-room generation and the first real Skill. S2-C adds two frozen floorplan-image cases with two fully passing real runs each. Nonrectangular/multiroom text generation and cabinet/kitchen/free-form recipe conversation editing remain later; existing manual editing is retained.

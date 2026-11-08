@@ -1,6 +1,7 @@
 from .client import SceneFailure
 from .generation_roles import GenerationRoles
 from .generation_schemas import resolve_request
+from .scene_projection import ensure_text_scene_draft, sync_text_scene_program
 from .scene_registry import get_scene_registry
 from .skill_registry import get_registry
 from .store import TaskError, fingerprint
@@ -76,6 +77,18 @@ class GenerationFlow:
                     },
                 }
         brief = generation["brief"]
+        room_type = brief.get("roomType") or brief.get("purpose")
+        room = get_scene_registry().room(room_type)
+        if room is None:
+            raise TaskError("ROOM_TYPE_UNRESOLVED", "任务房间类型不在场景注册表中")
+        generation = await ensure_text_scene_draft(
+            store=self.store,
+            client=self.client,
+            task=task,
+            project=project,
+            generation=generation,
+            room_type=room.id,
+        )
         try:
             preview = await self.client.request(
                 f"/projects/{task['projectId']}/initialization-preview",
@@ -90,6 +103,15 @@ class GenerationFlow:
                 "route": "end",
                 "final": {"status": "waiting_input", "message": "房间结构需要调整：" + str(e)},
             }
+        generation = await sync_text_scene_program(
+            store=self.store,
+            client=self.client,
+            task=task,
+            plan=preview["state"]["plan"],
+            selection_id="shell",
+            room_type=room.id,
+            stage="shell",
+        )
         records = []
         if generation.get("skillBundle"):
             bundle = generation["skillBundle"]
@@ -103,10 +125,6 @@ class GenerationFlow:
             bundle = None
         else:
             registry = get_registry()
-            room_type = brief.get("roomType") or brief.get("purpose")
-            room = get_scene_registry().room(room_type)
-            if room is None:
-                raise TaskError("ROOM_TYPE_UNRESOLVED", "任务房间类型不在场景注册表中")
             area_m2 = None
             width, depth = brief.get("width"), brief.get("depth")
             if width and depth:

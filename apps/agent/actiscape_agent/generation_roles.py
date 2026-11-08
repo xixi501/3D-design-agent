@@ -3,6 +3,7 @@ from langchain_core.tools import tool
 from .client import SceneFailure
 from .generation_schemas import GenerationRequest, asset_selection_schema
 from .roles import objects_summary
+from .scene_projection import sync_text_scene_program
 from .scene_registry import get_scene_registry
 from .schemas import Edit, Proposal, Review
 from .skill_registry import get_registry
@@ -163,6 +164,18 @@ class GenerationRoles:
         generation = self.store.task(task["id"], internal=True)["generation"]
         generation.update(lastCandidateId=candidate["id"], lastChecks=candidate["checks"])
         self.store.update(task["id"], generation=generation)
+        brief = generation.get("brief") or generation.get("frozenBrief") or {}
+        room_type = brief.get("roomType") or brief.get("purpose")
+        if room_type and generation.get("sceneDraftId"):
+            await sync_text_scene_program(
+                store=self.store,
+                client=self.client,
+                task=task,
+                plan=candidate["state"]["plan"],
+                selection_id=f"candidate-{round}",
+                room_type=room_type,
+                stage="candidate",
+            )
         return candidate
 
     async def design(self, task, layout, scope, last_report, round):

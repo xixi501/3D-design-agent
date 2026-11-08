@@ -8,6 +8,7 @@ from .floorplan_roles import FloorplanRoles
 from .generation_flow import COLLECTIONS, GenerationFlow
 from .generation_roles import GenerationRoles
 from .roles import Roles
+from .scene_projection import ensure_edit_scene_draft, sync_edit_scene_program
 from .skill_registry import get_registry
 from .store import TaskError, TaskStore
 
@@ -301,6 +302,13 @@ class Workflow:
                 skillsUsed=registry.records(bundle),
             )
             self.store.update(task["id"], generation=generation)
+            await ensure_edit_scene_draft(
+                store=self.store,
+                client=self.client,
+                task=task,
+                project=state["project"],
+                intent=intent,
+            )
             self.store.event(
                 task["id"],
                 "skill_loaded",
@@ -419,6 +427,17 @@ class Workflow:
             c = await role.candidate(
                 task, state["project"], state["scope"], state["proposal"], state.get("repairs", 0)
             )
+            if task.get("mode") not in (
+                "reconstruct_floorplan",
+                "generate_rectangular",
+            ):
+                await sync_edit_scene_program(
+                    store=self.store,
+                    client=self.client,
+                    task=task,
+                    plan=c["state"]["plan"],
+                    selection_id=f"candidate-{state.get('repairs', 0)}",
+                )
             self.store.event(
                 task["id"],
                 "candidate",

@@ -34,8 +34,22 @@ class FakeScene:
         self.design_entered = asyncio.Event()
         self.ground_calls = 0
         self.design_calls = 0
+        self.scene_draft = None
 
     async def request(self, path, body=None):
+        if path == "/projects/p/scene-drafts" and body is not None:
+            if self.scene_draft is None:
+                self.scene_draft = {
+                    "id": "edit-scene-draft",
+                    "revision": 0,
+                    "hash": "b" * 64,
+                }
+            return copy.deepcopy(self.scene_draft)
+        if path.endswith("/scene-drafts/edit-scene-draft/patches") and body is not None:
+            assert body["draftRevision"] == self.scene_draft["revision"]
+            self.scene_draft["revision"] += 1
+            self.scene_draft["hash"] = f"{self.scene_draft['revision']:064x}"
+            return copy.deepcopy(self.scene_draft)
         if path == "/projects/p":
             return copy.deepcopy(self.project)
         if path == "/catalog":
@@ -178,6 +192,9 @@ async def test_lost_commit_response_is_reconciled_without_duplicate(tmp_path):
         task = await start_task(manager)
         result = await finished(manager, task["id"])
         assert result["status"] == "completed", result
+        generation = manager.store.task(task["id"], internal=True)["generation"]
+        assert generation["sceneDraftId"] == "edit-scene-draft"
+        assert generation["sceneDraftRevision"] == 1
         assert client.project["revision"] == 1 and len(client.ledger) == 1
         assert any(e["kind"] == "commit_reconciled" for e in manager.store.events(task["id"]))
     finally:

@@ -49,7 +49,7 @@ Skill Pool v1 接口和组合规则见 [SKILL_POOL_V1.md](SKILL_POOL_V1.md)。
 
 该入口只读取当前草稿和诊断证据，不修改几何、不产生正式项目写入。审核通过后保存绑定当前哈希的 `sourceReview`；相同 `requestId` 重试不会重复调用模型或新增审核记录。
 
-GET `/api/agent/skills` 默认返回 active 的 v1 Skill，可按 `mode`、`roomKind`、`area`、`kind`、`status`、`activation` 过滤；`activation=all` 返回完整池。GET `/api/agent/skills/:id` 返回单个 Skill 摘要。任务的 `generation` 包含已收集 brief、missing、defaults、`skillSelection`、`skillBundle` 摘要和 `skillsUsed`；完整 Skill 正文、判据原文和许可证文本只在服务端持久快照与角色上下文中保留。
+GET `/api/agent/skills` 默认返回 active 的 v1 Skill，可按 `mode`、`roomKind`、`area`、`kind`、`status`、`activation` 过滤；`activation=all` 返回完整池。GET `/api/agent/skills/:id` 返回单个 Skill 摘要。任务的 `generation` 包含已收集 brief、missing、defaults、`skillSelection`、`skillBundle` 摘要、`skillsUsed`，以及通用草稿的 `sceneDraftId`、`sceneDraftRevision` 和 `sceneDraftHash`；完整 Skill 正文、判据原文和许可证文本只在服务端持久快照与角色上下文中保留。
 
 新任务只接受 `actiscape.skill.v1`。代码先按任务模式、项目状态、房间、面积、能力和 verified 状态生成短名单，grounding 模型只能从短名单选择一个主 Skill 和最多两个 modifier。intake 和 repair 由代码自动启用。Skill 不能申请正式场景写入、项目提交或脚本执行能力，所有修改仍走候选、预检、截图、审核和固定提交。
 

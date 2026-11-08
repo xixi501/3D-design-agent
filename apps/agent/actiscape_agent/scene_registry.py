@@ -74,13 +74,23 @@ class SceneRegistry:
         except (OSError, ValueError) as exc:
             raise ValueError(f"场景注册表无效：{path}") from exc
         self._rooms = {item.id: item for item in self.document.roomTypes}
+        self._room_labels = {item.label: item.id for item in self.document.roomTypes}
         self._categories = {item.id: item for item in self.document.categories}
+        self._catalog_categories = {
+            key: item.id for item in self.document.categories for key in item.catalogKeys
+        }
 
     def room(self, room_type_id: str) -> RoomType | None:
         return self._rooms.get(room_type_id)
 
     def category(self, category_id: str) -> FurnitureCategory | None:
         return self._categories.get(category_id)
+
+    def category_for_catalog_key(self, key: str) -> str:
+        return self._catalog_categories.get(key, "other")
+
+    def room_type_for_label(self, label: str) -> str:
+        return self._room_labels.get(label, "other")
 
     def public_rooms(self, *, active_only: bool = True) -> list[dict]:
         return [

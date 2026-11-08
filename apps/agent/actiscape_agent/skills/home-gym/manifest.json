@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "home-gym",
+  "name": "健身角 / 家庭健身房",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "4–15㎡ 健身角：器械靠墙、镜面正对空地、瑜伽垫可收，保器械后 1m/侧 0.5m 安全距、器械不挡门、连续 700 通道，并核层高通风与减震吸音。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["gym"],
+    "areaM2": [4, 15],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "器械清单与型号（可选）",
+      "层高（可选）",
+      "是否需要整面镜墙（可选）"
+    ]
+  },
+  "notApplicable": [
+    "需要拆改墙体、加固楼板或吊挂承重器械架",
+    "整面墙镜面 + 商业健身房级器材排布",
+    "只有一张垫子要塞进客厅/卧室一角（转 studio-micro / master-bedroom）",
+    "与洗烘、储物混用的 < 6㎡ 小间（转 utility-storage）"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-CUR-01",
+    "J-DOOR-01",
+    "J-DOOR-02",
+    "J-LIGHT-02",
+    "J-OVER-01",
+    "J-STA-02",
+    "J-STA-03",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WALL-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

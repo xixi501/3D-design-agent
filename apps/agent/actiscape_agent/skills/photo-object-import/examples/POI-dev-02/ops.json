@@ -1,0 +1,66 @@
+{
+  "case_id": "POI-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [4000, 0], "t": 200 },
+      { "id": "wE", "a": [4000, 0], "b": [4000, 5000], "t": 200 },
+      { "id": "wS", "a": [0, 5000], "b": [4000, 5000], "t": 200 },
+      { "id": "wW", "a": [0, 0], "b": [0, 5000], "t": 200 }
+    ],
+    "openings": [
+      {
+        "id": "d1",
+        "wall": "wW",
+        "type": "door",
+        "from": 3800,
+        "to": 4700,
+        "hinge": "from",
+        "into": [600, 4250]
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "客餐厅",
+        "polygon": [
+          [0, 0],
+          [4000, 0],
+          [4000, 5000],
+          [0, 5000]
+        ]
+      }
+    ],
+    "objects": [
+      {
+        "id": "o_table",
+        "key": "coffeeTable",
+        "at": [2000, 2500],
+        "rot": 0,
+        "w": 1200,
+        "d": 600
+      }
+    ]
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "a_vase_big",
+        "key": "tableVase",
+        "at": [2000, 2500],
+        "rot": 0,
+        "w": 700,
+        "d": 700,
+        "h": 350,
+        "on": "o_table"
+      }
+    }
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["ASSET-02"]
+  }
+}

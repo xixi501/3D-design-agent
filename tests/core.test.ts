@@ -183,3 +183,45 @@ test("scene checks identify intersecting footprints and wall penetration with ob
   assert.ok(result.coverage.length);
   assert.ok(result.limitations.length);
 });
+
+test("scene checks report curtain-zone and window-cabinet conflicts", () => {
+  const plan = blankPlan();
+  plan.name = "window clearance";
+  plan.nodes = [
+    { id: "n0", x: 0, y: 0 },
+    { id: "n1", x: 4000, y: 0 },
+    { id: "n2", x: 4000, y: 4000 },
+    { id: "n3", x: 0, y: 4000 },
+  ];
+  plan.walls = [
+    { id: "north", a: "n0", b: "n1", t: 20, status: "existing" },
+    { id: "east", a: "n1", b: "n2", t: 20, status: "existing" },
+    { id: "south", a: "n2", b: "n3", t: 20, status: "existing" },
+    { id: "west", a: "n3", b: "n0", t: 20, status: "existing" },
+  ];
+  plan.openings = [
+    {
+      id: "window",
+      wall: "north",
+      type: "window",
+      pos: 2000,
+      width: 2000,
+      sill: 900,
+      head: 2400,
+    },
+  ];
+  plan.rooms = [
+    {
+      id: "room",
+      x: 2000,
+      y: 2000,
+      name: "客餐厅",
+      mat: "oak",
+      ceil: { type: "none", drop: 0, edgeW: 400, cove: false },
+    },
+  ];
+  plan.furniture = [createFurniture("cabTall", 2000, 300)];
+  const result = checkScene(plan);
+  assert.ok(result.issues.some((issue) => issue.code === "CUR-01"));
+  assert.ok(result.issues.some((issue) => issue.code === "WIN-01"));
+});

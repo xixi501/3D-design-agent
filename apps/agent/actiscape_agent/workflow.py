@@ -8,6 +8,7 @@ from .floorplan_roles import FloorplanRoles
 from .generation_flow import COLLECTIONS, GenerationFlow
 from .generation_roles import GenerationRoles
 from .roles import Roles
+from .skill_registry import get_registry
 from .store import TaskError, TaskStore
 
 
@@ -272,7 +273,43 @@ class Workflow:
             for t in self.store.tasks(task["conversationId"])
             if t["id"] != task["id"] and t["status"] == "completed"
         ][-6:]
-        intent = await self.roles.ground(task, state["project"], conversation, history)
+        registry = get_registry()
+        skill_candidates = registry.candidates("edit", project_state="existing")
+        intent = await self.roles.ground(
+            task,
+            state["project"],
+            conversation,
+            history,
+            skill_candidates,
+        )
+        if intent["status"] == "ready":
+            selection = registry.validate_selection(
+                intent.get("skillSelection", {}),
+                skill_candidates,
+                mode="edit",
+                allow_no_primary=True,
+            )
+            bundle = registry.compose(
+                mode="edit",
+                selection=selection,
+                include_intake=False,
+            )
+            generation = self.store.task(task["id"], internal=True)["generation"]
+            generation.update(
+                skillSelection=selection.model_dump(),
+                skillBundle=bundle,
+                skillsUsed=registry.records(bundle),
+            )
+            self.store.update(task["id"], generation=generation)
+            self.store.event(
+                task["id"],
+                "skill_loaded",
+                {
+                    "selection": selection.model_dump(),
+                    "skills": generation["skillsUsed"],
+                    "bundleHash": bundle["contentHash"],
+                },
+            )
         ambiguous = ambiguous_name(task, state["project"], conversation)
         if intent["status"] == "ready" and ambiguous and intent["target_ids"]:
             return {
@@ -504,6 +541,25 @@ class Workflow:
             state["task_id"], "repair", {"round": count + 1, "report": state.get("last_report")}
         )
         task = self.store.task(state["task_id"], internal=True)
+        generation = task.get("generation", {})
+        if generation.get("skillBundle") and not generation["skillBundle"].get("repair"):
+            registry = get_registry()
+            bundle = registry.with_repair(generation["skillBundle"], task["mode"])
+            generation.update(
+                skillBundle=bundle,
+                skillsUsed=registry.records(bundle),
+            )
+            self.store.update(task["id"], generation=generation)
+            self.store.event(
+                task["id"],
+                "skill_repair_loaded",
+                {
+                    "id": bundle["repair"]["id"],
+                    "contentHash": bundle["repair"]["contentHash"],
+                    "bundleHash": bundle["contentHash"],
+                },
+            )
+            task = self.store.task(state["task_id"], internal=True)
         if task["mode"] == "reconstruct_floorplan":
             generation = task["generation"]
             generation["repairsUsed"] = count + 1
@@ -536,6 +592,9 @@ class Workflow:
                 return self.conflict(state)
             raise
         result = completion_result(task, state, c, committed["project"]["revision"])
+        generation = task.get("generation", {})
+        result["skillsUsed"] = generation.get("skillsUsed", [])
+        result["skillSelection"] = generation.get("skillSelection")
         self.store.event(
             task["id"],
             "committed",

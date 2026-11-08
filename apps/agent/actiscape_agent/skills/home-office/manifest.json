@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "home-office",
+  "name": "书房 / 居家办公：采光、久坐与画面",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "5–15㎡ 书房或居家办公位：书桌对窗但离窗墙留出窗帘与暖气，屏幕侧光不背光，椅后留出起身净空，视频背景干净，收纳分三处。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["study"],
+    "areaM2": [5, 15],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "每日使用时长（可选）",
+      "视频会频率（可选）",
+      "纸质资料量（可选）"
+    ]
+  },
+  "notApplicable": [
+    "两人以上开放工位或会议室（转 office-workstation）",
+    "只需在客厅角落加一张桌子（转 social-reading-zone / studio-micro）",
+    "需要新增弱电点位、地插或网口",
+    "使用面积 < 5㎡（放不下桌前使用区，改走 studio-micro）"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-05",
+    "J-CUR-01",
+    "J-OVER-01",
+    "J-DOOR-02",
+    "J-ASSET-02",
+    "J-LIGHT-02",
+    "J-LIGHT-03",
+    "J-STY-03",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

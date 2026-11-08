@@ -383,7 +383,11 @@ class FloorplanRoles:
             model_options=FLOORPLAN_RECOGNITION_OPTIONS,
         )
         g = self.store.task(task["id"], internal=True)["generation"]
-        if "analyze_floorplan" in g.get("skillSnapshot", {}).get("requiredTools", []) and not any(
+        snapshot = g.get("skillSnapshot", {})
+        if (
+            "floorplan.analyze" in snapshot.get("capabilities", [])
+            or "analyze_floorplan" in snapshot.get("requiredTools", [])
+        ) and not any(
             r["role"] == "main"
             and r["tool"] == "analyze_floorplan"
             and not r["record"].get("error")
@@ -622,8 +626,10 @@ class FloorplanRoles:
             model_options=FLOORPLAN_REVIEW_OPTIONS,
         )
         g = self.store.task(task["id"], internal=True)["generation"]
-        if "audit_floorplan_source" in g.get("skillSnapshot", {}).get(
-            "requiredTools", []
+        snapshot = g.get("skillSnapshot", {})
+        if (
+            "candidate.review" in snapshot.get("capabilities", [])
+            or "audit_floorplan_source" in snapshot.get("requiredTools", [])
         ) and not any(
             r["role"] == "check"
             and r["tool"] == "audit_floorplan_source"

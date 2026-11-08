@@ -1,0 +1,90 @@
+{
+  "case_id": "GBR-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [3000, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [3000, 0],
+        "b": [3000, 3600],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 3600],
+        "b": [3000, 3600],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 3600], "t": 200, "bearing": true }
+    ],
+    "openings": [
+      {
+        "id": "win1",
+        "wall": "wN",
+        "type": "window",
+        "from": 1500,
+        "to": 2700,
+        "sill": 900,
+        "head": 2400
+      },
+      {
+        "id": "d1",
+        "wall": "wE",
+        "type": "door",
+        "from": 200,
+        "to": 1100,
+        "hinge": "from",
+        "into": [2600, 650]
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "次卧",
+        "polygon": [
+          [0, 0],
+          [3000, 0],
+          [3000, 3600],
+          [0, 3600]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "o_bed",
+        "key": "bed12",
+        "at": [700, 1100],
+        "rot": 0,
+        "w": 1200,
+        "d": 2000,
+        "h": 950
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_ward",
+        "key": "wardrobe2",
+        "at": [2600, 650],
+        "rot": 90,
+        "w": 1000,
+        "d": 600,
+        "h": 2200
+      }
+    }
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["DOOR-02", "CIR-02"],
+    "must_not_trigger": ["CUR-01", "WIN-01", "OVER-01", "WALL-01", "ASSET-02"]
+  }
+}

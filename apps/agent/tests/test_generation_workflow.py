@@ -136,6 +136,11 @@ class ControlledRoles:
                     "doors": "南墙门居中",
                     "windows": "没有窗",
                 },
+                "skillSelection": {
+                    "primarySkillId": "rectangular-living-reading",
+                    "modifierSkillIds": [],
+                    "reason": "矩形阅读会客间",
+                },
             }
         if role == "assets":
             return {"choices": [{"request_index": 0, "key": "armchair", "reason": "controlled"}]}
@@ -182,10 +187,16 @@ async def test_generation_clarifies_then_resumes_same_task_without_changing_proj
         result = await finished(manager, task["id"])
         assert result["status"] == "completed", result
         assert result["modelCalls"] > calls and client.project["revision"] == 1
+        assert result["result"]["skillSelection"]["primarySkillId"] == "rectangular-living-reading"
         assert (
             result["result"]["skillsUsed"][0]["contentHash"]
             == load_design_skill(GENERATION_TOOLS)["contentHash"]
         )
+        assert [item["role"] for item in result["result"]["skillsUsed"]] == [
+            "primary",
+            "intake",
+        ]
+        assert "content" not in result["generation"]["skillBundle"]["primary"]
     finally:
         await manager.close()
 
@@ -199,7 +210,9 @@ async def test_generation_checkpoint_pins_skill_and_reconciles_commit_or_cancell
     manager = TaskManager(tmp_path, client, ControlledRoles)
     task = await start_generation(manager)
     await asyncio.wait_for(client.design_entered.wait(), 5)
-    pinned = manager.store.task(task["id"], internal=True)["generation"]["skillSnapshot"]
+    pinned_generation = manager.store.task(task["id"], internal=True)["generation"]
+    pinned = pinned_generation["skillSnapshot"]
+    pinned_bundle = pinned_generation["skillBundle"]
     if cancel:
         manager.store.cancel(task["id"])
     await manager.close()
@@ -207,9 +220,7 @@ async def test_generation_checkpoint_pins_skill_and_reconciles_commit_or_cancell
     def future_skill_unavailable(*args):
         raise AssertionError("Recovered task must use pinned content, not read a new Skill")
 
-    monkeypatch.setattr(
-        "actiscape_agent.generation_flow.load_design_skill", future_skill_unavailable
-    )
+    monkeypatch.setattr("actiscape_agent.generation_flow.get_registry", future_skill_unavailable)
     manager = TaskManager(tmp_path, client, ControlledRoles)
     try:
         await manager.start()
@@ -217,6 +228,10 @@ async def test_generation_checkpoint_pins_skill_and_reconciles_commit_or_cancell
         assert result["status"] == ("cancelled" if cancel else "completed"), result
         assert (
             manager.store.task(task["id"], internal=True)["generation"]["skillSnapshot"] == pinned
+        )
+        assert (
+            manager.store.task(task["id"], internal=True)["generation"]["skillBundle"]
+            == pinned_bundle
         )
         assert len(client.ledger) == (0 if cancel else 1)
         assert client.ground_calls == 1

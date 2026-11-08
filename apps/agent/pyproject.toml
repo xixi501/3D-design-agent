@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "actiscape-agent"
-version = "0.2.0"
+version = "0.3.0"
 requires-python = ">=3.13,<3.14"
 dependencies = [
   "langgraph>=1,<2", "langchain>=1,<2", "langchain-deepseek>=1,<2",
@@ -20,7 +20,21 @@ platform = ["agentarts-sdk==0.1.10"]
 packages = ["actiscape_agent"]
 
 [tool.setuptools.package-data]
-actiscape_agent = ["skills/*/*.json", "skills/*/*.md", "skills/*/LICENSE", "vendor/house_plan_designer/LICENSE", "vendor/house_plan_designer/*.json", "vendor/house_plan_designer/scripts/*.py", "vendor/house_plan_designer/reference/*.json", "vendor/house_plan_designer/reference/*.md"]
+actiscape_agent = [
+  "skills/*.json",
+  "skills/*.md",
+  "skills/*/*.json",
+  "skills/*/*.md",
+  "skills/*/LICENSE",
+  "skills/LICENSES/*.txt",
+  "skills/*/examples/*/*.json",
+  "skills/*/examples/*/*.md",
+  "vendor/house_plan_designer/LICENSE",
+  "vendor/house_plan_designer/*.json",
+  "vendor/house_plan_designer/scripts/*.py",
+  "vendor/house_plan_designer/reference/*.json",
+  "vendor/house_plan_designer/reference/*.md",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

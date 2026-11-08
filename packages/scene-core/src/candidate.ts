@@ -284,8 +284,16 @@ export function checkCandidate(
       level: "error",
       blocking: true,
     });
-  const beforeNonFurniture = { ...before.plan, furniture: [] },
-    afterNonFurniture = { ...after.plan, furniture: [] };
+  const protectedView = (plan: Plan) => {
+    const view: any = { ...plan, furniture: [] };
+    if (view.source?.activityGroups) {
+      if (view.source.kind === "activity-groups") delete view.source;
+      else view.source = { ...view.source, activityGroups: undefined };
+    }
+    return view;
+  };
+  const beforeNonFurniture = protectedView(before.plan),
+    afterNonFurniture = protectedView(after.plan);
   if (
     JSON.stringify(beforeNonFurniture) !== JSON.stringify(afterNonFurniture) ||
     JSON.stringify(before.roomLabelArchive) !==

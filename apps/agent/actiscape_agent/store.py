@@ -41,6 +41,43 @@ def task_fingerprint(body: dict) -> str:
     return fingerprint(value)
 
 
+def public_skill_bundle(bundle: dict) -> dict:
+    result = {}
+    for key, value in bundle.items():
+        if key == "judgements":
+            result[key] = [
+                {
+                    item_key: item_value
+                    for item_key, item_value in item.items()
+                    if item_key in ("id", "title", "threshold", "source", "checkability")
+                }
+                for item in value
+            ]
+            continue
+        if isinstance(value, dict) and {"id", "version", "contentHash"}.issubset(value):
+            result[key] = {
+                item_key: item_value
+                for item_key, item_value in value.items()
+                if item_key not in ("content", "judgementsData", "licenseText")
+            }
+            continue
+        if isinstance(value, list) and all(
+            isinstance(item, dict) and {"id", "version", "contentHash"}.issubset(item)
+            for item in value
+        ):
+            result[key] = [
+                {
+                    item_key: item_value
+                    for item_key, item_value in item.items()
+                    if item_key not in ("content", "judgementsData", "licenseText")
+                }
+                for item in value
+            ]
+            continue
+        result[key] = value
+    return result
+
+
 class TaskStore:
     def __init__(self, directory: Path):
         directory.mkdir(parents=True, exist_ok=True)
@@ -138,11 +175,13 @@ class TaskStore:
             "mode": row["mode"],
         }
         generation = json.loads(row["generation"])
-        data["generation"] = (
-            generation
-            if internal
-            else {k: v for k, v in generation.items() if k != "skillSnapshot"}
-        )
+        if internal:
+            data["generation"] = generation
+        else:
+            public = {k: v for k, v in generation.items() if k != "skillSnapshot"}
+            if public.get("skillBundle"):
+                public["skillBundle"] = public_skill_bundle(public["skillBundle"])
+            data["generation"] = public
         if internal:
             data["activeStarted"] = row["active_started"]
         return data

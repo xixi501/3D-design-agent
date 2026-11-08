@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "tea-room",
+  "name": "茶室 / 静区",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "4–10㎡ 茶室：远离主动线、坐席不对门不背窗，用一桌两椅一柜的最小配置守住 700 通行与茶台间距。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["multipurpose"],
+    "areaM2": [4, 10],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "一人用还是两人对坐（可选）",
+      "主视线方向（可选）",
+      "是否需要烧水（可选）"
+    ]
+  },
+  "notApplicable": [
+    "需待客六人以上（转 social-reading-zone）",
+    "要做地台/榻榻米（先走 tatami-multipurpose）",
+    "需要给排水、地暖、防水改造",
+    "需要拆改墙体或门窗洞口"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-CIR-07",
+    "J-LIGHT-01",
+    "J-LIGHT-02",
+    "J-COL-01",
+    "J-OVER-01",
+    "J-STY-03",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

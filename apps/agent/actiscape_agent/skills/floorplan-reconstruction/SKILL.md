@@ -1,4 +1,19 @@
+---
+name: floorplan-reconstruction
+description: 确认单层正交平面图结构，保留整层墙体门窗，只复现用户选定客餐厅的原图布局。
+license: MIT
+compatibility: scene.read / floorplan.analyze / floorplan.measure / catalog.search / candidate.propose / candidate.preflight / candidate.review / candidate.render
+metadata:
+  version: "0.6.0"
+  status: verified
+  kind: floorplan
+  activation: active
+  owner: member1
+---
+
 # 单层户型图忠实复现 · 第三版
+
+> v1 接入说明：本 Skill 只声明语义 capability，不能直接写正式场景、提交项目或执行任意脚本。所有修改必须形成候选，并由固定代码预检、渲染、审核和提交。
 
 适用：清晰单层正交平面图。保留整层结构，只复现用户选定客餐厅的图上布局。原图是证据，墙线检测只是候选。未知项显式阻断，不猜测比例、标注数字或门窗类型。
 

@@ -1,0 +1,152 @@
+{
+  "case_id": "RNT-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [3200, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [3200, 0],
+        "b": [3200, 4600],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 4600],
+        "b": [3200, 4600],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 4600], "t": 200, "bearing": true }
+    ],
+    "openings": [
+      {
+        "id": "d1",
+        "wall": "wS",
+        "type": "door",
+        "from": 2300,
+        "to": 3200,
+        "hinge": "from",
+        "into": [2750, 4000]
+      },
+      {
+        "id": "win1",
+        "wall": "wE",
+        "type": "window",
+        "from": 1200,
+        "to": 2800,
+        "sill": 900,
+        "head": 2400
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "起居卧室",
+        "polygon": [
+          [0, 0],
+          [3200, 0],
+          [3200, 4600],
+          [0, 4600]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": { "id": "o_bed", "key": "bed15", "at": [900, 1125], "rot": 0 }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_wardrobe",
+        "key": "wardrobe2",
+        "at": [2600, 400],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_sofa",
+        "key": "loveseat",
+        "at": [550, 3000],
+        "rot": 270
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_ct",
+        "key": "roundCoffee",
+        "at": [1900, 3000],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": { "id": "o_rug", "key": "rug", "at": [1500, 2900], "rot": 0 }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_plant",
+        "key": "plant",
+        "at": [2650, 3000],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_lamp",
+        "key": "floorLamp",
+        "at": [1200, 2400],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_cur",
+        "key": "curtain",
+        "at": [3020, 2000],
+        "rot": 90,
+        "w": 2400,
+        "d": 160
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_pendant",
+        "key": "chandelier",
+        "at": [1900, 3000],
+        "rot": 0,
+        "w": 300,
+        "d": 300,
+        "h": 400,
+        "mount": "ceiling"
+      }
+    }
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": [
+      "CUR-01",
+      "DOOR-01",
+      "DOOR-02",
+      "WIN-01",
+      "OVER-01",
+      "WALL-01",
+      "ASSET-02",
+      "CIR-02"
+    ]
+  }
+}

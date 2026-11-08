@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "guest-bedroom",
+  "name": "次卧 / 客房布置",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "6–14㎡ 次卧：先分临时住/长期住，再取舍床靠墙与床居中，排衣柜与（折叠）书桌，守住门扇、窗帘与 700 通行。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["bedroom"],
+    "areaM2": [6, 14],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "住的人与居住时长（可选）",
+      "床的规格 1.2/1.5（可选）",
+      "衣柜门型（可选）"
+    ]
+  },
+  "notApplicable": [
+    "主卧（转 master-bedroom）",
+    "儿童房（转 kids-room）",
+    "需要拆改墙体或门窗洞口",
+    "使用面积低于单人卧室下限且无法补足"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-CIR-04",
+    "J-CIR-06",
+    "J-CUR-01",
+    "J-DOOR-02",
+    "J-PROP-01",
+    "J-STA-01",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

@@ -1,0 +1,245 @@
+{
+  "$defs": {
+    "SkillAppliesTo": {
+      "additionalProperties": false,
+      "properties": {
+        "modes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Modes",
+          "type": "array"
+        },
+        "roomKinds": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Roomkinds",
+          "type": "array"
+        },
+        "areaM2": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Aream2",
+          "type": "array"
+        },
+        "projectState": {
+          "enum": ["empty", "existing", "any"],
+          "title": "Projectstate",
+          "type": "string"
+        },
+        "requiredInputs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Requiredinputs",
+          "type": "array"
+        }
+      },
+      "required": ["modes", "roomKinds", "areaM2", "projectState"],
+      "title": "SkillAppliesTo",
+      "type": "object"
+    },
+    "SkillComposition": {
+      "additionalProperties": false,
+      "properties": {
+        "maxPerTask": {
+          "maximum": 2,
+          "minimum": 1,
+          "title": "Maxpertask",
+          "type": "integer"
+        },
+        "conflictsWith": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Conflictswith",
+          "type": "array"
+        }
+      },
+      "required": ["maxPerTask"],
+      "title": "SkillComposition",
+      "type": "object"
+    },
+    "SkillLicense": {
+      "additionalProperties": false,
+      "properties": {
+        "spdx": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Spdx",
+          "type": "string"
+        },
+        "attribution": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Attribution",
+          "type": "string"
+        }
+      },
+      "required": ["spdx", "attribution"],
+      "title": "SkillLicense",
+      "type": "object"
+    },
+    "SkillValidation": {
+      "additionalProperties": false,
+      "properties": {
+        "structure": {
+          "title": "Structure",
+          "type": "boolean"
+        },
+        "dryRun": {
+          "title": "Dryrun",
+          "type": "boolean"
+        },
+        "realCore": {
+          "title": "Realcore",
+          "type": "boolean"
+        }
+      },
+      "required": ["structure", "dryRun", "realCore"],
+      "title": "SkillValidation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "actiscape.skill.v1",
+      "title": "Schemaversion",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "intake",
+        "layout",
+        "edit",
+        "floorplan",
+        "modifier",
+        "repair",
+        "asset"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "status": {
+      "enum": ["draft", "conformant", "verified", "deprecated"],
+      "title": "Status",
+      "type": "string"
+    },
+    "activation": {
+      "enum": ["active", "reserved"],
+      "title": "Activation",
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "appliesTo": {
+      "$ref": "#/$defs/SkillAppliesTo"
+    },
+    "notApplicable": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 30,
+      "title": "Notapplicable",
+      "type": "array"
+    },
+    "capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "judgements": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 80,
+      "title": "Judgements",
+      "type": "array"
+    },
+    "composition": {
+      "$ref": "#/$defs/SkillComposition"
+    },
+    "license": {
+      "$ref": "#/$defs/SkillLicense"
+    },
+    "provenance": {
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          }
+        ]
+      },
+      "maxItems": 30,
+      "title": "Provenance",
+      "type": "array"
+    },
+    "validation": {
+      "$ref": "#/$defs/SkillValidation"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "version",
+    "kind",
+    "status",
+    "activation",
+    "summary",
+    "appliesTo",
+    "capabilities",
+    "composition",
+    "license",
+    "validation"
+  ],
+  "title": "SkillManifest",
+  "type": "object"
+}

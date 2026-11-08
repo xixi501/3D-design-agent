@@ -2,6 +2,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, model_validator
 
+from .skill_registry import SkillSelection
+
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -31,6 +33,7 @@ class Intent(StrictModel):
     )
     additions: list[Addition] = Field(default_factory=list)
     area: Literal["local", "room"] = "local"
+    skillSelection: SkillSelection = Field(default_factory=SkillSelection)
 
     @model_validator(mode="after")
     def consistent_authorization(self):
@@ -91,9 +94,15 @@ class DeleteEdit(StrictModel):
 Edit = Annotated[CreateEdit | UpdateEdit | DeleteEdit, Field(discriminator="type")]
 
 
+class ActivityGroupProposal(StrictModel):
+    name: str = Field(min_length=1, max_length=100)
+    memberIds: list[str] = Field(min_length=1, max_length=50)
+
+
 class Proposal(StrictModel):
     summary: str = Field(max_length=200)
     edits: list[Edit] = Field(min_length=1, max_length=50)
+    activityGroups: list[ActivityGroupProposal] = Field(default_factory=list, max_length=20)
 
 
 class ReviewIssue(StrictModel):

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "lighting-color",
+  "name": "照明分层与配色",
+  "version": "0.2.0",
+  "kind": "modifier",
+  "status": "verified",
+  "activation": "active",
+  "summary": "按环境/任务/重点三层定比例，按房间给照度与色温，再把灯位落到家具上（餐桌吊灯对中、阅读角落地灯、镜前灯垂直照面），配色落到可采购的材质。",
+  "appliesTo": {
+    "modes": ["generate_rectangular", "edit"],
+    "roomKinds": ["any"],
+    "areaM2": [8, 200],
+    "projectState": "any",
+    "requiredInputs": [
+      "已定稿的平面布局",
+      "层高",
+      "主要活动时段（可选）",
+      "既有灯位或线路（可选）"
+    ]
+  },
+  "notApplicable": [
+    "需要电气施工图（回路/线径/开关点位）",
+    "家具位置未定（先跑场景技能）",
+    "智能家居协议与品牌选型",
+    "需要实测照度报告"
+  ],
+  "capabilities": ["scene.read", "candidate.review"],
+  "judgements": [
+    "J-ASSET-02",
+    "J-COL-01",
+    "J-COL-02",
+    "J-CUR-01",
+    "J-CIR-07",
+    "J-DOOR-02",
+    "J-LIGHT-01",
+    "J-LIGHT-02",
+    "J-LIGHT-03",
+    "J-LIGHT-04",
+    "J-VER-02",
+    "J-WALL-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": true
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "social-reading-zone",
+  "name": "会客 + 阅读的功能分组与局部调整",
+  "version": "0.2.0",
+  "kind": "edit",
+  "status": "verified",
+  "activation": "active",
+  "summary": "把客厅家具声明成会客组/阅读组，只对目标组下发编辑，新增或重排“单人椅 + 落地灯 + 边几（可加书架）”的阅读角，并守住组内通道与窗带。",
+  "appliesTo": {
+    "modes": ["edit"],
+    "roomKinds": ["living_room", "reading_lounge"],
+    "areaM2": [12, 40],
+    "projectState": "existing",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "已有会客组家具",
+      "阅读角使用者与用途（可选）"
+    ]
+  },
+  "notApplicable": [
+    "要重排整间客厅或更换主沙发（转 living-dining-small / living-dining-open）",
+    "阅读角要兼书房（书桌 + 屏幕，转 home-office）",
+    "需要改墙体、门窗或插座点位",
+    "要求改动会客组才能实现（退回与用户确认范围）"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-CIR-07",
+    "J-OVER-01",
+    "J-CUR-01",
+    "J-WIN-01",
+    "J-LIGHT-01",
+    "J-LIGHT-02",
+    "J-LIGHT-03",
+    "J-LAY-01",
+    "J-PROP-02",
+    "J-STY-03",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": true
+  }
+}

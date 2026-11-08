@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "style-coherence",
+  "name": "全屋风格统一",
+  "version": "0.2.0",
+  "kind": "modifier",
+  "status": "verified",
+  "activation": "active",
+  "summary": "把口头风格翻成硬装—软装—材质—五金四件套，用 60-30-10、主材 ≤3、焦点 ≤1 把整屋拉齐；硬装不可改时只换软装。",
+  "appliesTo": {
+    "modes": ["generate_rectangular", "edit"],
+    "roomKinds": ["any"],
+    "areaM2": [8, 200],
+    "projectState": "any",
+    "requiredInputs": [
+      "已有硬装信息（门/地板/墙色）",
+      "风格偏好（口语即可）",
+      "是否有必须保留的家具（可选）"
+    ]
+  },
+  "notApplicable": [
+    "需要拆改硬装（换门/换地板/改墙色）",
+    "品牌选品与比价采购",
+    "只调家具位置、不做风格判断",
+    "出效果图替代方案评审"
+  ],
+  "capabilities": ["scene.read", "candidate.review"],
+  "judgements": [
+    "J-CIR-01",
+    "J-COL-01",
+    "J-COL-02",
+    "J-COL-03",
+    "J-CUR-01",
+    "J-PROP-01",
+    "J-STY-01",
+    "J-STY-02",
+    "J-STY-03",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WIN-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": true
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "aging-friendly",
+  "name": "适老化布置",
+  "version": "0.2.0",
+  "kind": "modifier",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "长者卧室与卫浴：净宽取更严格的 800、无高差、扶手与助力、床边与马桶旁转移空间、夜间起夜照明、圆角固定家具与 450 坐高。",
+  "appliesTo": {
+    "modes": ["generate_rectangular", "edit"],
+    "roomKinds": ["bedroom", "bathroom"],
+    "areaM2": [9, 30],
+    "projectState": "any",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "行动能力（拐杖/助行器/轮椅）",
+      "起夜路线（可选）"
+    ]
+  },
+  "notApplicable": [
+    "需要结构改造或改门洞位置",
+    "需要护理床/移位机等医疗设备",
+    "普通卧室布置且无行动限制（转 master-bedroom）"
+  ],
+  "capabilities": ["scene.read", "candidate.review"],
+  "judgements": [
+    "J-BATH-01",
+    "J-BATH-02",
+    "J-CIR-01",
+    "J-CIR-04",
+    "J-LIGHT-03",
+    "J-STA-01",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

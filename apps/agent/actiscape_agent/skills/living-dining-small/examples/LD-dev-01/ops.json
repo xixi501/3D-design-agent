@@ -1,0 +1,157 @@
+{
+  "case_id": "LD-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [3800, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [3800, 0],
+        "b": [3800, 5600],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 5600],
+        "b": [3800, 5600],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 5600], "t": 200, "bearing": true }
+    ],
+    "openings": [
+      {
+        "id": "win1",
+        "wall": "wN",
+        "type": "window",
+        "from": 900,
+        "to": 2900,
+        "sill": 900,
+        "head": 2400
+      },
+      {
+        "id": "d1",
+        "wall": "wE",
+        "type": "door",
+        "from": 4200,
+        "to": 5100,
+        "hinge": "from",
+        "into": [3200, 4650]
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "客餐厅",
+        "polygon": [
+          [0, 0],
+          [3800, 0],
+          [3800, 5600],
+          [0, 5600]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "o_sofa",
+        "key": "sofa",
+        "at": [1800, 3300],
+        "rot": 0,
+        "w": 2200,
+        "d": 950
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_table",
+        "key": "coffeeTable",
+        "at": [1800, 4525],
+        "rot": 0,
+        "w": 1200,
+        "d": 600
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_tv",
+        "key": "tvCabinet",
+        "at": [1800, 5300],
+        "rot": 180,
+        "w": 2000,
+        "d": 400
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_rug",
+        "key": "rug",
+        "at": [1800, 4400],
+        "rot": 0,
+        "w": 2000,
+        "d": 1700
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_din",
+        "key": "diningTable",
+        "at": [1400, 1100],
+        "rot": 0,
+        "w": 1200,
+        "d": 800
+      }
+    },
+    {
+      "op": "add",
+      "object": { "id": "o_c1", "key": "chair", "at": [1100, 520], "rot": 0 }
+    },
+    {
+      "op": "add",
+      "object": { "id": "o_c2", "key": "chair", "at": [1700, 520], "rot": 0 }
+    },
+    {
+      "op": "add",
+      "object": { "id": "o_c3", "key": "chair", "at": [1100, 1680], "rot": 180 }
+    },
+    {
+      "op": "add",
+      "object": { "id": "o_c4", "key": "chair", "at": [1700, 1680], "rot": 180 }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_cur",
+        "key": "curtain",
+        "at": [1900, 180],
+        "rot": 0,
+        "w": 2400,
+        "d": 160
+      }
+    }
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": [
+      "CUR-01",
+      "DOOR-01",
+      "DOOR-02",
+      "WIN-01",
+      "OVER-01",
+      "WALL-01",
+      "ASSET-02",
+      "CIR-02"
+    ]
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "living-dining-small",
+  "name": "小空间客餐厅布置",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "verified",
+  "activation": "active",
+  "summary": "8–25㎡ 客餐厅：一个主墙 + 一条贯穿通道，按面积取舍沙发/茶几/餐桌，保证 700 通行与门窗净空。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["living_dining"],
+    "areaM2": [8, 25],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "常住人口（可选）",
+      "风格或家具偏好（可选）"
+    ]
+  },
+  "notApplicable": [
+    "需要拆改墙体或门窗",
+    "整栋/别墅",
+    "需要水电点位设计",
+    "开间 < 2600（转 studio-micro）",
+    "面积 > 25㎡（转 living-dining-open）"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-CIR-03",
+    "J-CIR-07",
+    "J-CUR-01",
+    "J-DOOR-01",
+    "J-PROP-01",
+    "J-PROP-02",
+    "J-WIN-02",
+    "J-VER-01",
+    "J-VER-02",
+    "J-STA-01",
+    "J-STA-03"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": ["living-dining-open"]
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": true
+  }
+}

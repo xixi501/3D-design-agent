@@ -92,8 +92,16 @@ V3-6 replaced that broken geometry path for new tasks with `hpd-adapter-6-1`, `s
 
 The orthogonal image draft compiler, durable image storage, overlay correction and explicit confirmation workflow are implemented. Reconnaissance, measurement and review retain confirmed positions and per-symbol sizes; catalogue decisions are separate from recognition. Controlled browser/WebGL, transaction and restart tests pass. Both real floorplans have now passed 2/2 in the same-version matrix.
 
+## Skill Pool v1
+
+The runtime now accepts only `actiscape.skill.v1`. The fixed in-repo snapshot contains 32 Skills: 30 migrated member-three packages plus two built-in floorplan/text-generation Skills. Nine are active and verified; 23 member-three packages remain reserved and cannot enter a model shortlist.
+
+Code filters by task mode, project state, room kind, area, capabilities and verification status. The grounding model may select one primary Skill and at most two modifiers from that shortlist; intake and repair Skills are activated automatically by fixed workflow stages. Skill bundles pin manifest, body, referenced judgements and licence text by hash, while old tasks continue reading their frozen legacy snapshots.
+
+`npm run test:skill-pool:v1` runs the seven active member-three Skills through real candidate preflight and two-view WebGL for positive cases and verifies the expected real-core codes for boundary cases. The combined offline gate passes with Python 123, Node 38, build, browser/WebGL, V3-5/V3-6 replay and controlled V3. Evidence is stored in [Skill Pool v1 L3](evidence/skill-pool-v1-l3-20261109.json) and [structure/catalogue validation](evidence/skill-pool-v1-structure-20261109.json). GEPA candidate optimisation and final evaluation splitting remain open.
+
 ## Remaining scope
 
 S2-A provides local multi-agent editing. S2-B adds initial rectangular-room generation and the first real Skill. S2-C adds two frozen floorplan-image cases with two fully passing real runs each. Nonrectangular/multiroom text generation and cabinet/kitchen/free-form recipe conversation editing remain later; existing manual editing is retained.
 
-S3 integrates real photo-to-model jobs and placement checks; S4 adds versioned Skills and GEPA with the frozen evaluation split; S5 completes AgentArts orchestration, external checkpoints, deployment and end-to-end competition evidence. None of these is established by a successful local SDK probe.
+S3 integrates real photo-to-model jobs and placement checks. S4 now has the versioned Skill Pool v1; GEPA candidate optimisation and the frozen development/validation/final evaluation split remain open. S5 completes AgentArts orchestration, external checkpoints, deployment and end-to-end competition evidence. None of these is established by a successful local SDK probe.

@@ -1,7 +1,7 @@
 from .client import SceneFailure
 from .generation_roles import GenerationRoles
 from .generation_schemas import resolve_request
-from .skill_registry import GENERATION_TOOLS, load_design_skill, skill_record
+from .skill_registry import get_registry
 from .store import TaskError, fingerprint
 
 COLLECTIONS = (
@@ -35,14 +35,27 @@ class GenerationFlow:
         if old.get("frozen") and old.get("sourceInputHash") == source_hash:
             generation = dict(old)
         else:
-            generation = resolve_request(await self.roles.ground(task, project), task["input"])
+            registry = get_registry()
+            initial_candidates = registry.candidates(
+                "generate_rectangular",
+                project_state="empty",
+            )
+            generation = resolve_request(
+                await self.roles.ground(task, project, initial_candidates),
+                task["input"],
+            )
             if old.get("skillSnapshot"):
                 generation["skillSnapshot"] = old["skillSnapshot"]
+            if old.get("skillBundle"):
+                generation["skillBundle"] = old["skillBundle"]
             generation["frozen"] = False
             self.store.update(task["id"], generation=generation)
-            self.store.event(
-                task["id"], "brief", {k: v for k, v in generation.items() if k != "skillSnapshot"}
-            )
+            public_generation = {k: v for k, v in generation.items() if k != "skillSnapshot"}
+            if public_generation.get("skillBundle"):
+                public_generation["skillBundle"] = registry.public_bundle(
+                    public_generation["skillBundle"]
+                )
+            self.store.event(task["id"], "brief", public_generation)
             if generation["unsupported"]:
                 return {
                     "route": "end",
@@ -76,9 +89,55 @@ class GenerationFlow:
                 "route": "end",
                 "final": {"status": "waiting_input", "message": "房间结构需要调整：" + str(e)},
             }
-        snapshot = generation.get("skillSnapshot") or load_design_skill(GENERATION_TOOLS)
-        if brief["purpose"] not in snapshot["appliesTo"]:
-            raise TaskError("SKILL_NOT_APPLICABLE", "当前 Skill 不支持该房间用途")
+        records = []
+        if generation.get("skillBundle"):
+            bundle = generation["skillBundle"]
+            snapshot = bundle["primary"]
+            records = generation.get("skillsUsed", [])
+        elif generation.get("skillSnapshot"):
+            # Tasks frozen before Skill Pool v1 keep their original snapshot.
+            snapshot = generation["skillSnapshot"]
+            if brief["purpose"] not in snapshot.get("appliesTo", []):
+                raise TaskError("SKILL_NOT_APPLICABLE", "当前 Skill 不支持该房间用途")
+            bundle = None
+        else:
+            registry = get_registry()
+            area_m2 = None
+            width, depth = brief.get("width"), brief.get("depth")
+            if width and depth:
+                factors = {"mm": 0.001, "cm": 0.01, "m": 1.0}
+                area_m2 = (
+                    width["value"]
+                    * factors[width["unit"]]
+                    * depth["value"]
+                    * factors[depth["unit"]]
+                )
+            candidates = registry.candidates(
+                "generate_rectangular",
+                project_state="empty",
+                room_kind=brief["purpose"],
+                area_m2=area_m2,
+            )
+            selection = registry.validate_selection(
+                generation.get("skillSelection", {}),
+                candidates,
+                mode="generate_rectangular",
+            )
+            bundle = registry.compose(
+                mode="generate_rectangular",
+                selection=selection,
+                include_intake=True,
+            )
+            snapshot = bundle["primary"]
+            if (
+                "any" not in snapshot["appliesTo"]["roomKinds"]
+                and brief["purpose"] not in snapshot["appliesTo"]["roomKinds"]
+            ):
+                raise TaskError("SKILL_NOT_APPLICABLE", "当前 Skill 不支持该房间用途")
+            generation["skillSelection"] = selection.model_dump()
+            generation["skillBundle"] = bundle
+            records = registry.records(bundle)
+            generation["skillsUsed"] = records
         generation.update(
             frozen=True,
             frozenBrief=brief,
@@ -87,13 +146,18 @@ class GenerationFlow:
             openings=preview["openings"],
             defaults=list(dict.fromkeys(generation["defaults"] + preview["defaults"])),
             skillSnapshot=snapshot,
-            skillsUsed=[skill_record(snapshot)],
+            skillsUsed=generation.get("skillsUsed")
+            or next((item for item in records if item["role"] == "primary"), []),
         )
         self.store.update(task["id"], generation=generation)
         self.store.event(
             task["id"],
             "skill_loaded",
-            {**skill_record(snapshot), "requiredTools": snapshot["requiredTools"]},
+            {
+                "selection": generation.get("skillSelection"),
+                "skills": generation["skillsUsed"],
+                "bundleHash": (bundle or {}).get("contentHash"),
+            },
         )
         self.store.event(
             task["id"],

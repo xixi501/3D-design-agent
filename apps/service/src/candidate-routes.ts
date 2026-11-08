@@ -117,6 +117,24 @@ export function candidateRoutes(
               maxItems: 50,
               items: { type: "object", additionalProperties: true },
             },
+            activityGroups: {
+              type: "array",
+              maxItems: 20,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["name", "memberIds"],
+                properties: {
+                  name: { type: "string", minLength: 1, maxLength: 100 },
+                  memberIds: {
+                    type: "array",
+                    minItems: 1,
+                    maxItems: 50,
+                    items: { type: "string" },
+                  },
+                },
+              },
+            },
           },
           additionalProperties: false,
         },

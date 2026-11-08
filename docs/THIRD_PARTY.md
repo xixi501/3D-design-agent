@@ -20,6 +20,8 @@ S2-C 图片预处理新增 Pillow 13.0.0（MIT-CMU）、opencv-python-headless 4
 
 `floorplan-reconstruction@0.5.1` 增加 V3-2 候选墙分组、一次结构修复和人工重审约束；它继续只提供设计指导，不能扩大工具或正式场景写入权限。
 
+Skill Pool v1 的成员三内容快照来自 `dev/skills-deploy@d547afd3e07deb8dab06fea31d482f0ffc0ed9bb`，经 v1 manifest 迁移后固定在主 Agent 包内。30 个包沿用成员三记录的 MIT 归属、上游 `house-plan-designer@b94183f9` 来源和 external `interior-design-expert` 数值来源；主系统不执行成员三分支的 mock、deploy 或任意 Skill 脚本。完整归属见 `apps/agent/actiscape_agent/skills/ATTRIBUTIONS.md`。
+
 `floorplan-reconstruction@0.5.2` 增加 V3-3 确定性墙体闭合、洞口扫描、外围尺寸候选、家具轮廓组合和代码审核仲裁。`dimticks.py`、`dimocr.py` 从同一固定提交加入随包来源清单，但运行时不依赖其未经验证的自动读数；尺寸文字仍由受控视觉角色抄录，端点、基准和证据由代码生成。
 
 `floorplan-reconstruction@0.5.3` 增加独立家具 grounding 模型配置。默认使用 `Qwen/Qwen3-VL-32B-Instruct-FP8`（Apache-2.0），候选实现为 `zai-org/GLM-4.6V-Flash`（MIT）。模型权重由 vLLM 从仓库外缓存加载，不随本项目分发；DeepSeek 继续保留结构与常规 Agent 职责。

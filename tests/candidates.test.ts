@@ -107,6 +107,27 @@ test("scoped candidates freeze IDs, preserve projects/history, check boundaries 
         (i: any) => i.code === "INVALID_ELEVATION" && i.blocking,
       ),
     );
+    const grouped = server.candidates.create(p.id, {
+      ...request,
+      requestId: "activity-group",
+      scope: { ...scope, requirements: [] },
+      edits: [{ type: "update", id: chair.id, values: { x: 6600 } }],
+      activityGroups: [
+        {
+          name: "阅读组",
+          memberIds: [chair.id, fixture.furniture[1].id],
+        },
+      ],
+    });
+    assert.equal(grouped.state.plan.source.activityGroups.length, 1);
+    assert.deepEqual(
+      grouped.state.plan.source.activityGroups[0].memberObjectIds,
+      [chair.id, fixture.furniture[1].id],
+    );
+    assert.equal(
+      grouped.state.plan.source.activityGroups[0].roles[chair.id],
+      "primary",
+    );
     assert.throws(
       () =>
         server.candidates.commit(p.id, c.id, {

@@ -127,9 +127,16 @@ try {
   assert.deepEqual(
     task.generation,
     Object.fromEntries(
-      Object.entries(generation).filter(([key]) => key !== "skillSnapshot"),
+      Object.entries(generation).filter(
+        ([key]) => !["skillSnapshot", "skillBundle"].includes(key),
+      ),
     ),
   );
+  if (generation.skillBundle)
+    assert.equal(
+      task.generation.skillBundle.contentHash,
+      generation.skillBundle.contentHash,
+    );
   const restoredTasks = new Database(
     path.join(restored, "agent/tasks.sqlite"),
     { readonly: true },

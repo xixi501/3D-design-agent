@@ -1,0 +1,108 @@
+{
+  "case_id": "FIN-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [3000, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [3000, 0],
+        "b": [3000, 3800],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 3800],
+        "b": [3000, 3800],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 3800], "t": 200, "bearing": true }
+    ],
+    "openings": [
+      {
+        "id": "win1",
+        "wall": "wE",
+        "type": "window",
+        "from": 300,
+        "to": 1500,
+        "sill": 900,
+        "head": 2400
+      },
+      {
+        "id": "d1",
+        "wall": "wW",
+        "type": "door",
+        "from": 2600,
+        "to": 3500,
+        "hinge": "from",
+        "into": [600, 3050]
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "主卧",
+        "polygon": [
+          [0, 0],
+          [3000, 0],
+          [3000, 3800],
+          [0, 3800]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "o_bed",
+        "key": "bed15",
+        "at": [1500, 1125],
+        "rot": 0,
+        "w": 1500,
+        "d": 2050
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_ns",
+        "key": "nightstand",
+        "at": [500, 500],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_wd",
+        "key": "wardrobe2",
+        "at": [1500, 3400],
+        "rot": 180,
+        "w": 1000,
+        "d": 600
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_cur",
+        "key": "curtain",
+        "at": [2950, 900],
+        "rot": 90,
+        "w": 1800,
+        "d": 160
+      }
+    }
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": ["CIR-02", "OVER-01", "CUR-01", "WIN-01", "WALL-01"]
+  }
+}

@@ -116,6 +116,7 @@ export class CandidateStore {
       floorplan?: FloorplanBinding;
       matches?: SymbolMatch[];
       brief?: RectangularBrief;
+      activityGroups?: { name: string; memberIds: string[] }[];
     },
   ) {
     if (
@@ -215,11 +216,79 @@ export class CandidateStore {
           edits = reconstructed
             ? []
             : materializeEdits(source, scope, request.edits!),
-          commands = reconstructed?.commands || [
+          contentCommands = reconstructed?.commands || [
             ...(compiled?.commands || []),
             ...edits,
           ],
-          state = applyCommands(before, commands);
+          contentState = applyCommands(before, contentCommands);
+        let commands = contentCommands;
+        let state = contentState;
+        if (
+          request.activityGroups !== undefined &&
+          request.activityGroups.length
+        ) {
+          if (
+            !Array.isArray(request.activityGroups) ||
+            request.activityGroups.length > 20
+          )
+            throw new SceneError("INVALID_REQUEST", "活动组元数据无效");
+          const furniture = new Set(
+              contentState.plan.furniture.map((f) => f.id),
+            ),
+            groupIds = new Set<string>();
+          const activityGroups = request.activityGroups.map((group) => {
+            if (
+              !group ||
+              typeof group.name !== "string" ||
+              !group.name.trim() ||
+              group.name.length > 100 ||
+              !Array.isArray(group.memberIds) ||
+              !group.memberIds.length ||
+              group.memberIds.length > 50 ||
+              new Set(group.memberIds).size !== group.memberIds.length ||
+              group.memberIds.some(
+                (id) => typeof id !== "string" || !furniture.has(id),
+              )
+            )
+              throw new SceneError("INVALID_REQUEST", "活动组成员或名称无效");
+            const id =
+              "ag_" +
+              sha256({
+                taskId: request.taskId,
+                name: group.name,
+                memberIds: group.memberIds,
+              }).slice(0, 16);
+            if (groupIds.has(id))
+              throw new SceneError("INVALID_REQUEST", "活动组身份重复");
+            groupIds.add(id);
+            const roles = Object.fromEntries(
+              group.memberIds.map((member, index) => [
+                member,
+                index === 0 ? "primary" : "member",
+              ]),
+            );
+            return {
+              id,
+              name: group.name,
+              type: "custom",
+              primaryObjectId: group.memberIds[0],
+              memberObjectIds: group.memberIds,
+              roles,
+            };
+          });
+          const projectCommand: Command = {
+            type: "project",
+            patch: {
+              source: {
+                ...(contentState.plan.source || {}),
+                kind: contentState.plan.source?.kind || "activity-groups",
+                activityGroups,
+              },
+            },
+          };
+          commands = [...contentCommands, projectCommand];
+          state = applyCommands(contentState, [projectCommand]);
+        }
         for (const id of assetReferences(state.plan)) this.projects.asset(id);
         const id = newId(),
           checks = reconstructed

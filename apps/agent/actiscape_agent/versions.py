@@ -69,8 +69,10 @@ def runtime_versions():
         },
         "floorplanUpdateContract": "discriminated-commands-2",
         "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+        "skillPoolSchema": "actiscape.skill-pool.v1",
+        "skillPoolVersion": "2026-11-09",
         "pillow": version("Pillow"),
         "opencv": version("opencv-python-headless"),
-        "promptVersion": "s2a-local-edit-2",
-        "generationPromptVersion": "s2b-rectangular-2",
+        "promptVersion": "s2a-local-edit-3",
+        "generationPromptVersion": "s2b-rectangular-3",
     }

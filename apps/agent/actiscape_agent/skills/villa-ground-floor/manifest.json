@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "villa-ground-floor",
+  "name": "独栋别墅首层",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "8.0×12.0m 首层：公共动线与服务动线分开，楼梯/电梯靠边不占采光面，家政设备间贴服务核，玄关柜按人数算量，客厅与餐厨共享庭院视线。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["villa"],
+    "areaM2": [60, 150],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的首层平面",
+      "常住人口",
+      "车库/侧门位置（可选）",
+      "庭院朝向（可选）"
+    ]
+  },
+  "notApplicable": [
+    "多层全屋动线与挑空通高一起定",
+    "需要改承重墙/楼梯结构或加建",
+    "单房间客厅/餐厅布置（转 living-dining-open）"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-DOOR-02",
+    "J-ENT-01",
+    "J-LIGHT-01",
+    "J-STA-02",
+    "J-STA-03",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

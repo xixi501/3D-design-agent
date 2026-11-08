@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "kids-room",
+  "name": "儿童房：成长性、安全与学习区",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "6–15㎡ 儿童房：把家具分成睡眠/学习/活动三组保证可替换，守住书桌使用区、窗前高柜、门扇与高柜安全三件。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["bedroom"],
+    "areaM2": [6, 15],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "孩子年龄",
+      "是否考虑换房或上下床（可选）",
+      "高柜能否上墙固定"
+    ]
+  },
+  "notApplicable": [
+    "需要定制榻榻米/地台/包窗等木作（交回主控）",
+    "两个以上孩子共用一间且要求独立分区（先做一组，再复制并重跑检查）",
+    "需要改门窗洞口或新增插座点位",
+    "使用面积 < 6㎡（放不下学习组，改走 studio-micro 的复合布局）"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-05",
+    "J-CUR-01",
+    "J-WIN-01",
+    "J-DOOR-02",
+    "J-OVER-01",
+    "J-PROP-01",
+    "J-STA-01",
+    "J-LIGHT-02",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

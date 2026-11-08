@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "living-dining-open",
+  "name": "LDK 一体大空间的分区与动线",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "verified",
+  "activation": "active",
+  "summary": "30–60㎡ LDK 一体厅：三段分区（会客/用餐/西厨或工作角）+ 一条环线，用地毯与灯位划区，分区只做半岛、不做到墙。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["living_dining"],
+    "areaM2": [30, 60],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "常住人口（可选）",
+      "是否要中岛或办公位（可选）",
+      "风格与家具偏好（可选）"
+    ]
+  },
+  "notApplicable": [
+    "使用面积 < 30㎡ 或开间 < 4000（转 living-dining-small）",
+    "只需局部加阅读角或工作角（转 social-reading-zone）",
+    "需要砌墙、加隔断门或改门窗洞口",
+    "需要水电点位设计",
+    "整栋/别墅"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-PROP-01",
+    "J-PROP-02",
+    "J-PROP-03",
+    "J-LAY-01",
+    "J-LIGHT-01",
+    "J-COL-01",
+    "J-STY-01",
+    "J-STY-03",
+    "J-CUR-01",
+    "J-DOOR-01",
+    "J-WIN-01",
+    "J-STA-01",
+    "J-STA-03",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": ["living-dining-small"]
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": true
+  }
+}

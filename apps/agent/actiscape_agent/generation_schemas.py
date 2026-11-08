@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import Field, FiniteFloat, field_validator
 
-from .schemas import Addition, AssetChoice, AssetSelection, StrictModel
+from .schemas import Addition, AssetChoice, AssetSelection, SkillSelection, StrictModel
 
 
 def asset_selection_schema(count: int, allowed_keys: set[str]):
@@ -55,6 +55,7 @@ class GenerationRequest(StrictModel):
         default_factory=dict,
         description="purpose/width/depth/doors/windows 各自对应用户原话的原文摘录；不得编造尺寸或门窗",
     )
+    skillSelection: SkillSelection = Field(default_factory=SkillSelection)
 
 
 DEFAULT_FURNITURE = {
@@ -132,4 +133,5 @@ def resolve_request(value: dict, user_input: str) -> dict:
         "evidence": request.evidence,
         "unsupported": request.status == "unsupported",
         "question": request.question,
+        "skillSelection": request.skillSelection.model_dump(),
     }

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "floorplan-intake",
+  "name": "户型图/需求进场确认",
+  "version": "0.2.0",
+  "kind": "intake",
+  "status": "verified",
+  "activation": "active",
+  "summary": "把户型图或文字需求整理成要素表、假设表与待确认清单；先判断「放不放得下」，再交给具体房间技能。",
+  "appliesTo": {
+    "modes": ["generate_rectangular", "reconstruct_floorplan"],
+    "roomKinds": ["any"],
+    "areaM2": [5, 200],
+    "projectState": "any",
+    "requiredInputs": ["户型图/截图", "或文字需求", "或已生成但信息不全的场景"]
+  },
+  "notApplicable": ["信息完整可直接布置", "拆改结构", "整栋/多楼层"],
+  "capabilities": ["scene.read", "candidate.preflight"],
+  "judgements": ["J-STA-01", "J-STA-02", "J-STA-03", "J-VER-01"],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": true
+  }
+}

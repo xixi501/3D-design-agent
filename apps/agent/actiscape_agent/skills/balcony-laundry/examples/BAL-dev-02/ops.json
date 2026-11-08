@@ -1,0 +1,102 @@
+{
+  "case_id": "BAL-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [1600, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [1600, 0],
+        "b": [1600, 3200],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 3200],
+        "b": [1600, 3200],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 3200], "t": 200, "bearing": true }
+    ],
+    "openings": [
+      { "id": "sd1", "wall": "wN", "type": "sliding", "from": 200, "to": 1400 },
+      {
+        "id": "win1",
+        "wall": "wW",
+        "type": "window",
+        "from": 1200,
+        "to": 2400,
+        "sill": 900,
+        "head": 2400
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "生活阳台",
+        "polygon": [
+          [0, 0],
+          [1600, 0],
+          [1600, 3200],
+          [0, 3200]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "o_washer",
+        "key": "washer",
+        "at": [450, 400],
+        "rot": 180,
+        "w": 600,
+        "d": 600
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_dryer",
+        "key": "dryer",
+        "at": [1075, 400],
+        "rot": 180,
+        "w": 600,
+        "d": 600
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_sink",
+        "key": "laundrySink",
+        "at": [1225, 1500],
+        "rot": 90,
+        "w": 700,
+        "d": 550
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_rack",
+        "key": "clothesRack",
+        "at": [700, 2200],
+        "rot": 90,
+        "w": 1400,
+        "d": 450,
+        "h": 500
+      }
+    }
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["DOOR-01"]
+  }
+}

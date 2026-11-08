@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "layout-check-repair",
+  "name": "检查与有限修复",
+  "version": "0.2.0",
+  "kind": "repair",
+  "status": "verified",
+  "activation": "active",
+  "summary": "对已有布置跑 check.run，按严重度与影响对象数排序，一次只修一类，每轮重跑，3 轮预算用完即停，修不动的写进未解决清单并如实报告。",
+  "appliesTo": {
+    "modes": ["edit", "generate_rectangular", "reconstruct_floorplan"],
+    "roomKinds": ["any"],
+    "areaM2": [5, 200],
+    "projectState": "existing",
+    "requiredInputs": [
+      "已有布置的场景",
+      "用户指定要保留的对象（可选）",
+      "修复预算轮次（可选，默认 3）"
+    ]
+  },
+  "notApplicable": [
+    "从零布置",
+    "需要拆改墙体或门窗洞口",
+    "要求改到通过为止（预算制不适用）",
+    "需要验收规则本身的变更"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-CUR-01",
+    "J-DOOR-01",
+    "J-DOOR-02",
+    "J-OVER-01",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WIN-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": true
+  }
+}

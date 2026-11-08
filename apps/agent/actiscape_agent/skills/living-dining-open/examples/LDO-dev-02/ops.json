@@ -1,0 +1,188 @@
+{
+  "case_id": "LDO-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [6000, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [6000, 0],
+        "b": [6000, 8400],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 8400],
+        "b": [6000, 8400],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 8400], "t": 200, "bearing": true }
+    ],
+    "openings": [
+      {
+        "id": "win1",
+        "wall": "wS",
+        "type": "window",
+        "from": 1600,
+        "to": 5200,
+        "sill": 400,
+        "head": 2400
+      },
+      {
+        "id": "d1",
+        "wall": "wN",
+        "type": "door",
+        "from": 4200,
+        "to": 5100,
+        "hinge": "from",
+        "into": [4650, 800]
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "LDK 一体厅",
+        "polygon": [
+          [0, 0],
+          [6000, 0],
+          [6000, 8400],
+          [0, 8400]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "o_counter",
+        "key": "counter",
+        "at": [1150, 400],
+        "rot": 0,
+        "w": 2100,
+        "d": 600
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_fridge",
+        "key": "fridge",
+        "at": [2650, 450],
+        "rot": 0,
+        "w": 700,
+        "d": 700
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_din",
+        "key": "diningTable",
+        "at": [4200, 1500],
+        "rot": 0,
+        "w": 1600,
+        "d": 900
+      }
+    },
+    {
+      "op": "add",
+      "object": { "id": "o_c1", "key": "chair", "at": [3750, 500], "rot": 0 }
+    },
+    {
+      "op": "add",
+      "object": { "id": "o_c2", "key": "chair", "at": [3200, 1500], "rot": 90 }
+    },
+    {
+      "op": "add",
+      "object": { "id": "o_c3", "key": "chair", "at": [5200, 1500], "rot": 270 }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_div1",
+        "key": "kitchenIsland",
+        "at": [1000, 2800],
+        "rot": 0,
+        "w": 1800,
+        "d": 900
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_div2",
+        "key": "counter",
+        "at": [2950, 2800],
+        "rot": 0,
+        "w": 2100,
+        "d": 600
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_div3",
+        "key": "sideboard",
+        "at": [4950, 2800],
+        "rot": 0,
+        "w": 1900,
+        "d": 400
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_tv",
+        "key": "tvCabinet",
+        "at": [2700, 5250],
+        "rot": 0,
+        "w": 2000,
+        "d": 400
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_sofa",
+        "key": "sofa",
+        "at": [2700, 7300],
+        "rot": 180,
+        "w": 2200,
+        "d": 950
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_coffee",
+        "key": "coffeeTable",
+        "at": [2700, 6075],
+        "rot": 0,
+        "w": 1200,
+        "d": 600
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_rug",
+        "key": "rug",
+        "at": [2700, 6600],
+        "rot": 0,
+        "w": 2000,
+        "d": 1700
+      }
+    }
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["CIR-02"],
+    "must_not_trigger": ["OVER-01", "DOOR-02", "CUR-01", "WIN-01"]
+  }
+}

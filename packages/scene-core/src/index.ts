@@ -99,36 +99,44 @@ export function validatePlan(plan: Plan) {
       !s ||
       typeof s !== "object" ||
       Array.isArray(s) ||
-      s.kind !== "floorplan" ||
-      typeof s.imageId !== "string" ||
-      !/^fp-[a-f0-9]{64}$/.test(s.imageId) ||
-      !/^[a-f0-9]{64}$/.test(s.imageHash)
+      !["floorplan", "activity-groups"].includes(s.kind)
     )
-      throw new SceneError("INVALID_DOCUMENT", "户型来源信息无效");
-    finite(s.imageWidth, "source.imageWidth", 1, 25000000);
-    finite(s.imageHeight, "source.imageHeight", 1, 25000000);
-    if (s.imageWidth * s.imageHeight > 25000000)
-      throw new SceneError("INVALID_DOCUMENT", "来源图片超过像素限制");
-    if (s.draftHash !== undefined && !/^[a-f0-9]{64}$/.test(s.draftHash))
-      throw new SceneError("INVALID_DOCUMENT", "来源确认哈希无效");
-    if (
-      s.draftRevision !== undefined &&
-      (!Number.isInteger(s.draftRevision) || s.draftRevision < 0)
-    )
-      throw new SceneError("INVALID_DOCUMENT", "来源草稿版本无效");
-    finite(s.mmPerPixel, "source.mmPerPixel", 0.001, 10000);
-    if (s.measurementVersion !== undefined) {
+      throw new SceneError("INVALID_DOCUMENT", "来源信息类型无效");
+    if (s.kind === "floorplan") {
       if (
-        s.measurementVersion !== 2 ||
-        s.measurement?.kernelVersion !== "axis-constraints-1" ||
-        !Array.isArray(s.measurement.dimensions) ||
-        !Array.isArray(s.measurement.features)
+        typeof s.imageId !== "string" ||
+        !/^fp-[a-f0-9]{64}$/.test(s.imageId) ||
+        !/^[a-f0-9]{64}$/.test(s.imageHash)
       )
-        throw new SceneError("UNSUPPORTED_FORMAT", "不支持的户型测量来源版本");
-      for (const d of s.measurement.dimensions) {
-        finite(d.actualMm, "source.dimension.actualMm");
-        finite(d.expectedMm, "source.dimension.expectedMm");
-        finite(d.residualMm, "source.dimension.residualMm");
+        throw new SceneError("INVALID_DOCUMENT", "户型来源信息无效");
+      finite(s.imageWidth, "source.imageWidth", 1, 25000000);
+      finite(s.imageHeight, "source.imageHeight", 1, 25000000);
+      if (s.imageWidth * s.imageHeight > 25000000)
+        throw new SceneError("INVALID_DOCUMENT", "来源图片超过像素限制");
+      if (s.draftHash !== undefined && !/^[a-f0-9]{64}$/.test(s.draftHash))
+        throw new SceneError("INVALID_DOCUMENT", "来源确认哈希无效");
+      if (
+        s.draftRevision !== undefined &&
+        (!Number.isInteger(s.draftRevision) || s.draftRevision < 0)
+      )
+        throw new SceneError("INVALID_DOCUMENT", "来源草稿版本无效");
+      finite(s.mmPerPixel, "source.mmPerPixel", 0.001, 10000);
+      if (s.measurementVersion !== undefined) {
+        if (
+          s.measurementVersion !== 2 ||
+          s.measurement?.kernelVersion !== "axis-constraints-1" ||
+          !Array.isArray(s.measurement.dimensions) ||
+          !Array.isArray(s.measurement.features)
+        )
+          throw new SceneError(
+            "UNSUPPORTED_FORMAT",
+            "不支持的户型测量来源版本",
+          );
+        for (const d of s.measurement.dimensions) {
+          finite(d.actualMm, "source.dimension.actualMm");
+          finite(d.expectedMm, "source.dimension.expectedMm");
+          finite(d.residualMm, "source.dimension.residualMm");
+        }
       }
     }
     if (s.activityGroups !== undefined) {
@@ -155,8 +163,12 @@ export function validatePlan(plan: Plan) {
           throw new SceneError("INVALID_DOCUMENT", "来源活动组主对象角色无效");
       }
     }
-    finite(s.origin?.x, "source.origin.x");
-    finite(s.origin?.y, "source.origin.y");
+    if (s.kind === "activity-groups" && !s.activityGroups?.length)
+      throw new SceneError("INVALID_DOCUMENT", "活动组来源缺少活动组");
+    if (s.origin !== undefined) {
+      finite(s.origin.x, "source.origin.x");
+      finite(s.origin.y, "source.origin.y");
+    }
   }
   const ids = new Set<string>();
   for (const collection of collections) {
@@ -444,6 +456,119 @@ export function footprint(f: Furniture): { x: number; y: number }[] {
     y: f.y + x * s + y * c,
   }));
 }
+
+function circulationBlocked(
+  region: any,
+  boxes: any[],
+  start: { x: number; y: number },
+) {
+  const rects = region.rects || [];
+  const blockers = () =>
+    boxes.filter((b: any) => b.z <= 20 && b.f.h > 100).map((b: any) => b.f.id);
+  if (!rects.length) return [];
+  const step = 100,
+    half = 350,
+    minX = Math.min(...rects.map((r: any) => r.x)),
+    maxX = Math.max(...rects.map((r: any) => r.x + r.w)),
+    minY = Math.min(...rects.map((r: any) => r.y)),
+    maxY = Math.max(...rects.map((r: any) => r.y + r.h)),
+    cols = Math.max(1, Math.floor((maxX - minX) / step) + 1),
+    rows = Math.max(1, Math.floor((maxY - minY) / step) + 1),
+    wide = new Uint8Array(cols * rows);
+  const nonBlocking = new Set([
+    "rug",
+    "roundRug",
+    "doormat",
+    "playMat",
+    "yogaMat",
+    "curtain",
+    "sheer",
+    "lawn",
+    "stepStones",
+  ]);
+  const inside = (x: number, y: number) =>
+    rects.some(
+      (r: any) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h,
+    );
+  for (let iy = 0; iy < rows; iy++)
+    for (let ix = 0; ix < cols; ix++) {
+      const x = minX + ix * step,
+        y = minY + iy * step;
+      const square = [
+        { x: x - half, y: y - half },
+        { x: x + half, y: y - half },
+        { x: x + half, y: y + half },
+        { x: x - half, y: y + half },
+      ];
+      if (!square.every((p) => inside(p.x, p.y))) continue;
+      const blocked = boxes.some(
+        (b: any) =>
+          b.z <= 20 &&
+          b.f.h > 100 &&
+          !nonBlocking.has(b.f.key) &&
+          Ts([square], b.polygons) > 1,
+      );
+      if (!blocked) wide[iy * cols + ix] = 1;
+    }
+  const component = new Int32Array(cols * rows).fill(-1),
+    sizes: number[] = [];
+  let next = 0;
+  for (let i = 0; i < wide.length; i++)
+    if (wide[i] && component[i] < 0) {
+      const queue = [i];
+      component[i] = next;
+      let size = 0;
+      for (let at = 0; at < queue.length; at++) {
+        const current = queue[at],
+          cx = current % cols,
+          cy = Math.floor(current / cols);
+        size++;
+        for (const [dx, dy] of [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+        ]) {
+          const nx = cx + dx,
+            ny = cy + dy,
+            n = ny * cols + nx;
+          if (
+            nx >= 0 &&
+            nx < cols &&
+            ny >= 0 &&
+            ny < rows &&
+            wide[n] &&
+            component[n] < 0
+          ) {
+            component[n] = next;
+            queue.push(n);
+          }
+        }
+      }
+      sizes.push(size);
+      next++;
+    }
+  if (!sizes.length) return blockers();
+  let startComponent = -1,
+    best = Infinity;
+  for (let iy = 0; iy < rows; iy++)
+    for (let ix = 0; ix < cols; ix++) {
+      const index = iy * cols + ix;
+      if (!wide[index]) continue;
+      const distance = Math.hypot(
+        minX + ix * step - start.x,
+        minY + iy * step - start.y,
+      );
+      if (distance < best) {
+        best = distance;
+        startComponent = component[index];
+      }
+    }
+  if (startComponent < 0) return blockers();
+  const largest = sizes.indexOf(Math.max(...sizes));
+  return startComponent !== largest ? blockers() : [];
+}
+
 export function checkScene(plan: Plan) {
   const issues: {
     code: string;
@@ -527,8 +652,98 @@ export function checkScene(plan: Plan) {
     "hole",
     "garage",
   ]);
+  const windowTypes = new Set([
+    "window",
+    "slideWindow",
+    "floorWindow",
+    "highWindow",
+    "bay",
+    "bayInner",
+    "glassWall",
+  ]);
+  const cabinetKeys = new Set([
+    "bookshelf",
+    "bookshelfLow",
+    "cabWardrobe",
+    "cabSlide",
+    "cabCorner",
+    "cabShoe",
+    "cabSideboard",
+    "cabTall",
+    "cabBase",
+    "cabWall",
+    "cabTV",
+    "displayCabinet",
+    "fileCabinet",
+    "fridge",
+    "fridgeDouble",
+    "fridgeFrench",
+    "freezer",
+    "hallCabinet",
+    "lockers",
+    "shoeCabinet",
+    "sideboard",
+    "wardrobe",
+    "wardrobe2",
+    "wardrobe3",
+    "wineCabinet",
+  ]);
   for (const w of geo.active)
     for (const op of w.ops) {
+      if (windowTypes.has(op.o.type)) {
+        for (const side of [-1, 1]) {
+          const middle = (op.s0 + op.s1) / 2,
+            probe = {
+              x: w.a.x + w.u.x * middle + w.n.x * side * (w.ht + 1),
+              y: w.a.y + w.u.y * middle + w.n.y * side * (w.ht + 1),
+            };
+          if (
+            !regions.some((r: any) =>
+              r.rects.some(
+                (b: any) =>
+                  probe.x >= b.x &&
+                  probe.x <= b.x + b.w &&
+                  probe.y >= b.y &&
+                  probe.y <= b.y + b.h,
+              ),
+            )
+          )
+            continue;
+          const strip = (depth: number) =>
+            [
+              [op.s0, side * w.ht],
+              [op.s1, side * w.ht],
+              [op.s1, side * (w.ht + depth)],
+              [op.s0, side * (w.ht + depth)],
+            ].map(([along, normal]) => ({
+              x: w.a.x + w.u.x * along + w.n.x * normal,
+              y: w.a.y + w.u.y * along + w.n.y * normal,
+            }));
+          for (const { f, polygons, z } of boxes) {
+            if (["curtain", "sheer", "rug", "roundRug"].includes(f.key))
+              continue;
+            const curtainZone = Ts(polygons, [strip(150)]);
+            if (f.h > 600 && curtainZone > 20)
+              issues.push({
+                code: "CUR-01",
+                objectIds: [f.id, op.o.id],
+                message: `${f.name} 占用窗帘前 150 mm 活动区`,
+                level: "error",
+                metric: curtainZone,
+              });
+            const cabinet = cabinetKeys.has(f.key) || f.type === "cabinet";
+            const windowZone = Ts(polygons, [strip(400)]);
+            if (cabinet && z + f.h > (op.o.sill ?? 0) + 100 && windowZone > 20)
+              issues.push({
+                code: "WIN-01",
+                objectIds: [f.id, op.o.id],
+                message: `${f.name} 位于窗前 400 mm 且高于窗台`,
+                level: "error",
+                metric: windowZone,
+              });
+          }
+        }
+      }
       if (!doorTypes.has(op.o.type) || op.o.sill > 20) continue;
       for (const side of [-1, 1]) {
         const middle = (op.s0 + op.s1) / 2,
@@ -536,18 +751,32 @@ export function checkScene(plan: Plan) {
             x: w.a.x + w.u.x * middle + w.n.x * side * (w.ht + 1),
             y: w.a.y + w.u.y * middle + w.n.y * side * (w.ht + 1),
           };
-        if (
-          !regions.some((r: any) =>
-            r.rects.some(
-              (b: any) =>
-                probe.x >= b.x &&
-                probe.x <= b.x + b.w &&
-                probe.y >= b.y &&
-                probe.y <= b.y + b.h,
-            ),
-          )
-        )
-          continue;
+        const room = regions.find((r: any) =>
+          r.rects.some(
+            (b: any) =>
+              probe.x >= b.x &&
+              probe.x <= b.x + b.w &&
+              probe.y >= b.y &&
+              probe.y <= b.y + b.h,
+          ),
+        );
+        if (!room) continue;
+        const circulationStart = {
+          x: w.a.x + w.u.x * middle + w.n.x * side * (w.ht + 400),
+          y: w.a.y + w.u.y * middle + w.n.y * side * (w.ht + 400),
+        };
+        const circulationBlockers = circulationBlocked(
+          room,
+          boxes,
+          circulationStart,
+        );
+        if (circulationBlockers.length)
+          issues.push({
+            code: "CIR-02",
+            objectIds: [op.o.id, ...circulationBlockers],
+            message: `${op.o.id} 内侧没有连续 700 mm 宽的可达区域`,
+            level: "error",
+          });
         const zone = [
           [op.s0, side * w.ht],
           [op.s1, side * w.ht],
@@ -576,11 +805,13 @@ export function checkScene(plan: Plan) {
       "结构引用与尺寸校验",
       "原版参数化轮廓 SAT 相交与垂直区间",
       "家具轮廓与墙体及洞口",
+      "窗帘前 150 mm 与窗前 400 mm 净空",
       "门洞内侧 800 mm 局部净空（项目布局规则）",
+      "门内 700 mm 宽连续可达区（近似栅格）",
     ],
     limitations: [
       "不等同于精确网格碰撞检测；GLB 使用矩形占地",
-      "未检查通道可达性、支撑面、照明或法规",
+      "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查支撑面、照明或法规",
     ],
   };
 }

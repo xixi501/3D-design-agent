@@ -72,7 +72,7 @@ def test_explicit_geometry_and_corrections_preserve_units_and_no_window():
 def test_real_skill_checks_tools_and_snapshot_is_independent_of_later_files(tmp_path):
     skill = load_design_skill(GENERATION_TOOLS)
     assert "800 mm" in skill["content"] and len(skill["contentHash"]) == 64
-    with pytest.raises(TaskError, match="真实工具"):
+    with pytest.raises(TaskError, match="能力"):
         load_design_skill(set())
     root = tmp_path / "skills"
     shutil.copytree(SKILL_ROOT, root)

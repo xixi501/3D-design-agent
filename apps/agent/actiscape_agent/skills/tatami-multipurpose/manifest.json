@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "tatami-multipurpose",
+  "name": "榻榻米 / 多功能房",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "5–12㎡ 榻榻米房：先定地台占多少与上翻/侧抽，再让开门扇与窗帘、留出台阶与 700 通道。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["multipurpose"],
+    "areaM2": [5, 12],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "地台下要收什么（可选）",
+      "是否要升降桌（可选）",
+      "门型：平开/推拉（可选）"
+    ]
+  },
+  "notApplicable": [
+    "普通次卧不做地台（转 guest-bedroom）",
+    "儿童房（转 kids-room）",
+    "地台要压住管道井或检修口",
+    "需要拆改墙体或门窗洞口"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-CIR-09",
+    "J-CUR-01",
+    "J-DOOR-01",
+    "J-DOOR-02",
+    "J-STA-01",
+    "J-VER-01",
+    "J-VER-02",
+    "J-CIR-11"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

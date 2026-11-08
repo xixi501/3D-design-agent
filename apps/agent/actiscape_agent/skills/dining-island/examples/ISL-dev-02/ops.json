@@ -1,0 +1,90 @@
+{
+  "case_id": "ISL-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 900,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [4200, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [4200, 0],
+        "b": [4200, 4800],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 4800],
+        "b": [4200, 4800],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 4800], "t": 200, "bearing": true }
+    ],
+    "openings": [
+      {
+        "id": "win1",
+        "wall": "wE",
+        "type": "window",
+        "from": 600,
+        "to": 1800,
+        "sill": 900,
+        "head": 2400
+      },
+      { "id": "h1", "wall": "wS", "type": "hole", "from": 1200, "to": 3000 }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "餐厨",
+        "polygon": [
+          [0, 0],
+          [4200, 0],
+          [4200, 4800],
+          [0, 4800]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "o_counter",
+        "key": "counter",
+        "at": [1900, 400],
+        "rot": 0,
+        "w": 3600,
+        "d": 600
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_table",
+        "key": "diningTable",
+        "at": [2100, 2900],
+        "rot": 0,
+        "w": 1400,
+        "d": 800
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_island",
+        "key": "kitchenIsland",
+        "at": [2100, 4350],
+        "rot": 0,
+        "w": 2400,
+        "d": 900
+      }
+    }
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["CIR-02"]
+  }
+}

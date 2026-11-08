@@ -1,0 +1,159 @@
+{
+  "case_id": "TEA-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [2600, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [2600, 0],
+        "b": [2600, 3200],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 3200],
+        "b": [2600, 3200],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 3200], "t": 200, "bearing": true }
+    ],
+    "openings": [
+      {
+        "id": "win1",
+        "wall": "wN",
+        "type": "window",
+        "from": 800,
+        "to": 2000,
+        "sill": 450,
+        "head": 2100
+      },
+      {
+        "id": "d1",
+        "wall": "wS",
+        "type": "door",
+        "from": 300,
+        "to": 1200,
+        "hinge": "from",
+        "into": [750, 2300]
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "茶室",
+        "polygon": [
+          [0, 0],
+          [2600, 0],
+          [2600, 3200],
+          [0, 3200]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "o_tea",
+        "key": "teaTable",
+        "at": [1400, 1000],
+        "rot": 0,
+        "w": 1200,
+        "d": 650,
+        "h": 450
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_chair_n",
+        "key": "chair",
+        "at": [1400, 580],
+        "rot": 180,
+        "w": 460,
+        "d": 520,
+        "h": 880
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_chair_s",
+        "key": "chair",
+        "at": [1400, 1750],
+        "rot": 0,
+        "w": 460,
+        "d": 520,
+        "h": 880
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_cab",
+        "key": "displayCabinet",
+        "at": [2325, 1300],
+        "rot": 90,
+        "w": 900,
+        "d": 350,
+        "h": 2000,
+        "wall_ref": "wE"
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_water",
+        "key": "sideTable",
+        "at": [2250, 2700],
+        "rot": 0,
+        "w": 500,
+        "d": 500,
+        "h": 550
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_rug",
+        "key": "rug",
+        "at": [1400, 1500],
+        "rot": 0,
+        "w": 1600,
+        "d": 1200
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_cur",
+        "key": "curtain",
+        "at": [1400, 180],
+        "rot": 0,
+        "w": 1600,
+        "d": 160
+      }
+    }
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": [
+      "CUR-01",
+      "DOOR-01",
+      "DOOR-02",
+      "WIN-01",
+      "OVER-01",
+      "WALL-01",
+      "ASSET-02",
+      "CIR-02",
+      "PROP-01"
+    ]
+  }
+}

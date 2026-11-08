@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "utility-storage",
+  "name": "家政间 / 储藏间",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "2–6㎡ 家政间：洗烘/清洁工具/囤货三区分行，400 浅柜或 600 标准柜按净宽选，洗烘前 700、长柜一端留 600 绕行，洞洞板挂实墙，门后只挂薄具，扫地机基站留 500 进出与同侧电源。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["utility"],
+    "areaM2": [2, 6],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "洗烘并排还是叠放（可选）",
+      "给排水与地漏位置（可选）",
+      "门型（平开/推拉/折叠）"
+    ]
+  },
+  "notApplicable": [
+    "阳台洗衣 + 晾晒（转 balcony-laundry）",
+    "需要新增地漏、改排水立管或加套管",
+    "1–2㎡ 壁柜/门后凹位（按单件收纳处理，不走三区逻辑）",
+    "整间改厨房或卫浴"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-BAL-01",
+    "J-CIR-01",
+    "J-CIR-06",
+    "J-CIR-09",
+    "J-DOOR-01",
+    "J-DOOR-02",
+    "J-OVER-01",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WALL-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

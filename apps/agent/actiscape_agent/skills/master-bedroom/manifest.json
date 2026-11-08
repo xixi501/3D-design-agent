@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "master-bedroom",
+  "name": "主卧：睡眠区、收纳与梳妆取舍",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "10–20㎡ 主卧：先定床头墙与床侧通道，再按“柜前净空优先”定衣柜，最后在衣柜/梳妆/电视之间做明确取舍，并处理窗帘与窗下净空。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["bedroom"],
+    "areaM2": [10, 20],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "床的规格（1.5/1.8）",
+      "衣柜门型（平开/推拉）",
+      "梳妆与电视的意愿（可选）"
+    ]
+  },
+  "notApplicable": [
+    "儿童房、老人房、保姆间（转 kids-room / aging-friendly）",
+    "主卧带独立衣帽间或卫浴套间（先定内隔再回到本技能）",
+    "需要改门洞、加窗或动水电点位",
+    "使用面积 < 10㎡ 的次卧（转 studio-micro 或按单人卧室下限处理）"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-04",
+    "J-CIR-06",
+    "J-CIR-08",
+    "J-CUR-01",
+    "J-PROP-01",
+    "J-STA-01",
+    "J-LIGHT-02",
+    "J-DOOR-02",
+    "J-OVER-01",
+    "J-ASSET-02",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

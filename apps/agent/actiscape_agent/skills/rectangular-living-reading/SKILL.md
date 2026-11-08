@@ -1,4 +1,19 @@
+---
+name: rectangular-living-reading
+description: 在已确认净尺寸、入口和窗的单个矩形客餐厅或阅读会客间中，选择真实目录家具并生成可检查布局。
+license: MIT
+compatibility: scene.read / catalog.search / candidate.propose / candidate.preflight / candidate.review / candidate.render
+metadata:
+  version: "0.2.0"
+  status: verified
+  kind: layout
+  activation: active
+  owner: member1
+---
+
 # 矩形客餐厅与阅读会客组合
+
+> v1 接入说明：本 Skill 只声明语义 capability，不能直接写正式场景、提交项目或执行任意脚本。所有修改必须形成候选，并由固定代码预检、渲染、审核和提交。
 
 适用：已确认净宽、净深、入口、窗的单个矩形室内空间。只布置真实目录家具，不改变结构。
 

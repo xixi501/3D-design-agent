@@ -7,14 +7,14 @@ from importlib.metadata import version
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, Header, Request
+from fastapi import FastAPI, Header, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from .config import model_settings, state_directory
 from .manager import TaskManager
 from .schemas import ResumeInput, TaskInput
-from .skill_registry import FLOORPLAN_TOOLS, GENERATION_TOOLS, load_design_skill, skill_record
+from .skill_registry import get_registry
 from .store import TERMINAL, TaskError
 from .versions import runtime_versions
 from .vision_client import vision_service_status
@@ -42,7 +42,7 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
         finally:
             await manager.close()
 
-    app = FastAPI(title="ActiScape local-edit agents", version="0.2.0", lifespan=lifespan)
+    app = FastAPI(title="ActiScape local-edit agents", version="0.3.0", lifespan=lifespan)
 
     @app.exception_handler(TaskError)
     async def task_error(_request: Request, error: TaskError):
@@ -59,25 +59,43 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
         return app.state.manager
 
     @app.get("/skills")
-    async def skills():
-        snapshot = load_design_skill(GENERATION_TOOLS)
-        other = load_design_skill(FLOORPLAN_TOOLS, skill_id="floorplan-reconstruction")
+    async def skills(
+        mode: str | None = None,
+        roomKind: str | None = None,
+        area: float | None = Query(default=None, ge=0),
+        kind: str | None = None,
+        status: str | None = None,
+        activation: str | None = Query(default="active"),
+    ):
+        registry = get_registry()
+        items = []
+        for snapshot in registry.all():
+            applies = snapshot["appliesTo"]
+            if mode and mode not in applies["modes"]:
+                continue
+            if (
+                roomKind
+                and "any" not in applies["roomKinds"]
+                and roomKind not in applies["roomKinds"]
+            ):
+                continue
+            if area is not None and not (applies["areaM2"][0] <= area <= applies["areaM2"][1]):
+                continue
+            if kind and snapshot["kind"] != kind:
+                continue
+            if status and snapshot["status"] != status:
+                continue
+            if activation and activation != "all" and snapshot["activation"] != activation:
+                continue
+            items.append(registry.public_record(snapshot))
         return {
-            "items": [
-                {
-                    **skill_record(other),
-                    "description": other["description"],
-                    "appliesTo": other["appliesTo"],
-                    "requiredTools": other["requiredTools"],
-                },
-                {
-                    **skill_record(snapshot),
-                    "description": snapshot["description"],
-                    "appliesTo": snapshot["appliesTo"],
-                    "requiredTools": snapshot["requiredTools"],
-                },
-            ]
+            "pool": registry.pool_summary(),
+            "items": items,
         }
+
+    @app.get("/skills/{skill_id}")
+    async def skill(skill_id: str):
+        return get_registry().public_record(get_registry().load(skill_id))
 
     @app.get("/health")
     async def health():
@@ -93,6 +111,7 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
             "model": model_settings()["model"],
             "langgraph": version("langgraph"),
             "langchain": version("langchain"),
+            "skillPool": get_registry().pool_summary(),
             "versions": runtime_versions(),
         }
 

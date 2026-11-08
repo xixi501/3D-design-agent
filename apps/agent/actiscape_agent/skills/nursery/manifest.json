@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "nursery",
+  "name": "婴儿房 / 月嫂房",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "6–12㎡ 婴儿房：婴儿床两侧各 600 双通道、床不压窗与风口、尿布台 750 高不靠窗可单手操作、哺乳椅配暖光夜灯、玩具收纳低位并把电线与小件管住。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["bedroom"],
+    "areaM2": [6, 12],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "婴儿床尺寸（可选）",
+      "是否月嫂同住（可选）",
+      "空调/暖气位置（可选）"
+    ]
+  },
+  "notApplicable": [
+    "已上幼儿园、需要书桌与成长性改造（转 kids-room）",
+    "需要拆改墙体、加装空调/新风/地暖管线",
+    "只是在主卧里加一张婴儿床（回 master-bedroom 做局部调整）",
+    "使用面积 < 6㎡（放不下双通道与尿布台站位，改走 studio-micro 的取舍）"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-04",
+    "J-CUR-01",
+    "J-DOOR-02",
+    "J-LIGHT-03",
+    "J-OVER-01",
+    "J-SAFE-01",
+    "J-STA-01",
+    "J-STA-03",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WIN-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

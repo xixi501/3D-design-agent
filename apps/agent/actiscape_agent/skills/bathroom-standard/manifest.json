@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "bathroom-standard",
+  "name": "卫生间干湿分离与洁具排布",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "1.2–6㎡ 单卫：先按排水立管定马桶与淋浴位，再控马桶前后左右、淋浴区尺寸、浴室柜前净空，最后决定门内开/外开与挡水防滑。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["bathroom"],
+    "areaM2": [1.2, 6],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的卫生间场景或实测尺寸",
+      "马桶坑距与排水立管位置",
+      "门是内开还是外开"
+    ]
+  },
+  "notApplicable": [
+    "需要改排水立管、移位马桶或楼板开洞",
+    "适老化改造（转 aging-friendly）",
+    "双卫/主卫套间与干区外置",
+    "需要拆改墙体或扩大门洞",
+    "需要改窗"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-BATH-01",
+    "J-BATH-02",
+    "J-BATH-03",
+    "J-BATH-04",
+    "J-CIR-01",
+    "J-DOOR-02",
+    "J-LIGHT-02",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

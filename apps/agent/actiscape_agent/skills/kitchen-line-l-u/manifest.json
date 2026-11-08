@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "kitchen-line-l-u",
+  "name": "一字/L/U 形厨房布置",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "3–10㎡ 独立厨房：先按开间选形（单排/L/U/双排），再压操作三角与备餐顺序，吊柜避窗、冰箱留开门侧，通道按判据复核。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["kitchen"],
+    "areaM2": [3, 10],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的厨房场景或实测尺寸",
+      "燃气/下水立管位置（可选）",
+      "冰箱宽深与开门方向（可选）"
+    ]
+  },
+  "notApplicable": [
+    "餐厨一体或要中岛（转 dining-island）",
+    "需要改燃气、排烟、下水点位",
+    "需要拆改墙体",
+    "面积 < 3㎡（转 studio-micro）",
+    "开放式厨房与起居合一"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-KIT-01",
+    "J-KIT-02",
+    "J-KIT-03",
+    "J-KIT-04",
+    "J-CIR-01",
+    "J-WIN-01",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

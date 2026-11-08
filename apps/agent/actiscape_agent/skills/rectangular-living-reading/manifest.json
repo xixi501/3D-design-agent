@@ -1,9 +1,44 @@
 {
+  "schemaVersion": "actiscape.skill.v1",
   "id": "rectangular-living-reading",
-  "version": "0.1.0",
-  "description": "矩形客餐厅与阅读会客组合：保留真实净尺寸和门窗，选择目录家具并生成可检查布局",
-  "appliesTo": ["living_dining", "reading_lounge"],
-  "requiredTools": ["search_catalogue_batch", "precheck_initialization", "candidate_checks"],
-  "source": ["ZWD11/house-plan-designer@b94183f9ce2215db9a178da89a90d2ecefb18497/reference/spec-format.md", "ActiScape S2-B project layout rules"],
-  "license": "MIT"
+  "name": "矩形客餐厅与阅读会客组合",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "verified",
+  "activation": "active",
+  "summary": "保留真实净尺寸和门窗，在矩形客餐厅或阅读会客间生成可检查的目录家具布局。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["living_dining", "reading_lounge"],
+    "areaM2": [5, 1000],
+    "projectState": "empty",
+    "requiredInputs": ["dimensions", "openings"]
+  },
+  "notApplicable": ["structural_change", "irregular_outline", "multi_room"],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": ["living-dining-small", "living-dining-open"]
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:docs/THIRD_PARTY.md"
+  },
+  "provenance": [
+    "ZWD11/house-plan-designer@b94183f9ce2215db9a178da89a90d2ecefb18497/reference/spec-format.md",
+    "ActiScape S2-B project layout rules"
+  ],
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": true
+  }
 }

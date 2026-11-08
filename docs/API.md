@@ -66,6 +66,8 @@ S2-C 的图片上传、版本化草稿、标定、叠加、确认和整层初始
 
 外部 GLB 默认保留文件材质。旧项目中的 `color` 继续作为二维表示颜色；需要三维颜色叠加时显式设置 `opt.tint`，白色表示保持原材质。属性面板会同时记录这一显式参数，撤销后恢复原文件材质。
 
+候选请求可附 `activityGroups:[{name,memberIds}]`。代码在候选编辑生成后校验成员均为真实家具，并作为 `plan.source.activityGroups` 元数据随同一事务保存；该字段只描述功能组，不改变家具几何，也不存在成组移动命令。
+
 尺寸会在提交前校验。例如庭院门两侧立柱各 200 mm，宽度必须大于 400 mm；无效配方返回明确错误，不提交后再让浏览器绘制失败。
 
 自由造型：`box,roundBox,cyl,halfCyl,tube,sphere,hemi,cone,pyramid,wedge,arch,arcWall,slats,steps,torus,lathe,extrude`。自由多边形用 `opt.outline` 保存 `x,y|x,y|...`，重新开项目继续参数化生成。柜体分格支持 `door,drawer,open,hang,hangOpen,glass,niche,mixed`。
@@ -92,7 +94,7 @@ node scripts/import-asset.mjs fixtures/textured-vase.glb PROJECT_ID 2200 2200 42
 
 示例调用真实 HTTP，演示读取、版本保护、修改、去重、冲突处理和检查。`ACTISCAPE_URL` 可指定服务。浏览器中打开相同项目可看到 SSE 更新。
 
-检查采用继承的参数化轮廓分解与 SAT 相交、垂直区间、墙体与洞口。GLB 占地按矩形估算；不宣称精确网格穿插、支撑面、可达性、日照或法规验证。后续检查 Agent 应读取 `coverage/limitations`，不得把“无问题”解释为所有领域均已验证。
+检查采用继承的参数化轮廓分解与 SAT 相交、垂直区间、墙体与洞口，并用 100 mm 栅格近似门内 700 mm 连续可达区和窗帘/窗墙净空。GLB 占地仍按矩形估算；不宣称精确网格穿插、支撑面、完整建筑通路、日照或法规验证。后续检查 Agent 应读取 `coverage/limitations`，不得把“无问题”解释为所有领域均已验证。
 
 ## 单图测量反馈与证据复用（71226cf）
 

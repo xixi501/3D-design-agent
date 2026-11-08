@@ -1,0 +1,273 @@
+{
+  "case_id": "OFW-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 900,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [7200, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [7200, 0],
+        "b": [7200, 6000],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 6000],
+        "b": [7200, 6000],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 6000], "t": 200, "bearing": true },
+      { "id": "wP1", "a": [0, 2800], "b": [3600, 2800], "t": 80 },
+      { "id": "wP2", "a": [3600, 2800], "b": [3600, 6000], "t": 80 }
+    ],
+    "openings": [
+      {
+        "id": "win1",
+        "wall": "wN",
+        "type": "window",
+        "from": 1000,
+        "to": 5200,
+        "sill": 900,
+        "head": 2400
+      },
+      {
+        "id": "d1",
+        "wall": "wW",
+        "type": "door",
+        "from": 1900,
+        "to": 2900,
+        "hinge": "from",
+        "into": [600, 2400]
+      },
+      { "id": "d2", "wall": "wP2", "type": "sliding", "from": 400, "to": 2000 }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "开放办公区",
+        "polygon": [
+          [0, 0],
+          [7200, 0],
+          [7200, 6000],
+          [0, 6000]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "dsk1",
+        "key": "officeDesk",
+        "at": [1500, 1300],
+        "rot": 180,
+        "w": 1400,
+        "d": 700
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "dsk2",
+        "key": "officeDesk",
+        "at": [2900, 1300],
+        "rot": 180,
+        "w": 1400,
+        "d": 700
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "dsk3",
+        "key": "officeDesk",
+        "at": [4300, 1300],
+        "rot": 180,
+        "w": 1400,
+        "d": 700
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "dsk4",
+        "key": "officeDesk",
+        "at": [5700, 1300],
+        "rot": 180,
+        "w": 1400,
+        "d": 700
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "ch1",
+        "key": "officeChair",
+        "at": [1500, 700],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "ch2",
+        "key": "officeChair",
+        "at": [2900, 700],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "ch3",
+        "key": "officeChair",
+        "at": [4300, 700],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "ch4",
+        "key": "officeChair",
+        "at": [5700, 700],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "mt_table",
+        "key": "conferenceTable",
+        "at": [1800, 4350],
+        "rot": 0,
+        "w": 2400,
+        "d": 1100
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "mt_c1",
+        "key": "trainingChair",
+        "at": [1100, 3500],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "mt_c2",
+        "key": "trainingChair",
+        "at": [1800, 3500],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "mt_c3",
+        "key": "trainingChair",
+        "at": [2500, 3500],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "mt_c4",
+        "key": "trainingChair",
+        "at": [1100, 5200],
+        "rot": 180
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "mt_c5",
+        "key": "trainingChair",
+        "at": [1800, 5200],
+        "rot": 180
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "mt_c6",
+        "key": "trainingChair",
+        "at": [2500, 5200],
+        "rot": 180
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "mt_board",
+        "key": "whiteboard",
+        "at": [1500, 5825],
+        "rot": 0,
+        "w": 1800,
+        "d": 150,
+        "h": 1900
+      }
+    },
+    {
+      "op": "add",
+      "object": { "id": "mt_tv", "key": "wallTV", "at": [130, 4400], "rot": 90 }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "st_cab",
+        "key": "cabTall",
+        "at": [5400, 5700],
+        "rot": 0,
+        "w": 1200,
+        "d": 400,
+        "wall_ref": "wS"
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "printer1",
+        "key": "printer",
+        "at": [6775, 4500],
+        "rot": 270
+      }
+    },
+    {
+      "op": "add",
+      "object": { "id": "plant1", "key": "plant", "at": [6800, 2600], "rot": 0 }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "art1",
+        "key": "wallArt",
+        "at": [7080, 1200],
+        "rot": 90
+      }
+    }
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": [
+      "CIR-02",
+      "DOOR-01",
+      "DOOR-02",
+      "CUR-01",
+      "WIN-01",
+      "OVER-01",
+      "WALL-01",
+      "ASSET-02"
+    ]
+  }
+}

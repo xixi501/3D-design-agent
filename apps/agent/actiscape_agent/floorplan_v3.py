@@ -31,11 +31,17 @@ from .floorplan_schemas import (
 )
 from .floorplan_tools import FloorplanToolset
 from .floorplan_v2 import FloorplanV2
-from .skill_registry import FLOORPLAN_TOOLS, load_design_skill, skill_record
+from .skill_registry import get_registry
 from .store import TaskError, fingerprint
 from .vision_client import VisionModelClient, VisionModelFailure
 
 VERSION = "s2c-floorplan-v3-6-1"
+
+
+def skill_context(generation: dict):
+    return get_registry().context(generation.get("skillBundle")) or generation.get("skillSnapshot")
+
+
 COMMON = (
     RULES
     + PIXEL_RULES.replace("餐椅四把就是四个符号", "每把餐椅都要单独记录")
@@ -2370,7 +2376,7 @@ class FloorplanV3(FloorplanV2):
             "userRequest": task["input"],
             "image": image,
             "structureSkeleton": skeleton,
-            "skill": self.store.task(task["id"], internal=True)["generation"]["skillSnapshot"],
+            "skill": skill_context(self.store.task(task["id"], internal=True)["generation"]),
         }
         generation = self.store.task(task["id"], internal=True)["generation"]
         repaired_value = generation.get("structureRepairResponse")
@@ -2582,7 +2588,7 @@ class FloorplanV3(FloorplanV2):
                 "image": image,
                 "structure": draft["data"],
                 "diagnostics": diagnostics,
-                "skill": self.store.task(task["id"], internal=True)["generation"]["skillSnapshot"],
+                "skill": skill_context(self.store.task(task["id"], internal=True)["generation"]),
             },
             task["id"],
             images,
@@ -2654,7 +2660,7 @@ class FloorplanV3(FloorplanV2):
                 "diagnostics": diagnostics,
                 "contourCandidates": candidates,
                 "targetRegions": record.get("targetRegions") or {},
-                "skill": self.store.task(task["id"], internal=True)["generation"]["skillSnapshot"],
+                "skill": skill_context(self.store.task(task["id"], internal=True)["generation"]),
             },
             task["id"],
             images,
@@ -3202,7 +3208,7 @@ class FloorplanV3(FloorplanV2):
                     "dimensions": measurement_dimensions,
                 },
                 "sharedEvidence": await evidence.context(),
-                "skill": self.store.task(task["id"], internal=True)["generation"]["skillSnapshot"],
+                "skill": skill_context(self.store.task(task["id"], internal=True)["generation"]),
             },
             task["id"],
             images,
@@ -3396,13 +3402,37 @@ class FloorplanV3(FloorplanV2):
             raise TaskError("PROJECT_NOT_EMPTY", "初始化项目已非空，未覆盖场景", 409)
         image = await self.client.request("/floorplan-images/" + generation["imageId"])
         if not generation.get("skillSnapshot"):
-            snapshot = load_design_skill(FLOORPLAN_TOOLS, skill_id="floorplan-reconstruction")
+            registry = get_registry()
+            selection = registry.validate_selection(
+                {"primarySkillId": "floorplan-reconstruction", "modifierSkillIds": []},
+                registry.candidates(
+                    "reconstruct_floorplan",
+                    project_state="empty",
+                ),
+                mode="reconstruct_floorplan",
+            )
+            bundle = registry.compose(
+                mode="reconstruct_floorplan",
+                selection=selection,
+                include_intake=True,
+            )
+            snapshot = bundle["primary"]
             self.patch(
                 task_id,
                 skillSnapshot=snapshot,
-                skillsUsed=[skill_record(snapshot)],
+                skillSelection=selection.model_dump(),
+                skillBundle=bundle,
+                skillsUsed=registry.records(bundle),
             )
-            self.store.event(task_id, "skill_loaded", skill_record(snapshot))
+            self.store.event(
+                task_id,
+                "skill_loaded",
+                {
+                    "selection": selection.model_dump(),
+                    "skills": registry.records(bundle),
+                    "bundleHash": bundle["contentHash"],
+                },
+            )
 
         if not generation.get("draftId"):
             structure = generation.get("structure")

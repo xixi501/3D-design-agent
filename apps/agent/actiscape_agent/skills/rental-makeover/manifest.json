@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "rental-makeover",
+  "name": "出租房轻改造",
+  "version": "0.2.0",
+  "kind": "modifier",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "3.2×4.6m 出租单间：不拆改、可逆、可复原；0/500/2000 元三档预算，先摆位再换软装，灯光分层 + 60/30/10 配色 + 一个视觉焦点，退租能全部搬走。",
+  "appliesTo": {
+    "modes": ["generate_rectangular", "edit"],
+    "roomKinds": ["bedroom", "living_room"],
+    "areaM2": [8, 25],
+    "projectState": "any",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "预算档位",
+      "房东限制（可否打孔/改硬装）"
+    ]
+  },
+  "notApplicable": [
+    "自有房可拆改或定制柜",
+    "需要改水电点位/加装设备",
+    "预算充足且只关心布局（转对应空间技能）"
+  ],
+  "capabilities": ["scene.read", "candidate.review"],
+  "judgements": [
+    "J-COL-01",
+    "J-CUR-01",
+    "J-LIGHT-01",
+    "J-STA-03",
+    "J-STY-01",
+    "J-STY-03",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WIN-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

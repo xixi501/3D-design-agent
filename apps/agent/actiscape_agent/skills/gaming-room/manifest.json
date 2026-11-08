@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "gaming-room",
+  "name": "电竞房 / 游戏房",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
+  "summary": "6–15㎡ 电竞房：桌面 700 深、双屏视距 60–80cm、屏幕与窗成 90° 侧光，椅子后推 900，主机进风与走线，暗环境三层照明，共用墙隔音。",
+  "appliesTo": {
+    "modes": ["generate_rectangular"],
+    "roomKinds": ["gaming_room"],
+    "areaM2": [6, 15],
+    "projectState": "empty",
+    "requiredInputs": [
+      "含墙体与门窗的场景或户型图",
+      "屏数与屏幕尺寸（可选）",
+      "主机形态（可选）",
+      "与谁共用墙面（可选）"
+    ]
+  },
+  "notApplicable": [
+    "以书写、阅读、视频会为主的单人办公位（转 home-office）",
+    "两人以上开黑工位或电竞馆级机位排布",
+    "需要新增插座、地插、网口或整墙灯带布线",
+    "使用面积 < 6㎡（放不下桌前使用区，转 studio-micro）"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
+  ],
+  "judgements": [
+    "J-ASSET-02",
+    "J-CIR-05",
+    "J-CIR-06",
+    "J-CUR-01",
+    "J-DOOR-02",
+    "J-LIGHT-01",
+    "J-LIGHT-03",
+    "J-LIGHT-05",
+    "J-OVER-01",
+    "J-STY-03",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
+}

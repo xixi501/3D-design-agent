@@ -1,0 +1,135 @@
+{
+  "case_id": "BAT-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 600,
+    "walls": [
+      { "id": "wN", "a": [0, 0], "b": [1800, 0], "t": 200, "bearing": true },
+      {
+        "id": "wE",
+        "a": [1800, 0],
+        "b": [1800, 2400],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [0, 2400],
+        "b": [1800, 2400],
+        "t": 200,
+        "bearing": true
+      },
+      { "id": "wW", "a": [0, 0], "b": [0, 2400], "t": 200, "bearing": true }
+    ],
+    "openings": [
+      {
+        "id": "d1",
+        "wall": "wS",
+        "type": "door",
+        "from": 400,
+        "to": 1100,
+        "hinge": "from",
+        "into": [750, 1600]
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "卫生间",
+        "polygon": [
+          [0, 0],
+          [1800, 0],
+          [1800, 2400],
+          [0, 2400]
+        ]
+      }
+    ],
+    "objects": []
+  },
+  "edits": [
+    {
+      "op": "add",
+      "object": {
+        "id": "o_shower",
+        "key": "shower",
+        "at": [550, 550],
+        "rot": 0,
+        "w": 900,
+        "d": 900
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_toilet",
+        "key": "toilet",
+        "at": [1350, 1200],
+        "rot": 90,
+        "w": 400,
+        "d": 700
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_vanity",
+        "key": "vanity",
+        "at": [1450, 1950],
+        "rot": 90,
+        "w": 700,
+        "d": 500
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_mirror",
+        "key": "mirrorCabinet",
+        "at": [1650, 1950],
+        "rot": 90,
+        "w": 800,
+        "d": 150,
+        "h": 700
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_towel",
+        "key": "towelWarmer",
+        "at": [150, 1500],
+        "rot": 270,
+        "w": 500,
+        "d": 100,
+        "h": 800
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_heater",
+        "key": "bathHeater",
+        "at": [900, 1200],
+        "rot": 0,
+        "w": 300,
+        "d": 300,
+        "h": 160
+      }
+    }
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": [
+      "CUR-01",
+      "WIN-01",
+      "DOOR-01",
+      "DOOR-02",
+      "OVER-01",
+      "WALL-01",
+      "ASSET-02",
+      "CIR-02"
+    ]
+  }
+}

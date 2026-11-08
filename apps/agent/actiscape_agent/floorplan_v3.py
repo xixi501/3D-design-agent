@@ -1686,6 +1686,45 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
             )
             continue
         cleaned.append(room)
+    grouped_after_cleanup = {}
+    for room in cleaned:
+        x = round(float(room["at"]["x"]))
+        y = round(float(room["at"]["y"]))
+        if 0 <= x < width and 0 <= y < height:
+            component = int(labels[y, x])
+            if component > 0:
+                grouped_after_cleanup.setdefault(component, []).append(room)
+    remove = set()
+    for component, members in grouped_after_cleanup.items():
+        if len(members) < 2:
+            continue
+        markers = [
+            room
+            for room in members
+            if re.fullmatch(r"\d{1,3}[A-Za-z]?", str(room.get("name") or "").strip())
+        ]
+        semantic = [room for room in members if room not in markers]
+        if markers and semantic:
+            remove.update(room["id"] for room in markers)
+            notes.append(
+                {
+                    "id": f"u_marker_{component}",
+                    "message": "固定代码丢弃了与明确语义房间标签同一封闭区域的短数字房间标记。",
+                    "blocking": False,
+                    "code": "ROOM_LABEL",
+                    "objectIds": [room["id"] for room in markers],
+                    "evidenceRefs": [],
+                }
+            )
+        else:
+            seen = set()
+            for room in members:
+                identity = (room.get("name"), room.get("functionalArea"))
+                if identity in seen:
+                    remove.add(room["id"])
+                else:
+                    seen.add(identity)
+    cleaned = [room for room in cleaned if room["id"] not in remove]
     return cleaned, targets, notes
 
 

@@ -465,6 +465,51 @@ const duplicateScore = scoreFloorplan(
 assert.equal(duplicateScore.passed, true, JSON.stringify(duplicateScore));
 assert.equal(duplicateScore.confirmed.structure.passed, true);
 
+const markerCapture = capturedFixture.numericMarkerRoomCase;
+assert.equal(
+  markerCapture.sourceImageSha256,
+  secondManifest.sourceImageSha256,
+  "Numeric-marker captured failure source image changed",
+);
+const markerConsolidation = capturedConsolidation.numericMarkerRoomCase;
+assert.equal(markerConsolidation.taskId, markerCapture.capturedTaskId);
+const markerDraft = structuredClone(markerCapture.draft);
+markerDraft.rooms = markerConsolidation.rooms;
+markerDraft.targetRoomIds = markerConsolidation.targetRoomIds;
+const markerCompiled = compileFloorplan(
+  markerDraft,
+  "v36-captured-numeric-marker-room",
+);
+assert.equal(
+  markerCompiled.state.plan.walls.length,
+  markerCapture.expected.compiledWalls,
+);
+assert.equal(
+  markerCompiled.state.plan.openings.length,
+  markerCapture.expected.compiledOpenings,
+);
+assert.deepEqual(
+  markerCompiled.rooms
+    .map((room) => ({
+      id: room.id.split(":").at(-1),
+      name: room.name,
+    }))
+    .sort((left, right) => left.id.localeCompare(right.id)),
+  [...markerCapture.expected.rooms].sort((left, right) =>
+    left.id.localeCompare(right.id),
+  ),
+);
+assert.equal(markerCompiled.symbols.length, markerCapture.expected.symbols);
+const markerScore = scoreFloorplan(
+  { ...markerCapture.recognition, image: secondReference.image },
+  markerDraft,
+  secondReference,
+  0,
+  secondManifest.aliases,
+);
+assert.equal(markerScore.passed, true, JSON.stringify(markerScore));
+assert.equal(markerScore.confirmed.structure.passed, true);
+
 const furnitureCandidates = toolRequest(ninetyTwoImage, "contours", {
   spec: secondDraft,
 });
@@ -612,6 +657,15 @@ const output = {
     compiledOpenings: duplicateCompiled.state.plan.openings.length,
     symbols: duplicateCompiled.symbols.length,
     scoringPassed: duplicateScore.passed,
+  },
+  capturedNumericMarkerRoomReplay: {
+    taskId: markerCapture.capturedTaskId,
+    capturedRooms: markerCapture.draft.rooms.length,
+    consolidatedRooms: markerConsolidation.rooms.length,
+    compiledWalls: markerCompiled.state.plan.walls.length,
+    compiledOpenings: markerCompiled.state.plan.openings.length,
+    symbols: markerCompiled.symbols.length,
+    scoringPassed: markerScore.passed,
   },
   note: "Offline candidate replay only; furniture classification, model passes and the real 2-of-2 gate are not claimed.",
 };

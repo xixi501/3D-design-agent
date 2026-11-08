@@ -202,6 +202,46 @@ def test_duplicate_room_label_on_wall_is_removed_when_valid_twin_exists():
     )
 
 
+def test_numeric_marker_yields_to_semantic_room_in_same_region():
+    walls = [
+        {"a": {"x": 10, "y": 10}, "b": {"x": 390, "y": 10}, "thicknessPx": 8},
+        {"a": {"x": 390, "y": 10}, "b": {"x": 390, "y": 290}, "thicknessPx": 8},
+        {"a": {"x": 390, "y": 290}, "b": {"x": 10, "y": 290}, "thicknessPx": 8},
+        {"a": {"x": 10, "y": 290}, "b": {"x": 10, "y": 10}, "thicknessPx": 8},
+        {"a": {"x": 200, "y": 10}, "b": {"x": 200, "y": 290}, "thicknessPx": 8},
+    ]
+    rooms = [
+        {
+            "id": "bath",
+            "name": "次卫",
+            "functionalArea": "bathroom",
+            "at": {"x": 100, "y": 120},
+        },
+        {
+            "id": "marker",
+            "name": "8",
+            "functionalArea": "bathroom",
+            "at": {"x": 250, "y": 120},
+        },
+        {
+            "id": "study",
+            "name": "书房",
+            "functionalArea": "other",
+            "at": {"x": 320, "y": 120},
+        },
+    ]
+    output, targets, notes = _consolidate_open_room_labels(
+        walls,
+        rooms,
+        [],
+        400,
+        300,
+    )
+    assert [room["id"] for room in output] == ["bath", "study"]
+    assert targets == []
+    assert any(note["code"] == "ROOM_LABEL" and note["objectIds"] == ["marker"] for note in notes)
+
+
 def test_wall_affinity_rotation_uses_nearest_room_wall():
     draft = {
         "walls": [

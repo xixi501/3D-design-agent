@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-08",
+  "scope": "S2-C V3-3 deterministic candidate layer, one frozen real-image development run",
+  "automaticAcceptance": false,
+  "stoppedAfterFailure": true,
+  "codeCommit": "9a14a9f4ebb836c6638b824008077097dab85f7c",
+  "model": "deepseek-flash",
+  "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+  "candidateReplay": {
+    "modelCalls": 0,
+    "walls": 6,
+    "openings": 7,
+    "dimensionCandidates": 4,
+    "furnitureContours": 51
+  },
+  "attempt": {
+    "projectId": "d0796607-c6a0-4dc7-a265-30309f4ea2c5",
+    "taskId": "1ec535c7-d442-404f-a0a3-355f798ad6ff",
+    "status": "failed",
+    "errorCode": "INVALID_FURNITURE",
+    "error": "轮廓 fc_041 被多个家具重复使用",
+    "modelCalls": 5,
+    "activeSeconds": 25.060019969940186,
+    "structureSkeletonVersion": 3,
+    "structureRepairs": 0,
+    "draftCreated": false,
+    "formalRevision": 0,
+    "structureResult": {
+      "walls": 6,
+      "openings": 7,
+      "dimensionReads": 4,
+      "rooms": 3,
+      "targetRoomIds": ["r_living_dining"]
+    },
+    "classification": "The furniture role reused contour fc_041 both as part of the dining-table group and as the west dining chair. Deterministic contour ownership rejected the duplicate before draft creation.",
+    "artifact": "test-results/floorplan-tool-live/2026-11-08T03-49-53-534Z/1-result.json",
+    "artifactSha256": "6a3449c1b0228cdaef40fc6d782f5b6197ff5f55c0fcf12bd0b27001597be4dc",
+    "report": "test-results/floorplan-tool-live/2026-11-08T03-49-53-534Z/report.json",
+    "reportSha256": "88afcd0fcdc3642b28d5c1757f81271a3e436f3352c817ce12bb717d23e7da2a",
+    "manifestSha256": "84ff901b26b6c400e099635533e3d3298497732b547be9ebc5aa5813ecc0d41f"
+  },
+  "nextGate": "Do not rerun this frozen batch. A later version must make contour ownership and dining-table/chair grouping deterministic before a new planned same-image batch."
+}

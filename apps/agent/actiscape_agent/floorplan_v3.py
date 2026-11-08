@@ -1,17 +1,25 @@
 """Bounded two-pass floorplan recognition with deterministic draft assembly."""
 
 import hashlib
+import json
 import math
 import re
 import statistics
 
 from langchain_core.tools import tool
+from pydantic import ValidationError
 
 from .client import SceneFailure
-from .config import FLOORPLAN_RECOGNITION_OPTIONS, FLOORPLAN_REVIEW_OPTIONS
+from .config import (
+    FLOORPLAN_RECOGNITION_OPTIONS,
+    FLOORPLAN_REVIEW_OPTIONS,
+)
 from .floorplan_roles import PIXEL_RULES, RULES
 from .floorplan_schemas import (
+    ActivityGroup,
+    CategoryCode,
     FloorplanReview,
+    FurnitureActivityRecognition,
     FurnitureContourRecognition,
     FurnitureRecognition,
     MeasuredDraftUpdate,
@@ -22,8 +30,9 @@ from .floorplan_tools import FloorplanToolset
 from .floorplan_v2 import FloorplanV2
 from .skill_registry import FLOORPLAN_TOOLS, load_design_skill, skill_record
 from .store import TaskError, fingerprint
+from .vision_client import VisionModelClient, VisionModelFailure
 
-VERSION = "s2c-floorplan-v3-3"
+VERSION = "s2c-floorplan-v3-5"
 COMMON = (
     RULES
     + PIXEL_RULES.replace("餐椅四把就是四个符号", "每把餐椅都要单独记录")
@@ -61,6 +70,33 @@ FURNITURE_CONTOURS = (
 按北墙、东墙、南墙、西墙、四角、门窗附近、3×3 网格逐件核对。每件目标家具使用一个或多个最贴合的 contourCandidateIds，代码会合并这些轮廓框并计算 x/y/w/d。
 不得返回坐标、宽深或目录默认尺寸。组合轮廓必须紧密覆盖同一件家具；不要把邻近家具、房间文字或尺寸文字混入。地毯可以位于家具下方，餐椅可以收在餐桌旁，均为原图正常布局。
 categoryCode 只能使用固定枚举；sourceLabel 保存原图名称或简短视觉描述。所有符号属于 targetRoomIds，included=true。每件可见目标家具单独登记，不得把一组餐椅写成一个符号，也不得添加图中没有的家具。"""
+)
+VISION_FURNITURE = (
+    COMMON
+    + """\n你是独立家具 grounding 角色。只能使用输入的 contourCandidates 识别目标客餐厅家具。
+输出必须严格符合 FurnitureContourRecognition JSON，status 固定为 draft。每件家具选择 1–20 个真实轮廓候选 ID，代码会合并轮廓并计算 x/y/w/d；不得自行输出坐标、毫米尺寸或目录尺寸。
+先按目标房间四墙、四角、门窗附近和 3×3 网格逐区核对，再逐类别检查。
+组合轮廓必须紧凑覆盖同一件家具，不能包含邻近家具、地毯、文字或尺寸线。优先选择贴合单个部件的 contour；只有在没有可用单一部件时，才选择紧贴该家具外缘的 group。不要把餐桌连同餐椅选成 group：餐桌只选桌面轮廓，每把独立餐椅分别选择自己的小轮廓。
+沙发选择靠背、扶手和座面；不得把沙发内部零件同时登记为 armchair/chair。植物选择同一簇叶片轮廓。书架应识别为目标房间内带多个开放格的独立家具，不要因靠墙就改名为 cabinet 或 sideboard。电视柜是电视墙下长而薄的独立柜体。
+开放厨房的台面、水槽、灶具、冰箱、玄关固定柜和浴室洁具都不是目标家具，即使它们与客餐厅连通也必须排除；卧室和卫生间家具同样按用户要求排除。不要用厨房台面补齐家具数量。
+地毯可以位于沙发和茶几下方，餐椅可以收在桌边，这些是正常布局；但地毯必须使用独立的地面矩形轮廓，不能与沙发、茶几或餐桌共用轮廓。无法由轮廓证据确认的家具不要输出，不得猜测。
+sourceLabel 只写原图名称或简短视觉描述；categoryCode 只使用固定枚举。同一 contourCandidateId 不得在多个家具之间复用；如果两个对象天然共用一条边线，应选择各自独立闭合的轮廓。"""
+)
+VISION_ACTIVITY = (
+    COMMON
+    + """\n你是独立家具对象与活动组分类角色。固定代码已经把原始轮廓整理成 objectCandidates，并把明确的空间主辅关系整理成 activityGroupCandidates。
+每个家具符号只能选择一个真实 objectCandidateId，不得返回坐标、原始轮廓、毫米尺寸或目录尺寸。一个 objectCandidateId 只能由一个家具使用。
+activityGroupCandidates 中的每个高置信候选都必须在 activityGroups 中处理，不得静默忽略。group_seated 只允许一个餐桌主对象和多把独立餐椅；桌面不能把椅子并入自己的对象候选，餐椅不得与桌面共用对象。radial_cluster 对应 group_seated。
+输入 objectCandidates 已经过滤为可选的目标对象，每一个都必须成为一个家具符号，不得使用 excludedObjectCandidates 排除这些对象。活动组中的所有 satelliteObjectCandidateIds 都必须成为独立餐椅成员，不能通过漏掉成员来通过。
+沙发、地毯、茶几是独立对象。地毯可以在地理上覆盖沙发或茶几下方，但不得进入沙发对象或 group_seated；它使用 standalone/floorCovering。植物、书架和电视柜使用代码整理后的 composite object，不要再拆成叶片或层板。
+colorTags 含 green 的近方形复合对象是绿植或装饰候选，应登记为 plant/decor，不得改名为 sideboard 或直接排除。
+categoryHints 是代码从形状、内嵌线条和颜色提取的确定性提示；例如带内嵌长线的横向长对象是 tvCabinet。没有相反原图证据时必须采用该类别，不得用 other 绕过。
+茶几、边桌、餐桌和书桌应选择紧凑对象；如果某个大对象通过 containsObjectCandidateIds 包含紧凑内层对象，不要把这个大容器登记成桌类。边柜必须是长条候选，不得把近方形植物或装饰候选改名为 sideboard。
+开放厨房台面、水槽、灶具、冰箱、玄关固定柜和卫浴洁具不是目标家具，即使进入目标房间也不能提交。
+contextTags 含 fixed_run 的对象属于连续固定台面或设备带，不得登记为 cabinet、sideboard 或 tvCabinet。
+不得静默漏掉任何输入对象；输入数量应等于最终 symbols 数量。
+activityGroups 的 roles 必须覆盖全部 memberSymbolIds，且 primarySymbolId 正好是唯一 primary。seated_work 为一桌一椅；direct_occupancy、direct_access 和 standalone 可以只含一个成员。
+categoryCode 只使用固定枚举，sourceLabel 只写原图名称或简短视觉描述。无法由对象候选确认的家具不要输出。"""
 )
 MEASURE = (
     COMMON
@@ -241,6 +277,572 @@ def _arbitrate_review(review, draft, diagnostics, skeleton):
         "summary": summary[:800],
         "issues": issues[:20],
     }
+
+
+def _parse_structured_content(content: str):
+    text = content.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", text, flags=re.DOTALL)
+        if not match:
+            raise
+        return json.loads(match.group(0))
+
+
+def _assemble_contour_symbols(value, candidates, draft, evidence_id):
+    if value["status"] == "unsupported":
+        raise TaskError(
+            "FURNITURE_UNSUPPORTED",
+            value.get("question") or "无法识别目标客餐厅家具",
+        )
+    if not value["symbols"]:
+        raise TaskError("FURNITURE_MISSING", "目标客餐厅没有识别到家具")
+    container = {candidate["candidateId"]: candidate for candidate in candidates}
+    targets = set(draft["data"]["targetRoomIds"])
+    seen_ids = set()
+    used_contours = set()
+    symbols = []
+    for symbol in value["symbols"]:
+        if symbol.get("included") is False:
+            continue
+        if symbol["roomId"] not in targets:
+            raise TaskError("INVALID_FURNITURE", "家具符号不属于目标客餐厅")
+        if symbol["id"] in seen_ids:
+            raise TaskError("INVALID_FURNITURE", "家具符号身份重复")
+        seen_ids.add(symbol["id"])
+        selected = []
+        for candidate_id in symbol["contourCandidateIds"]:
+            candidate = container.get(candidate_id)
+            if candidate is None:
+                raise TaskError(
+                    "INVALID_FURNITURE",
+                    f"家具 {symbol['id']} 引用了未知轮廓 {candidate_id}",
+                )
+            if candidate_id in used_contours:
+                raise TaskError(
+                    "INVALID_FURNITURE",
+                    f"轮廓 {candidate_id} 被多个家具重复使用",
+                )
+            used_contours.add(candidate_id)
+            selected.append(candidate)
+        x0 = min(item["bbox"][0] for item in selected)
+        y0 = min(item["bbox"][1] for item in selected)
+        x1 = max(item["bbox"][0] + item["bbox"][2] for item in selected)
+        y1 = max(item["bbox"][1] + item["bbox"][3] for item in selected)
+        if symbol["categoryCode"] == "chair" and y1 - y0 < 18 <= x1 - x0:
+            pad = (18 - (y1 - y0)) / 2
+            y0 -= pad
+            y1 += pad
+        if x1 - x0 < 3 or y1 - y0 < 3:
+            raise TaskError(
+                "INVALID_FURNITURE",
+                f"家具 {symbol['id']} 的轮廓组合无效",
+            )
+        symbols.append(
+            {
+                **{
+                    key: symbol[key]
+                    for key in (
+                        "id",
+                        "roomId",
+                        "categoryCode",
+                        "sourceLabel",
+                        "functionalArea",
+                    )
+                    if symbol.get(key) is not None
+                },
+                "category": symbol["categoryCode"],
+                "included": True,
+                "evidenceRefs": [evidence_id],
+                "x": round((x0 + x1) / 2, 3),
+                "y": round((y0 + y1) / 2, 3),
+                "w": round(x1 - x0, 3),
+                "d": round(y1 - y0, 3),
+                "rot": symbol["rot"],
+            }
+        )
+    for parent in symbols:
+        children = (
+            ("chair", "armchair")
+            if parent["categoryCode"] == "sofa"
+            else ("chair",)
+            if parent["categoryCode"] == "diningTable"
+            else ()
+        )
+        if not children:
+            continue
+        x0 = parent["x"] - parent["w"] / 2
+        x1 = parent["x"] + parent["w"] / 2
+        y0 = parent["y"] - parent["d"] / 2
+        y1 = parent["y"] + parent["d"] / 2
+        nested = [
+            child["id"]
+            for child in symbols
+            if child is not parent
+            and child["categoryCode"] in children
+            and x0 <= child["x"] <= x1
+            and y0 <= child["y"] <= y1
+        ]
+        if nested:
+            raise TaskError(
+                "INVALID_FURNITURE",
+                f"家具 {parent['id']} 的轮廓组合吞入了独立座椅",
+                422,
+                {"objectIds": [parent["id"], *nested]},
+            )
+    return symbols
+
+
+def _automatic_activity_type(category_code):
+    if category_code in ("sofa", "armchair"):
+        return "direct_occupancy"
+    if category_code in ("tvCabinet", "bookshelf", "sideboard", "cabinet", "desk"):
+        return "direct_access"
+    return "standalone"
+
+
+def _object_symbol_geometry(candidate, category_code, rotation):
+    x, y, width, depth = candidate["bbox"]
+    if depth > width * 1.25:
+        width, depth = depth, width
+        rotation = 90
+    elif width > depth * 1.25:
+        rotation = 0
+    if category_code == "chair":
+        size = max(width, depth, 18)
+        width = depth = size
+    elif category_code == "rug":
+        pad = max(4, round(min(width, depth) * 0.12))
+        width += pad * 2
+        depth += pad * 2
+    return {
+        "x": round(x + candidate["bbox"][2] / 2, 3),
+        "y": round(y + candidate["bbox"][3] / 2, 3),
+        "w": round(width, 3),
+        "d": round(depth, 3),
+        "rot": rotation,
+    }
+
+
+def _assemble_activity_symbols(
+    value,
+    object_candidates,
+    group_candidates,
+    draft,
+    evidence_id,
+):
+    if value["status"] == "unsupported":
+        raise TaskError(
+            "FURNITURE_UNSUPPORTED",
+            value.get("question") or "无法识别目标客餐厅家具",
+        )
+    objects = {candidate["objectCandidateId"]: candidate for candidate in object_candidates}
+    group_candidates_by_id = {
+        candidate["activityGroupCandidateId"]: candidate for candidate in group_candidates
+    }
+    targets = set(draft["data"]["targetRoomIds"])
+    validation_errors = []
+    seen_objects = {}
+    for symbol in value["symbols"]:
+        if symbol.get("included") is False:
+            continue
+        object_id = symbol["objectCandidateId"]
+        candidate = objects.get(object_id)
+        if candidate is None:
+            validation_errors.append(
+                {
+                    "code": "UNKNOWN_OBJECT_CANDIDATE",
+                    "message": f"{symbol['id']} 引用了未知对象 {object_id}",
+                    "objectIds": [symbol["id"], object_id],
+                }
+            )
+            continue
+        if object_id in seen_objects:
+            validation_errors.append(
+                {
+                    "code": "OBJECT_CANDIDATE_REUSED",
+                    "message": f"{object_id} 同时用于 {seen_objects[object_id]} 和 {symbol['id']}",
+                    "objectIds": [seen_objects[object_id], symbol["id"], object_id],
+                }
+            )
+        else:
+            seen_objects[object_id] = symbol["id"]
+        width, depth = candidate["bbox"][2], candidate["bbox"][3]
+        aspect = max(width / max(1, depth), depth / max(1, width))
+        if symbol["categoryCode"] in (
+            "coffeeTable",
+            "sideTable",
+            "diningTable",
+            "desk",
+        ) and any(
+            object_id in objects for object_id in candidate.get("containsObjectCandidateIds") or []
+        ):
+            validation_errors.append(
+                {
+                    "code": "INVALID_FURNITURE",
+                    "message": f"{symbol['id']} 把包含独立家具的大容器选为桌类",
+                    "objectIds": [symbol["id"], object_id],
+                }
+            )
+        if symbol["categoryCode"] == "sideboard" and aspect < 1.4:
+            validation_errors.append(
+                {
+                    "code": "INVALID_FURNITURE",
+                    "message": f"{symbol['id']} 的 {object_id} 不是长条边柜候选",
+                    "objectIds": [symbol["id"], object_id],
+                }
+            )
+        if any(
+            tag.get("tag") == "fixed_run" for tag in candidate.get("contextTags", [])
+        ) and symbol["categoryCode"] in ("cabinet", "sideboard", "tvCabinet"):
+            validation_errors.append(
+                {
+                    "code": "INVALID_FURNITURE",
+                    "message": f"{symbol['id']} 把固定设备带 {object_id} 当成独立柜体",
+                    "objectIds": [symbol["id"], object_id],
+                }
+            )
+    excluded_ids = set()
+    for exclusion in value.get("excludedObjectCandidates") or []:
+        object_id = exclusion["objectCandidateId"]
+        candidate = objects.get(object_id)
+        if candidate is None:
+            validation_errors.append(
+                {
+                    "code": "UNKNOWN_OBJECT_CANDIDATE",
+                    "message": f"排除了未知对象候选 {object_id}",
+                    "objectIds": [object_id],
+                }
+            )
+        elif object_id in objects:
+            validation_errors.append(
+                {
+                    "code": "INVALID_FURNITURE",
+                    "message": f"输入目标对象 {object_id} 必须分类，不能排除",
+                    "objectIds": [object_id],
+                }
+            )
+        elif object_id in excluded_ids:
+            validation_errors.append(
+                {
+                    "code": "OBJECT_CANDIDATE_REUSED",
+                    "message": f"对象 {object_id} 被重复排除",
+                    "objectIds": [object_id],
+                }
+            )
+        excluded_ids.add(object_id)
+    if validation_errors:
+        raise TaskError(
+            validation_errors[0]["code"],
+            "；".join(error["message"] for error in validation_errors),
+            details={
+                "objectIds": [
+                    object_id for error in validation_errors for object_id in error["objectIds"]
+                ],
+                "issues": validation_errors,
+            },
+        )
+    if not value["symbols"]:
+        raise TaskError("FURNITURE_MISSING", "目标客餐厅没有识别到家具")
+    symbols = {}
+    symbol_object = {}
+    used_objects = set()
+    for symbol in value["symbols"]:
+        if symbol.get("included") is False:
+            continue
+        if symbol["roomId"] not in targets:
+            raise TaskError("INVALID_FURNITURE", "家具符号不属于目标客餐厅")
+        if symbol["id"] in symbols:
+            raise TaskError("INVALID_FURNITURE", "家具符号身份重复")
+        object_id = symbol["objectCandidateId"]
+        candidate = objects.get(object_id)
+        if candidate is None:
+            raise TaskError(
+                "UNKNOWN_OBJECT_CANDIDATE",
+                f"家具 {symbol['id']} 引用了未知对象候选 {object_id}",
+                details={"objectIds": [symbol["id"], object_id]},
+            )
+        if object_id in used_objects:
+            raise TaskError(
+                "OBJECT_CANDIDATE_REUSED",
+                f"对象候选 {object_id} 被多个家具重复使用",
+                details={"objectIds": [symbol["id"], object_id]},
+            )
+        width, depth = candidate["bbox"][2], candidate["bbox"][3]
+        aspect = max(width / max(1, depth), depth / max(1, width))
+        if symbol["categoryCode"] in (
+            "coffeeTable",
+            "sideTable",
+            "diningTable",
+            "desk",
+        ) and any(
+            object_id in objects for object_id in candidate.get("containsObjectCandidateIds") or []
+        ):
+            raise TaskError(
+                "INVALID_FURNITURE",
+                f"桌类对象 {object_id} 不能选择包含独立家具的大容器",
+                details={"objectIds": [symbol["id"], object_id]},
+            )
+        if symbol["categoryCode"] == "sideboard" and aspect < 1.4:
+            raise TaskError(
+                "INVALID_FURNITURE",
+                f"边柜对象 {object_id} 的候选形状不是长条",
+                details={"objectIds": [symbol["id"], object_id]},
+            )
+        if any(
+            tag.get("tag") == "fixed_run" for tag in candidate.get("contextTags", [])
+        ) and symbol["categoryCode"] in ("cabinet", "sideboard", "tvCabinet"):
+            raise TaskError(
+                "INVALID_FURNITURE",
+                f"固定设备带对象 {object_id} 不能登记为 {symbol['categoryCode']}",
+                details={"objectIds": [symbol["id"], object_id]},
+            )
+        used_objects.add(object_id)
+        category_code = symbol["categoryCode"]
+        hints = candidate.get("categoryHints") or []
+        if category_code == "other" and len(hints) == 1:
+            category_code = hints[0]
+        geometry = _object_symbol_geometry(candidate, category_code, symbol["rot"])
+        symbols[symbol["id"]] = {
+            **{
+                key: symbol[key]
+                for key in (
+                    "id",
+                    "roomId",
+                    "sourceLabel",
+                    "functionalArea",
+                )
+                if symbol.get(key) is not None
+            },
+            "categoryCode": category_code,
+            "category": category_code,
+            "objectCandidateId": object_id,
+            "activityGroupIds": [],
+            "included": True,
+            "evidenceRefs": [evidence_id],
+            **geometry,
+        }
+        symbol_object[symbol["id"]] = object_id
+
+    groups = {}
+    used_group_candidates = set()
+    for group in value["activityGroups"]:
+        candidate_id = group["candidateId"]
+        candidate = group_candidates_by_id.get(candidate_id)
+        if candidate is None:
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                f"活动组引用了未知候选 {candidate_id}",
+                details={"objectIds": [group["id"], candidate_id]},
+            )
+        if candidate_id in used_group_candidates:
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                f"活动组候选 {candidate_id} 被重复使用",
+                details={"objectIds": [group["id"], candidate_id]},
+            )
+        used_group_candidates.add(candidate_id)
+        if group["id"] in groups:
+            raise TaskError("ACTIVITY_GROUP_ROLE_INVALID", "活动组身份重复")
+        roles = dict(group.get("roles") or {})
+        members = list(
+            dict.fromkeys(
+                [
+                    group["primarySymbolId"],
+                    *group["memberSymbolIds"],
+                    *roles.keys(),
+                ]
+            )
+        )
+        if not members or any(member not in symbols for member in members):
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                "活动组引用了未知家具",
+                details={"objectIds": [group["id"], *members]},
+            )
+        if group["primarySymbolId"] not in members:
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                "活动组主对象不在成员中",
+                details={"objectIds": [group["id"], group["primarySymbolId"]]},
+            )
+        if set(roles) != set(members):
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                "活动组角色必须覆盖且仅覆盖全部成员",
+                details={"objectIds": [group["id"], *members]},
+            )
+        if roles.get(group["primarySymbolId"]) != "primary":
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                "活动组主对象必须具有 primary 角色",
+                details={"objectIds": [group["id"], group["primarySymbolId"]]},
+            )
+        if sum(role == "primary" for role in roles.values()) != 1:
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                "活动组只能有一个 primary 角色",
+                details={"objectIds": [group["id"], *members]},
+            )
+        primary_category = symbols[group["primarySymbolId"]]["categoryCode"]
+        if group["type"] == "group_seated":
+            if candidate["kind"] != "radial_cluster" or primary_category != "diningTable":
+                raise TaskError(
+                    "ACTIVITY_GROUP_ROLE_INVALID",
+                    "group_seated 必须使用径向候选并以餐桌为主对象",
+                    details={"objectIds": [group["id"], group["primarySymbolId"]]},
+                )
+            if any(
+                symbols[symbol_id]["categoryCode"] != "chair"
+                for symbol_id in members
+                if symbol_id != group["primarySymbolId"]
+            ):
+                raise TaskError(
+                    "ACTIVITY_GROUP_ROLE_INVALID",
+                    "group_seated 的附属对象必须是独立餐椅",
+                    details={"objectIds": [group["id"], *members]},
+                )
+            if len(members) < 3:
+                raise TaskError(
+                    "ACTIVITY_GROUP_INCOMPLETE",
+                    "group_seated 至少需要餐桌和两把餐椅",
+                    details={"objectIds": [group["id"], *members]},
+                )
+            table = symbols[group["primarySymbolId"]]
+            for symbol_id in members:
+                if symbol_id == group["primarySymbolId"]:
+                    continue
+                chair = symbols[symbol_id]
+                dx = chair["x"] - table["x"]
+                dy = chair["y"] - table["y"]
+                chair["rot"] = (
+                    90
+                    if dx < 0 and abs(dx) >= abs(dy)
+                    else 270
+                    if dx > 0 and abs(dx) >= abs(dy)
+                    else 180
+                    if dy < 0
+                    else 0
+                )
+        elif group["type"] == "seated_work":
+            satellites = [item for item in members if item != group["primarySymbolId"]]
+            if (
+                primary_category != "desk"
+                or len(satellites) != 1
+                or symbols[satellites[0]]["categoryCode"] != "chair"
+            ):
+                raise TaskError(
+                    "ACTIVITY_GROUP_ROLE_INVALID",
+                    "seated_work 必须是一张书桌和一把椅子",
+                    details={"objectIds": [group["id"], *members]},
+                )
+        elif len(members) != 1:
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                f"{group['type']} 只能包含一个对象",
+                details={"objectIds": [group["id"], *members]},
+            )
+
+        primary_objects = set(candidate["primaryObjectCandidateIds"])
+        satellite_objects = set(candidate["satelliteObjectCandidateIds"])
+        if len(primary_objects) != 1:
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                "活动组候选必须只有一个主对象",
+                details={"objectIds": [group["id"], *sorted(primary_objects)]},
+            )
+        if symbol_object[group["primarySymbolId"]] not in primary_objects:
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                "活动组主家具未使用候选主对象",
+                details={"objectIds": [group["id"], group["primarySymbolId"]]},
+            )
+        assigned_satellites = {
+            symbol_object[symbol_id]
+            for symbol_id in members
+            if symbol_id != group["primarySymbolId"]
+        }
+        if not assigned_satellites <= satellite_objects:
+            raise TaskError(
+                "ACTIVITY_GROUP_ROLE_INVALID",
+                "活动组成员引用了组外对象候选",
+                details={"objectIds": [group["id"], *members]},
+            )
+        excluded = list(dict.fromkeys(group.get("excludedObjectCandidateIds") or []))
+        if excluded:
+            raise TaskError(
+                "ACTIVITY_GROUP_INCOMPLETE",
+                "活动组的高置信附属对象必须全部登记为独立餐椅，不能排除",
+                details={"objectIds": [group["id"], *excluded]},
+            )
+        missing = satellite_objects - assigned_satellites
+        if missing:
+            raise TaskError(
+                "ACTIVITY_GROUP_INCOMPLETE",
+                "活动组候选仍有附属对象未分类",
+                details={"objectIds": [group["id"], *sorted(missing)]},
+            )
+        saved = ActivityGroup.model_validate(
+            {
+                "id": group["id"],
+                "type": group["type"],
+                "primarySymbolId": group["primarySymbolId"],
+                "memberSymbolIds": members,
+                "roles": roles,
+                "evidenceRefs": [evidence_id],
+            }
+        ).model_dump(exclude_none=True, by_alias=True)
+        groups[saved["id"]] = saved
+        for symbol_id in members:
+            symbols[symbol_id]["activityGroupIds"].append(saved["id"])
+            symbols[symbol_id].setdefault("activityRole", roles[symbol_id])
+
+    unresolved = set(group_candidates_by_id) - used_group_candidates
+    if unresolved:
+        raise TaskError(
+            "UNRESOLVED_ACTIVITY_GROUP",
+            "高置信活动组候选未被处理",
+            details={"objectIds": sorted(unresolved)},
+        )
+
+    missing_required = set(objects) - used_objects
+    if missing_required:
+        error = {
+            "code": "ACTIVITY_GROUP_INCOMPLETE",
+            "message": "可选输入对象没有全部分类为家具",
+            "objectIds": sorted(missing_required),
+        }
+        raise TaskError(
+            error["code"],
+            error["message"],
+            details={
+                "objectIds": error["objectIds"],
+                "issues": [error],
+            },
+        )
+
+    for symbol in symbols.values():
+        if symbol["activityGroupIds"]:
+            continue
+        group_id = f"ag_auto_{len(groups):03d}_{symbol['id']}"
+        group = ActivityGroup.model_validate(
+            {
+                "id": group_id,
+                "type": _automatic_activity_type(symbol["categoryCode"]),
+                "primarySymbolId": symbol["id"],
+                "memberSymbolIds": [symbol["id"]],
+                "roles": {symbol["id"]: "primary"},
+                "evidenceRefs": [evidence_id],
+            }
+        ).model_dump(exclude_none=True, by_alias=True)
+        groups[group_id] = group
+        symbol["activityGroupIds"] = [group_id]
+        symbol["activityRole"] = "primary"
+    return list(symbols.values()), list(groups.values())
 
 
 def _candidate_id(index, prefix):
@@ -757,6 +1359,7 @@ def _assemble_structure_v3(skeleton, recognition, evidence_index):
         "openings": draft_openings,
         "rooms": recognition["rooms"],
         "symbols": [],
+        "activityGroups": [],
         "targetRoomIds": recognition["targetRoomIds"],
         "uncertainties": recognition["uncertainties"],
         "features": [],
@@ -986,6 +1589,10 @@ def _assemble_structure(skeleton, recognition, evidence_index):
 
 
 class FloorplanV3(FloorplanV2):
+    def prompt_version(self, task):
+        generation = self.store.task(task["id"], internal=True)["generation"]
+        return generation.get("floorplanVersion") or VERSION
+
     async def ensure_analysis(self, task, image):
         tools = FloorplanToolset(self.base, task, image, "main")
         record = await tools.request(
@@ -1025,7 +1632,7 @@ class FloorplanV3(FloorplanV2):
                 payload,
                 task["id"],
                 images,
-                prompt_version=VERSION,
+                prompt_version=self.prompt_version(task),
                 bounded_schema=True,
                 model_options=FLOORPLAN_RECOGNITION_OPTIONS,
             )
@@ -1212,6 +1819,10 @@ class FloorplanV3(FloorplanV2):
 
     async def recognize_furniture(self, task, image, draft, diagnostics):
         generation = self.store.task(task["id"], internal=True)["generation"]
+        if generation.get("floorplanVersion") == "s2c-floorplan-v3-5":
+            return await self.recognize_furniture_activity(task, image, draft, diagnostics)
+        if generation.get("floorplanVersion") == "s2c-floorplan-v3-4":
+            return await self.recognize_furniture_vision(task, image, draft, diagnostics)
         if generation.get("floorplanVersion") == "s2c-floorplan-v3-3":
             return await self.recognize_furniture_contours(task, image, draft, diagnostics)
         evidence, context = await self.context(task, image, "main")
@@ -1245,7 +1856,7 @@ class FloorplanV3(FloorplanV2):
             },
             task["id"],
             images,
-            prompt_version=VERSION,
+            prompt_version=self.prompt_version(task),
             bounded_schema=True,
             model_options=FLOORPLAN_RECOGNITION_OPTIONS,
         )
@@ -1296,7 +1907,6 @@ class FloorplanV3(FloorplanV2):
         if not candidates:
             raise TaskError("FURNITURE_MISSING", "目标客餐厅没有家具轮廓候选")
         await tools.result("furniture_contours", record, pictures=False)
-        container = {candidate["candidateId"]: candidate for candidate in candidates}
         evidence, context = await self.context(task, image, "main")
         images = [await self.client.image(f"/floorplan-images/{image['id']}/file")]
         images += await evidence.images()
@@ -1318,81 +1928,14 @@ class FloorplanV3(FloorplanV2):
             },
             task["id"],
             images,
-            prompt_version=VERSION,
+            prompt_version=self.prompt_version(task),
             bounded_schema=True,
             model_options=FLOORPLAN_RECOGNITION_OPTIONS,
         )
         value = FurnitureContourRecognition.model_validate(value).model_dump(
             exclude_none=True, by_alias=True
         )
-        if value["status"] == "unsupported":
-            raise TaskError(
-                "FURNITURE_UNSUPPORTED",
-                value.get("question") or "无法识别目标客餐厅家具",
-            )
-        if not value["symbols"]:
-            raise TaskError("FURNITURE_MISSING", "目标客餐厅没有识别到家具")
-        targets = set(draft["data"]["targetRoomIds"])
-        seen_ids = set()
-        used_contours = set()
-        symbols = []
-        for symbol in value["symbols"]:
-            if symbol["roomId"] not in targets:
-                raise TaskError("INVALID_FURNITURE", "家具符号不属于目标客餐厅")
-            if symbol["id"] in seen_ids:
-                raise TaskError("INVALID_FURNITURE", "家具符号身份重复")
-            seen_ids.add(symbol["id"])
-            selected = []
-            for candidate_id in symbol["contourCandidateIds"]:
-                candidate = container.get(candidate_id)
-                if candidate is None:
-                    raise TaskError(
-                        "INVALID_FURNITURE",
-                        f"家具 {symbol['id']} 引用了未知轮廓 {candidate_id}",
-                    )
-                if candidate_id in used_contours:
-                    raise TaskError(
-                        "INVALID_FURNITURE",
-                        f"轮廓 {candidate_id} 被多个家具重复使用",
-                    )
-                used_contours.add(candidate_id)
-                selected.append(candidate)
-            x0 = min(item["bbox"][0] for item in selected)
-            y0 = min(item["bbox"][1] for item in selected)
-            x1 = max(item["bbox"][0] + item["bbox"][2] for item in selected)
-            y1 = max(item["bbox"][1] + item["bbox"][3] for item in selected)
-            if symbol["categoryCode"] == "chair" and y1 - y0 < 18 <= x1 - x0:
-                pad = (18 - (y1 - y0)) / 2
-                y0 -= pad
-                y1 += pad
-            if x1 - x0 < 3 or y1 - y0 < 3:
-                raise TaskError(
-                    "INVALID_FURNITURE",
-                    f"家具 {symbol['id']} 的轮廓组合无效",
-                )
-            symbols.append(
-                {
-                    **{
-                        key: symbol[key]
-                        for key in (
-                            "id",
-                            "roomId",
-                            "categoryCode",
-                            "sourceLabel",
-                            "functionalArea",
-                        )
-                        if symbol.get(key) is not None
-                    },
-                    "category": symbol["categoryCode"],
-                    "included": True,
-                    "evidenceRefs": [record["id"]],
-                    "x": round((x0 + x1) / 2, 3),
-                    "y": round((y0 + y1) / 2, 3),
-                    "w": round(x1 - x0, 3),
-                    "d": round(y1 - y0, 3),
-                    "rot": symbol["rot"],
-                }
-            )
+        symbols = _assemble_contour_symbols(value, candidates, draft, record["id"])
         self.patch(
             task["id"],
             furniturePass=value,
@@ -1405,6 +1948,385 @@ class FloorplanV3(FloorplanV2):
             phase="recognizing_furniture",
         )
         return symbols
+
+    async def _vision_structured_call(
+        self,
+        task,
+        prompt,
+        payload,
+        images,
+        schema_model,
+        assemble,
+        config_version,
+    ):
+        client = VisionModelClient()
+        schema = schema_model.model_json_schema()
+        calls = []
+        call_count = 0
+        elapsed_seconds = 0.0
+        previous = None
+        parse_error = None
+        value = None
+        result = None
+        last_failure = None
+
+        def model_record(status):
+            usage = [call["usage"] for call in calls]
+            return {
+                **client.record(),
+                "configVersion": config_version,
+                "modelCalls": call_count,
+                "usage": usage,
+                "inputTokens": sum(int(item.get("prompt_tokens") or 0) for item in usage),
+                "outputTokens": sum(int(item.get("completion_tokens") or 0) for item in usage),
+                "seconds": round(elapsed_seconds, 3),
+                "status": status,
+                **({"structuredMode": calls[-1]["structuredMode"]} if calls else {}),
+            }
+
+        for attempt in range(2):
+            call_count += 1
+            self.store.count_model_call(task["id"], "vision")
+            self.store.event(
+                task["id"],
+                "agent_start",
+                {
+                    "role": "vision",
+                    "phase": "furniture",
+                    "promptVersion": self.prompt_version(task),
+                    "model": client.settings["model"],
+                    "provider": client.settings["provider"],
+                    "attempt": attempt + 1,
+                },
+            )
+            try:
+                response = await client.complete(
+                    prompt,
+                    payload,
+                    images,
+                    schema,
+                    previous=previous,
+                    parse_error=parse_error,
+                )
+            except VisionModelFailure as error:
+                elapsed_seconds += float(error.details.get("seconds") or 0)
+                attempts = list(
+                    self.store.task(task["id"], internal=True)["generation"].get(
+                        "furnitureVisionAttempts", []
+                    )
+                )
+                attempts.append(
+                    {
+                        "attempt": attempt + 1,
+                        "model": client.settings["model"],
+                        "errorCode": error.code,
+                        "message": str(error),
+                        "details": error.details,
+                    }
+                )
+                self.patch(task["id"], furnitureVisionAttempts=attempts)
+                if error.code == "VISION_MODEL_FORMAT" and attempt == 0:
+                    previous = None
+                    parse_error = str(error)[:800]
+                    last_failure = "format"
+                    self.store.event(
+                        task["id"],
+                        "model_format_retry",
+                        {
+                            "role": "vision",
+                            "attempt": 1,
+                            "reason": "response_envelope",
+                        },
+                    )
+                    continue
+                last_failure = ("transport", error)
+                break
+            calls.append(response)
+            elapsed_seconds += float(response["seconds"])
+            attempts = list(
+                self.store.task(task["id"], internal=True)["generation"].get(
+                    "furnitureVisionAttempts", []
+                )
+            )
+            attempts.append(
+                {
+                    "attempt": attempt + 1,
+                    "model": response["model"],
+                    "response": response["content"],
+                    "usage": response["usage"],
+                    "seconds": response["seconds"],
+                    "structuredMode": response["structuredMode"],
+                }
+            )
+            self.patch(task["id"], furnitureVisionAttempts=attempts)
+            self.store.event(
+                task["id"],
+                "model_end",
+                {
+                    "role": "vision",
+                    "model": response["model"],
+                    "seconds": response["seconds"],
+                    "usage": response["usage"],
+                    "structuredMode": response["structuredMode"],
+                    "attempt": attempt + 1,
+                },
+            )
+            value = None
+            try:
+                parsed = schema_model.model_validate(
+                    _parse_structured_content(response["content"])
+                ).model_dump(exclude_none=True, by_alias=True)
+                result = assemble(parsed)
+                value = parsed
+                last_failure = None
+                break
+            except (json.JSONDecodeError, ValueError, ValidationError) as error:
+                previous = response["content"]
+                parse_error = str(error)[:800]
+                last_failure = "format"
+                if attempt:
+                    break
+                self.store.event(
+                    task["id"],
+                    "model_format_retry",
+                    {"role": "vision", "attempt": 1},
+                )
+            except TaskError as error:
+                previous = response["content"]
+                parse_error = f"{error.code}: {error}"[:800]
+                last_failure = ("ownership", error)
+                if attempt:
+                    break
+                self.store.event(
+                    task["id"],
+                    "model_format_retry",
+                    {
+                        "role": "vision",
+                        "attempt": 1,
+                        "reason": "contour_ownership",
+                        "errorCode": error.code,
+                    },
+                )
+        if result is None:
+            failed_error = last_failure[1] if isinstance(last_failure, tuple) else None
+            status = (
+                "rejected"
+                if isinstance(last_failure, tuple) and last_failure[0] == "ownership"
+                else "unavailable"
+                if getattr(failed_error, "code", None) == "VISION_MODEL_UNAVAILABLE"
+                else "model_error"
+                if failed_error is not None
+                else "format_failed"
+            )
+            self.patch(task["id"], furnitureModel=model_record(status))
+            if isinstance(last_failure, tuple):
+                error = last_failure[1]
+                if error.code == "VISION_MODEL_FORMAT":
+                    raise TaskError(
+                        "MODEL_FORMAT",
+                        "视觉模型连续两次未返回合法家具结构",
+                        422,
+                        {"parseError": parse_error},
+                    ) from error
+                raise TaskError(
+                    error.code,
+                    str(error),
+                    503 if error.code == "VISION_MODEL_UNAVAILABLE" else 422,
+                    error.details,
+                ) from error
+            raise TaskError(
+                "MODEL_FORMAT",
+                "视觉模型连续两次未返回合法家具结构",
+                422,
+                {"parseError": parse_error},
+            )
+        self.patch(task["id"], furnitureModel=model_record("completed"))
+        return value, result
+
+    async def recognize_furniture_vision(self, task, image, draft, diagnostics):
+        tools = FloorplanToolset(self.base, task, image, "main")
+        record = await tools.request("contours", {"spec": draft["data"]})
+        if record.get("error"):
+            raise TaskError(
+                record["error"],
+                record.get("message") or "家具轮廓候选生成失败",
+                422,
+            )
+        candidates = record.get("contourCandidates") or []
+        if not candidates:
+            raise TaskError("FURNITURE_MISSING", "目标客餐厅没有家具轮廓候选")
+        await tools.result("furniture_contours", record, pictures=False)
+        evidence, _context = await self.context(task, image, "main")
+        evidence_context = await evidence.context()
+        original = await self.client.image(f"/floorplan-images/{image['id']}/file")
+
+        async def required_image(name):
+            matches = [
+                file
+                for evidence_record in evidence_context.get("evidence", [])
+                for file in evidence_record.get("files", [])
+                if file.get("name") == name
+            ]
+            if not matches:
+                raise TaskError(
+                    "FURNITURE_EVIDENCE_MISSING",
+                    f"家具识别缺少固定证据 {name}",
+                )
+            file = matches[-1]
+            raw = await self.client.image(file["path"])
+            if hashlib.sha256(raw).hexdigest() != file["sha256"]:
+                raise TaskError("EVIDENCE_INVALID", f"家具识别证据哈希不符：{name}")
+            return raw
+
+        # vLLM is configured for at most four images per prompt. Keep this
+        # list fixed: the source plus the three deterministic overlays.
+        images = [
+            original,
+            await required_image("candidates.png"),
+            await required_image("target_contours.png"),
+            await required_image("contours.png"),
+        ]
+        payload = {
+            "userRequest": task["input"],
+            "targetRoomIds": draft["data"]["targetRoomIds"],
+            "roomLabels": [
+                room
+                for room in draft["data"]["rooms"]
+                if room["id"] in draft["data"]["targetRoomIds"]
+            ],
+            "structure": {
+                key: draft["data"].get(key)
+                for key in (
+                    "walls",
+                    "openings",
+                    "rooms",
+                    "targetRoomIds",
+                    "uncertainties",
+                )
+            },
+            "targetRegions": record.get("targetRegions") or {},
+            "contourCandidates": candidates,
+            "allowedRooms": draft["data"]["targetRoomIds"],
+            "allowedCategories": list(CategoryCode.__args__),
+        }
+        value, symbols = await self._vision_structured_call(
+            task,
+            VISION_FURNITURE,
+            payload,
+            images,
+            FurnitureContourRecognition,
+            lambda parsed: _assemble_contour_symbols(parsed, candidates, draft, record["id"]),
+            "vision-furniture-1",
+        )
+        self.patch(
+            task["id"],
+            furniturePass=value,
+            pendingFurniture={"symbols": symbols},
+            furnitureContours={
+                "recordId": record["id"],
+                "candidateCount": len(candidates),
+                "targetRegions": record.get("targetRegions") or {},
+            },
+            phase="recognizing_furniture",
+        )
+        return symbols
+
+    async def recognize_furniture_activity(self, task, image, draft, diagnostics):
+        tools = FloorplanToolset(self.base, task, image, "main")
+        record = await tools.request("contours", {"spec": draft["data"]})
+        if record.get("error"):
+            raise TaskError(
+                record["error"],
+                record.get("message") or "家具对象候选生成失败",
+                422,
+            )
+        objects = [
+            candidate
+            for candidate in (record.get("objectCandidates") or [])
+            if candidate.get("selectable")
+        ]
+        groups = record.get("activityGroupCandidates") or []
+        if not objects:
+            raise TaskError("FURNITURE_MISSING", "目标客餐厅没有家具对象候选")
+        await tools.result("furniture_contours", record, pictures=False)
+        evidence, _context = await self.context(task, image, "main")
+        evidence_context = await evidence.context()
+        original = await self.client.image(f"/floorplan-images/{image['id']}/file")
+
+        async def required_image(name):
+            matches = [
+                file
+                for evidence_record in evidence_context.get("evidence", [])
+                for file in evidence_record.get("files", [])
+                if file.get("name") == name
+            ]
+            if not matches:
+                raise TaskError(
+                    "FURNITURE_EVIDENCE_MISSING",
+                    f"家具识别缺少固定证据 {name}",
+                )
+            file = matches[-1]
+            raw = await self.client.image(file["path"])
+            if hashlib.sha256(raw).hexdigest() != file["sha256"]:
+                raise TaskError("EVIDENCE_INVALID", f"家具识别证据哈希不符：{name}")
+            return raw
+
+        images = [
+            original,
+            await required_image("candidates.png"),
+            await required_image("objects.png"),
+            await required_image("groups.png"),
+        ]
+        payload = {
+            "userRequest": task["input"],
+            "targetRoomIds": draft["data"]["targetRoomIds"],
+            "roomLabels": [
+                room
+                for room in draft["data"]["rooms"]
+                if room["id"] in draft["data"]["targetRoomIds"]
+            ],
+            "structure": {
+                key: draft["data"].get(key)
+                for key in (
+                    "walls",
+                    "openings",
+                    "rooms",
+                    "targetRoomIds",
+                    "uncertainties",
+                )
+            },
+            "targetRegions": record.get("targetRegions") or {},
+            "objectCandidates": objects,
+            "activityGroupCandidates": groups,
+            "allowedRooms": draft["data"]["targetRoomIds"],
+            "allowedCategories": list(CategoryCode.__args__),
+        }
+        value, assembled = await self._vision_structured_call(
+            task,
+            VISION_ACTIVITY,
+            payload,
+            images,
+            FurnitureActivityRecognition,
+            lambda parsed: _assemble_activity_symbols(parsed, objects, groups, draft, record["id"]),
+            "activity-unit-1",
+        )
+        symbols, activity_groups = assembled
+        self.patch(
+            task["id"],
+            furniturePass=value,
+            pendingFurniture={
+                "symbols": symbols,
+                "activityGroups": activity_groups,
+            },
+            furnitureContours={
+                "recordId": record["id"],
+                "objectCandidateCount": len(objects),
+                "activityGroupCandidateCount": len(groups),
+                "targetRegions": record.get("targetRegions") or {},
+            },
+            phase="recognizing_furniture",
+        )
+        return symbols, activity_groups
 
     async def measure(self, task, image, draft, diagnostics, report):
         evidence, context = await self.context(task, image, "design")
@@ -1506,7 +2428,7 @@ class FloorplanV3(FloorplanV2):
             },
             task["id"],
             images,
-            prompt_version=VERSION,
+            prompt_version=self.prompt_version(task),
             bounded_schema=True,
             model_options=FLOORPLAN_RECOGNITION_OPTIONS,
         )
@@ -1544,7 +2466,7 @@ class FloorplanV3(FloorplanV2):
             },
             task["id"],
             images,
-            prompt_version=VERSION,
+            prompt_version=self.prompt_version(task),
             bounded_schema=True,
             model_options=FLOORPLAN_REVIEW_OPTIONS,
         )
@@ -1648,8 +2570,9 @@ class FloorplanV3(FloorplanV2):
         if not draft["data"].get("symbols"):
             generation = self.store.task(task_id, internal=True)["generation"]
             pending_furniture = generation.get("pendingFurniture")
-            symbols = (
-                [
+            activity_groups = []
+            if pending_furniture:
+                symbols = [
                     {
                         **symbol,
                         "category": symbol["categoryCode"],
@@ -1657,9 +2580,15 @@ class FloorplanV3(FloorplanV2):
                     }
                     for symbol in pending_furniture["symbols"]
                 ]
-                if pending_furniture
-                else await self.recognize_furniture(task, image, draft, diagnostics)
-            )
+                activity_groups = pending_furniture.get("activityGroups") or []
+            else:
+                recognized_furniture = await self.recognize_furniture(
+                    task, image, draft, diagnostics
+                )
+                if isinstance(recognized_furniture, tuple):
+                    symbols, activity_groups = recognized_furniture
+                else:
+                    symbols = recognized_furniture
             draft = await self.client.request(
                 root + "/" + draft["id"] + "/measurement-updates",
                 {
@@ -1669,6 +2598,14 @@ class FloorplanV3(FloorplanV2):
                     "commands": [
                         {"type": "upsert", "collection": "symbols", "object": symbol}
                         for symbol in symbols
+                    ]
+                    + [
+                        {
+                            "type": "upsert",
+                            "collection": "activityGroups",
+                            "object": group,
+                        }
+                        for group in activity_groups
                     ],
                     "changeReasons": [],
                     "evidenceRefs": ["image:" + image["sha256"]],

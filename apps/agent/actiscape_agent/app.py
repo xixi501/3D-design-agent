@@ -17,6 +17,7 @@ from .schemas import ResumeInput, TaskInput
 from .skill_registry import FLOORPLAN_TOOLS, GENERATION_TOOLS, load_design_skill, skill_record
 from .store import TERMINAL, TaskError
 from .versions import runtime_versions
+from .vision_client import vision_service_status
 
 
 class FloorplanConfirmInput(BaseModel):
@@ -80,10 +81,15 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
 
     @app.get("/health")
     async def health():
+        vision = await vision_service_status()
         return {
             "ok": True,
             "service": "ActiScape agents",
             "modelConfigured": bool(os.environ.get("DEEPSEEK_API_KEY")),
+            "visionConfigured": vision["configured"],
+            "visionAvailable": vision["available"],
+            "visionModel": vision["model"],
+            "visionBaseUrl": vision["baseUrl"],
             "model": model_settings()["model"],
             "langgraph": version("langgraph"),
             "langchain": version("langchain"),

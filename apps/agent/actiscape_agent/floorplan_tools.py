@@ -12,7 +12,14 @@ from .store import fingerprint
 
 def recognition_changes(before, after):
     changes = []
-    for collection in ("anchors", "walls", "openings", "rooms", "symbols"):
+    for collection in (
+        "anchors",
+        "walls",
+        "openings",
+        "rooms",
+        "symbols",
+        "activityGroups",
+    ):
         old = {str(o.get("id", i)): o for i, o in enumerate(before.get(collection, []))}
         new = {str(o.get("id", i)): o for i, o in enumerate(after.get(collection, []))}
         for identity in sorted(old.keys() | new.keys()):
@@ -48,7 +55,12 @@ class FloorplanToolset:
         )
         adapter = (
             "hpd-adapter-5"
-            if floorplan_version == "s2c-floorplan-v3-3"
+            if floorplan_version
+            in (
+                "s2c-floorplan-v3-3",
+                "s2c-floorplan-v3-4",
+                "s2c-floorplan-v3-5",
+            )
             else "hpd-adapter-4"
             if workflow_version == 3
             else "hpd-adapter-3"

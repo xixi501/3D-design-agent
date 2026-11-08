@@ -1,0 +1,15 @@
+[
+  {
+    "content": "{\"status\": \"draft\", \"symbols\": [{\"id\": \"f_sofa_1\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"sofa\", \"sourceLabel\": \"客厅沙发\", \"contourCandidateIds\": [\"fc_010\"] , \"rot\": 0}, {\"id\": \"f_coffeeTable_1\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"coffeeTable\", \"sourceLabel\": \"客厅茶几\", \"contourCandidateIds\": [\"fc_022\"] , \"rot\": 0}, {\"id\": \"f_diningTable_1\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"diningTable\", \"sourceLabel\": \"餐厅餐桌\", \"contourCandidateIds\": [\"fc_039\"] , \"rot\": 0}, {\"id\": \"f_chair_1\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"chair\", \"sourceLabel\": \"餐椅1\", \"contourCandidateIds\": [\"fc_041\"] , \"rot\": 0}, {\"id\": \"f_chair_2\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"chair\", \"sourceLabel\": \"餐椅2\", \"contourCandidateIds\": [\"fc_042\"] , \"rot\": 0}, {\"id\": \"f_chair_3\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"chair\", \"sourceLabel\": \"餐椅3\", \"contourCandidateIds\": [\"fc_044\"] , \"rot\": 0}, {\"id\": \"f_chair_4\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"chair\", \"sourceLabel\": \"餐椅4\", \"contourCandidateIds\": [\"fc_045\"] , \"rot\": 0}, {\"id\": \"f_sideTable_1\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"sideTable\", \"sourceLabel\": \"沙发边桌\", \"contourCandidateIds\": [\"fc_031\"] , \"rot\": 0}, {\"id\": \"f_rug_1\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"rug\", \"sourceLabel\": \"客厅地毯\", \"contourCandidateIds\": [\"fc_030\"] , \"rot\": 0}, {\"id\": \"f_refrigerator_1\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"cabinet\", \"sourceLabel\": \"玄关冰箱\", \"contourCandidateIds\": [\"fc_047\"] , \"rot\": 0}, {\"id\": \"f_fridge_1\", \"roomId\": \"r_living_dining\", \"categoryCode\": \"cabinet\", \"sourceLabel\": \"玄关双门柜\", \"contourCandidateIds\": [\"fc_048\", \"fc_049\"] , \"rot\": 0}]}",
+    "model": "zai-org/GLM-4.6V-Flash",
+    "usage": {
+      "prompt_tokens": 8056,
+      "total_tokens": 8698,
+      "completion_tokens": 642,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": null
+    },
+    "seconds": 11.202,
+    "structuredMode": "json_schema"
+  }
+]

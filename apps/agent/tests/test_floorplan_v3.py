@@ -1,5 +1,6 @@
 """V3 bounded recognition tests; controlled data never counts as live-image acceptance."""
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -10,22 +11,29 @@ from pydantic import ValidationError
 from actiscape_agent.config import FLOORPLAN_REVIEW_OPTIONS
 from actiscape_agent.floorplan_candidates import (
     contour_candidates,
+    furniture_object_candidates,
     structure_candidates,
 )
 from actiscape_agent.floorplan_schemas import (
     FloorplanReview,
+    FurnitureActivityRecognition,
     FurnitureContourRecognition,
     FurnitureRecognition,
     RecognitionV3,
 )
+from actiscape_agent.floorplan_tools import FloorplanToolset
 from actiscape_agent.floorplan_v3 import (
     FloorplanV3,
     _arbitrate_review,
+    _assemble_activity_symbols,
+    _assemble_contour_symbols,
     _assemble_structure,
+    _parse_structured_content,
     build_structure_skeleton,
 )
 from actiscape_agent.manager import TaskManager
 from actiscape_agent.store import TaskError, TaskStore
+from actiscape_agent.vision_client import VisionModelClient, VisionModelFailure
 
 
 def analysis_record():
@@ -94,6 +102,122 @@ def structure_response():
     }
 
 
+def vision_recognition_fixture(tmp_path):
+    image = {"id": "image", "sha256": "a" * 64, "width": 400, "height": 300}
+    store = TaskStore(tmp_path)
+    conversation = store.create_conversation("project")
+    task = store.create_task(
+        conversation["id"],
+        {
+            "requestId": "vision-furniture",
+            "input": "复现客餐厅家具",
+            "mode": "reconstruct_floorplan",
+            "imageId": image["id"],
+        },
+    )
+    generation = store.task(task["id"], internal=True)["generation"]
+    generation["workflowVersion"] = 3
+    store.update(task["id"], generation=generation)
+    draft = {
+        "id": "draft",
+        "data": {
+            "targetRoomIds": ["living"],
+            "rooms": [
+                {
+                    "id": "living",
+                    "name": "客餐厅",
+                    "at": {"x": 100, "y": 100},
+                    "width": 200,
+                    "depth": 200,
+                }
+            ],
+            "walls": [],
+            "openings": [],
+            "uncertainties": [],
+        },
+    }
+    record = {
+        "id": "contours",
+        "contourCandidates": [
+            {
+                "candidateId": "fc_001",
+                "bbox": [10, 10, 20, 20],
+                "center": {"x": 20, "y": 20},
+                "area": 400,
+                "shape": "contour",
+            },
+            {
+                "candidateId": "fc_002",
+                "bbox": [40, 40, 20, 20],
+                "center": {"x": 50, "y": 50},
+                "area": 400,
+                "shape": "contour",
+            },
+        ],
+        "targetRegions": {"living": {"bbox": [0, 0, 200, 200], "pixels": 40000}},
+        "files": [],
+    }
+    raw = {
+        "candidates.png": b"candidates",
+        "target_contours.png": b"target-contours",
+        "contours.png": b"contours",
+    }
+    evidence = {
+        "evidence": [
+            {
+                "files": [
+                    {
+                        "name": name,
+                        "path": "/" + name,
+                        "sha256": hashlib.sha256(content).hexdigest(),
+                    }
+                    for name, content in raw.items()
+                ]
+            }
+        ]
+    }
+
+    class Evidence:
+        async def context(self):
+            return evidence
+
+    class Client:
+        async def image(self, path):
+            if path.endswith("/file"):
+                return b"original"
+            return raw[path.lstrip("/")]
+
+    class Base:
+        pass
+
+    client = Client()
+    base = Base()
+    base.store, base.client = store, client
+    return store, task, image, draft, record, Evidence(), client, base
+
+
+def vision_response(*symbols):
+    return {
+        "content": json.dumps({"status": "draft", "question": "", "symbols": list(symbols)}),
+        "model": "controlled-vision",
+        "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+        "seconds": 0.25,
+        "structuredMode": "json_schema",
+    }
+
+
+def vision_symbol(candidate_id="fc_001", symbol_id="chair"):
+    return {
+        "id": symbol_id,
+        "roomId": "living",
+        "categoryCode": "chair",
+        "sourceLabel": "chair",
+        "included": True,
+        "contourCandidateIds": [candidate_id],
+        "rot": 0,
+    }
+
+
 def test_skeleton_and_structure_assembly_use_real_candidates_only():
     image = {"id": "image", "sha256": "a" * 64, "width": 400, "height": 300}
     skeleton = build_structure_skeleton(analysis_record(), image)
@@ -118,6 +242,32 @@ def test_skeleton_and_structure_assembly_use_real_candidates_only():
     }
     assert value["symbols"] == []
     RecognitionV3.model_validate(value)
+
+
+def test_prompt_version_keeps_frozen_floorplan_task_version(tmp_path):
+    store = TaskStore(tmp_path)
+    conversation = store.create_conversation("project")
+    task = store.create_task(
+        conversation["id"],
+        {
+            "requestId": "frozen-version",
+            "input": "test",
+            "mode": "reconstruct_floorplan",
+            "imageId": "image",
+        },
+    )
+    generation = store.task(task["id"], internal=True)["generation"]
+    generation["floorplanVersion"] = "s2c-floorplan-v3-3"
+    store.update(task["id"], generation=generation)
+
+    class Base:
+        pass
+
+    base = Base()
+    base.store, base.client = store, object()
+    helper = FloorplanV3(store, base.client, base)
+    assert helper.prompt_version(store.task(task["id"], internal=True)) == "s2c-floorplan-v3-3"
+    store.close()
 
 
 def test_captured_real_candidates_are_grouped_before_model_selection():
@@ -396,6 +546,556 @@ def test_v33_furniture_contours_and_review_arbitration():
         issue["code"] == "REVIEW_CONFLICT" and issue["severity"] == "advisory"
         for issue in arbitrated["issues"]
     )
+
+
+def test_vision_parser_and_contour_ownership_reject_duplicate_symbols():
+    parsed = _parse_structured_content(
+        '```json\n{"status":"draft","question":"","symbols":[]}\n```'
+    )
+    assert parsed["status"] == "draft"
+    draft = {"data": {"targetRoomIds": ["living"]}}
+    candidates = [
+        {
+            "candidateId": "fc_001",
+            "bbox": [10, 10, 20, 20],
+            "center": {"x": 20, "y": 20},
+        }
+    ]
+    value = {
+        "status": "draft",
+        "symbols": [
+            {
+                "id": "table",
+                "roomId": "living",
+                "categoryCode": "diningTable",
+                "sourceLabel": "table",
+                "included": True,
+                "contourCandidateIds": ["fc_001"],
+                "rot": 0,
+            },
+            {
+                "id": "chair",
+                "roomId": "living",
+                "categoryCode": "chair",
+                "sourceLabel": "chair",
+                "included": True,
+                "contourCandidateIds": ["fc_001"],
+                "rot": 0,
+            },
+        ],
+    }
+    with pytest.raises(TaskError, match="重复使用"):
+        _assemble_contour_symbols(value, candidates, draft, "contours")
+    nested = {
+        "status": "draft",
+        "symbols": [
+            {
+                "id": "sofa",
+                "roomId": "living",
+                "categoryCode": "sofa",
+                "sourceLabel": "sofa",
+                "included": True,
+                "contourCandidateIds": ["sofa_outer"],
+                "rot": 0,
+            },
+            {
+                "id": "cushion",
+                "roomId": "living",
+                "categoryCode": "chair",
+                "sourceLabel": "chair",
+                "included": True,
+                "contourCandidateIds": ["cushion"],
+                "rot": 0,
+            },
+        ],
+    }
+    nested_candidates = [
+        {"candidateId": "sofa_outer", "bbox": [0, 0, 100, 60]},
+        {"candidateId": "cushion", "bbox": [40, 20, 20, 20]},
+    ]
+    with pytest.raises(TaskError, match="吞入.*独立座椅"):
+        _assemble_contour_symbols(nested, nested_candidates, draft, "contours")
+
+
+def test_v35_object_graph_splits_sofa_rug_and_dining_chairs():
+    raw = [
+        ("fc_010", [453, 194, 132, 133]),
+        ("fc_011", [468, 195, 103, 8]),
+        ("fc_012", [459, 198, 12, 42]),
+        ("fc_013", [568, 198, 11, 42]),
+        ("fc_014", [474, 199, 30, 34]),
+        ("fc_015", [505, 199, 30, 34]),
+        ("fc_016", [537, 199, 30, 34]),
+        ("fc_017", [471, 234, 97, 6]),
+        ("fc_018", [459, 239, 12, 8]),
+        ("fc_019", [470, 239, 98, 8]),
+        ("fc_020", [568, 239, 11, 8]),
+        ("fc_022", [462, 249, 114, 73]),
+        ("fc_025", [487, 278, 64, 36]),
+        ("fc_026", [492, 282, 55, 27]),
+        ("fc_036", [466, 358, 118, 84]),
+        ("fc_037", [494, 365, 23, 13]),
+        ("fc_038", [533, 365, 23, 13]),
+        ("fc_039", [480, 378, 90, 50]),
+        ("fc_041", [467, 392, 13, 22]),
+        ("fc_042", [570, 392, 13, 22]),
+        ("fc_044", [494, 428, 23, 13]),
+        ("fc_045", [533, 428, 23, 13]),
+        ("fc_023", [627, 272, 22, 70]),
+        ("fc_024", [628, 273, 20, 17]),
+        ("fc_027", [628, 290, 20, 17]),
+        ("fc_028", [628, 307, 20, 17]),
+        ("fc_029", [628, 324, 20, 17]),
+        ("fc_001", [633, 129, 27, 28]),
+        ("fc_002", [642, 130, 10, 11]),
+        ("fc_003", [634, 133, 12, 9]),
+        ("fc_004", [649, 133, 10, 12]),
+        ("fc_006", [634, 141, 10, 12]),
+        ("fc_007", [647, 144, 12, 9]),
+        ("fc_008", [641, 145, 11, 11]),
+    ]
+    candidates = [
+        {
+            "candidateId": candidate_id,
+            "bbox": bbox,
+            "area": bbox[2] * bbox[3],
+            "shape": "contour",
+        }
+        for candidate_id, bbox in raw
+    ]
+    graph = furniture_object_candidates(candidates)
+    by_members = {
+        tuple(candidate["contourCandidateIds"]): candidate
+        for candidate in graph["objectCandidates"]
+    }
+    sofa = by_members[tuple(f"fc_{index:03d}" for index in range(11, 21))]
+    assert sofa["kind"] == "composite"
+    assert sofa["bbox"] == [459, 195, 120, 52]
+    assert ("fc_022",) in by_members
+    assert by_members[("fc_025", "fc_026")]["kind"] == "composite"
+    group = graph["activityGroupCandidates"][0]
+    assert by_members[("fc_039",)]["objectCandidateId"] in group["primaryObjectCandidateIds"]
+    assert len(group["satelliteObjectCandidateIds"]) == 6
+
+
+def activity_object_graph():
+    raw = [
+        ("fc_000", [70, 90, 160, 170]),
+        ("fc_001", [90, 140, 120, 70]),
+        ("fc_002", [100, 110, 23, 13]),
+        ("fc_003", [177, 110, 23, 13]),
+        ("fc_004", [75, 165, 13, 22]),
+        ("fc_005", [212, 165, 13, 22]),
+        ("fc_006", [100, 225, 23, 13]),
+        ("fc_007", [177, 225, 23, 13]),
+    ]
+    candidates = [
+        {
+            "candidateId": candidate_id,
+            "bbox": bbox,
+            "area": bbox[2] * bbox[3],
+            "shape": "contour",
+        }
+        for candidate_id, bbox in raw
+    ]
+    return candidates, furniture_object_candidates(candidates)
+
+
+def activity_response(group_members):
+    graph = activity_object_graph()[1]
+    table = next(
+        candidate
+        for candidate in graph["objectCandidates"]
+        if candidate["contourCandidateIds"] == ["fc_001"]
+    )
+    chairs = [candidate for candidate in graph["objectCandidates"] if candidate is not table]
+    symbols = [
+        {
+            "id": "table",
+            "roomId": "living",
+            "categoryCode": "diningTable",
+            "sourceLabel": "table",
+            "included": True,
+            "objectCandidateId": table["objectCandidateId"],
+            "rot": 0,
+        },
+        *[
+            {
+                "id": f"chair-{index}",
+                "roomId": "living",
+                "categoryCode": "chair",
+                "sourceLabel": "chair",
+                "included": True,
+                "objectCandidateId": candidate["objectCandidateId"],
+                "rot": 0,
+            }
+            for index, candidate in enumerate(chairs, 1)
+        ],
+    ]
+    members = [f"chair-{index}" for index in group_members]
+    return {
+        "status": "draft",
+        "question": "",
+        "symbols": symbols,
+        "activityGroups": [
+            {
+                "id": "ag-dining",
+                "candidateId": graph["activityGroupCandidates"][0]["activityGroupCandidateId"],
+                "type": "group_seated",
+                "primarySymbolId": "table",
+                "memberSymbolIds": members,
+                "roles": {
+                    "table": "primary",
+                    **{f"chair-{index}": "satellite" for index in group_members},
+                },
+            }
+        ],
+    }
+
+
+def test_v35_activity_assembly_requires_every_group_satellite():
+    _, graph = activity_object_graph()
+    assert graph["activityGroupCandidates"]
+    draft = {"data": {"targetRoomIds": ["living"]}}
+    with pytest.raises(TaskError) as raised:
+        _assemble_activity_symbols(
+            activity_response([1, 2, 3, 4]),
+            graph["objectCandidates"],
+            graph["activityGroupCandidates"],
+            draft,
+            "objects",
+        )
+    assert raised.value.code == "ACTIVITY_GROUP_INCOMPLETE"
+    symbols, groups = _assemble_activity_symbols(
+        activity_response([1, 2, 3, 4, 5, 6]),
+        graph["objectCandidates"],
+        graph["activityGroupCandidates"],
+        draft,
+        "objects",
+    )
+    assert len([symbol for symbol in symbols if symbol["categoryCode"] == "chair"]) == 6
+    assert groups[0]["type"] == "group_seated"
+    assert groups[0]["roles"]["table"] == "primary"
+    FurnitureActivityRecognition.model_validate(activity_response([1, 2, 3, 4, 5, 6]))
+
+
+def activity_vision_fixture(tmp_path):
+    image = {"id": "image", "sha256": "a" * 64, "width": 800, "height": 600}
+    store = TaskStore(tmp_path)
+    conversation = store.create_conversation("project")
+    task = store.create_task(
+        conversation["id"],
+        {
+            "requestId": "activity-vision",
+            "input": "复现客餐厅家具",
+            "mode": "reconstruct_floorplan",
+            "imageId": image["id"],
+        },
+    )
+    generation = store.task(task["id"], internal=True)["generation"]
+    generation.update(workflowVersion=3, floorplanVersion="s2c-floorplan-v3-5")
+    store.update(task["id"], generation=generation)
+    raw_candidates, graph = activity_object_graph()
+    draft = {
+        "id": "draft",
+        "data": {
+            "targetRoomIds": ["living"],
+            "rooms": [
+                {
+                    "id": "living",
+                    "name": "客餐厅",
+                    "at": {"x": 150, "y": 175},
+                    "width": 200,
+                    "depth": 200,
+                }
+            ],
+            "walls": [],
+            "openings": [],
+            "uncertainties": [],
+        },
+    }
+    record = {
+        "id": "objects",
+        "contourCandidates": raw_candidates,
+        "objectCandidates": graph["objectCandidates"],
+        "activityGroupCandidates": graph["activityGroupCandidates"],
+        "targetRegions": {"living": {"bbox": [0, 0, 300, 300], "pixels": 90000}},
+        "files": [],
+    }
+    raw = {
+        "candidates.png": b"candidates",
+        "objects.png": b"objects",
+        "groups.png": b"groups",
+    }
+    evidence = {
+        "evidence": [
+            {
+                "files": [
+                    {
+                        "name": name,
+                        "path": "/" + name,
+                        "sha256": hashlib.sha256(content).hexdigest(),
+                    }
+                    for name, content in raw.items()
+                ]
+            }
+        ]
+    }
+
+    class Evidence:
+        async def context(self):
+            return evidence
+
+    class Client:
+        async def image(self, path):
+            if path.endswith("/file"):
+                return b"original"
+            return raw[path.lstrip("/")]
+
+    class Base:
+        pass
+
+    client = Client()
+    base = Base()
+    base.store, base.client = store, client
+    return store, task, image, draft, record, Evidence(), client, base
+
+
+@pytest.mark.asyncio
+async def test_v35_vision_uses_object_and_group_images(tmp_path, monkeypatch):
+    store, task, image, draft, record, evidence, client, base = activity_vision_fixture(tmp_path)
+    captured = {}
+
+    async def fake_context(self, *_args):
+        return evidence, None
+
+    async def fake_request(self, mode, parameters):
+        assert mode == "contours"
+        assert parameters == {"spec": draft["data"]}
+        return record
+
+    async def fake_result(self, name, value, pictures=True):
+        assert name == "furniture_contours"
+        assert value is record
+        assert pictures is False
+        return []
+
+    async def fake_complete(self, prompt, payload, images, schema, **kwargs):
+        captured.update(
+            {
+                "prompt": prompt,
+                "payload": payload,
+                "images": images,
+                "schema": schema,
+            }
+        )
+        return {
+            "content": json.dumps(activity_response([1, 2, 3, 4, 5, 6])),
+            "model": "controlled-vision",
+            "usage": {"prompt_tokens": 10, "completion_tokens": 20},
+            "seconds": 0.25,
+            "structuredMode": "json_schema",
+        }
+
+    monkeypatch.setattr(FloorplanV3, "context", fake_context)
+    monkeypatch.setattr(FloorplanToolset, "request", fake_request)
+    monkeypatch.setattr(FloorplanToolset, "result", fake_result)
+    monkeypatch.setattr(VisionModelClient, "complete", fake_complete)
+
+    helper = FloorplanV3(store, client, base)
+    symbols, groups = await helper.recognize_furniture_activity(
+        store.task(task["id"], internal=True), image, draft, {"files": []}
+    )
+    assert len(captured["images"]) == 4
+    assert captured["payload"]["objectCandidates"] == record["objectCandidates"]
+    assert len(symbols) == 7
+    assert len(groups) == 1
+    saved = store.task(task["id"], internal=True)["generation"]
+    assert saved["furnitureModel"]["configVersion"] == "activity-unit-1"
+    assert saved["furnitureModel"]["modelCalls"] == 1
+    assert saved["phase"] == "recognizing_furniture"
+    store.close()
+
+
+@pytest.mark.asyncio
+async def test_vision_furniture_uses_four_images_and_records_budget_metadata(tmp_path, monkeypatch):
+    store, task, image, draft, record, evidence, client, base = vision_recognition_fixture(tmp_path)
+    monkeypatch.setenv("ACTISCAPE_VISION_MODEL", "controlled-vision")
+    for _ in range(23):
+        store.count_model_call(task["id"], "setup")
+    captured = {}
+
+    async def fake_context(self, *_args):
+        return evidence, None
+
+    async def fake_request(self, mode, parameters):
+        assert mode == "contours"
+        assert parameters == {"spec": draft["data"]}
+        return record
+
+    async def fake_result(self, name, value, pictures=True):
+        assert name == "furniture_contours"
+        assert value is record
+        assert pictures is False
+        return []
+
+    async def fake_complete(self, prompt, payload, images, schema, **kwargs):
+        captured.update(
+            {
+                "images": images,
+                "payload": payload,
+                "schema": schema,
+                "kwargs": kwargs,
+            }
+        )
+        return vision_response(vision_symbol())
+
+    monkeypatch.setattr(FloorplanV3, "context", fake_context)
+    monkeypatch.setattr(FloorplanToolset, "request", fake_request)
+    monkeypatch.setattr(FloorplanToolset, "result", fake_result)
+    monkeypatch.setattr(VisionModelClient, "complete", fake_complete)
+
+    helper = FloorplanV3(store, client, base)
+    symbols = await helper.recognize_furniture_vision(
+        store.task(task["id"], internal=True), image, draft, {"files": []}
+    )
+    assert len(captured["images"]) == 4
+    assert captured["payload"]["contourCandidates"] == record["contourCandidates"]
+    assert captured["kwargs"] == {"previous": None, "parse_error": None}
+    assert symbols[0]["id"] == "chair"
+    assert symbols[0]["categoryCode"] == "chair"
+    saved = store.task(task["id"], internal=True)
+    assert saved["modelCalls"] == 24
+    assert saved["generation"]["furnitureModel"]["modelCalls"] == 1
+    assert saved["generation"]["furnitureModel"]["status"] == "completed"
+    assert saved["generation"]["furnitureModel"]["model"] == "controlled-vision"
+    store.close()
+
+
+@pytest.mark.asyncio
+async def test_vision_furniture_retries_contour_ownership_once(tmp_path, monkeypatch):
+    store, task, image, draft, record, evidence, client, base = vision_recognition_fixture(tmp_path)
+    responses = [
+        vision_response(
+            vision_symbol("fc_001", "chair-a"),
+            vision_symbol("fc_001", "chair-b"),
+        ),
+        vision_response(vision_symbol()),
+    ]
+    calls = []
+
+    async def fake_context(self, *_args):
+        return evidence, None
+
+    async def fake_request(self, *_args):
+        return record
+
+    async def fake_result(self, *_args, **_kwargs):
+        return []
+
+    async def fake_complete(self, prompt, payload, images, schema, **kwargs):
+        calls.append(kwargs)
+        return responses[len(calls) - 1]
+
+    monkeypatch.setattr(FloorplanV3, "context", fake_context)
+    monkeypatch.setattr(FloorplanToolset, "request", fake_request)
+    monkeypatch.setattr(FloorplanToolset, "result", fake_result)
+    monkeypatch.setattr(VisionModelClient, "complete", fake_complete)
+
+    helper = FloorplanV3(store, client, base)
+    symbols = await helper.recognize_furniture_vision(
+        store.task(task["id"], internal=True), image, draft, {"files": []}
+    )
+    assert [symbol["id"] for symbol in symbols] == ["chair"]
+    assert len(calls) == 2
+    assert calls[1]["previous"] == responses[0]["content"]
+    assert "重复使用" in calls[1]["parse_error"]
+    saved = store.task(task["id"], internal=True)
+    assert saved["modelCalls"] == 2
+    assert len(saved["generation"]["furnitureVisionAttempts"]) == 2
+    assert saved["generation"]["furnitureModel"]["modelCalls"] == 2
+    store.close()
+
+
+@pytest.mark.asyncio
+async def test_vision_furniture_retries_missing_response_envelope_once(tmp_path, monkeypatch):
+    store, task, image, draft, record, evidence, client, base = vision_recognition_fixture(tmp_path)
+    calls = []
+
+    async def fake_context(self, *_args):
+        return evidence, None
+
+    async def fake_request(self, *_args):
+        return record
+
+    async def fake_result(self, *_args, **_kwargs):
+        return []
+
+    async def fake_complete(self, *args, **kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            raise VisionModelFailure(
+                "VISION_MODEL_FORMAT",
+                "视觉模型返回缺少结构化正文",
+                {"model": "controlled-vision", "seconds": 0.5},
+            )
+        return vision_response(vision_symbol())
+
+    monkeypatch.setattr(FloorplanV3, "context", fake_context)
+    monkeypatch.setattr(FloorplanToolset, "request", fake_request)
+    monkeypatch.setattr(FloorplanToolset, "result", fake_result)
+    monkeypatch.setattr(VisionModelClient, "complete", fake_complete)
+
+    helper = FloorplanV3(store, client, base)
+    symbols = await helper.recognize_furniture_vision(
+        store.task(task["id"], internal=True), image, draft, {"files": []}
+    )
+    assert symbols[0]["id"] == "chair"
+    assert len(calls) == 2
+    saved = store.task(task["id"], internal=True)
+    assert saved["modelCalls"] == 2
+    assert saved["generation"]["furnitureVisionAttempts"][0]["errorCode"] == ("VISION_MODEL_FORMAT")
+    assert saved["generation"]["furnitureModel"]["modelCalls"] == 2
+    assert saved["generation"]["furnitureModel"]["status"] == "completed"
+    store.close()
+
+
+@pytest.mark.asyncio
+async def test_vision_furniture_rejects_free_coordinates_after_one_repair(tmp_path, monkeypatch):
+    store, task, image, draft, record, evidence, client, base = vision_recognition_fixture(tmp_path)
+    invalid = vision_symbol()
+    invalid["x"] = 10
+    responses = [vision_response(invalid), vision_response(invalid)]
+    calls = []
+
+    async def fake_context(self, *_args):
+        return evidence, None
+
+    async def fake_request(self, *_args):
+        return record
+
+    async def fake_result(self, *_args, **_kwargs):
+        return []
+
+    async def fake_complete(self, *args, **kwargs):
+        calls.append(kwargs)
+        return responses[len(calls) - 1]
+
+    monkeypatch.setattr(FloorplanV3, "context", fake_context)
+    monkeypatch.setattr(FloorplanToolset, "request", fake_request)
+    monkeypatch.setattr(FloorplanToolset, "result", fake_result)
+    monkeypatch.setattr(VisionModelClient, "complete", fake_complete)
+
+    helper = FloorplanV3(store, client, base)
+    with pytest.raises(TaskError, match="合法家具结构"):
+        await helper.recognize_furniture_vision(
+            store.task(task["id"], internal=True), image, draft, {"files": []}
+        )
+    assert len(calls) == 2
+    saved = store.task(task["id"], internal=True)
+    assert saved["modelCalls"] == 2
+    assert saved["generation"]["furnitureModel"]["status"] == "format_failed"
+    store.close()
 
 
 def test_mixed_orientation_candidates_are_rejected_offline():

@@ -668,6 +668,534 @@ def _dedupe_candidates(candidates: list[dict]):
     return deduped
 
 
+def _overlap(first, second, padding: int = 0):
+    return not (
+        first[2] + padding < second[0]
+        or second[2] + padding < first[0]
+        or first[3] + padding < second[1]
+        or second[3] + padding < first[1]
+    )
+
+
+def _union_bbox(candidates):
+    return [
+        min(candidate["bbox"][0] for candidate in candidates),
+        min(candidate["bbox"][1] for candidate in candidates),
+        max(candidate["bbox"][0] + candidate["bbox"][2] for candidate in candidates)
+        - min(candidate["bbox"][0] for candidate in candidates),
+        max(candidate["bbox"][1] + candidate["bbox"][3] for candidate in candidates)
+        - min(candidate["bbox"][1] for candidate in candidates),
+    ]
+
+
+def _bbox_contains(outer, inner, tolerance: int = 1):
+    return (
+        outer[0] <= inner[0] + tolerance
+        and outer[1] <= inner[1] + tolerance
+        and outer[0] + outer[2] >= inner[0] + inner[2] - tolerance
+        and outer[1] + outer[3] >= inner[1] + inner[3] - tolerance
+    )
+
+
+def _bbox_touches(first, second):
+    return (
+        first[0] <= second[0] + second[2]
+        and second[0] <= first[0] + first[2]
+        and first[1] <= second[1] + second[3]
+        and second[1] <= first[1] + first[3]
+    )
+
+
+def _center(candidate):
+    return (
+        candidate["bbox"][0] + candidate["bbox"][2] / 2,
+        candidate["bbox"][1] + candidate["bbox"][3] / 2,
+    )
+
+
+def _descendant_contours(candidate, children):
+    output = [candidate["candidateId"]]
+    for child in children.get(candidate["candidateId"], []):
+        output.extend(_descendant_contours(child, children))
+    return output
+
+
+def _similar_repeated_parts(candidate, children):
+    if len(children) < 2:
+        return False
+    widths = [child["bbox"][2] for child in children]
+    heights = [child["bbox"][3] for child in children]
+    median_width = statistics.median(widths)
+    median_height = statistics.median(heights)
+    similar = sum(
+        abs(child["bbox"][2] - median_width) <= max(2, median_width * 0.25)
+        and abs(child["bbox"][3] - median_height) <= max(2, median_height * 0.25)
+        for child in children
+    )
+    child_area = sum(child["bbox"][2] * child["bbox"][3] for child in children)
+    parent_area = candidate["bbox"][2] * candidate["bbox"][3]
+    return similar / len(children) >= 0.75 and child_area / parent_area >= 0.45
+
+
+def _concentric_children(candidate, children):
+    if len(children) != 1:
+        return False
+    parent_x, parent_y = _center(candidate)
+    child_x, child_y = _center(children[0])
+    tolerance = max(2, min(candidate["bbox"][2], candidate["bbox"][3]) * 0.1)
+    return math.hypot(parent_x - child_x, parent_y - child_y) <= tolerance
+
+
+def _child_families(children):
+    parent = list(range(len(children)))
+
+    def find(index):
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    for first in range(len(children)):
+        for second in range(first + 1, len(children)):
+            if _bbox_touches(children[first]["bbox"], children[second]["bbox"]):
+                a, b = find(first), find(second)
+                parent[b] = a
+    groups = {}
+    for index, child in enumerate(children):
+        groups.setdefault(find(index), []).append(child)
+    return list(groups.values())
+
+
+def _radial_candidate(candidate, children):
+    if len(children) < 4:
+        return None
+    primary = max(
+        children,
+        key=lambda child: child["bbox"][2] * child["bbox"][3],
+    )
+    parent_area = candidate["bbox"][2] * candidate["bbox"][3]
+    primary_area = primary["bbox"][2] * primary["bbox"][3]
+    if primary_area < parent_area * 0.25:
+        return None
+    parent_x, parent_y = _center(candidate)
+    primary_x, primary_y = _center(primary)
+    if (
+        abs(parent_x - primary_x) > candidate["bbox"][2] * 0.15
+        or abs(parent_y - primary_y) > candidate["bbox"][3] * 0.15
+    ):
+        return None
+    satellites = [
+        child
+        for child in children
+        if child is not primary and child["bbox"][2] * child["bbox"][3] <= primary_area * 0.35
+    ]
+    if len(satellites) < 3:
+        return None
+    directions = set()
+    for satellite in satellites:
+        x, y = _center(satellite)
+        dx, dy = x - primary_x, y - primary_y
+        directions.add("e" if dx > abs(dy) else "w" if -dx > abs(dy) else "s" if dy > 0 else "n")
+    if len(directions) < 3:
+        return None
+    return primary, satellites
+
+
+def furniture_object_candidates(candidates: list[dict], image: Image.Image | None = None):
+    contours = [dict(candidate) for candidate in candidates if candidate["shape"] == "contour"]
+    by_id = {candidate["candidateId"]: candidate for candidate in contours}
+    children = {candidate["candidateId"]: [] for candidate in contours}
+    parents = {}
+    for candidate in contours:
+        containers = [
+            other
+            for other in contours
+            if other is not candidate and _bbox_contains(other["bbox"], candidate["bbox"])
+        ]
+        parent = (
+            min(
+                containers,
+                key=lambda other: other["bbox"][2] * other["bbox"][3],
+            )
+            if containers
+            else None
+        )
+        if parent is not None:
+            parents[candidate["candidateId"]] = parent["candidateId"]
+            children[parent["candidateId"]].append(candidate)
+    for values in children.values():
+        values.sort(key=lambda item: (item["bbox"][1], item["bbox"][0]))
+
+    objects = []
+    radial_groups = []
+
+    def append_object(members, kind):
+        bbox = _union_bbox(members)
+        objects.append(
+            {
+                "bbox": bbox,
+                "kind": kind,
+                "contourCandidateIds": sorted(
+                    {
+                        candidate_id
+                        for member in members
+                        for candidate_id in (
+                            _descendant_contours(member, children)
+                            if kind == "composite"
+                            else [member["candidateId"]]
+                        )
+                    }
+                ),
+            }
+        )
+
+    def materialize(candidate):
+        direct = children[candidate["candidateId"]]
+        if not direct:
+            append_object([candidate], "atomic")
+            return [candidate["candidateId"]]
+        radial = _radial_candidate(candidate, direct)
+        if radial:
+            primary, satellites = radial
+            members = materialize(primary)
+            satellite_members = []
+            for satellite in satellites:
+                satellite_members.extend(materialize(satellite))
+            radial_groups.append(
+                {
+                    "primaryContourIds": members,
+                    "satelliteContourIds": satellite_members,
+                }
+            )
+            return _descendant_contours(candidate, children)
+        if _similar_repeated_parts(candidate, direct) or _concentric_children(candidate, direct):
+            append_object([candidate, *direct], "composite")
+            return _descendant_contours(candidate, children)
+        if len(direct) == 1:
+            append_object([candidate], "atomic")
+            return [candidate["candidateId"], *materialize(direct[0])]
+        families = _child_families(direct)
+        if len(families) > 1:
+            materialized = []
+            for family in families:
+                if len(family) == 1:
+                    materialized.extend(materialize(family[0]))
+                else:
+                    append_object(family, "composite")
+                    materialized.extend(
+                        candidate_id
+                        for member in family
+                        for candidate_id in _descendant_contours(member, children)
+                    )
+            return materialized
+        append_object([candidate, *direct], "composite")
+        return _descendant_contours(candidate, children)
+
+    roots = [candidate for candidate in contours if candidate["candidateId"] not in parents]
+    for root in roots:
+        materialize(root)
+
+    unique = {}
+    for candidate in objects:
+        key = tuple(candidate["contourCandidateIds"])
+        existing = unique.get(key)
+        if existing is None or candidate["kind"] == "composite":
+            unique[key] = candidate
+    filtered = []
+    for candidate in unique.values():
+        members = [
+            by_id[candidate_id]
+            for candidate_id in candidate["contourCandidateIds"]
+            if candidate_id in by_id
+        ]
+        bbox_area = max(1, candidate["bbox"][2] * candidate["bbox"][3])
+        member_area = sum(float(member.get("area") or 0) for member in members)
+        candidate["fillRatio"] = round(min(1.0, member_area / bbox_area), 4)
+        candidate["requiredForCoverage"] = (
+            candidate["kind"] == "composite" or candidate["fillRatio"] >= 0.75
+        )
+        if candidate["kind"] == "atomic" and bbox_area >= 200 and candidate["fillRatio"] < 0.08:
+            continue
+        filtered.append(candidate)
+    objects = sorted(
+        filtered,
+        key=lambda item: (
+            item["bbox"][1],
+            item["bbox"][0],
+            item["bbox"][2],
+            item["bbox"][3],
+            tuple(item["contourCandidateIds"]),
+        ),
+    )
+    for index, candidate in enumerate(objects):
+        candidate["objectCandidateId"] = f"fo_{index:03d}"
+        candidate["center"] = {
+            "x": round(candidate["bbox"][0] + candidate["bbox"][2] / 2, 1),
+            "y": round(candidate["bbox"][1] + candidate["bbox"][3] / 2, 1),
+        }
+        candidate["contextTags"] = []
+        candidate["colorTags"] = []
+        candidate["categoryHints"] = []
+        if image is not None:
+            x, y, width, height = candidate["bbox"]
+            crop = np.asarray(image.convert("RGB").crop((x, y, x + width, y + height)))
+            if crop.size:
+                hsv = cv2.cvtColor(crop, cv2.COLOR_RGB2HSV)
+                green = (
+                    (hsv[:, :, 0] >= 35)
+                    & (hsv[:, :, 0] <= 95)
+                    & (hsv[:, :, 1] >= 40)
+                    & (hsv[:, :, 2] >= 30)
+                )
+                if float(green.mean()) >= 0.08:
+                    candidate["colorTags"].append("green")
+    fixed_runs = [
+        candidate
+        for candidate in candidates
+        if candidate.get("shape") == "group"
+        and max(
+            candidate["bbox"][2] / max(1, candidate["bbox"][3]),
+            candidate["bbox"][3] / max(1, candidate["bbox"][2]),
+        )
+        >= 3
+    ]
+    for candidate in objects:
+        x, y = candidate["center"]["x"], candidate["center"]["y"]
+        for run in fixed_runs:
+            rx, ry, rw, rh = run["bbox"]
+            if rx <= x <= rx + rw and ry <= y <= ry + rh:
+                candidate["contextTags"].append(
+                    {
+                        "tag": "fixed_run",
+                        "sourceGroupId": run["candidateId"],
+                    }
+                )
+                break
+        candidate["selectable"] = candidate["requiredForCoverage"] and not any(
+            tag.get("tag") == "fixed_run" for tag in candidate["contextTags"]
+        )
+        width, depth = candidate["bbox"][2], candidate["bbox"][3]
+        members = [
+            by_id[candidate_id]
+            for candidate_id in candidate["contourCandidateIds"]
+            if candidate_id in by_id
+        ]
+        if width >= depth * 3 and any(
+            member["bbox"][2] >= max(24, width * 0.35) and member["bbox"][3] <= 10
+            for member in members
+        ):
+            candidate["categoryHints"].append("tvCabinet")
+        if "green" in candidate["colorTags"] and max(width, depth) <= min(width, depth) * 1.3:
+            candidate["categoryHints"].append("plant")
+        repeated = []
+        for member in members:
+            same = [
+                other
+                for other in members
+                if abs(other["bbox"][2] - member["bbox"][2]) <= max(2, member["bbox"][2] * 0.25)
+                and abs(other["bbox"][3] - member["bbox"][3]) <= max(2, member["bbox"][3] * 0.25)
+            ]
+            if len(same) > len(repeated):
+                repeated = same
+        if 1.8 <= width / max(1, depth) <= 3.2 and len(repeated) >= 3:
+            candidate["categoryHints"].append("sofa")
+        if depth >= width * 2.5 and len(repeated) >= 3:
+            candidate["categoryHints"].append("bookshelf")
+        candidate["categoryHints"] = list(dict.fromkeys(candidate["categoryHints"]))
+    for candidate in objects:
+        candidate["containsObjectCandidateIds"] = []
+        candidate["containedByObjectCandidateIds"] = []
+    for candidate in objects:
+        area = candidate["bbox"][2] * candidate["bbox"][3]
+        for other in objects:
+            if other is candidate:
+                continue
+            ox, oy = other["center"]["x"], other["center"]["y"]
+            other_area = other["bbox"][2] * other["bbox"][3]
+            if (
+                candidate["bbox"][0] <= ox <= candidate["bbox"][0] + candidate["bbox"][2]
+                and candidate["bbox"][1] <= oy <= candidate["bbox"][1] + candidate["bbox"][3]
+                and other_area < area * 0.8
+            ):
+                candidate["containsObjectCandidateIds"].append(other["objectCandidateId"])
+                other["containedByObjectCandidateIds"].append(candidate["objectCandidateId"])
+    contour_object = {
+        contour_id: candidate["objectCandidateId"]
+        for candidate in objects
+        for contour_id in candidate["contourCandidateIds"]
+    }
+    groups = []
+    for group in radial_groups:
+        primary = [
+            contour_object[contour_id]
+            for contour_id in group["primaryContourIds"]
+            if contour_id in contour_object
+        ]
+        satellites = [
+            contour_object[contour_id]
+            for contour_id in group["satelliteContourIds"]
+            if contour_id in contour_object
+        ]
+        primary = list(dict.fromkeys(primary))
+        satellites = list(dict.fromkeys(satellites))
+        if not primary or len(satellites) < 3:
+            continue
+        groups.append(
+            {
+                "activityGroupCandidateId": f"agc_{len(groups):03d}",
+                "kind": "radial_cluster",
+                "primaryObjectCandidateIds": primary,
+                "satelliteObjectCandidateIds": satellites,
+                "bbox": _union_bbox(
+                    [
+                        next(
+                            candidate
+                            for candidate in objects
+                            if candidate["objectCandidateId"] == object_id
+                        )
+                        for object_id in [*primary, *satellites]
+                    ]
+                ),
+            }
+        )
+    return {
+        "objectCandidates": objects,
+        "activityGroupCandidates": groups,
+    }
+
+
+def _candidate_overlay(image: Image.Image, candidates: list[dict], crop_box):
+    target = image.crop(crop_box).convert("RGB")
+    factor = min(3.0, 1800 / max(target.size))
+    if factor > 1:
+        target = target.resize(
+            (round(target.width * factor), round(target.height * factor)),
+            Image.Resampling.LANCZOS,
+        )
+    overlay = target.copy()
+    draw = ImageDraw.Draw(overlay, "RGBA")
+    font = _font(12)
+    placed: list[tuple[int, int, int, int]] = []
+    origin_x, origin_y = crop_box[0], crop_box[1]
+    shapes = []
+    for candidate in candidates:
+        x, y, width, height = candidate["bbox"]
+        box = (
+            round((x - origin_x) * factor),
+            round((y - origin_y) * factor),
+            round((x + width - origin_x) * factor),
+            round((y + height - origin_y) * factor),
+        )
+        shape = candidate.get("shape", candidate.get("kind", "contour"))
+        color = (220, 45, 100, 225) if shape in ("contour", "atomic") else (16, 139, 168, 225)
+        draw.rectangle(box, outline=color, width=2)
+        shapes.append((candidate, box, color))
+
+    def clamp(box):
+        left = max(1, min(overlay.width - (box[2] - box[0]) - 1, box[0]))
+        top = max(1, min(overlay.height - (box[3] - box[1]) - 1, box[1]))
+        return left, top, left + (box[2] - box[0]), top + (box[3] - box[1])
+
+    for candidate, box, color in shapes:
+        text = candidate.get("candidateId", candidate.get("objectCandidateId"))
+        text_box = draw.textbbox((0, 0), text, font=font, stroke_width=1)
+        label_width = text_box[2] - text_box[0] + 6
+        label_height = text_box[3] - text_box[1] + 4
+        anchor_x = (box[0] + box[2]) // 2
+        anchor_y = (box[1] + box[3]) // 2
+        choices = []
+        for offset in (4, 15, 27, 40):
+            choices.extend(
+                [
+                    (box[2] + offset, anchor_y - label_height // 2),
+                    (box[0] - label_width - offset, anchor_y - label_height // 2),
+                    (anchor_x - label_width // 2, box[1] - label_height - offset),
+                    (anchor_x - label_width // 2, box[3] + offset),
+                    (box[2] + offset, box[1] - label_height - 2),
+                    (box[0] - label_width - offset, box[3] + 2),
+                ]
+            )
+        label = None
+        for left, top in choices:
+            proposal = clamp((left, top, left + label_width, top + label_height))
+            if any(_overlap(proposal, other, padding=2) for other in placed):
+                continue
+            label = proposal
+            break
+        if label is None:
+            label = clamp(
+                (
+                    box[2] + 3,
+                    anchor_y - label_height // 2,
+                    box[2] + 3 + label_width,
+                    anchor_y + label_height // 2,
+                )
+            )
+        placed.append(label)
+        attach_x = min(max(anchor_x, label[0]), label[2])
+        attach_y = min(max(anchor_y, label[1]), label[3])
+        draw.line((anchor_x, anchor_y, attach_x, attach_y), fill=color, width=1)
+        draw.rounded_rectangle(label, radius=2, fill=(255, 255, 255, 225), outline=color, width=1)
+        draw.text(
+            (label[0] + 3, label[1] + 1),
+            text,
+            fill=color,
+            font=font,
+            stroke_width=1,
+            stroke_fill=(255, 255, 255, 230),
+        )
+    return overlay
+
+
+def _activity_group_overlay(
+    image: Image.Image,
+    object_candidates: list[dict],
+    group_candidates: list[dict],
+    crop_box,
+):
+    overlay = _candidate_overlay(image, object_candidates, crop_box)
+    draw = ImageDraw.Draw(overlay, "RGBA")
+    font = _font(13)
+    origin_x, origin_y = crop_box[0], crop_box[1]
+    factor = min(3.0, 1800 / max(crop_box[2] - crop_box[0], crop_box[3] - crop_box[1]))
+    for group in group_candidates:
+        x, y, width, height = group["bbox"]
+        box = [
+            round((x - origin_x) * factor),
+            round((y - origin_y) * factor),
+            round((x + width - origin_x) * factor),
+            round((y + height - origin_y) * factor),
+        ]
+        draw.rectangle(box, outline=(235, 120, 20, 245), width=4)
+        text = group["activityGroupCandidateId"]
+        text_box = draw.textbbox((0, 0), text, font=font, stroke_width=1)
+        label = (
+            max(1, box[0]),
+            max(1, box[1] - (text_box[3] - text_box[1]) - 8),
+        )
+        draw.rounded_rectangle(
+            [
+                label[0],
+                label[1],
+                label[0] + text_box[2] - text_box[0] + 8,
+                label[1] + text_box[3] - text_box[1] + 6,
+            ],
+            radius=2,
+            fill=(255, 248, 235, 240),
+            outline=(235, 120, 20, 245),
+            width=1,
+        )
+        draw.text(
+            (label[0] + 4, label[1] + 2),
+            text,
+            fill=(160, 70, 5, 255),
+            font=font,
+            stroke_width=1,
+            stroke_fill=(255, 255, 255, 230),
+        )
+    return overlay
+
+
 def contour_candidates(image: Image.Image, spec: dict):
     rgb = np.asarray(image.convert("RGB"))
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
@@ -745,18 +1273,21 @@ def contour_candidates(image: Image.Image, spec: dict):
         min(image.width, int(xs.max() + 1) + margin),
         min(image.height, int(ys.max() + 1) + margin),
     )
-    target_overlay = overlay.crop(crop_box)
-    factor = min(2.5, 1600 / max(target_overlay.size))
-    if factor > 1:
-        target_overlay = target_overlay.resize(
-            (
-                round(target_overlay.width * factor),
-                round(target_overlay.height * factor),
-            ),
-            Image.Resampling.LANCZOS,
-        )
+    target_overlay = _candidate_overlay(image, candidates, crop_box)
+    graph = furniture_object_candidates(candidates, image)
+    selectable_objects = [
+        candidate for candidate in graph["objectCandidates"] if candidate.get("selectable")
+    ]
+    object_overlay = _candidate_overlay(image, selectable_objects, crop_box)
+    group_overlay = _activity_group_overlay(
+        image,
+        selectable_objects,
+        graph["activityGroupCandidates"],
+        crop_box,
+    )
     return {
         "contourCandidates": candidates,
+        **graph,
         "targetRegions": {
             room_id: {
                 "bbox": [
@@ -771,4 +1302,6 @@ def contour_candidates(image: Image.Image, spec: dict):
         },
         "overlay": overlay,
         "targetOverlay": target_overlay,
+        "objectOverlay": object_overlay,
+        "groupOverlay": group_overlay,
     }

@@ -27,6 +27,15 @@ FLOORPLAN_REVIEW_OPTIONS = {
     "extra_body": {"thinking": {"type": "disabled"}},
 }
 
+# Furniture semantics use a separate grounding-capable VLM. The model is
+# intentionally scoped to contour selection; deterministic code still owns
+# geometry, room membership and ownership.
+FLOORPLAN_VISION_OPTIONS = {
+    "max_tokens": 8192,
+    "timeout": 180,
+    "temperature": 0,
+}
+
 
 def state_directory() -> Path:
     base = Path(os.environ.get("ACTISCAPE_DATA_DIR", str(ROOT / "data")))
@@ -48,4 +57,16 @@ def model_settings() -> dict:
         "max_retries": 0,
         "max_tokens": 8192,
         "extra_body": {"thinking": {"type": "enabled"}},
+    }
+
+
+def vision_model_settings() -> dict:
+    return {
+        "provider": os.environ.get("ACTISCAPE_VISION_PROVIDER", "local-vllm"),
+        "model": os.environ.get("ACTISCAPE_VISION_MODEL", "Qwen/Qwen3-VL-32B-Instruct-FP8"),
+        "base_url": os.environ.get("ACTISCAPE_VISION_BASE_URL", "http://127.0.0.1:3003/v1").rstrip(
+            "/"
+        ),
+        "api_key": os.environ.get("ACTISCAPE_VISION_API_KEY", "local"),
+        **FLOORPLAN_VISION_OPTIONS,
     }

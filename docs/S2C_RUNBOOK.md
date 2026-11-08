@@ -4,6 +4,31 @@
 
 产品目录 `/workspace/3D-design-agent`，分支 `dev/core`。继续使用 Node 24、Python 3.13、现有 DeepSeek 官方 API 服务端配置和 Chrome。安装：`npm ci && npm run setup:agent`；构建：`npm run build`；统一启动：`npm run start:all`。SceneSmith 环境独立保留。
 
+### 独立视觉模型
+
+V3-4 家具 Pass 默认连接本机 `Qwen/Qwen3-VL-32B-Instruct-FP8`，通过 vLLM 在 `http://127.0.0.1:3003/v1` 提供 OpenAI 兼容接口。模型权重保存在 `/workspace/.actiscape-tools/models`，不进入仓库或发布包。
+
+```bash
+npm run setup:vision
+npm run download:vision
+npm run start:vision
+```
+
+首次启动会执行 torch.compile 和 CUDA graph 预热，通常需要约两分钟。启动脚本关闭 DeepGEMM 与 FlashInfer 采样 JIT，改用 vLLM 预编译/Cutlass 路径，避免当前 CUDA 13 头文件点版本不一致导致的启动失败；这只影响启动路径，不改变模型权重或识别协议。`GET http://127.0.0.1:3003/health` 检查视觉服务，Agent 的 `/health` 另外返回 `visionAvailable`、模型名和端点。
+
+可用环境变量：
+
+- `ACTISCAPE_VISION_PROVIDER`
+- `ACTISCAPE_VISION_MODEL`
+- `ACTISCAPE_VISION_BASE_URL`
+- `ACTISCAPE_VISION_API_KEY`
+- `ACTISCAPE_VISION_PORT`
+- `ACTISCAPE_VISION_GPU_MEMORY`
+- `ACTISCAPE_VISION_CACHE`
+- `ACTISCAPE_TOOLS_DIR`
+
+默认只加载一份视觉模型。Qwen3-VL 与 GLM-4.6V 对照时，分别重启视觉服务并改变 `ACTISCAPE_VISION_MODEL`，然后运行离线 probe；不得在正式项目任务中自动用评估参考挑选模型。
+
 ## 使用
 
 1. 新建空白项目，进入对话面板，点击“上传户型图复现客餐厅”。支持清晰单层正交 PNG/JPEG，最多 20 MB、2500 万像素；保留原图、EXIF 校正后的像素空间、处理图和局部裁剪。
@@ -20,6 +45,8 @@
 原版读图工具、角色分工、预检及原图对账新增接口见 [原版工具适配](S2C_UPSTREAM_TOOLS.md)。工作台可在任务下展开“识别与测量证据”；任何识别或预检失败都不表示已保存正式场景。
 
 V3-3 新任务的固定候选层使用 `hpd-adapter-5`：外围墙先闭合，逐墙扫描门窗区间，轮廓外长线聚类为尺寸候选，目标房间线稿生成编号家具轮廓。结构角色只选择候选并抄录尺寸文字；家具角色只组合轮廓候选。证据面板会显示 `candidates.png`、`contours.png` 和 `target_contours.png`。草稿的 `dimensionObservations` 保存全部标注，只有最长外围外尺寸用于统一比例，其余作为交叉核对。
+
+V3-5 新任务继续使用 `hpd-adapter-5`，但家具阶段改为轻量活动单元：代码先把嵌套轮廓整理成稳定对象候选和径向主辅组，证据面板新增 `objects.png`、`groups.png`。Qwen 只分类对象并提交活动组成员，代码验证 13 个可选目标对象、餐桌唯一主对象、六把独立椅子和对象所有权。餐桌、椅子、地毯、书架等关系保存为 `activityGroups`；本批不提供成组拖动或旋转。当前版本为 `s2c-floorplan-v3-5`、Skill `0.5.4`、`activity-unit-1`，评分 `s2c-5`。
 
 `/api/floorplan-images` 是独立图片命名空间，不能用 GLB 上传接口代替。`POST` 使用单文件 multipart；返回稳定原图身份、原始 SHA-256、处理图 SHA-256、EXIF 后尺寸、归一化变换及像素线候选。`GET /:image/file` 读处理 PNG，`?variant=original` 读原始文件。裁剪入口为 `POST /:image/crops`，请求 `{"box":[x0,y0,x1,y1]}`；返回文件路径、校验值和 `cropToPixel`。小裁剪有限放大，坐标始终按显式变换映回原图；每任务最多四次裁剪尝试。
 

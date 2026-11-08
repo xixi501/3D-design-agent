@@ -11,6 +11,7 @@ import uvicorn
 from actiscape_agent.app import create_app
 from actiscape_agent.manager import TaskManager
 from actiscape_agent.roles import Roles
+from actiscape_agent.vision_client import VisionModelClient
 
 V2 = json.loads(Path("fixtures/s2c-v2-synthetic.floorplan.json").read_text())
 DATA = json.loads(Path("fixtures/s2c-synthetic.floorplan.json").read_text())
@@ -30,6 +31,79 @@ CATEGORY_CODES = {
     "单人沙发": "armchair",
     "落地灯": "floorLamp",
 }
+
+
+async def controlled_vision_complete(
+    self,
+    prompt,
+    payload,
+    images,
+    schema,
+    previous=None,
+    parse_error=None,
+):
+    assert len(images) == 4 and all(image.startswith(b"\x89PNG") for image in images)
+    targets = set(payload["structure"]["targetRoomIds"])
+    objects = payload["objectCandidates"]
+    symbols = []
+    used = set()
+    for symbol in V2["symbols"]:
+        if symbol["roomId"] not in targets:
+            continue
+        available = [
+            candidate
+            for candidate in objects
+            if candidate["objectCandidateId"] not in used
+        ]
+        assert available, symbol["id"]
+        candidate = min(
+            available,
+            key=lambda item: (
+                (item["center"]["x"] - symbol["x"]) ** 2
+                + (item["center"]["y"] - symbol["y"]) ** 2
+            ),
+        )
+        used.add(candidate["objectCandidateId"])
+        symbols.append(
+            {
+                "id": symbol["id"],
+                "roomId": symbol["roomId"],
+                "categoryCode": CATEGORY_CODES[symbol["category"]],
+                "sourceLabel": symbol["category"],
+                "functionalArea": symbol.get("functionalArea", "living"),
+                "included": True,
+                "objectCandidateId": candidate["objectCandidateId"],
+                "rot": symbol["rot"],
+            }
+        )
+    assert not payload["activityGroupCandidates"]
+    excluded = [
+        {
+            "objectCandidateId": candidate["objectCandidateId"],
+            "reason": "controlled non-target object candidate",
+        }
+        for candidate in objects
+        if candidate.get("requiredForCoverage")
+        and candidate["objectCandidateId"] not in used
+    ]
+    return {
+        "content": json.dumps(
+            {
+                "status": "draft",
+                "question": "",
+                "symbols": symbols,
+                "activityGroups": [],
+                "excludedObjectCandidates": excluded,
+            }
+        ),
+        "model": "controlled-vision",
+        "usage": {"prompt_tokens": 10, "completion_tokens": 20},
+        "seconds": 0.1,
+        "structuredMode": "json_schema",
+    }
+
+
+VisionModelClient.complete = controlled_vision_complete
 
 
 class ControlledRoles(Roles):
@@ -384,19 +458,23 @@ class ControlledRoles(Roles):
 
 def manager_factory(directory):
     manager = TaskManager(directory, roles_factory=ControlledRoles)
-    if os.environ.get("ACTISCAPE_TEST_WORKFLOW") == "1":
+    workflow = os.environ.get("ACTISCAPE_TEST_WORKFLOW")
+    if workflow in ("1", "3"):
         original = manager.store.create_task
 
         def create(conversation, body):
             task = original(conversation, body)
             if body.get("mode") == "reconstruct_floorplan":
                 g = manager.store.task(task["id"], internal=True)["generation"]
-                g.update(
-                    workflowVersion=1,
-                    skillSnapshot=json.loads(
-                        Path("fixtures/s2c-legacy-skill.json").read_text()
-                    ),
-                )
+                if workflow == "1":
+                    g.update(
+                        workflowVersion=1,
+                        skillSnapshot=json.loads(
+                            Path("fixtures/s2c-legacy-skill.json").read_text()
+                        ),
+                    )
+                else:
+                    g["floorplanVersion"] = "s2c-floorplan-v3-5"
                 manager.store.update(task["id"], generation=g)
                 task = manager.store.task(task["id"])
             return task

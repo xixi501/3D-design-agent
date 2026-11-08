@@ -24,6 +24,15 @@ CategoryCode = Literal[
     "other",
 ]
 
+ActivityUnitType = Literal[
+    "direct_occupancy",
+    "direct_access",
+    "seated_work",
+    "group_seated",
+    "standalone",
+]
+ActivityRole = Literal["primary", "satellite", "floorCovering", "accessory"]
+
 
 class PixelPoint(StrictModel):
     x: FiniteFloat = Field(ge=0)
@@ -76,11 +85,23 @@ class ImageSymbol(StrictModel):
     category: str
     categoryCode: CategoryCode | None = None
     sourceLabel: str | None = None
+    objectCandidateId: str | None = None
+    activityGroupIds: list[str] | None = Field(default=None, max_length=10)
+    activityRole: ActivityRole | None = None
     x: FiniteFloat = Field(ge=0)
     y: FiniteFloat = Field(ge=0)
     w: FiniteFloat = Field(gt=0)
     d: FiniteFloat = Field(gt=0)
     rot: FiniteFloat = Field(ge=-360, le=360)
+
+
+class ActivityGroup(StrictModel):
+    id: str
+    type: ActivityUnitType
+    primarySymbolId: str
+    memberSymbolIds: list[str] = Field(min_length=1, max_length=50)
+    roles: dict[str, ActivityRole] = Field(default_factory=dict)
+    evidenceRefs: list[str] = Field(default_factory=list, max_length=20)
 
 
 class Uncertainty(StrictModel):
@@ -104,6 +125,7 @@ class FloorplanRecognition(StrictModel):
     openings: list[ImageOpening] = Field(default_factory=list, max_length=100)
     rooms: list[ImageRoom] = Field(default_factory=list, max_length=60)
     symbols: list[ImageSymbol] = Field(default_factory=list, max_length=100)
+    activityGroups: list[ActivityGroup] = Field(default_factory=list, max_length=50)
     targetRoomIds: list[str] = Field(default_factory=list, max_length=60)
     uncertainties: list[Uncertainty] = Field(default_factory=list, max_length=100)
 
@@ -199,6 +221,46 @@ class FurnitureContourRecognition(StrictModel):
     status: Literal["draft", "unsupported"]
     question: str = ""
     symbols: list[FurnitureContourSelection] = Field(default_factory=list, max_length=100)
+
+
+class FurnitureObjectSelection(StrictModel):
+    id: str
+    roomId: str
+    categoryCode: CategoryCode
+    sourceLabel: str = Field(min_length=1, max_length=100)
+    functionalArea: Literal["living", "dining", "kitchen", "other"] | None = None
+    included: bool | None = None
+    exclusionReason: str | None = None
+    objectCandidateId: str
+    rot: FiniteFloat = Field(ge=-360, le=360)
+
+
+class FurnitureActivityGroupSelection(StrictModel):
+    id: str
+    candidateId: str
+    type: ActivityUnitType
+    primarySymbolId: str
+    memberSymbolIds: list[str] = Field(min_length=1, max_length=50)
+    roles: dict[str, ActivityRole] = Field(default_factory=dict)
+    excludedObjectCandidateIds: list[str] = Field(default_factory=list, max_length=50)
+    exclusionReasons: dict[str, str] = Field(default_factory=dict)
+
+
+class FurnitureObjectExclusion(StrictModel):
+    objectCandidateId: str
+    reason: str = Field(min_length=1, max_length=200)
+
+
+class FurnitureActivityRecognition(StrictModel):
+    status: Literal["draft", "unsupported"]
+    question: str = ""
+    symbols: list[FurnitureObjectSelection] = Field(default_factory=list, max_length=100)
+    activityGroups: list[FurnitureActivityGroupSelection] = Field(
+        default_factory=list, max_length=50
+    )
+    excludedObjectCandidates: list[FurnitureObjectExclusion] = Field(
+        default_factory=list, max_length=100
+    )
 
 
 class FloorplanReviewIssue(StrictModel):
@@ -300,7 +362,14 @@ class RecognitionV3(RecognitionV2):
 
 
 DraftCollection = Literal[
-    "walls", "openings", "rooms", "symbols", "uncertainties", "features", "dimensions"
+    "walls",
+    "openings",
+    "rooms",
+    "symbols",
+    "activityGroups",
+    "uncertainties",
+    "features",
+    "dimensions",
 ]
 
 

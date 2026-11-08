@@ -10,6 +10,7 @@ from .config import (
     FLOORPLAN_REVIEW_OPTIONS,
     ROOT,
     model_settings,
+    vision_model_settings,
 )
 
 
@@ -57,8 +58,15 @@ def runtime_versions():
         "modelConfigVersion": "per-role-output-budget-3",
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
         "floorplanReviewOptions": FLOORPLAN_REVIEW_OPTIONS,
-        "floorplanPromptVersion": "s2c-floorplan-v3-3",
+        "floorplanPromptVersion": "s2c-floorplan-v3-5",
         "floorplanToolAdapter": "hpd-adapter-5",
+        "floorplanVisionConfigVersion": "vision-furniture-1",
+        "floorplanActivityUnitVersion": "activity-unit-1",
+        "floorplanScoringVersion": "s2c-5",
+        "floorplanVision": {
+            key: vision_model_settings()[key]
+            for key in ("provider", "model", "base_url", "max_tokens", "timeout")
+        },
         "floorplanUpdateContract": "discriminated-commands-2",
         "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
         "pillow": version("Pillow"),

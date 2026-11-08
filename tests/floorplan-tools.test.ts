@@ -44,8 +44,16 @@ test("original image tools expose measured evidence without changing project/dra
     });
     assert.equal(contours.statusCode, 200, contours.body);
     assert.ok(contours.json().contourCandidates.length >= 4);
+    assert.ok(contours.json().objectCandidates.length >= 4);
+    assert.ok(Array.isArray(contours.json().activityGroupCandidates));
     assert.ok(
       contours.json().files.some((file: any) => file.name === "contours.png"),
+    );
+    assert.ok(
+      contours.json().files.some((file: any) => file.name === "objects.png"),
+    );
+    assert.ok(
+      contours.json().files.some((file: any) => file.name === "groups.png"),
     );
     const fit = await call(root + "/fit", {
       walls: [{ id: "top", kind: "H", c: 50, p0: 60, p1: 250 }],

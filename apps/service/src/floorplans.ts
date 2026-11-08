@@ -590,6 +590,7 @@ export class FloorplanStore {
               "openings",
               "rooms",
               "symbols",
+              "activityGroups",
               "uncertainties",
               ...(data.measurementVersion === 2
                 ? ["features", "dimensions"]
@@ -669,6 +670,7 @@ export class FloorplanStore {
           "openings",
           "rooms",
           "symbols",
+          "activityGroups",
           "features",
           "dimensions",
         ]) {

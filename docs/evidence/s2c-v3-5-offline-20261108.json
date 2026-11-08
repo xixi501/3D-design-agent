@@ -1,0 +1,94 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "skillVersion": "0.5.4",
+  "activityUnitVersion": "activity-unit-1",
+  "scoringVersion": "s2c-5",
+  "scope": "offline-object-graph-and-qwen-replay",
+  "inputs": {
+    "image": {
+      "path": "data/floorplan-images/fp-7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa/normalized.png",
+      "sha256": "1bf64f5d5ba2e2b4f41403c9ea203eb98cd9e252469939a6d3331eaa19c15cac"
+    },
+    "structure": {
+      "path": "test-results/floorplan-tool-live/2026-11-08T03-49-53-534Z/1-result.json",
+      "sha256": "6a3449c1b0228cdaef40fc6d782f5b6197ff5f55c0fcf12bd0b27001597be4dc"
+    },
+    "evaluationOnlyReference": {
+      "path": "fixtures/s2c-real/one-bedroom.evaluation-only.json",
+      "sha256": "2b6e646602f0e96cdb6d5246b1a8ead6551917ce2c5e68e9b8bf3ece3a0c559e",
+      "sentToModel": false
+    }
+  },
+  "objectGraph": {
+    "rawContours": 51,
+    "objectCandidates": 19,
+    "selectableObjectCandidates": 13,
+    "activityGroupCandidates": 1,
+    "selectedObjects": {
+      "tvCabinet": "fo_000",
+      "plant": "fo_001",
+      "sofa": "fo_002",
+      "rug": "fo_003",
+      "bookshelf": "fo_004",
+      "coffeeTable": "fo_005",
+      "diningTable": "fo_012",
+      "chairs": ["fo_010", "fo_011", "fo_013", "fo_014", "fo_016", "fo_017"]
+    },
+    "diningGroup": {
+      "candidateId": "agc_000",
+      "primaryObjectCandidateId": "fo_012",
+      "satelliteCount": 6
+    },
+    "filteredFixtures": ["fo_018: kitchen fixed_run"]
+  },
+  "qwen": {
+    "model": "Qwen/Qwen3-VL-32B-Instruct-FP8",
+    "endpoint": "http://127.0.0.1:3003/v1",
+    "attempts": 2,
+    "usage": [
+      {
+        "promptTokens": 7935,
+        "completionTokens": 134
+      },
+      {
+        "promptTokens": 8138,
+        "completionTokens": 1230
+      }
+    ],
+    "seconds": 38.8,
+    "formatRecovery": "The first response was rejected before geometry assembly; the same image and candidate graph were retried once.",
+    "result": {
+      "symbolCount": 13,
+      "chairCount": 6,
+      "categoryPrecision": 1.0,
+      "categoryRecall": 1.0,
+      "contourReuse": 0,
+      "layoutPassed": true,
+      "passed": true
+    }
+  },
+  "artifacts": {
+    "objects": {
+      "path": "docs/evidence/s2c-v3-5-vision/objects.png",
+      "sha256": "0379340f8d15d04e43bcb68b863973678df4d73ca6d2fec1d781aaf21078ef0b"
+    },
+    "groups": {
+      "path": "docs/evidence/s2c-v3-5-vision/groups.png",
+      "sha256": "17639cd3f5ae538af260e169f858a78d60ce6c6fa7cee3a38f69414cdc5dc59e"
+    },
+    "rawResponses": {
+      "path": "docs/evidence/s2c-v3-5-vision/qwen3-vl-v35-offline-raw-responses.json",
+      "sha256": "888a497f65b26cc4dd65cd043bc62e379d16552096980558863335ff03e3ce61"
+    },
+    "report": {
+      "path": "docs/evidence/s2c-v3-5-vision/qwen3-vl-v35-offline-report.json",
+      "sha256": "6e6e1a40b0dd36d22714d3bcc383a685b8aec9b5ef32d3ea5da425bded64d9c2"
+    }
+  },
+  "decision": {
+    "offlineGatePassed": true,
+    "realSameImageRunStarted": false,
+    "secondImageStarted": false,
+    "note": "The offline pass permits one planned real zero-correction development run; it is not formal S2 acceptance."
+  }
+}

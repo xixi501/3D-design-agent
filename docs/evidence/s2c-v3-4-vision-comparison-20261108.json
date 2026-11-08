@@ -1,0 +1,115 @@
+{
+  "version": "s2c-floorplan-v3-4",
+  "configVersion": "vision-furniture-1",
+  "date": "2026-11-08",
+  "scope": "offline-single-image-furniture-comparison",
+  "runtime": {
+    "hardware": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+    "gpuMemoryMiB": 97887,
+    "vllm": "0.33.0",
+    "torch": "2.14.0+cu130",
+    "compatibility": {
+      "VLLM_USE_DEEP_GEMM": "0",
+      "VLLM_MOE_USE_DEEP_GEMM": "0",
+      "VLLM_DEEP_GEMM_WARMUP": "skip",
+      "VLLM_USE_FLASHINFER_SAMPLER": "0"
+    },
+    "reason": "Bundled CUDA runtime and nvcc headers expose incompatible point versions for DeepGEMM and FlashInfer JIT compilation; prebuilt/Cutlass paths start successfully."
+  },
+  "inputs": {
+    "image": {
+      "path": "data/floorplan-images/fp-7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa/normalized.png",
+      "sha256": "1bf64f5d5ba2e2b4f41403c9ea203eb98cd9e252469939a6d3331eaa19c15cac"
+    },
+    "structureResult": {
+      "path": "test-results/floorplan-tool-live/2026-11-08T03-49-53-534Z/1-result.json",
+      "sha256": "6a3449c1b0228cdaef40fc6d782f5b6197ff5f55c0fcf12bd0b27001597be4dc"
+    },
+    "evaluationOnlyReference": {
+      "path": "fixtures/s2c-real/one-bedroom.evaluation-only.json",
+      "sha256": "2b6e646602f0e96cdb6d5246b1a8ead6551917ce2c5e68e9b8bf3ece3a0c559e",
+      "sentToModel": false
+    },
+    "expected": {
+      "symbolCount": 13,
+      "chairCount": 6
+    }
+  },
+  "qwen3vl32b": {
+    "model": "Qwen/Qwen3-VL-32B-Instruct-FP8",
+    "weights": "/workspace/.actiscape-tools/models",
+    "endpoint": "http://127.0.0.1:3003/v1",
+    "status": "deployed-and-called",
+    "startupSeconds": 241,
+    "weightsGiB": 33.49,
+    "kvCacheGiB": 48.12,
+    "comparisonAttempts": 2,
+    "usage": [
+      {
+        "promptTokens": 7951,
+        "completionTokens": 997
+      },
+      {
+        "promptTokens": 8991,
+        "completionTokens": 984
+      }
+    ],
+    "seconds": 56.162,
+    "actualSymbolCount": 11,
+    "chairCount": 4,
+    "found": [
+      "sofa",
+      "coffeeTable",
+      "diningTable",
+      "chair",
+      "tvCabinet",
+      "bookshelf",
+      "rug",
+      "plant"
+    ],
+    "failureCode": "INVALID_FURNITURE",
+    "failure": "The dining-table contour still enclosed independent chairs; two upper-side chairs were omitted and an inner tabletop contour was misclassified as the rug.",
+    "passed": false
+  },
+  "glm46vFlash": {
+    "model": "zai-org/GLM-4.6V-Flash",
+    "weights": "/workspace/.actiscape-tools/models",
+    "endpoint": "http://127.0.0.1:3003/v1",
+    "status": "deployed-and-called",
+    "startupSeconds": 114,
+    "weightsGiB": 19.29,
+    "kvCacheGiB": 60.0,
+    "comparisonAttempts": 1,
+    "usage": [
+      {
+        "promptTokens": 8056,
+        "completionTokens": 642
+      }
+    ],
+    "seconds": 11.202,
+    "actualSymbolCount": 11,
+    "chairCount": 4,
+    "categoryPrecision": 0.7272727272727273,
+    "categoryRecall": 0.6153846153846154,
+    "missed": ["two chairs", "tvCabinet", "bookshelf", "plant"],
+    "extra": ["sideTable", "two kitchen/entry cabinet symbols"],
+    "passed": false
+  },
+  "rawEvidence": {
+    "qwen": {
+      "path": "docs/evidence/s2c-v3-4-vision/qwen3-vl-32b-raw-responses.json",
+      "sha256": "2eaa06ea75f815c9ef62d4c46735103de4c22ad02296edf86cc744ac7b064971"
+    },
+    "glm": {
+      "path": "docs/evidence/s2c-v3-4-vision/glm-4-6v-flash-raw-responses.json",
+      "sha256": "c6a54dc810ba93b418aab951a44888beb31c9f50c2fabf686b61abc63e5920a9"
+    }
+  },
+  "decision": {
+    "automaticWinner": null,
+    "reason": "Neither model reached 90% category precision/recall, 13 symbols and six chairs, zero contour reuse, and the existing geometry thresholds.",
+    "realSameImageRunStarted": false,
+    "secondImageStarted": false,
+    "nextBatch": "Improve deterministic contour grouping against the captured failures or train a dedicated detector; do not keep swapping general VLMs in this acceptance batch."
+  }
+}

@@ -137,6 +137,7 @@ for (let repeat = 1; repeat <= repeats; repeat++) {
       3,
       "V3 live acceptance must run workflowVersion=3",
     );
+    assert.equal(task.generation?.floorplanVersion, "s2c-floorplan-v3-5");
   }
   save(`${repeat}-accepted.json`, {
     projectId: before.id,
@@ -332,7 +333,8 @@ for (let repeat = 1; repeat <= repeats; repeat++) {
           workflow.passed =
             record.catalogueProof.passed &&
             record.geometry.passed &&
-            ["main", "assets", "design", "check"].every((r) => roles.has(r));
+            ["main", "assets", "design", "check"].every((r) => roles.has(r)) &&
+            (!completeV3 || roles.has("vision"));
         }
       }
     } catch (error) {

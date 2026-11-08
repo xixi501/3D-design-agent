@@ -386,6 +386,8 @@ export class ChatPanel {
           "candidates.png": "墙体、洞口与尺寸候选",
           "contours.png": "家具轮廓候选",
           "target_contours.png": "目标客餐厅轮廓放大图",
+          "objects.png": "稳定家具对象候选",
+          "groups.png": "主辅活动组候选",
           "mask.png": "墙体像素掩膜",
           "furn_all.png": "家具位置与朝向核对",
           "sheet_0.png": "墙体差异放大",

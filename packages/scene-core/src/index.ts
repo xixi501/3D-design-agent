@@ -131,6 +131,30 @@ export function validatePlan(plan: Plan) {
         finite(d.residualMm, "source.dimension.residualMm");
       }
     }
+    if (s.activityGroups !== undefined) {
+      if (!Array.isArray(s.activityGroups) || s.activityGroups.length > 50)
+        throw new SceneError("INVALID_DOCUMENT", "来源活动组数量无效");
+      const groupIds = new Set<string>();
+      for (const group of s.activityGroups) {
+        if (
+          !group ||
+          typeof group !== "object" ||
+          typeof group.id !== "string" ||
+          typeof group.type !== "string" ||
+          typeof group.primaryObjectId !== "string" ||
+          !Array.isArray(group.memberObjectIds) ||
+          !group.memberObjectIds.includes(group.primaryObjectId) ||
+          !group.roles ||
+          typeof group.roles !== "object"
+        )
+          throw new SceneError("INVALID_DOCUMENT", "来源活动组无效");
+        if (groupIds.has(group.id))
+          throw new SceneError("INVALID_DOCUMENT", "来源活动组身份重复");
+        groupIds.add(group.id);
+        if (group.roles[group.primaryObjectId] !== "primary")
+          throw new SceneError("INVALID_DOCUMENT", "来源活动组主对象角色无效");
+      }
+    }
     finite(s.origin?.x, "source.origin.x");
     finite(s.origin?.y, "source.origin.y");
   }

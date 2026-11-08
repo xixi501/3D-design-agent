@@ -319,15 +319,27 @@ def process(payload):
             result = contour_candidates(image, spec)
             result["overlay"].save(out / "contours.png")
             result["targetOverlay"].save(out / "target_contours.png")
+            result["objectOverlay"].save(out / "objects.png")
+            result["groupOverlay"].save(out / "groups.png")
             result["files"] = {
                 "contours.png": artifact(out / "contours.png"),
                 "target_contours.png": artifact(out / "target_contours.png"),
+                "objects.png": artifact(out / "objects.png"),
+                "groups.png": artifact(out / "groups.png"),
             }
             result.pop("overlay", None)
             result.pop("targetOverlay", None)
-            result["coverage"] = ["目标房间像素区域", "家具线稿轮廓与分组候选"]
+            result.pop("objectOverlay", None)
+            result.pop("groupOverlay", None)
+            result["coverage"] = [
+                "目标房间像素区域",
+                "家具线稿轮廓",
+                "稳定对象候选",
+                "活动组候选",
+            ]
             result["limitations"] = [
-                "轮廓候选不代表家具语义；模型只选择和组合候选",
+                "对象候选由轮廓几何产生，不代表家具语义",
+                "活动组候选只表达主辅空间关系，不直接赋予类别",
                 "被家具遮挡或未闭合的线稿会保留为低置信候选",
             ]
         elif mode == "evidence":

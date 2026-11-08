@@ -88,6 +88,14 @@ export const imageCategoryCodes = [
   "other",
 ] as const;
 export type ImageCategoryCode = (typeof imageCategoryCodes)[number];
+export type ActivityUnitType =
+  | "direct_occupancy"
+  | "direct_access"
+  | "seated_work"
+  | "group_seated"
+  | "standalone";
+export type ActivityRole =
+  "primary" | "satellite" | "floorCovering" | "accessory";
 export interface ImageSymbol {
   functionalArea?: "living" | "dining" | "kitchen" | "other";
   included?: boolean;
@@ -98,12 +106,23 @@ export interface ImageSymbol {
   category: string;
   categoryCode?: ImageCategoryCode;
   sourceLabel?: string;
+  objectCandidateId?: string;
+  activityGroupIds?: string[];
+  activityRole?: ActivityRole;
   x: number;
   y: number;
   w: number;
   d: number;
   rot: number;
   catalogKey?: string;
+}
+export interface ActivityGroup {
+  id: string;
+  type: ActivityUnitType;
+  primarySymbolId: string;
+  memberSymbolIds: string[];
+  roles: Record<string, ActivityRole>;
+  evidenceRefs?: string[];
 }
 export interface FloorplanData {
   recognitionVersion?: 3;
@@ -120,6 +139,7 @@ export interface FloorplanData {
   openings: ImageOpening[];
   rooms: ImageRoom[];
   symbols: ImageSymbol[];
+  activityGroups?: ActivityGroup[];
   targetRoomIds: string[];
   uncertainties: { id: string; message: string; blocking: boolean }[];
 }
@@ -185,6 +205,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       "openings",
       "rooms",
       "symbols",
+      "activityGroups",
       "targetRoomIds",
       "uncertainties",
       "measurementVersion",
@@ -390,6 +411,9 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
         "category",
         "categoryCode",
         "sourceLabel",
+        "objectCandidateId",
+        "activityGroupIds",
+        "activityRole",
         "x",
         "y",
         "w",
@@ -412,6 +436,15 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       invalid("未知家具类别代码", f.id + ".categoryCode");
     if (f.sourceLabel !== undefined)
       text(f.sourceLabel, f.id + ".sourceLabel", 100);
+    if (f.objectCandidateId !== undefined)
+      text(f.objectCandidateId, f.id + ".objectCandidateId", 100);
+    if (
+      f.activityRole !== undefined &&
+      !["primary", "satellite", "floorCovering", "accessory"].includes(
+        f.activityRole,
+      )
+    )
+      invalid("未知活动组角色", f.id + ".activityRole");
     if (
       data.recognitionVersion === 3 &&
       (!f.categoryCode || !f.sourceLabel || f.category !== f.categoryCode)
@@ -440,6 +473,134 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       invalid("排除原图符号须给出用途与证据", f.id);
     if (f.catalogKey !== undefined && !Object.hasOwn(catalog, f.catalogKey))
       invalid("指定家具不在目录", f.id + ".catalogKey");
+  }
+  const activityGroupIds = new Set<string>();
+  if (data.activityGroups !== undefined) {
+    if (!Array.isArray(data.activityGroups) || data.activityGroups.length > 50)
+      invalid("活动组数量无效", "activityGroups");
+    const symbolMap = new Map(
+      data.symbols.map((symbol) => [symbol.id, symbol]),
+    );
+    const symbolIds = new Set(symbolMap.keys());
+    for (const [index, group] of data.activityGroups.entries()) {
+      object(
+        group,
+        [
+          "id",
+          "type",
+          "primarySymbolId",
+          "memberSymbolIds",
+          "roles",
+          "evidenceRefs",
+        ],
+        `activityGroups.${index}`,
+      );
+      text(group.id, `activityGroups.${index}.id`, 100);
+      if (!/^[\w:-]+$/.test(group.id) || activityGroupIds.has(group.id))
+        invalid("活动组身份重复或无效", `activityGroups.${index}.id`);
+      activityGroupIds.add(group.id);
+      if (
+        ![
+          "direct_occupancy",
+          "direct_access",
+          "seated_work",
+          "group_seated",
+          "standalone",
+        ].includes(group.type)
+      )
+        invalid("未知活动组类型", `activityGroups.${index}.type`);
+      if (
+        !Array.isArray(group.memberSymbolIds) ||
+        !group.memberSymbolIds.length ||
+        group.memberSymbolIds.length > 50 ||
+        new Set(group.memberSymbolIds).size !== group.memberSymbolIds.length
+      )
+        invalid("活动组成员无效", `activityGroups.${index}.memberSymbolIds`);
+      if (
+        !symbolIds.has(group.primarySymbolId) ||
+        !group.memberSymbolIds.includes(group.primarySymbolId)
+      )
+        invalid("活动组主对象缺失", `activityGroups.${index}.primarySymbolId`);
+      for (const symbolId of group.memberSymbolIds)
+        if (!symbolIds.has(symbolId))
+          invalid(
+            "活动组引用了未知家具",
+            `activityGroups.${index}.memberSymbolIds`,
+          );
+      if (!group.roles || typeof group.roles !== "object")
+        invalid("活动组角色缺失", `activityGroups.${index}.roles`);
+      if (
+        Object.keys(group.roles).length !== group.memberSymbolIds.length ||
+        group.memberSymbolIds.some(
+          (symbolId) => group.roles[symbolId] === undefined,
+        )
+      )
+        invalid("活动组角色必须覆盖全部成员", `activityGroups.${index}.roles`);
+      for (const symbolId of Object.keys(group.roles))
+        if (!group.memberSymbolIds.includes(symbolId))
+          invalid("活动组角色引用了组外对象", `activityGroups.${index}.roles`);
+      if (
+        Object.values(group.roles).some(
+          (role) =>
+            !["primary", "satellite", "floorCovering", "accessory"].includes(
+              role,
+            ),
+        )
+      )
+        invalid("活动组角色值无效", `activityGroups.${index}.roles`);
+      if (group.roles[group.primarySymbolId] !== "primary")
+        invalid("活动组主对象角色错误", `activityGroups.${index}.roles`);
+      if (
+        group.type === "group_seated" &&
+        group.memberSymbolIds.filter(
+          (symbolId) => group.roles[symbolId] === "primary",
+        ).length !== 1
+      )
+        invalid("就座活动组必须只有一个主对象", `activityGroups.${index}`);
+      if (group.type === "group_seated" && group.memberSymbolIds.length < 3)
+        invalid("就座活动组至少需要餐桌和两把椅子", `activityGroups.${index}`);
+      if (
+        group.type === "group_seated" &&
+        (symbolMap.get(group.primarySymbolId)?.categoryCode !== "diningTable" ||
+          group.memberSymbolIds.some(
+            (symbolId) =>
+              symbolId !== group.primarySymbolId &&
+              symbolMap.get(symbolId)?.categoryCode !== "chair",
+          ))
+      )
+        invalid("就座活动组的类别角色无效", `activityGroups.${index}`);
+      if (group.type === "seated_work" && group.memberSymbolIds.length !== 2)
+        invalid("工作活动组必须包含书桌和一把椅子", `activityGroups.${index}`);
+      if (
+        group.type === "seated_work" &&
+        (symbolMap.get(group.primarySymbolId)?.categoryCode !== "desk" ||
+          symbolMap.get(
+            group.memberSymbolIds.find(
+              (symbolId) => symbolId !== group.primarySymbolId,
+            )!,
+          )?.categoryCode !== "chair")
+      )
+        invalid("工作活动组的类别角色无效", `activityGroups.${index}`);
+      if (
+        ["direct_occupancy", "direct_access", "standalone"].includes(
+          group.type,
+        ) &&
+        group.memberSymbolIds.length !== 1
+      )
+        invalid("单体活动组只能包含一个家具", `activityGroups.${index}`);
+    }
+  }
+  for (const f of data.symbols) {
+    if (f.activityGroupIds === undefined) continue;
+    if (
+      !Array.isArray(f.activityGroupIds) ||
+      f.activityGroupIds.length > 10 ||
+      new Set(f.activityGroupIds).size !== f.activityGroupIds.length
+    )
+      invalid("家具活动组引用无效", f.id + ".activityGroupIds");
+    for (const groupId of f.activityGroupIds)
+      if (!activityGroupIds.has(groupId))
+        invalid("家具引用了未知活动组", f.id + ".activityGroupIds");
   }
   if (
     !Array.isArray(data.targetRoomIds) ||
@@ -772,6 +933,9 @@ export function compileFloorplan(
   if (!symbols.length)
     invalid("目标客餐厅需要原图家具清单，请补齐或选择正确房间", "symbols");
   if (symbols.length > 50) invalid("目标家具超过单事务 50 件上限", "symbols");
+  const objectBySymbol = Object.fromEntries(
+    symbols.map((symbol) => [symbol.id, symbol.objectId]),
+  );
   const source = {
     kind: "floorplan",
     imageId: data.image.id,
@@ -797,7 +961,25 @@ export function compileFloorplan(
       : {}),
     origin,
     ...binding,
-    symbolObjects: Object.fromEntries(symbols.map((s) => [s.id, s.objectId])),
+    symbolObjects: objectBySymbol,
+    ...(data.activityGroups?.length
+      ? {
+          activityGroups: data.activityGroups.map((group) => ({
+            id: group.id,
+            type: group.type,
+            primaryObjectId: objectBySymbol[group.primarySymbolId],
+            memberObjectIds: group.memberSymbolIds.map(
+              (symbolId) => objectBySymbol[symbolId],
+            ),
+            roles: Object.fromEntries(
+              Object.entries(group.roles).map(([symbolId, role]) => [
+                objectBySymbol[symbolId],
+                role,
+              ]),
+            ),
+          })),
+        }
+      : {}),
     targetRoomIds,
   };
   plan.source = source;

@@ -11,6 +11,50 @@ const angle = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180);
 const distance = (a: any, b: any) => Math.hypot(a.x - b.x, a.y - b.y);
 const norm = (s: string, aliases: Record<string, string>) =>
   aliases[s] || s.trim().toLowerCase().replace(/\s+/g, "");
+function activityGroupQuality(data: FloorplanData) {
+  if (data.activityGroups === undefined)
+    return { passed: true, applicable: false, issues: [] as string[] };
+  const issues: string[] = [];
+  const symbols = new Map(data.symbols.map((symbol) => [symbol.id, symbol]));
+  const objectIds = data.symbols
+    .map((symbol) => symbol.objectCandidateId)
+    .filter((id): id is string => !!id);
+  if (objectIds.length !== new Set(objectIds).size)
+    issues.push("object candidate reused");
+  for (const symbol of data.symbols)
+    if (symbol.categoryCode && !symbol.objectCandidateId)
+      issues.push(`${symbol.id} missing object candidate`);
+  for (const group of data.activityGroups) {
+    const primary = symbols.get(group.primarySymbolId);
+    if (!primary || group.roles[group.primarySymbolId] !== "primary")
+      issues.push(`${group.id} primary invalid`);
+    const primaries = group.memberSymbolIds.filter(
+      (id) => group.roles[id] === "primary",
+    );
+    if (primaries.length !== 1) issues.push(`${group.id} requires one primary`);
+    if (group.type === "group_seated") {
+      if (primary?.categoryCode !== "diningTable")
+        issues.push(`${group.id} primary is not a dining table`);
+      if (
+        group.memberSymbolIds.some(
+          (id) =>
+            id !== group.primarySymbolId &&
+            symbols.get(id)?.categoryCode !== "chair",
+        )
+      )
+        issues.push(`${group.id} contains a non-chair satellite`);
+      if (group.memberSymbolIds.length < 3)
+        issues.push(`${group.id} has too few chairs`);
+    }
+    if (group.type === "seated_work") {
+      if (primary?.categoryCode !== "desk")
+        issues.push(`${group.id} primary is not a desk`);
+      if (group.memberSymbolIds.length !== 2)
+        issues.push(`${group.id} requires one desk and one chair`);
+    }
+  }
+  return { passed: issues.length === 0, applicable: true, issues };
+}
 function union(intervals: number[][]) {
   const sorted = intervals
       .filter(([a, b]) => b > a)
@@ -256,14 +300,22 @@ export function scoreFloorplanRecognition(
     (a, b) => a.category === b.category,
     distance,
   );
+  const groups = activityGroupQuality(raw);
   return {
-    passed: [walls, openings, furniture].every(
-      (m) => m.precision >= 0.9 && m.recall >= 0.9,
-    ),
+    passed:
+      [walls, openings, furniture].every(
+        (m) => m.precision >= 0.9 && m.recall >= 0.9,
+      ) && groups.passed,
     walls,
     openings,
     furniture,
-    thresholdVersion: raw.recognitionVersion === 3 ? "s2c-4" : "s2c-1",
+    activityGroups: groups,
+    thresholdVersion:
+      raw.activityGroups !== undefined
+        ? "s2c-5"
+        : raw.recognitionVersion === 3
+          ? "s2c-4"
+          : "s2c-1",
   };
 }
 
@@ -274,6 +326,7 @@ export function scoreFloorplan(
   corrections: number,
   aliases: Record<string, string> = {},
 ) {
+  const groups = activityGroupQuality(raw);
   const measurement =
     confirmed.measurementVersion === 2
       ? solveMeasurement(confirmed)
@@ -428,7 +481,11 @@ export function scoreFloorplan(
     structure.passed &&
     dimensionsPassed;
   return {
-    passed: rawPassed && finalPassed && corrections <= (measurement ? 0 : 5),
+    passed:
+      rawPassed &&
+      finalPassed &&
+      groups.passed &&
+      corrections <= (measurement ? 0 : 5),
     rawPassed,
     finalPassed,
     corrections,
@@ -445,7 +502,13 @@ export function scoreFloorplan(
       dimensionsPassed,
     },
     thresholdVersion:
-      raw.recognitionVersion === 3 ? "s2c-4" : measurement ? "s2c-2" : "s2c-1",
+      raw.activityGroups !== undefined
+        ? "s2c-5"
+        : raw.recognitionVersion === 3
+          ? "s2c-4"
+          : measurement
+            ? "s2c-2"
+            : "s2c-1",
   };
 }
 

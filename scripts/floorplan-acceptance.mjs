@@ -319,6 +319,17 @@ try {
   assert.equal(saved.revision, 1);
   assert.equal(saved.plan.furniture.length, 4);
   assert.equal(saved.plan.rooms.length, 3);
+  if (v3) {
+    assert.ok(saved.plan.source.activityGroups.length >= 4);
+    assert.ok(
+      saved.plan.source.activityGroups.every(
+        (group) =>
+          group.primaryObjectId &&
+          group.memberObjectIds.includes(group.primaryObjectId) &&
+          group.roles[group.primaryObjectId] === "primary",
+      ),
+    );
+  }
   assert.equal((await api(root + "/history")).entries.length, 1);
   const frozenCandidate = await api(
     `${root}/candidates/${complete.result.candidateId}`,
@@ -329,7 +340,12 @@ try {
     roles = new Set(
       trace.filter((e) => e.kind === "agent_start").map((e) => e.data.role),
     );
-  assert.deepEqual([...roles].sort(), ["assets", "check", "design", "main"]);
+  assert.deepEqual(
+    [...roles].sort(),
+    v3
+      ? ["assets", "check", "design", "main", "vision"]
+      : ["assets", "check", "design", "main"],
+  );
   assert.equal(complete.result.skillsUsed[0].id, "floorplan-reconstruction");
   await page.waitForFunction(
     () => document.querySelector("#source-image")?.hidden === false,
@@ -353,7 +369,9 @@ try {
   for (let i = 0; i < 100 && (await api(root)).revision !== 3; i++)
     await delay(100);
   assert.deepEqual((await api(root)).plan, saved.plan);
-  steps.push("four roles, real WebGL evidence, one atomic commit, undo/redo");
+  steps.push(
+    "four domain roles plus local vision, real WebGL evidence, one atomic commit, undo/redo",
+  );
   await stop();
   const backup = path.join(out, "restored-data");
   fs.rmSync(backup, { recursive: true, force: true });

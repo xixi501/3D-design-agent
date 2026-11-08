@@ -60,7 +60,7 @@ CORRECT = (
     RULES
     + """你是主控 Agent，只把本次用户补充转换为草稿 commands。没有明确依据不能更改几何或清除不确定项。
 可用命令：calibrate(anchors 完整数组)、targets(roomIds 完整数组)、defaults(values 中仅 name/height/wallThickness)、upsert(collection,object 完整对象)、delete(collection,id)。
-collection 只能 walls/openings/rooms/symbols/uncertainties。沿用原对象 id；删除被引用对象时必须在同一批补齐引用。
+collection 只能 walls/openings/rooms/symbols/activityGroups/uncertainties。沿用原对象 id；删除被引用对象时必须在同一批补齐引用。
 距离位置仍用原图像素；高度与默认墙厚为毫米。用户仅说“已确认/生成/继续”不能伪造校正或自动确认，返回 question 提示点击确认。
 不明确时 commands=[] 并提出一个合并问题。不能将整张图重画来隐藏不确定项。
 """

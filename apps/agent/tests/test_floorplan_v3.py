@@ -1016,6 +1016,42 @@ def test_review_downgrades_opening_uncertainty_when_candidates_all_match():
     )
 
 
+def test_review_downgrades_open_kitchen_scope_when_target_room_is_valid():
+    draft = {
+        "data": {
+            "uncertainties": [
+                {
+                    "id": "u_room_label",
+                    "message": "Living Room 与厨房在同一封闭区域内，是否合并需确认",
+                    "blocking": True,
+                }
+            ],
+            "symbols": [{"id": "sofa"}],
+            "rooms": [
+                {
+                    "id": "living",
+                    "name": "Living Room",
+                    "functionalArea": "living",
+                }
+            ],
+            "targetRoomIds": ["living"],
+            "anchors": [],
+            "features": [],
+            "dimensions": [],
+            "walls": [],
+            "openings": [],
+        }
+    }
+    diagnostics = {"id": "diagnostic", "checks": {"passed": True, "issues": []}}
+    review = {"passed": True, "summary": "ok", "issues": []}
+    arbitrated = _arbitrate_review(review, draft, diagnostics, {})
+    assert arbitrated["passed"] is True
+    assert any(
+        issue["object_ids"] == ["u_room_label"] and issue["severity"] == "advisory"
+        for issue in arbitrated["issues"]
+    )
+
+
 def test_floorplan_asset_choice_is_normalized_by_confirmed_footprint():
     catalogue = {
         "sofa": {"w": 2200, "d": 950, "h": 820},

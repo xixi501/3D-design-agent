@@ -225,6 +225,16 @@ def _uncertainty_resolved_by_code(uncertainty, data, checks, skeleton):
         candidates = skeleton.get("openingCandidates") or []
         if candidates and not _opening_mismatches(data, skeleton):
             return True
+    rooms = {room.get("id"): room for room in data.get("rooms") or []}
+    targets = [rooms.get(room_id) for room_id in data.get("targetRoomIds") or []]
+    if (
+        targets
+        and all(targets)
+        and any(room.get("functionalArea") in ("living", "dining") for room in targets)
+        and any(term in text for term in ("kitchen", "厨房"))
+        and any(term in text for term in ("living", "客厅", "客餐厅"))
+    ):
+        return True
     return any(
         term in text
         for term in (

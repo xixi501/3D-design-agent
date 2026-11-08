@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-08",
+  "scope": "V3-2 candidate grouping, bounded repair, precomputed measurement and manual development loop",
+  "automaticAcceptance": false,
+  "developmentLoopAccepted": false,
+  "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+  "model": "deepseek-flash",
+  "manualGeometryOperations": 49,
+  "attempts": [
+    {
+      "attempt": 1,
+      "codeCommit": "b80201890079d7ebfaf6ec91755ae8ab99697e7e",
+      "projectId": "e0d38944-350d-4c7a-9fc1-f5036cac0d05",
+      "taskId": "a408134e-6a17-470d-a19b-762851132417",
+      "status": "failed",
+      "errorCode": "BUDGET_EXHAUSTED",
+      "error": "任务达到模型请求或时间上限",
+      "modelCalls": 24,
+      "activeSeconds": 111.0821282863617,
+      "draftCreated": true,
+      "measurementAttempts": 2,
+      "repairsUsed": 1,
+      "formalRevision": 0,
+      "classification": "measurement role consumed the shared request budget in tool continuation; no pre-confirmation review remained",
+      "artifact": "test-results/floorplan-tool-live/2026-11-08T03-00-59-508Z/1-result.json",
+      "artifactSha256": "5a752ea88903dab7b81025b596e38ba8a1a32d2a0a9b2bcafe99f1bcd70ff6b8",
+      "reportSha256": "f3e0920de6dd3c3be76d679cafc2dd0b9ee6bb1e7bae2d40902de3b893173403"
+    },
+    {
+      "attempt": 2,
+      "codeCommit": "d34a999c6bb58a52d4f1132e93c00904b5003270",
+      "projectId": "3c29c86b-ba97-45a4-a23b-9c4ecd45ca94",
+      "taskId": "857c24b3-3aad-474a-b422-8be30556e363",
+      "draftId": "8e113e52-a7b2-4492-bea9-f46c23a9bd1b",
+      "status": "waiting_input",
+      "modelCalls": 23,
+      "activeSeconds": 180.64863562583923,
+      "draftCreated": true,
+      "draftRevision": 4,
+      "draftHash": "e8579d0cd448ce2e2a6a2e22409990e49ebd3c12f3b8ec0df21a507e75adf79f",
+      "corrections": 49,
+      "manualRechecks": 1,
+      "compilationPassedAfterManualCorrection": true,
+      "sourceReviewPassed": false,
+      "formalRevision": 0,
+      "classification": "manual correction made the draft compile, but the independent source review still found opening, furniture-position and dimension-anchor mismatches",
+      "reviewIssueCodes": [
+        "OPENING_MISMATCH",
+        "FURNITURE_POSITION",
+        "DIMENSION_MISMATCH",
+        "EVIDENCE_MISSING",
+        "WALL_MISMATCH"
+      ],
+      "artifact": "test-results/floorplan-tool-live/2026-11-08T03-04-42-162Z/1-result.json",
+      "artifactSha256": "d025f0c3fcadda82eada4c174197256551f8a36712238d827f3a1bc7193a3fcf",
+      "reportSha256": "d13d1d4a77eaabda490db91f86946ec05ec7394144d3308052f441b8cfdede27",
+      "manualProof": "test-results/floorplan-tool-live/2026-11-08T03-04-42-162Z/manual-development-loop.json",
+      "manualProofSha256": "2512f4a26d63dceb28a2119050f8303b609befdf7988b67a9219f1d01c31288c"
+    }
+  ],
+  "notes": [
+    "Candidate wall grouping prevented the two V3-1 structure-reference failures.",
+    "The first attempt exposed measurement tool-loop budget consumption; precomputation was added before the second attempt.",
+    "The second attempt reached a compilable draft and manual recheck but did not pass independent review.",
+    "No confirmation, candidate creation or formal project write occurred."
+  ]
+}

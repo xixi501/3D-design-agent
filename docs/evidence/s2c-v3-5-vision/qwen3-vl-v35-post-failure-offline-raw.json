@@ -1,0 +1,28 @@
+[
+  {
+    "content": "{\n  \"status\": \"draft\",\n  \"excludedObjectCandidates\": [\n    {\n      \"objectCandidateId\": \"fo_000\",\n      \"reason\": \"位于客餐厅区域，但为电视柜，根据用户要求仅复现客餐厅家具，且该对象在客餐厅内，应保留。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_001\",\n      \"reason\": \"绿色近方形复合对象，根据 categoryHints 为 plant，应登记为 plant/decor。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_002\",\n      \"reason\": \"沙发，应登记为 sofa。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_003\",\n      \"reason\": \"地毯，应登记为 rug。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_004\",\n      \"reason\": \"书架，应登记为 bookshelf。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_005\",\n      \"reason\": \"茶几，应登记为 coffeeTable。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_010\",\n      \"reason\": \"餐椅，应登记为 chair。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_011\",\n      \"reason\": \"餐椅，应登记为 chair。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_012\",\n      \"reason\": \"餐桌，应登记为 diningTable。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_013\",\n      \"reason\": \"餐椅，应登记为 chair。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_014\",\n      \"reason\": \"餐椅，应登记为 chair。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_016\",\n      \"reason\": \"餐椅，应登记为 chair。\"\n    },\n    {\n      \"objectCandidateId\": \"fo_017\",\n      \"reason\": \"餐椅，应登记为 chair。\"\n    }\n  ]\n}",
+    "model": "Qwen/Qwen3-VL-32B-Instruct-FP8",
+    "usage": {
+      "prompt_tokens": 7938,
+      "total_tokens": 8396,
+      "completion_tokens": 458,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": null
+    },
+    "seconds": 13.545,
+    "structuredMode": "json_schema"
+  },
+  {
+    "content": "{\n  \"status\": \"draft\",\n  \"symbols\": [\n    {\n      \"id\": \"s_tvCabinet_000\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"tvCabinet\",\n      \"sourceLabel\": \"长条形电视柜\",\n      \"objectCandidateId\": \"fo_000\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_plant_001\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"plant\",\n      \"sourceLabel\": \"绿色圆形植物\",\n      \"objectCandidateId\": \"fo_001\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_sofa_002\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"sofa\",\n      \"sourceLabel\": \"四人位沙发\",\n      \"objectCandidateId\": \"fo_002\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_rug_003\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"rug\",\n      \"sourceLabel\": \"浅色矩形地毯\",\n      \"objectCandidateId\": \"fo_003\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_bookshelf_004\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"bookshelf\",\n      \"sourceLabel\": \"竖向四格书架\",\n      \"objectCandidateId\": \"fo_004\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_coffeeTable_005\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"coffeeTable\",\n      \"sourceLabel\": \"矩形茶几\",\n      \"objectCandidateId\": \"fo_005\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_chair_010\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"chair\",\n      \"sourceLabel\": \"餐椅\",\n      \"objectCandidateId\": \"fo_010\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_chair_011\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"chair\",\n      \"sourceLabel\": \"餐椅\",\n      \"objectCandidateId\": \"fo_011\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_diningTable_012\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"diningTable\",\n      \"sourceLabel\": \"长方形餐桌\",\n      \"objectCandidateId\": \"fo_012\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_chair_013\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"chair\",\n      \"sourceLabel\": \"餐椅\",\n      \"objectCandidateId\": \"fo_013\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_chair_014\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"chair\",\n      \"sourceLabel\": \"餐椅\",\n      \"objectCandidateId\": \"fo_014\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_chair_016\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"chair\",\n      \"sourceLabel\": \"餐椅\",\n      \"objectCandidateId\": \"fo_016\",\n      \"rot\": 0.0\n    },\n    {\n      \"id\": \"s_chair_017\",\n      \"roomId\": \"r_living_dining\",\n      \"categoryCode\": \"chair\",\n      \"sourceLabel\": \"餐椅\",\n      \"objectCandidateId\": \"fo_017\",\n      \"rot\": 0.0\n    }\n  ],\n  \"activityGroups\": [\n    {\n      \"id\": \"ag_seated_000\",\n      \"candidateId\": \"agc_000\",\n      \"type\": \"group_seated\",\n      \"primarySymbolId\": \"s_diningTable_012\",\n      \"memberSymbolIds\": [\n        \"s_chair_010\",\n        \"s_chair_011\",\n        \"s_chair_013\",\n        \"s_chair_014\",\n        \"s_chair_016\",\n        \"s_chair_017\"\n      ],\n      \"roles\": {\n        \"s_diningTable_012\": \"primary\",\n        \"s_chair_010\": \"satellite\",\n        \"s_chair_011\": \"satellite\",\n        \"s_chair_013\": \"satellite\",\n        \"s_chair_014\": \"satellite\",\n        \"s_chair_016\": \"satellite\",\n        \"s_chair_017\": \"satellite\"\n      }\n    }\n  ],\n  \"excludedObjectCandidates\": []\n}",
+    "model": "Qwen/Qwen3-VL-32B-Instruct-FP8",
+    "usage": {
+      "prompt_tokens": 8641,
+      "total_tokens": 9801,
+      "completion_tokens": 1160,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": null
+    },
+    "seconds": 32.5,
+    "structuredMode": "json_schema"
+  }
+]

@@ -1,0 +1,69 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "423d8268918725d78d7626d65644c373be7604cc",
+  "scope": "single-real-image-zero-correction-development-run",
+  "task": {
+    "projectId": "096beebb-e621-4abc-8029-1cf845870070",
+    "taskId": "bfd3c868-5bd0-4d3c-a0a4-b6de9e776494",
+    "status": "failed",
+    "errorCode": "FURNITURE_MISSING",
+    "error": "目标客餐厅没有识别到家具",
+    "modelCalls": 6,
+    "activeSeconds": 28.63498830795258,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0
+  },
+  "structure": {
+    "walls": 6,
+    "openings": 7,
+    "rooms": 3,
+    "result": "Structure pass completed; no structure repair."
+  },
+  "visionAttempts": [
+    {
+      "attempt": 1,
+      "promptTokens": 7736,
+      "completionTokens": 148,
+      "seconds": 5.08,
+      "response": "Only excludedObjectCandidates were returned; symbols was empty."
+    },
+    {
+      "attempt": 2,
+      "promptTokens": 7959,
+      "completionTokens": 18,
+      "seconds": 0.613,
+      "response": "Returned status draft, empty excludedObjectCandidates and no symbols."
+    }
+  ],
+  "diagnosis": {
+    "primary": "The V3-5 guided schema still allowed an empty symbols array. Qwen used that valid-but-useless shape, so deterministic assembly failed closed with FURNITURE_MISSING.",
+    "notCausedBy": [
+      "Unknown structure candidates",
+      "Wall or opening assembly",
+      "Vision service outage",
+      "Formal project write"
+    ],
+    "postFailureOfflineFix": "Require the exact selectable-symbol count in the request schema, reject empty output, and keep the real-image batch stopped. The hardened response path passed offline replay but was not run again against a real task."
+  },
+  "decision": {
+    "secondRealRunStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false,
+    "nextAction": "Treat the post-failure schema hardening as a new batch candidate and require explicit approval before the next real run."
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-20261108-report.json",
+      "sha256": "2d8892d409db9731213070a58b697e51c188af95b2986fa730a5ebcc13af5a4f"
+    },
+    "postFailureOfflineResponses": {
+      "path": "docs/evidence/s2c-v3-5-vision/qwen3-vl-v35-post-failure-offline-raw.json",
+      "sha256": "871552afbccdf5985b2f5d0d826c867d8e6a77fa045cceed1758538481500b58"
+    },
+    "postFailureOfflineReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/qwen3-vl-v35-post-failure-offline-report.json",
+      "sha256": "532cff06ff6bfe0a725df575944d4d9b54b595cc61e0434933e81fe4639083a8"
+    }
+  }
+}

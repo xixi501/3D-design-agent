@@ -604,7 +604,7 @@ def _assemble_activity_symbols(
         used_objects.add(object_id)
         category_code = symbol["categoryCode"]
         hints = candidate.get("categoryHints") or []
-        if category_code == "other" and len(hints) == 1:
+        if len(hints) == 1:
             category_code = hints[0]
         geometry = _object_symbol_geometry(candidate, category_code, symbol["rot"])
         symbols[symbol["id"]] = {
@@ -1958,9 +1958,13 @@ class FloorplanV3(FloorplanV2):
         schema_model,
         assemble,
         config_version,
+        schema_patch=None,
     ):
         client = VisionModelClient()
         schema = schema_model.model_json_schema()
+        if schema_patch:
+            for field, constraints in schema_patch.items():
+                schema["properties"][field].update(constraints)
         calls = []
         call_count = 0
         elapsed_seconds = 0.0
@@ -2309,6 +2313,17 @@ class FloorplanV3(FloorplanV2):
             FurnitureActivityRecognition,
             lambda parsed: _assemble_activity_symbols(parsed, objects, groups, draft, record["id"]),
             "activity-unit-1",
+            {
+                "symbols": {
+                    "minItems": len(objects),
+                    "maxItems": len(objects),
+                },
+                "activityGroups": {
+                    "minItems": len(groups),
+                    "maxItems": len(groups),
+                },
+                "excludedObjectCandidates": {"maxItems": 0},
+            },
         )
         symbols, activity_groups = assembled
         self.patch(

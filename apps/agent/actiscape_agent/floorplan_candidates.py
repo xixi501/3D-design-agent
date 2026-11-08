@@ -1019,6 +1019,24 @@ def furniture_object_candidates(candidates: list[dict], image: Image.Image | Non
             ):
                 candidate["containsObjectCandidateIds"].append(other["objectCandidateId"])
                 other["containedByObjectCandidateIds"].append(candidate["objectCandidateId"])
+    selectable_ids = {
+        candidate["objectCandidateId"] for candidate in objects if candidate["selectable"]
+    }
+    object_by_id = {candidate["objectCandidateId"]: candidate for candidate in objects}
+    for candidate in objects:
+        selectable_children = [
+            object_id
+            for object_id in candidate["containsObjectCandidateIds"]
+            if object_id in selectable_ids
+        ]
+        if len(selectable_children) == 1:
+            child = object_by_id[selectable_children[0]]
+            child_area = child["bbox"][2] * child["bbox"][3]
+            area = candidate["bbox"][2] * candidate["bbox"][3]
+            if child_area <= area * 0.5:
+                candidate["categoryHints"].append("rug")
+                child["categoryHints"].append("coffeeTable")
+        candidate["categoryHints"] = list(dict.fromkeys(candidate["categoryHints"]))
     contour_object = {
         contour_id: candidate["objectCandidateId"]
         for candidate in objects

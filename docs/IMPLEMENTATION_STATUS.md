@@ -76,6 +76,8 @@ The `461c468` run completed the entire runtime workflow for the first time: all 
 
 The `6f0930b` batch again passed first recognition and final scoring with zero corrections. It stopped before confirmation on one open-kitchen/living-room scope uncertainty even though deterministic topology found one valid living target room and the requested kitchen scope was structure-only. Commit `c33a67b` resolves that uncertainty as advisory when the target living/dining room exists and no other deterministic blocker remains. Replaying the captured draft yields `passed=true`; Python 97/97 and controlled V3 browser pass. No second run occurred. See [ninth live run](evidence/s2c-v3-5-live-r9-20261108.json).
 
+The new `npm run test:floorplan:v35-replay` gate combines the captured r8 workflow and r9 review, current equivalent-asset normalization, catalogue mapping proof and actual Three.js bounds in one zero-model-call run. It currently passes with `sofa`, `cabTall`, valid plant geometry, the complete r8 confirmation/commit/undo/redo/local-edit workflow and zero blocking r9 issues. See [combined replay evidence](evidence/s2c-v3-5-replay-20261108.json).
+
 The orthogonal image draft compiler, durable image storage, overlay correction and explicit confirmation workflow are implemented. Four-role reconstruction retains confirmed positions and per-symbol sizes; catalogue decisions are separate from recognition. Controlled browser/WebGL, transaction and restart tests pass. The two real user floorplans and their quality matrix remain pending, so complete S2 is not accepted. See [S2-C status](S2C_STATUS.md) and [runbook](S2C_RUNBOOK.md).
 
 ## Remaining scope

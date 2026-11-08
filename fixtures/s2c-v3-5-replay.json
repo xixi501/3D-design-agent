@@ -1,0 +1,1071 @@
+{
+  "purpose": "Offline V3-5 acceptance replay from captured real runs; never sent to a model",
+  "r8": {
+    "codeCommit": "6f0930baa7e569d7d7c888ee1e05ad2f2b73565e",
+    "symbolGroups": [
+      ["s_tvCabinet_000"],
+      ["s_plant_001"],
+      ["s_sofa_002"],
+      ["s_rug_003"],
+      ["s_bookshelf_004"],
+      ["s_coffeeTable_005"],
+      [
+        "s_chair_010",
+        "s_chair_011",
+        "s_chair_013",
+        "s_chair_014",
+        "s_chair_016",
+        "s_chair_017"
+      ],
+      ["s_diningTable_012"]
+    ],
+    "compiledSymbols": [
+      {
+        "id": "s_tvCabinet_000",
+        "roomId": "r_living",
+        "sourceLabel": "长条电视柜",
+        "categoryCode": "tvCabinet",
+        "category": "tvCabinet",
+        "objectCandidateId": "fo_000",
+        "activityGroupIds": ["ag_auto_001_s_tvCabinet_000"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 2717.231,
+        "y": 584.16,
+        "w": 1628.568,
+        "d": 477.949,
+        "rot": 0,
+        "activityRole": "primary",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_tvCabinet_000"
+      },
+      {
+        "id": "s_plant_001",
+        "roomId": "r_living",
+        "sourceLabel": "绿色圆形植物",
+        "categoryCode": "plant",
+        "category": "plant",
+        "objectCandidateId": "fo_001",
+        "activityGroupIds": ["ag_auto_002_s_plant_001"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 4974.214,
+        "y": 628.415,
+        "w": 477.949,
+        "d": 495.651,
+        "rot": 0,
+        "activityRole": "primary",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_plant_001"
+      },
+      {
+        "id": "s_sofa_002",
+        "roomId": "r_living",
+        "sourceLabel": "四人位沙发",
+        "categoryCode": "sofa",
+        "category": "sofa",
+        "objectCandidateId": "fo_002",
+        "activityGroupIds": ["ag_auto_003_s_sofa_002"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 2717.231,
+        "y": 2009.157,
+        "w": 2124.219,
+        "d": 920.495,
+        "rot": 0,
+        "activityRole": "primary",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_sofa_002"
+      },
+      {
+        "id": "s_rug_003",
+        "roomId": "r_living",
+        "sourceLabel": "浅色地毯",
+        "categoryCode": "rug",
+        "category": "rug",
+        "objectCandidateId": "fo_003",
+        "activityGroupIds": ["ag_auto_004_s_rug_003"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 2717.231,
+        "y": 3150.925,
+        "w": 2336.641,
+        "d": 1610.866,
+        "rot": 0,
+        "activityRole": "primary",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_rug_003"
+      },
+      {
+        "id": "s_bookshelf_004",
+        "roomId": "r_living",
+        "sourceLabel": "竖向书架",
+        "categoryCode": "bookshelf",
+        "category": "bookshelf",
+        "objectCandidateId": "fo_004",
+        "activityGroupIds": ["ag_auto_005_s_bookshelf_004"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 4823.748,
+        "y": 3531.515,
+        "w": 1239.128,
+        "d": 389.44,
+        "rot": 90,
+        "activityRole": "primary",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_bookshelf_004"
+      },
+      {
+        "id": "s_coffeeTable_005",
+        "roomId": "r_living",
+        "sourceLabel": "矩形茶几",
+        "categoryCode": "coffeeTable",
+        "category": "coffeeTable",
+        "objectCandidateId": "fo_005",
+        "activityGroupIds": ["ag_auto_006_s_coffeeTable_005"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 2717.231,
+        "y": 3336.794,
+        "w": 1132.917,
+        "d": 637.266,
+        "rot": 0,
+        "activityRole": "primary",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_coffeeTable_005"
+      },
+      {
+        "id": "s_chair_010",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_010",
+        "activityGroupIds": ["ag_seated_000"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 2478.256,
+        "y": 4673.282,
+        "w": 407.142,
+        "d": 407.142,
+        "rot": 180,
+        "activityRole": "satellite",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_chair_010"
+      },
+      {
+        "id": "s_chair_011",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_011",
+        "activityGroupIds": ["ag_seated_000"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 3168.627,
+        "y": 4673.282,
+        "w": 407.142,
+        "d": 407.142,
+        "rot": 180,
+        "activityRole": "satellite",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_chair_011"
+      },
+      {
+        "id": "s_diningTable_012",
+        "roomId": "r_living",
+        "sourceLabel": "长方形餐桌",
+        "categoryCode": "diningTable",
+        "category": "diningTable",
+        "objectCandidateId": "fo_012",
+        "activityGroupIds": ["ag_seated_000"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 2823.441,
+        "y": 5230.89,
+        "w": 1593.164,
+        "d": 885.091,
+        "rot": 0,
+        "activityRole": "primary",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_diningTable_012"
+      },
+      {
+        "id": "s_chair_013",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_013",
+        "activityGroupIds": ["ag_seated_000"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 1911.797,
+        "y": 5230.89,
+        "w": 389.44,
+        "d": 389.44,
+        "rot": 90,
+        "activityRole": "satellite",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_chair_013"
+      },
+      {
+        "id": "s_chair_014",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_014",
+        "activityGroupIds": ["ag_seated_000"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 3735.086,
+        "y": 5230.89,
+        "w": 389.44,
+        "d": 389.44,
+        "rot": 270,
+        "activityRole": "satellite",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_chair_014"
+      },
+      {
+        "id": "s_chair_016",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_016",
+        "activityGroupIds": ["ag_seated_000"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 2478.256,
+        "y": 5788.498,
+        "w": 407.142,
+        "d": 407.142,
+        "rot": 0,
+        "activityRole": "satellite",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_chair_016"
+      },
+      {
+        "id": "s_chair_017",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_017",
+        "activityGroupIds": ["ag_seated_000"],
+        "included": true,
+        "evidenceRefs": [
+          "0284838098adcba081709cd9d403715db3ae4a5ef53127517050a1c6bff5236a"
+        ],
+        "x": 3168.627,
+        "y": 5788.498,
+        "w": 407.142,
+        "d": 407.142,
+        "rot": 0,
+        "activityRole": "satellite",
+        "objectId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59:f:s_chair_017"
+      }
+    ],
+    "assetSelection": {
+      "choices": [
+        {
+          "request_index": 0,
+          "key": "tvCabinet",
+          "reason": "type=tvCabinet 的落地长条电视柜，与“长条电视柜”类别及低矮长向占地一致；平面尺寸以确认值 1629×478 驱动，不用目录 2000×400 改布局。"
+        },
+        {
+          "request_index": 1,
+          "key": "plant",
+          "reason": "type=plant 室内绿植，占地 500×500 与确认值 478×496 最接近；bigPlant/smallPlant 尺寸偏离较大。"
+        },
+        {
+          "request_index": 2,
+          "key": "fourSofa",
+          "reason": "“四人位沙发”对应 fourSofa（四人沙发，type=sofa）；目录 2800 宽度仅作配方参考，实际按确认值 2124×920 落位。"
+        },
+        {
+          "request_index": 3,
+          "key": "rug",
+          "reason": "矩形地毯配方 rug（2000×1700），与浅色地毯确认值 2337×1611 同为长方形铺地件；roundRug/doormat/playMat 类别或用途不符。"
+        },
+        {
+          "request_index": 4,
+          "key": "bookshelf",
+          "reason": "type=bookshelf 立式书架，占地 900×350 与竖向书架确认值 1239×389 同属薄进深竖置书柜；bookshelfLow 为矮柜，不符竖向特征。"
+        },
+        {
+          "request_index": 5,
+          "key": "coffeeTable",
+          "reason": "矩形茶几 coffeeTable（1200×600），与“矩形茶几”确认值 1133×637 一致；圆茶几、椭圆茶几几何不符。"
+        },
+        {
+          "request_index": 6,
+          "key": "chair",
+          "reason": "type=chair 的餐椅配方，与图面 6 张餐椅（407×407 与 389×389）为同一类别，六个实例共用一支配方，尺寸由确认值驱动，不出默认其他椅型。"
+        },
+        {
+          "request_index": 7,
+          "key": "diningTable",
+          "reason": "矩形餐桌 diningTable（1600×900），与“长方形餐桌”确认值 1593×885 几乎吻合；圆桌、长餐桌 8 人、吧台桌均不符。"
+        }
+      ]
+    },
+    "heightBySymbol": {
+      "s_tvCabinet_000": 450,
+      "s_plant_001": 1400,
+      "s_sofa_002": 820,
+      "s_rug_003": 12,
+      "s_bookshelf_004": 2000,
+      "s_coffeeTable_005": 400,
+      "s_chair_010": 880,
+      "s_chair_011": 880,
+      "s_diningTable_012": 750,
+      "s_chair_013": 880,
+      "s_chair_014": 880,
+      "s_chair_016": 880,
+      "s_chair_017": 880
+    }
+  },
+  "r9": {
+    "draft": {
+      "data": {
+        "anchors": [
+          {
+            "a": {
+              "x": 361.5,
+              "y": 103.5
+            },
+            "b": {
+              "x": 877.5,
+              "y": 103.5
+            },
+            "distance": {
+              "value": 9.15,
+              "unit": "m"
+            },
+            "basis": "exterior",
+            "evidence": "dimension candidate dim_top_0 ticks 361..878: 9.15 m"
+          },
+          {
+            "a": {
+              "x": 369.5,
+              "y": 111.5
+            },
+            "b": {
+              "x": 869.5,
+              "y": 111.5
+            },
+            "distance": {
+              "value": 8.85,
+              "unit": "m"
+            },
+            "basis": "interior",
+            "evidence": "dimension candidate dim_top_1 ticks 361..878: 8.85 m"
+          },
+          {
+            "a": {
+              "x": 361.5,
+              "y": 103.5
+            },
+            "b": {
+              "x": 361.5,
+              "y": 507.5
+            },
+            "distance": {
+              "value": 7.15,
+              "unit": "m"
+            },
+            "basis": "exterior",
+            "evidence": "dimension candidate dim_left_0 ticks 103..508: 7.15 m"
+          },
+          {
+            "a": {
+              "x": 369.5,
+              "y": 111.5
+            },
+            "b": {
+              "x": 369.5,
+              "y": 499.5
+            },
+            "distance": {
+              "value": 6.85,
+              "unit": "m"
+            },
+            "basis": "interior",
+            "evidence": "dimension candidate dim_left_1 ticks 103..508: 6.85 m"
+          }
+        ],
+        "dimensionObservations": [
+          {
+            "a": {
+              "x": 361.5,
+              "y": 103.5
+            },
+            "b": {
+              "x": 877.5,
+              "y": 103.5
+            },
+            "distance": {
+              "value": 9.15,
+              "unit": "m"
+            },
+            "basis": "exterior",
+            "evidence": "dimension candidate dim_top_0 ticks 361..878: 9.15 m",
+            "id": "dim_obs_dim_top_0",
+            "sourceCandidateId": "dim_top_0",
+            "label": "9.15 m",
+            "scaleReference": true
+          },
+          {
+            "a": {
+              "x": 369.5,
+              "y": 111.5
+            },
+            "b": {
+              "x": 869.5,
+              "y": 111.5
+            },
+            "distance": {
+              "value": 8.85,
+              "unit": "m"
+            },
+            "basis": "interior",
+            "evidence": "dimension candidate dim_top_1 ticks 361..878: 8.85 m",
+            "id": "dim_obs_dim_top_1",
+            "sourceCandidateId": "dim_top_1",
+            "label": "8.85 m",
+            "scaleReference": false
+          },
+          {
+            "a": {
+              "x": 361.5,
+              "y": 103.5
+            },
+            "b": {
+              "x": 361.5,
+              "y": 507.5
+            },
+            "distance": {
+              "value": 7.15,
+              "unit": "m"
+            },
+            "basis": "exterior",
+            "evidence": "dimension candidate dim_left_0 ticks 103..508: 7.15 m",
+            "id": "dim_obs_dim_left_0",
+            "sourceCandidateId": "dim_left_0",
+            "label": "7.15 m",
+            "scaleReference": false
+          },
+          {
+            "a": {
+              "x": 369.5,
+              "y": 111.5
+            },
+            "b": {
+              "x": 369.5,
+              "y": 499.5
+            },
+            "distance": {
+              "value": 6.85,
+              "unit": "m"
+            },
+            "basis": "interior",
+            "evidence": "dimension candidate dim_left_1 ticks 103..508: 6.85 m",
+            "id": "dim_obs_dim_left_1",
+            "sourceCandidateId": "dim_left_1",
+            "label": "6.85 m",
+            "scaleReference": false
+          }
+        ],
+        "features": [
+          {
+            "id": "feat_anchor_0_low",
+            "objectId": "w_left",
+            "kind": "wall_face",
+            "axis": "x",
+            "side": "min",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "feat_anchor_0_high",
+            "objectId": "w_right",
+            "kind": "wall_face",
+            "axis": "x",
+            "side": "max",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "feat_anchor_1_low",
+            "objectId": "w_left",
+            "kind": "wall_face",
+            "axis": "x",
+            "side": "max",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "feat_anchor_1_high",
+            "objectId": "w_right",
+            "kind": "wall_face",
+            "axis": "x",
+            "side": "min",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "feat_anchor_2_low",
+            "objectId": "w_top",
+            "kind": "wall_face",
+            "axis": "y",
+            "side": "min",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "feat_anchor_2_high",
+            "objectId": "w_bottom",
+            "kind": "wall_face",
+            "axis": "y",
+            "side": "max",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "feat_anchor_3_low",
+            "objectId": "w_top",
+            "kind": "wall_face",
+            "axis": "y",
+            "side": "max",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "feat_anchor_3_high",
+            "objectId": "w_bottom",
+            "kind": "wall_face",
+            "axis": "y",
+            "side": "min",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          }
+        ],
+        "dimensions": [
+          {
+            "id": "dim_anchor_0",
+            "anchorIndex": 0,
+            "from": "feat_anchor_0_low",
+            "to": "feat_anchor_0_high",
+            "distance": {
+              "value": 9.15,
+              "unit": "m"
+            },
+            "basis": "exterior",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "dim_anchor_1",
+            "anchorIndex": 1,
+            "from": "feat_anchor_1_low",
+            "to": "feat_anchor_1_high",
+            "distance": {
+              "value": 8.85,
+              "unit": "m"
+            },
+            "basis": "interior",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "dim_anchor_2",
+            "anchorIndex": 2,
+            "from": "feat_anchor_2_low",
+            "to": "feat_anchor_2_high",
+            "distance": {
+              "value": 7.15,
+              "unit": "m"
+            },
+            "basis": "exterior",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          },
+          {
+            "id": "dim_anchor_3",
+            "anchorIndex": 3,
+            "from": "feat_anchor_3_low",
+            "to": "feat_anchor_3_high",
+            "distance": {
+              "value": 6.85,
+              "unit": "m"
+            },
+            "basis": "interior",
+            "evidenceRefs": [
+              "366e4e4ec00c1a7c84e6e775f6c59ae3d6f20ea40082c0389dac9708ede0e071"
+            ]
+          }
+        ],
+        "walls": [
+          {
+            "id": "w_top",
+            "a": {
+              "x": 365.5,
+              "y": 107.5
+            },
+            "b": {
+              "x": 873.5,
+              "y": 107.5
+            },
+            "thicknessPx": 8
+          },
+          {
+            "id": "w_left",
+            "a": {
+              "x": 365.5,
+              "y": 107.5
+            },
+            "b": {
+              "x": 365.5,
+              "y": 503.5
+            },
+            "thicknessPx": 8
+          },
+          {
+            "id": "w_bottom",
+            "a": {
+              "x": 365.5,
+              "y": 503.5
+            },
+            "b": {
+              "x": 873.5,
+              "y": 503.5
+            },
+            "thicknessPx": 8
+          },
+          {
+            "id": "w_right",
+            "a": {
+              "x": 873.5,
+              "y": 107.5
+            },
+            "b": {
+              "x": 873.5,
+              "y": 503.5
+            },
+            "thicknessPx": 8
+          },
+          {
+            "id": "w_int_h",
+            "a": {
+              "x": 676,
+              "y": 345
+            },
+            "b": {
+              "x": 873.5,
+              "y": 345
+            },
+            "thicknessPx": 9
+          },
+          {
+            "id": "w_int_v",
+            "a": {
+              "x": 676,
+              "y": 107.5
+            },
+            "b": {
+              "x": 676,
+              "y": 503.5
+            },
+            "thicknessPx": 9
+          }
+        ],
+        "openings": [
+          {
+            "id": "opn_win_n1",
+            "wallId": "w_top",
+            "type": "window",
+            "offset": 152,
+            "width": 100
+          },
+          {
+            "id": "opn_win_n2",
+            "wallId": "w_top",
+            "type": "window",
+            "offset": 406.5,
+            "width": 77
+          },
+          {
+            "id": "opn_win_w",
+            "wallId": "w_left",
+            "type": "window",
+            "offset": 217.5,
+            "width": 83
+          },
+          {
+            "id": "opn_door_entry",
+            "wallId": "w_bottom",
+            "type": "door",
+            "offset": 142,
+            "width": 52
+          },
+          {
+            "id": "opn_win_e",
+            "wallId": "w_right",
+            "type": "window",
+            "offset": 324,
+            "width": 38
+          },
+          {
+            "id": "opn_door_bed",
+            "wallId": "w_int_v",
+            "type": "door",
+            "offset": 119,
+            "width": 46
+          },
+          {
+            "id": "opn_door_bath",
+            "wallId": "w_int_v",
+            "type": "door",
+            "offset": 316.5,
+            "width": 43
+          }
+        ],
+        "rooms": [
+          {
+            "id": "r_living",
+            "at": {
+              "x": 520,
+              "y": 330
+            },
+            "name": "Living Room",
+            "functionalArea": "living"
+          },
+          {
+            "id": "r_bedroom",
+            "at": {
+              "x": 775,
+              "y": 265
+            },
+            "name": "Bedroom",
+            "functionalArea": "bedroom"
+          },
+          {
+            "id": "r_bathroom",
+            "at": {
+              "x": 775,
+              "y": 420
+            },
+            "name": "Bathroom",
+            "functionalArea": "bathroom"
+          }
+        ],
+        "symbols": [
+          {
+            "id": "s_tvCabinet_000"
+          },
+          {
+            "id": "s_plant_000"
+          },
+          {
+            "id": "s_sofa_000"
+          },
+          {
+            "id": "s_rug_000"
+          },
+          {
+            "id": "s_bookshelf_000"
+          },
+          {
+            "id": "s_coffeeTable_000"
+          },
+          {
+            "id": "s_chair_000"
+          },
+          {
+            "id": "s_chair_001"
+          },
+          {
+            "id": "s_diningTable_000"
+          },
+          {
+            "id": "s_chair_002"
+          },
+          {
+            "id": "s_chair_003"
+          },
+          {
+            "id": "s_chair_004"
+          },
+          {
+            "id": "s_chair_005"
+          }
+        ],
+        "targetRoomIds": ["r_living"],
+        "uncertainties": [
+          {
+            "id": "u_room_label",
+            "message": "客厅与厨房在同一封闭区域内（左下次卧/厨房区带水槽与冰箱，无实墙分隔）；原图只标 Living Room，未单独标厨房，需确认是否按 Living Room 一个连通区域处理并保留厨房仅结构、不登记厨柜冰箱以外的家具。",
+            "blocking": true
+          },
+          {
+            "id": "u_north_window",
+            "message": "北墙两个窗之间(676,107)处与内墙 cw_int_v_0 相接，窗 op_0 与左侧鞋柜/餐边柜之间的墙段需确认是否为整段外墙。",
+            "blocking": false
+          },
+          {
+            "id": "u_wall_thickness",
+            "message": "预计算墙面测量（recordId 366e4e4e…）给出六段墙体像素厚度：w_top/w_left/w_bottom/w_right 8px（面 103.5/111.5、361.5/369.5、499.5/507.5、869.5/877.5），w_int_v 9px（面 671.5/680.5），w_int_h 中线由 344 修正为 345、9px（面 340.5/349.5，n=61）。图中未标注毫米墙厚，wallThickness 留 null。",
+            "blocking": false
+          },
+          {
+            "id": "u_height",
+            "message": "图中未标注层高，height 留 null。",
+            "blocking": false
+          },
+          {
+            "id": "u_dim_basis",
+            "message": "顶部尺寸线 9.15 m（外）与 8.85 m（净）、左侧 7.15 m（外）与 6.85 m（净）分别对应 w_left 外/内表面与 w_right 外/内表面、w_top 外/内表面与 w_bottom 外/内表面；四条预计算绑定均 inconsistent=false（17.70/17.73/17.65/17.70 mm/px），比值一致，可作统一比例基准，无需再拉伸。",
+            "blocking": false
+          },
+          {
+            "id": "u_open_right",
+            "message": "右墙洞口 op_4(宽38px) 位于卫生间外墙，图上呈窗/小洞形态，类型需确认。",
+            "blocking": false
+          }
+        ]
+      }
+    },
+    "diagnostics": {
+      "id": "replay-r9-diagnostics",
+      "checks": {
+        "passed": false,
+        "issues": [
+          {
+            "code": "FLOORPLAN_UNCERTAIN",
+            "message": "客厅与厨房在同一封闭区域内（左下次卧/厨房区带水槽与冰箱，无实墙分隔）；原图只标 Living Room，未单独标厨房，需确认是否按 Living Room 一个连通区域处理并保留厨房仅结构、不登记厨柜冰箱以外的家具。",
+            "objectIds": ["u_room_label"],
+            "level": "error",
+            "blocking": true
+          }
+        ],
+        "coverage": [
+          "单层正交墙体、共用墙与连接",
+          "所有封闭区域及房间标签",
+          "门窗归属、范围与重叠",
+          "统一比例尺及标注交叉校验"
+        ],
+        "limitations": ["家具匹配、实际模型和截图仍需候选检查"]
+      }
+    },
+    "structureSkeleton": {
+      "structureSkeletonVersion": 3,
+      "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+      "dimensionCandidates": [
+        {
+          "candidateId": "dim_top_0",
+          "axis": "h",
+          "side": "top",
+          "at": 57.5,
+          "ticks": [361, 878],
+          "suggestedWallRole": "top",
+          "suggestedBasis": "exterior",
+          "evidence": "top exterior dimension line 1",
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        },
+        {
+          "candidateId": "dim_top_1",
+          "axis": "h",
+          "side": "top",
+          "at": 77.5,
+          "ticks": [361, 878],
+          "suggestedWallRole": "top",
+          "suggestedBasis": "interior",
+          "evidence": "top exterior dimension line 2",
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        },
+        {
+          "candidateId": "dim_left_0",
+          "axis": "v",
+          "side": "left",
+          "at": 315,
+          "ticks": [103, 508],
+          "suggestedWallRole": "left",
+          "suggestedBasis": "exterior",
+          "evidence": "left exterior dimension line 1",
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        },
+        {
+          "candidateId": "dim_left_1",
+          "axis": "v",
+          "side": "left",
+          "at": 335,
+          "ticks": [103, 508],
+          "suggestedWallRole": "left",
+          "suggestedBasis": "interior",
+          "evidence": "left exterior dimension line 2",
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        }
+      ],
+      "openingCandidates": [
+        {
+          "candidateId": "op_0",
+          "candidateWallId": "cw_top",
+          "wallId": "cw_top",
+          "orient": "h",
+          "line": 107.5,
+          "start": 468,
+          "end": 567,
+          "center": 517.5,
+          "width": 100,
+          "typeHint": "window",
+          "confidence": 0.99,
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        },
+        {
+          "candidateId": "op_1",
+          "candidateWallId": "cw_top",
+          "wallId": "cw_top",
+          "orient": "h",
+          "line": 107.5,
+          "start": 734,
+          "end": 810,
+          "center": 772,
+          "width": 77,
+          "typeHint": "window",
+          "confidence": 0.99,
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        },
+        {
+          "candidateId": "op_2",
+          "candidateWallId": "cw_left",
+          "wallId": "cw_left",
+          "orient": "v",
+          "line": 365.5,
+          "start": 284,
+          "end": 366,
+          "center": 325,
+          "width": 83,
+          "typeHint": "window",
+          "confidence": 0.99,
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        },
+        {
+          "candidateId": "op_3",
+          "candidateWallId": "cw_bottom",
+          "wallId": "cw_bottom",
+          "orient": "h",
+          "line": 503.5,
+          "start": 482,
+          "end": 533,
+          "center": 507.5,
+          "width": 52,
+          "typeHint": "door",
+          "confidence": 0.96,
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        },
+        {
+          "candidateId": "op_4",
+          "candidateWallId": "cw_right",
+          "wallId": "cw_right",
+          "orient": "v",
+          "line": 873.5,
+          "start": 413,
+          "end": 450,
+          "center": 431.5,
+          "width": 38,
+          "typeHint": "window",
+          "confidence": 0.89,
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        },
+        {
+          "candidateId": "op_5",
+          "candidateWallId": "cw_int_v_0",
+          "wallId": "cw_int_v_0",
+          "orient": "v",
+          "line": 676,
+          "start": 204,
+          "end": 249,
+          "center": 226.5,
+          "width": 46,
+          "typeHint": "door",
+          "confidence": 0.93,
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        },
+        {
+          "candidateId": "op_6",
+          "candidateWallId": "cw_int_v_0",
+          "wallId": "cw_int_v_0",
+          "orient": "v",
+          "line": 676,
+          "start": 403,
+          "end": 445,
+          "center": 424,
+          "width": 43,
+          "typeHint": "door",
+          "confidence": 0.91,
+          "analysisId": "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471",
+          "evidenceRefs": [
+            "938e73fdd4e7e6a2d0549dea7d6ef9734abfe4a05c68a5da15174255fe724471"
+          ]
+        }
+      ]
+    }
+  }
+}

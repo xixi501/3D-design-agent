@@ -1,16 +1,14 @@
 /** Measure actual Three.js meshes separately from recipe values and image comparisons. */
 import { launch } from "../reference/upstream/scripts/browser.mjs";
-export async function geometryProof(base, projectId, candidate) {
+
+export async function geometryProofFromPlan(base, plan) {
   const browser = await launch({
     gpu: false,
     viewport: { width: 1280, height: 900 },
   });
   try {
     const page = await browser.newPage();
-    await page.goto(
-      base + "/?project=" + encodeURIComponent(projectId) + "&debug=1",
-      { waitUntil: "load" },
-    );
+    await page.goto(base + "/?debug=1", { waitUntil: "load" });
     await page.waitForFunction(() => window.__actiscape?.buildFurniture);
     const objects = await page.evaluate((plan) => {
       const api = window.__actiscape,
@@ -40,7 +38,7 @@ export async function geometryProof(base, projectId, candidate) {
             Math.hypot(center.x, center.z) <= 150,
         };
       });
-    }, candidate.state.plan);
+    }, plan);
     return {
       passed: objects.every((o) => o.passed),
       objects,
@@ -56,4 +54,8 @@ export async function geometryProof(base, projectId, candidate) {
   } finally {
     await browser.close();
   }
+}
+
+export async function geometryProof(base, projectId, candidate) {
+  return geometryProofFromPlan(base, candidate.state.plan);
 }

@@ -149,6 +149,7 @@ Node 的确认记录是恢复依据。确认已持久化、Python 尚未恢复�
 - `npm run test:floorplan`：真实浏览器、Node/SQLite、LangGraph、WebGL、原子历史和完整停服备份恢复；模型明确为受控替身。
 - `node --import tsx scripts/floorplan-model-smoke.mjs`：DeepSeek 官方 API 的真实工具返回图片与合成图识别协议；仍不计作真实户型图验收。
 - `npm run test:floorplan:live -- --manifest ... --stage start`：两张真实图片各两次；暂停等待工作台核对确认。
+- `npm run test:floorplan:v35-replay`：不调用模型，联合回放 r8 完整工作流证据、r9 不确定项仲裁、当前资产归一、目录 proof 和真实 Three.js bounds；要求服务已运行。
 - `npm run test:floorplan:live -- --stage collect --index ...`：对照冻结人工参考，分别评分首次识别、人工校正量和最终保真。参考不进入识别提示词。缺少输入或确认时返回待验收，不记为通过。
 
 真实图片参考必须给每个目标符号设置目录 key 或允许的目录匹配集合。评分检查正式项目实际实例化的目录类型、实际 Three.js 包围盒和确认稿数据，不能仅凭符号标签认定家具类别正确。启动器在任何模型任务创建前校验两张图片及全部参考；同图重复和已知合成夹具不能充当两张真实图片。

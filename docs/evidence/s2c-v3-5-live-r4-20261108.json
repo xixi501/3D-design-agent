@@ -1,0 +1,92 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "a1457d64fcf7bb64f2e86950da843cdf9cb86037",
+  "scope": "fourth-independent-single-real-image-run",
+  "task": {
+    "projectId": "bbc3fb67-8da7-4228-b3a7-573a3d5884e5",
+    "taskId": "ca5ff2e1-268f-47ac-af85-cf2acc2fc640",
+    "status": "waiting_input",
+    "error": "两阶段识别、测量与独立审核通过，请确认结构与布局。",
+    "modelCalls": 20,
+    "activeSeconds": 119.65060234069824,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0,
+    "repairs": 3
+  },
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "openings": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "furniture": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "symbolCount": 13,
+      "chairCount": 6
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "measurement": {
+    "compilationPassed": true,
+    "sourceReviewPassed": true,
+    "dimensionCount": 4,
+    "dimensionResidualsMm": [0, 0, 0, 0]
+  },
+  "finalScoring": {
+    "passed": false,
+    "rawPassed": true,
+    "finalPassed": false,
+    "layoutObjectsPassed": 13,
+    "roomPrecision": 1.0,
+    "roomRecall": 1.0,
+    "topologyAdjacencyPassed": true,
+    "roomNamesPassed": false,
+    "expectedRoomNames": ["Living Room", "Bedroom", "Bathroom"],
+    "actualRoomNames": [
+      "客餐厅（Living Room，含餐厅与开放厨房区）",
+      "Bedroom 卧室",
+      "Bathroom 卫生间"
+    ]
+  },
+  "blocker": {
+    "stage": "evaluation-room-labels",
+    "code": "ROOM_LABEL_MISMATCH",
+    "message": "The model translated and expanded source room labels instead of copying the visible labels verbatim.",
+    "confirmationSimulated": false,
+    "candidateSubmitted": false,
+    "assetMatchStarted": false,
+    "projectWritten": false
+  },
+  "postFailureOfflineFix": {
+    "commit": "1256273",
+    "change": "Require rooms.name to copy the visible source label verbatim without translation, expansion or bilingual concatenation.",
+    "realRunAfterFixStarted": false
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r4-20261108-report.json",
+      "sha256": "5dfe4df8c0fa18951b6b8aa050402604c3728bcf9f7e2f511f89edf1295f751f"
+    },
+    "scoring": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r4-20261108-scoring.json",
+      "sha256": "1d88ebac7c3424d1a33c9d48baaed3ae220d85e7a6962ce2a502380161ebe685"
+    },
+    "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T06-43-20-413Z"
+  }
+}

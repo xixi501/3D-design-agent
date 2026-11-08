@@ -159,6 +159,7 @@ class SkillBundle(BaseModel):
     modifiers: list[dict] = Field(default_factory=list, max_length=2)
     intake: dict | None = None
     repair: dict | None = None
+    pendingRepair: dict | None = None
     selection: dict = Field(default_factory=dict)
     judgements: list[dict] = Field(default_factory=list)
     contentHash: str = Field(pattern=r"^[a-f0-9]{64}$")
@@ -455,8 +456,11 @@ class SkillRegistry:
         primary = self.load(value.primarySkillId) if value.primarySkillId else None
         modifiers = [self.load(skill_id) for skill_id in value.modifierSkillIds]
         intake = self.load("floorplan-intake") if include_intake else None
-        repair = self.load("layout-check-repair") if include_repair else None
-        for snapshot in (intake, repair):
+        # Capture repair even when inactive so a later trigger cannot mix a
+        # persisted task with Skill files changed during the run.
+        pending_repair = self.load("layout-check-repair")
+        repair = pending_repair if include_repair else None
+        for snapshot in (intake, pending_repair):
             if snapshot is None:
                 continue
             if snapshot["activation"] != "active" or snapshot["status"] != "verified":
@@ -480,6 +484,7 @@ class SkillRegistry:
             "modifiers": modifiers,
             "intake": intake,
             "repair": repair,
+            "pendingRepair": None if include_repair else pending_repair,
             "selection": value.model_dump(),
             "judgements": referenced,
         }
@@ -494,16 +499,31 @@ class SkillRegistry:
             raise TaskError("SKILL_SNAPSHOT_INVALID", "Skill bundle 快照无效") from exc
         if current.repair is not None:
             return current.model_dump()
-        repair = self.load("layout-check-repair")
+        repair = current.pendingRepair or self.load("layout-check-repair")
         if repair["activation"] != "active" or repair["status"] != "verified":
             raise TaskError("SKILL_SELECTION_INVALID", "repair Skill 未通过真实核心验证")
-        selection = SkillSelection.model_validate(current.selection)
-        return self.compose(
-            mode=mode,
-            selection=selection,
-            include_intake=current.intake is not None,
-            include_repair=True,
-        )
+        if mode not in repair["appliesTo"]["modes"]:
+            raise TaskError(
+                "SKILL_SELECTION_INVALID",
+                f"自动 Skill 不适用于模式 {mode}：{repair['id']}",
+            )
+        judgements = list(current.judgements)
+        seen = {item["id"] for item in judgements}
+        for item in repair.get("judgementsData", []):
+            if item["id"] not in seen:
+                seen.add(item["id"])
+                judgements.append(item)
+        payload = {
+            "primary": current.primary,
+            "modifiers": current.modifiers,
+            "intake": current.intake,
+            "repair": repair,
+            "pendingRepair": None,
+            "selection": current.selection,
+            "judgements": judgements,
+        }
+        digest = hashlib.sha256(_canonical(payload)).hexdigest()
+        return SkillBundle.model_validate({**payload, "contentHash": digest}).model_dump()
 
     def context(self, bundle: dict | None) -> dict | None:
         if not bundle:

@@ -57,7 +57,7 @@ layout-check-repair
 }
 ```
 
-任务保存完整 `generation.skillBundle`，包括主 Skill、modifier、自动 intake/repair、判据和 bundle 哈希。运行中的任务不再读取更新后的文件；外部任务视图会移除正文和判据原文，只保留摘要、版本、角色与哈希。
+任务保存完整 `generation.skillBundle`，包括主 Skill、modifier、自动 intake、待触发的 repair 快照、判据和 bundle 哈希。检查失败后才把 `pendingRepair` 启用为 `repair`；运行中不重新读取更新后的文件。外部任务视图会移除正文和判据原文，只保留摘要、版本、角色与哈希。
 
 ## API
 

@@ -1,5 +1,6 @@
 import json
 import re
+import shutil
 from pathlib import Path
 
 import pytest
@@ -191,6 +192,7 @@ def test_bundle_pins_content_judgements_and_public_view_hides_body():
     ]
     assert bundle["intake"]["id"] == "floorplan-intake"
     assert bundle["repair"]["id"] == "layout-check-repair"
+    assert bundle["pendingRepair"] is None
     assert bundle["judgements"]
     assert len(bundle["contentHash"]) == 64
     context = registry.context(bundle)
@@ -206,6 +208,60 @@ def test_bundle_pins_content_judgements_and_public_view_hides_body():
     assert "content" not in public["primary"]
     assert "judgementsData" not in public["primary"]
     assert "licenseText" not in public["primary"]
+
+
+def test_repair_is_loaded_from_the_task_snapshot_after_files_change(tmp_path):
+    root = tmp_path / "skills"
+    shutil.copytree(ROOT, root)
+    registry = SkillRegistry(root)
+    selection = registry.validate_selection(
+        {
+            "primarySkillId": "living-dining-small",
+            "modifierSkillIds": [],
+            "reason": "snapshot test",
+        },
+        registry.candidates(
+            "generate_rectangular",
+            project_state="empty",
+            room_kind="living_dining",
+            area_m2=18,
+        ),
+        mode="generate_rectangular",
+    )
+    bundle = registry.compose(
+        mode="generate_rectangular",
+        selection=selection,
+        include_intake=True,
+    )
+    assert bundle["repair"] is None
+    assert [item["role"] for item in registry.context(bundle)["instructions"]] == [
+        "intake",
+        "primary",
+    ]
+    pinned = {
+        "primary": bundle["primary"],
+        "intake": bundle["intake"],
+        "repair": bundle["pendingRepair"],
+    }
+
+    for skill_id in ("living-dining-small", "floorplan-intake", "layout-check-repair"):
+        path = root / skill_id / "SKILL.md"
+        path.write_text(path.read_text() + "\nFUTURE VERSION MUST NOT LEAK\n")
+
+    resumed = SkillRegistry(root)
+    repaired = resumed.with_repair(bundle, "generate_rectangular")
+    assert repaired["primary"] == pinned["primary"]
+    assert repaired["intake"] == pinned["intake"]
+    assert repaired["repair"] == pinned["repair"]
+    context = resumed.context(repaired)
+    assert [item["role"] for item in context["instructions"]] == [
+        "intake",
+        "primary",
+        "repair",
+    ]
+    assert all(
+        "FUTURE VERSION MUST NOT LEAK" not in item["content"] for item in context["instructions"]
+    )
 
 
 def test_manifest_rejects_direct_scene_write_capability():

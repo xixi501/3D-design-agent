@@ -1,0 +1,47 @@
+{
+  "purpose": "Project confirmed floorplan candidates into the generic scene draft",
+  "generatedAt": "2026-11-09T02:27:56+08:00",
+  "implementationCommit": "93195ba2c7eefb71c3c716f7e981f586a3754cb2",
+  "command": "npm run test:floorplan:offline",
+  "passed": true,
+  "checks": {
+    "python": {
+      "passed": 129,
+      "failed": 0
+    },
+    "node": {
+      "passed": 41,
+      "failed": 0
+    },
+    "buildAndTypecheck": true,
+    "browser": true,
+    "skillPoolL3": true,
+    "v35Replay": true,
+    "v36Replay": true,
+    "controlledV3Browser": true
+  },
+  "projection": {
+    "source": "Confirmed floorplan image is stored as observed evidence with its SHA-256.",
+    "geometry": "The materialized candidate plan is projected into the same SceneProgram shape used by text and edit tasks.",
+    "assets": "Catalog furniture keys become catalogCandidates asset resolutions.",
+    "compatibility": "The specialized V1/V2/V3 floorplan draft and candidate remain authoritative."
+  },
+  "defectFoundAndFixed": {
+    "code": "SCENE_DRAFT_INVALID",
+    "field": "assetResolutions.0.jobId",
+    "cause": "Python Pydantic serialized optional values as null while the TypeScript contract accepted only omission.",
+    "fix": "The cross-language contract now treats null and omission as equivalent for optional asset fields."
+  },
+  "notClaimed": [
+    "Whole-home furniture reconstruction",
+    "Whole-home evaluation references",
+    "Reserved room activation",
+    "Photo input adapters",
+    "Generic draft as formal commit source"
+  ],
+  "artifacts": {
+    "test-results/skill-pool-v1-l3.json": "0b9f0e6557f81cc95ffb4b4a179902f99f68e9b51b0a6fe23018404a91a615fd",
+    "test-results/floorplan-v3-tools/report.json": "dc7e1b411c8fcd798ed5b5dbd1a158b532ba7d3fae8be3eda5d1e3619600e89a",
+    "test-results/browser/report.json": "b06de46d538cc5d3ca3508efdff9b99c25f18dae628cdb4c55cfb36dc5260bea"
+  }
+}

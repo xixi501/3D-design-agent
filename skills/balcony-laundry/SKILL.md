@@ -2,13 +2,12 @@
 name: balcony-laundry
 description: 在 1.2–6㎡ 的生活阳台里排洗衣机、烘干机、洗衣池与晾晒：决定叠放还是并排、留洗衣机前操作面、定晾衣杆高度与长度、处理地漏与排水、并与通客厅的推拉门/窗帘避让。当用户要"阳台改洗衣房""洗衣机烘干机怎么放""晾衣杆装多高"时使用；不适用于需要改排水立管与楼板、封阳台改结构、以及要做阳光房的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-BAL-01,J-CIR-01,J-DOOR-01,J-CUR-01,J-VER-01,J-VER-02"
+  judgement_refs: "J-BAL-01,J-CIR-01,J-CUR-01,J-DOOR-01,J-VER-01,J-VER-02"
 ---
 
 # 生活阳台与家政
@@ -79,36 +78,37 @@ metadata:
 - 隔断不要做到顶，留出 100–200 的回风缝，否则阳台潮气进不来也出不去。
 
 **第 8 步 · 分批提交与检查**
-1. 先提交洗衣机、烘干机、洗衣池，`scene.apply_edits` 带 `base_version`、`op_id` 唯一；
-2. `check.run` 看推拉门前 400、重叠、窗内侧 150；
+1. 先提交洗衣机、烘干机、洗衣池，`candidate.propose` 带 `base_version`、`op_id` 唯一；
+2. `candidate.preflight` 看推拉门前 400、重叠、窗内侧 150；
 3. 再提交晾衣杆、吊柜、绿植，再检查；
 4. 最多 3 轮修复 [J-VER-02]；放不下时按"先保机器与排水、再保晾晒、最后保储物"的顺序砍；
 5. 只改本次涉及的家电与柜体，户型与无关家具不动 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取洗衣机、烘干机、洗衣池、晾衣杆的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、窗、推拉门、房间净尺寸与净高 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 推拉门前 400、窗帘活动区、重叠 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程把阳台当"放得下就行"的边角空间，本技能把**排水 → 机器 → 晾晒 → 储物**写成固定顺序：排水决定位置，位置决定通道，通道决定还能不能晾衣服。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：输出"机器与柜体坐标 + 三条净空 + 排水口位置"的文字表，交主控转场景；
-- 没有 `check.run`：按第 3、5、7 步的判据人工核算，交付里注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `BAL-dev-01`：1.6 × 3.2m 生活阳台（5.12㎡，< 6㎡）。洗衣机与烘干机并排贴南墙（前方净空 1800），洗衣池贴东墙、晾衣杆（吸顶）沿长边、绿植靠西墙，推拉门在北墙。期望 `check.run` 全通过：推拉门前 400 内无家具、窗内侧 150 内无高家具、无重叠。
+- **正向** `BAL-dev-01`：1.6 × 3.2m 生活阳台（5.12㎡，< 6㎡）。洗衣机与烘干机并排贴南墙（前方净空 1800），洗衣池贴东墙、晾衣杆（吸顶）沿长边、绿植靠西墙，推拉门在北墙。期望 `candidate.preflight` 全通过：推拉门前 400 内无家具、窗内侧 150 内无高家具、无重叠。
 - **边界** `BAL-dev-02`：同一个阳台，把洗衣机和烘干机并排怼在推拉门正后方（"进门就是洗衣机"）。期望报 `DOOR-01`——推拉门打不开也走不了人，技能要拒绝并把机器退回南墙。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。判据取自 `skills/_framework/JUDGEMENTS.md`（F 组阳台、A 组通行、B 组遮挡）；叠放/并排的判断表与"排水优先"的顺序是本技能补的操作经验，不新增阈值。
 - 许可：MIT（上游同源）。外部参考：常见洗衣机/烘干机尺寸区间、阳台排水做法通行经验。
-- 未验证：真实工具执行（待成员1）；晾衣杆离地高度 [J-BAL-01] 是半自动判据，案例只记录了杆的平面位置与机身尺寸，净高需现场实测；烘干机排湿方式（排气式要打孔）案例未覆盖，需按机型确认。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；晾衣杆离地高度 [J-BAL-01] 是半自动判据，案例只记录了杆的平面位置与机身尺寸，净高需现场实测；烘干机排湿方式（排气式要打孔）案例未覆盖，需按机型确认。

@@ -2,13 +2,12 @@
 name: social-reading-zone
 description: 在已有一组会客家具的客厅里，先把对象声明成"会客组 / 阅读组"，再只对目标组下发编辑，新增或重排一个"单人椅 + 落地灯 + 边几（可加书架）"的阅读角，并守住组内通道、台面支撑与到门洞的连通。当用户说"只动阅读角、沙发那套别动""想加个能坐一下午的角落"时使用；不适用于整间客厅重排、需要换主沙发或拆改墙体的任务。
 license: MIT
-compatibility: 需要 scene.get_snapshot / scene.apply_edits / scene.diff / check.run / catalog.search；工具未落地时按"依赖什么"一节的降级路径执行（分组清单 + 文字坐标 + 人工量尺）。
+compatibility: 需要 scene.read / candidate.propose / candidate.review / candidate.preflight / catalog.search；工具未落地时按"依赖什么"一节的降级路径执行（分组清单 + 文字坐标 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-07,J-OVER-01,J-CUR-01,J-WIN-01,J-LIGHT-01,J-LIGHT-02,J-LIGHT-03,J-LAY-01,J-PROP-02,J-STY-03,J-VER-01,J-VER-02"
+  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-07,J-CUR-01,J-LAY-01,J-LIGHT-01,J-LIGHT-02,J-LIGHT-03,J-OVER-01,J-PROP-02,J-STY-03,J-VER-01,J-VER-02,J-WIN-01"
 ---
 
 # 会客 + 阅读的功能分组与局部调整
@@ -33,9 +32,9 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 先分组，再动手**
-`scene.get_snapshot` 取当前版本与对象清单，用 `{"op":"group","name":"会客组","ids":[...]}` 把现有对象声明成组，
+`scene.read` 取当前版本与对象清单，用 `{"op":"group","name":"会客组","ids":[...]}` 把现有对象声明成组，
 再声明一个空的"阅读组"。分组不是装饰：它是本次编辑范围的书面边界，后面每一步都要问"这个 id 在不在目标组里"。
-不属于目标组的对象，一个坐标都不改 [J-VER-01]；最后用 `scene.diff` 把这条证明落成证据。
+不属于目标组的对象，一个坐标都不改 [J-VER-01]；最后用 `candidate.review` 把这条证明落成证据。
 
 **第 2 步 · 阅读角选址（三选一，按优先级）**
 
@@ -75,38 +74,37 @@ metadata:
 
 **第 8 步 · 提交与检查**
 1. 先提"阅读组三件套"，`base_version` 用第 1 步的快照版本，`op_id` 唯一；
-2. `check.run` 看遮挡、重叠、连通，再补书架；
+2. `candidate.preflight` 看遮挡、重叠、连通，再补书架；
 3. 只改被点到的对象；自动修复最多 3 轮 [J-VER-02]，仍不过的如实报告，不假装成功；
-4. 最后 `scene.diff` + 一帧 `view.capture` 作为"只动了阅读组"的证据。
+4. 最后 `candidate.review` + 一帧 `candidate.render` 作为"只动了阅读组"的证据。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `scene.get_snapshot` | 取对象清单与版本，确认哪些属于会客组 | 待成员1 |
-| `scene.apply_edits` | 提交 group / add / move / rotate，带版本与幂等 | 待成员1 |
-| `scene.diff` | 证明本次只改了目标组 [J-VER-01] | 待成员1 |
-| `check.run` | 遮挡、重叠、连通、支撑 | 可 mock |
-| `catalog.search` | 取椅/边几/落地灯/书架的 key 与尺寸 | 可 mock |
-| `view.capture` | 出图作为验收证据 | 待成员1 |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `group` 能力：在交付里贴一张"分组清单"表（会客组 4 件 / 阅读组 4 件），并且只对阅读组写坐标；
-- 没有 `scene.diff`：把改动前后的对象清单并排贴出来，逐条标注"未改"，人工核对；
-- 没有 `check.run`：按第 3、5 步的净空与连通逐条手算，并注明"未经工具检查"。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取现状与目标区域 |
+| `candidate.propose` | 产出局部修改候选（主系统审批后落库） |
+| `candidate.preflight` | 预检局部修改的净空与遮挡 |
+| `candidate.review` | 复核无关对象是否保持不变 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
 - **正向** `SRZ-dev-01`：4500 × 6000 的客厅（内净约 24.9㎡），会客组原样保留（沙发背靠西墙、
-  电视柜背靠东墙），在东北角新增阅读组（阅读椅 + 边几 + 落地灯 + 书架）。期望 `check.run` 全通过，
-  且 `scene.diff` 只出现 4 个 added、没有 changed。
+  电视柜背靠东墙），在东北角新增阅读组（阅读椅 + 边几 + 落地灯 + 书架）。期望 `candidate.preflight` 全通过，
+  且 `candidate.review` 只出现 4 个 added、没有 changed。
 - **边界** `SRZ-dev-02`：用户要求"把书架挪到窗下面去"，`move` 后书架压进窗内侧带。
   期望同时报 `CUR-01` 与 `WIN-01`，技能应拒绝并给出"书架留东墙 / 换矮柜"的替代。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1/L2 结果按 `VERIFY.md` 的口径记录。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1/L2 结果按 `VERIFY.md` 的口径记录。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。"先声明分组、只改目标组"是设计书 §3.3 最小改动的落地方式；
   三件套的尺度关系（椅—灯—几）沿用 interior-design-expert 的 seating 数据与行业通行做法；
   窗带与高柜的阈值沿用 `house-plan-designer@b94183f9/reference/furnishing.md`。

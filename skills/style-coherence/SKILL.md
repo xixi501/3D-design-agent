@@ -2,11 +2,10 @@
 name: style-coherence
 description: 把"北欧风""新中式""侘寂"这类口头风格翻成可执行的硬装—软装—材质—五金四件套，用 60-30-10 配色、≤3 种主材、≤1 个视觉焦点把整屋拉齐；硬装不可改时以硬装为准只换软装。当用户要定风格、说"整屋感觉不统一/像网红拼贴"、或要检查某个方案风格是否自洽时使用；不适用于需要拆改硬装、品牌比价采购或只调家具位置的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / scene.diff / check.run；工具未落地时按"依赖什么"一节的降级路径执行（风格卡 + 人工评审清单）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.review / candidate.preflight；工具未落地时按"依赖什么"一节的降级路径执行（风格卡 + 人工评审清单）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-CIR-01,J-COL-01,J-COL-02,J-COL-03,J-CUR-01,J-PROP-01,J-STY-01,J-STY-02,J-STY-03,J-VER-01,J-VER-02,J-WIN-01"
 ---
@@ -32,8 +31,10 @@ metadata:
 
 ## 怎么做
 
+本技能只提供约束与验收项，不独立产生第二轮修改。
+
 **第 1 步 · 先读硬装，再谈风格**
-`scene.get_snapshot` 取已有对象的材质与颜色（门、地板、墙色、已固定的柜体）。
+`scene.read` 取已有对象的材质与颜色（门、地板、墙色、已固定的柜体）。
 硬装是三件"不可谈判项"，风格只能服从它 [J-STY-02]。判断口径：
 
 | 硬装 | 能配 | 不要配 |
@@ -83,40 +84,36 @@ metadata:
 禁忌：为了做一面背景墙，把高柜塞到窗下或窗帘区——这违反 [J-CUR-01] 与 [J-WIN-01]，必须换位置，不能"为了风格牺牲可用"。
 
 **第 7 步 · 落地与提交**
-1. 用 `scene.apply_edits` 分批：先换材质（`material` 类修改），再换软装对象，最后加点缀；
+1. 用 `candidate.propose` 分批：先换材质（`material` 类修改），再换软装对象，最后加点缀；
 2. 每次提交带 `base_version`；只改风格相关的对象，户型与位置不动 [J-VER-01]；
-3. `scene.diff` 核对"只改了该改的"；`check.run` 确认没有把通行挤掉 [J-CIR-01]；
+3. `candidate.review` 核对"只改了该改的"；`candidate.preflight` 确认没有把通行挤掉 [J-CIR-01]；
 4. 主家具长度仍不超过所在墙面的 2/3 [J-PROP-01]；
 5. 最多 3 轮修复 [J-VER-02]；3 轮后仍冲突的写进"未解决清单"（哪一件、为什么、可接受替代）。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 按 `style` 字段筛同风格家具，取材质与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读已有硬装（门、地板、墙色）与既有家具 | 待成员1 |
-| `scene.apply_edits` | 换材质、换软装，带版本与幂等 | 待成员1 |
-| `scene.diff` | 证明只改了风格相关对象 | 待成员1 |
-| `check.run` | 确认换软装后没有遮挡、通行、比例问题 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程把风格写进生成提示词，靠出图"看感觉"；本技能把风格拆成"主材 / 五金 / 软装 / 配色"四项可核对项，**判断可复核**，不依赖出图效果。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取现状 |
+| `candidate.review` | 只给出约束与验收项，不改动候选 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：输出一张风格卡 + 一张"对象 → 材质/颜色"对照表，交主控执行；
-- 没有 `scene.diff`：在交付里逐条列出"改了哪些对象"，由用户确认；
-- 没有 `check.run`：按第 7 步人工核算通行与比例，注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `STY-dev-01`：4.0 × 5.2m 起居室，浅橡木地板 + 白门（硬装不可改），走北欧：主材橡木 / 棉麻 / 羊毛三种，60-30-10 为暖白—浅木—灰绿，焦点只有一个电视柜。期望 `check.run` 全通过。
+- **正向** `STY-dev-01`：4.0 × 5.2m 起居室，浅橡木地板 + 白门（硬装不可改），走北欧：主材橡木 / 棉麻 / 羊毛三种，60-30-10 为暖白—浅木—灰绿，焦点只有一个电视柜。期望 `candidate.preflight` 全通过。
 - **边界** `STY-dev-02`：为了做"整面收纳背景墙"，把 2400 高的柜子放到北窗下。期望报 `CUR-01` 与 `WIN-01`；技能应拒绝该位置并给出"移到侧墙 / 降到窗台以下 / 改薄柜进深"三个替代。
-- **反向校验**：把 `STY-dev-01` 的材质改成 4 种（加一种深胡桃），`check.run` 不会报错——说明材质数量只能靠人评，**不能假装自动**。
+- **反向校验**：把 `STY-dev-01` 的材质改成 4 种（加一种深胡桃），`candidate.preflight` 不会报错——说明材质数量只能靠人评，**不能假装自动**。
 
-两个案例在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。九种风格划分沿用上游 `reference/furnishing.md` 的风格清单；60-30-10、主材 ≤3、焦点 ≤1 来自行业通行经验，按判据库口径引用 [J-COL-01]、[J-COL-02]、[J-STY-03]。
 - 许可：MIT（与上游同源）。外部参考：interior-design-expert 的 color/material 数据。
-- 未验证：真实工具执行（待成员1）、真实用户的"好看"评价（需人评）、风格卡的九种风格是否覆盖用户口语（需语料复核）。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`、真实用户的"好看"评价（需人评）、风格卡的九种风格是否覆盖用户口语（需语料复核）。
 - 修改记录：无（首版）。

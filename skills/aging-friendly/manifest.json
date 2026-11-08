@@ -1,36 +1,57 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "aging-friendly",
   "name": "适老化布置",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "modifier",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "长者卧室与卫浴：净宽取更严格的 800、无高差、扶手与助力、床边与马桶旁转移空间、夜间起夜照明、圆角固定家具与 450 坐高。",
-  "applies_when": {
-    "scene_types": ["主卧", "卧室", "卫浴"],
-    "area_m2": [9, 30],
-    "inputs": ["含墙体与门窗的场景或户型图", "行动能力（拐杖/助行器/轮椅）", "起夜路线（可选）"],
-    "preconditions": ["场景已有墙体与门窗", "已知是否需要轮椅回转"]
-  },
-  "not_applicable": ["需要结构改造或改门洞位置", "需要护理床/移位机等医疗设备", "普通卧室布置且无行动限制（转 master-bedroom）"],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "edit_existing"
     ],
-    "judgements": ["J-BATH-01", "J-BATH-02", "J-CIR-01", "J-CIR-04", "J-LIGHT-03", "J-STA-01", "J-VER-01", "J-VER-02"],
-    "assets": []
+    "roomKinds": [
+      "bedroom",
+      "bathroom"
+    ],
+    "areaM2": [
+      4,
+      20
+    ],
+    "projectState": "existing",
+    "requiredInputs": [
+      "existing_scene"
+    ]
   },
-  "cases": [
-    {"id": "AGE-dev-01", "kind": "positive", "expect": "check.run 全通过：800 净宽连续、床两侧各 1100、门扇与窗帘带净空"},
-    {"id": "AGE-dev-02", "kind": "boundary", "expect": "check.run 报 CIR-02（床堵门洞落脚带）"}
+  "notApplicable": [
+    "structural_change"
   ],
-  "provenance": {
-    "based_on": ["house-plan-designer@b94183f9/reference/furnishing.md", "house-plan-designer@b94183f9/reference/workflow-check.md"],
-    "license": "MIT",
-    "external_refs": ["interior-design-expert (anthropometric: seat height / reach)", "NKBA (bath clearances)"]
+  "capabilities": [
+    "scene.read",
+    "candidate.review"
+  ],
+  "judgements": [
+    "J-BATH-01",
+    "J-BATH-02",
+    "J-CIR-01",
+    "J-CIR-04",
+    "J-LIGHT-03",
+    "J-STA-01",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

@@ -2,11 +2,10 @@
 name: rental-makeover
 description: 出租房轻改造：在 3.2×4.6m 量级的单间里，用不拆改、可逆、可复原的手法提升观感——0 元/500 元/2000 元三档预算分别做什么、先摆位再换软装、灯光分层与拍照友好、退租时能全部搬走。当用户是租客、预算有限、房东不让动硬装、或要求"好看又能复原"时使用；不适用于自有房全屋装修、需要改水电或定制柜的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"的降级路径执行（文字清单 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径执行（文字清单 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-COL-01,J-CUR-01,J-LIGHT-01,J-STA-03,J-STY-01,J-STY-03,J-VER-01,J-VER-02,J-WIN-01"
 ---
@@ -32,6 +31,8 @@ metadata:
 4. 主要拍哪个角度？（决定视觉焦点位置）
 
 ## 怎么做
+
+本技能只提供约束与验收项，不独立产生第二轮修改。
 
 **第 1 步 · 先摆位，再花钱**
 
@@ -75,34 +76,33 @@ metadata:
 
 **第 7 步 · 提交与检查**
 
-1. 先提交摆位（搬动/新增），`scene.apply_edits` 带 `base_version`；
-2. `check.run` 看通道、窗帘带、高柜挡窗、重叠；
+1. 先提交摆位（搬动/新增），`candidate.propose` 带 `base_version`；
+2. `candidate.preflight` 看通道、窗帘带、高柜挡窗、重叠；
 3. 再提交软装与灯具；最多 3 轮修复 [J-VER-02]；
 4. 只改本次涉及的对象，房东的家具不删只移 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取可移动家具/灯具/地毯/帘的 key 与尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间、已有对象（含房东家具） | 待成员1 |
-| `scene.apply_edits` | 提交搬动/新增，带版本与幂等 | 待成员1 |
-| `check.run` | 通道、窗帘带、高柜挡窗、重叠 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目的差异：原流程默认"可以改硬装"，本技能把"不拆改、可逆、可复原"作为前置约束，任何方案先过这三条再谈效果。
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：输出"摆位图 + 三档购物清单 + 复原清单"三件套；
-- 没有 `check.run`：按 700 通道、150 窗帘带、400 窗前柜三条人工核算，并注明"未经工具检查"。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取现状 |
+| `candidate.review` | 只给出约束与验收项，不改动候选 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `RNT-dev-01`：3.2×4.6m 单间（轴线 14.7㎡，净约 13.2㎡）。床靠北、可移动衣柜贴东北角、双人沙发贴西墙、900 圆几距沙发 450、地毯、落地灯、绿植、东窗 2400 帘、顶面吊灯。期望 `check.run` 全通过。
+- **正向** `RNT-dev-01`：3.2×4.6m 单间（轴线 14.7㎡，净约 13.2㎡）。床靠北、可移动衣柜贴东北角、双人沙发贴西墙、900 圆几距沙发 450、地毯、落地灯、绿植、东窗 2400 帘、顶面吊灯。期望 `candidate.preflight` 全通过。
 - **边界** `RNT-dev-02`：为"做造型"把 2400×600、h2600 的高柜立到窗下。期望报 `WIN-01`（窗前 400 内高柜）与 `CUR-01`（窗内侧 150 内 h>600）。技能应改成矮柜/退出窗前 400，而不是拆窗帘。
 
 两个案例在 `examples/` 下；L1/L2 结果回填 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。`J-COL-01`（60/30/10）、`J-STY-01`、`J-STY-03`、`J-LIGHT-01`、`J-WIN-01`、`J-CUR-01` 取自 `_framework/JUDGEMENTS.md`；三档预算金额为经验值（一线城市 2026 年常见价），交付时按当地调整，不作为报价。
 - 许可：MIT（上游同源）。外部参考：interior-design-expert（lighting/color 经验值）。
-- 未验证：真实工具执行（待成员1）、真实租金档位与材料价格、房东是否接受"免钉"方案（需人工确认）。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`、真实租金档位与材料价格、房东是否接受"免钉"方案（需人工确认）。

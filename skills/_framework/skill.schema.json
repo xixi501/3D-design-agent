@@ -1,0 +1,253 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://actiscape.dev/schema/skill.v1.json",
+  "title": "actiscape.skill.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "version",
+    "kind",
+    "status",
+    "activation",
+    "summary",
+    "appliesTo",
+    "notApplicable",
+    "capabilities",
+    "judgements",
+    "composition",
+    "license",
+    "validation"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "actiscape.skill.v1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "maxLength": 64
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "kind": {
+      "enum": [
+        "intake",
+        "layout",
+        "edit",
+        "floorplan",
+        "modifier",
+        "repair",
+        "asset"
+      ]
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "conformant",
+        "verified",
+        "deprecated"
+      ]
+    },
+    "activation": {
+      "enum": [
+        "active",
+        "reserved"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "appliesTo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modes",
+        "roomKinds",
+        "areaM2",
+        "projectState",
+        "requiredInputs"
+      ],
+      "properties": {
+        "modes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "generate_rectangular",
+              "generate_from_text",
+              "edit_existing",
+              "floorplan_import",
+              "asset_import"
+            ]
+          }
+        },
+        "roomKinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "living_dining",
+              "bedroom",
+              "kids_room",
+              "guest_bedroom",
+              "study",
+              "home_office",
+              "office",
+              "kitchen",
+              "dining",
+              "bathroom",
+              "entry",
+              "balcony",
+              "studio",
+              "villa",
+              "gaming",
+              "gym",
+              "media",
+              "nursery",
+              "tatami",
+              "tea",
+              "utility",
+              "any"
+            ]
+          }
+        },
+        "areaM2": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000
+          }
+        },
+        "projectState": {
+          "enum": [
+            "empty",
+            "existing",
+            "any"
+          ]
+        },
+        "requiredInputs": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "dimensions",
+              "floorplan_image",
+              "text_brief",
+              "existing_scene",
+              "photo"
+            ]
+          }
+        }
+      }
+    },
+    "notApplicable": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "structural_change",
+          "water_electrical",
+          "multi_floor",
+          "precise_measurement",
+          "asset_generation",
+          "heavy_renovation"
+        ]
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "scene.read",
+          "catalog.search",
+          "candidate.propose",
+          "candidate.preflight",
+          "candidate.review",
+          "candidate.render",
+          "floorplan.analyze",
+          "floorplan.measure",
+          "asset.job"
+        ]
+      }
+    },
+    "judgements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^J-[A-Z]{2,6}-\\d{2}$"
+      }
+    },
+    "composition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxPerTask",
+        "conflictsWith"
+      ],
+      "properties": {
+        "maxPerTask": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "conflictsWith": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spdx",
+        "attribution"
+      ],
+      "properties": {
+        "spdx": {
+          "const": "MIT"
+        },
+        "attribution": {
+          "type": "string"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "structure",
+        "dryRun",
+        "realCore"
+      ],
+      "properties": {
+        "structure": {
+          "type": "boolean"
+        },
+        "dryRun": {
+          "type": "boolean"
+        },
+        "realCore": {
+          "const": false
+        }
+      }
+    }
+  }
+}

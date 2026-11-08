@@ -1,105 +1,133 @@
-# ActiScape Skill 池
+# ActiScape Skill 池（v1）
 
-面向"普通用户自助做室内设计"的多 Agent 系统（ActiScape / 演境）的**技能包集合**。
-成员3 交付；当前 30 个技能包、69 条判据、60 个可执行案例。
+成员三交付的技能内容层：**30 个场景技能包、69 条判据、60 个可执行案例**。
+全部按 `actiscape.skill.v1` 组织；结构（L1）与案例（L2）已通过，**真实核心（L3）未验收**。
 
-> 阅读顺序建议：本文件 → `skills/README.md`（索引与状态）→ 任选一个包的 `SKILL.md` → 它的 `examples/`。
-> 想快速判断"这东西靠不靠谱"：看第 5 节"验证"和 `reports/`，不用读代码。
+> 阅读顺序：本文件 → `skills/README.md`（索引）→ 任一包 `SKILL.md` → 它的 `examples/`。
+> 只想确认"能不能用"：直接跳到第 5 节，四条命令可原地复跑。
 
 ---
 
 ## 1 这个池子是干什么的
 
-系统里有一个主控 Agent 和三个专职 Agent（空间设计/资产/检查）。它们做设计时需要"经验"——不是模型自由发挥，而是**可引用、可检查、可版本化的判据与操作步骤**。这个池子就是那层经验：
+主控 Agent 与三个专职 Agent（空间设计 / 资产 / 检查）做设计时需要"经验"：可引用、可检查、可版本化的判据与操作步骤。这个池子提供这层内容：
 
-- 每条经验 = 一个**判据 ID**（如 `J-CIR-01` 主通道净宽），带阈值、来源、能否被工具检查；
-- 每个场景 = 一个**技能包**（如"小空间客餐厅布置"），说明"什么时候用、怎么做、依赖什么、怎么验证"；
-- 每个包带**两个可执行案例**（正向 + 边界），能被脚本跑出结论。
+- 每条经验 = 一个**判据 ID**（如 `J-CIR-01` 主通道净宽），带阈值、来源、可检查性；
+- 每个场景 = 一个**技能包**，说明"什么时候用、怎么做、依赖什么能力、怎么验证"；
+- 每个包带**两个可执行案例**（正向 + 边界），可被脚本判定。
 
 ## 2 目录
 
 ```
 .
-├── README.md              # 本文件
-├── ATTRIBUTIONS.md        # 来源与许可（哪些来自上游、哪些自写）
-├── VERSION.json           # 本次快照：技能数/判据数/案例数/指纹
+├── SKILL_POOL.md              # 本文件（评审入口）
+├── ATTRIBUTIONS.md            # 来源与许可（上游/外部均为 MIT；逐包来源表）
+├── VERSION.json               # 本次快照：技能数/判据数/案例数/activation/指纹
 ├── skills/
-│   ├── README.md          # ★ 索引：30 个包、分组、验证结果、加载方式
-│   ├── _framework/        # 池子的"宪法"
-│   │   ├── FORMAT.md      #   包格式（Agent Skills 规范 + manifest + ops.json）
-│   │   ├── JUDGEMENTS.md  #   判据库（69 条，唯一真源）
-│   │   ├── TOOLS.md       #   工具契约（场景/检查/资产/技能加载，待成员1 确认）
-│   │   ├── VERIFY.md      #   三级验证机制与已知局限
-│   │   └── CHANGELOG.md   #   框架变更
-│   └── <skill-id>/        # 30 个技能包
-│       ├── SKILL.md       #   人读：何时用/怎么做/依赖/验证/版本来源
-│       ├── manifest.json  #   机读：适用条件、依赖、案例、来源、状态
-│       └── examples/<case>/{case.md, ops.json, expected.md}
-├── tools/                 # 可复跑的检查工具
-│   ├── skill_lint.py      #   结构检查（12 项）
-│   ├── mockscene.py       #   最小几何引擎（12 类判定，不渲染）
-│   ├── dry_run.py         #   跑案例并与预期比对
-│   └── make_index.py      #   生成 skills/README.md
-└── reports/               # 证据
-    ├── lint.json          #   结构检查结果（22/22 → 30/30）
-    ├── dry_run.json/.md   #   案例执行结果（44/44 → 60/60）
-    ├── http_cases.md      #   契约级执行（44 案例走 HTTP）
-    ├── skill_pool.md      #   池子交付报告
-    └── capability_without_m1m2.md  # 无成员1/2 时的能力边界
+│   ├── README.md              # 人读索引（自动生成）
+│   ├── index.v1.json          # 机读索引（选择器读这个）
+│   ├── _framework/
+│   │   ├── skill.schema.json      # manifest 的 JSON Schema（actiscape.skill.v1）
+│   │   ├── judgements.schema.json # 判据文件的 JSON Schema
+│   │   ├── judgements.v1.json     # 69 条判据的结构化版本（唯一真源）
+│   │   ├── FORMAT.md              # 包格式说明
+│   │   ├── JUDGEMENTS.md          # 判据的人读版本
+│   │   ├── TOOLS.md               # capability 语义与错误码
+│   │   ├── VERIFY.md              # 三级验证机制与已知局限
+│   │   └── CHANGELOG.md           # 框架变更
+│   └── <skill-id>/
+│       ├── SKILL.md               # 人读：五节固定
+│       ├── manifest.json          # 机读：v1 结构
+│       └── examples/<case-id>/{case.md, ops.json, expected.md}
+├── tools/
+│   ├── skill_lint.py              # 结构检查（v1 schema）
+│   ├── mockscene.py               # 最小几何引擎（dry-run 用）
+│   ├── dry_run.py                 # 跑案例并与预期比对
+│   ├── validate_catalog.py        # catalog key 校验
+│   ├── make_index.py              # 生成索引
+│   └── data/catalog-sizes.json    # 固定尺寸表（随仓库提交，不依赖外部目录）
+└── reports/
+    ├── lint.v1.json               # 30/30，0 error
+    ├── dry_run.v1.json            # 60/60
+    ├── catalog_keys.v1.json       # 0 个未知 key
+    └── skill_pool.v1.md           # 交付报告
 ```
 
 ## 3 一个包长什么样
 
-```yaml
----
-name: living-dining-small            # 与目录名一致
-description: 8–25㎡ 客餐厅…（≤1024 字符，写清"做什么 + 什么时候用"）
-license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run
-metadata: {version: 0.1.0, status: pending_adaptation, level: structure, owner: member3}
----
+```json
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "living-dining-small",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "active",
+  "appliesTo": { "modes": ["generate_rectangular"], "roomKinds": ["living_dining"],
+                 "areaM2": [8, 25], "projectState": "empty", "requiredInputs": ["dimensions"] },
+  "capabilities": ["scene.read", "catalog.search", "candidate.propose", "candidate.preflight", "candidate.review"],
+  "judgements": ["J-CIR-01"],
+  "composition": { "maxPerTask": 1, "conflictsWith": ["living-dining-open"] },
+  "license": { "spdx": "MIT", "attribution": "repository:ATTRIBUTIONS.md" },
+  "validation": { "structure": true, "dryRun": true, "realCore": false }
+}
 ```
 
-正文五节固定：**什么时候用 / 怎么做 / 依赖什么 / 怎么验证 / 版本与来源**。
-判据只写 ID（`[J-CIR-01]`），阈值去 `JUDGEMENTS.md` 查——避免两处真源。
+`SKILL.md` 保留 Agent Skills 的格式与五节：**什么时候用 / 怎么做 / 依赖什么 / 怎么验证 / 版本与来源**。
+正文只写专业判断与语义 capability，不出现主系统内部工具名。
 
-`manifest.json` 是给加载器/选择器用的：`applies_when`（场景、面积、输入前置）、`not_applicable`、`depends.{tools,judgements}`、`cases`、`provenance`、`validation`。
+## 4 分类与启用
 
-## 4 状态机
-
-| 状态 | 含义 | 现在 |
+| kind | 数量 | 技能 |
 |---|---|---|
-| `pending_adaptation` | 内容就绪，依赖工具未落地 | **全部 30 个** |
-| `pending_validation` | 依赖可用、跑过正反案例、待稳定复跑 | — |
-| `released` | 固定案例复跑稳定 + 证据齐 | — |
+| layout | 21 | 客餐厅×2、主卧、儿童房、次卧、书房、办公、厨房、中岛、卫浴、玄关、阳台、开间、别墅、电竞、健身、影音、婴儿房、榻榻米、茶室、家政间 |
+| edit | 1 | social-reading-zone（只改指定区域） |
+| modifier | 5 | 适老、宠物、出租房、风格统一、照明配色 |
+| intake | 1 | floorplan-intake |
+| repair | 1 | layout-check-repair |
+| asset | 1 | photo-object-import |
 
-所以现在能证明的是：**内容自洽 + 几何可执行**；不能证明的是：**接真实场景服务后仍然成立**（那要等成员1 的 `scene.*` / `check.run`）。
+**首批 active（7 个）**：`living-dining-small`、`living-dining-open`、`social-reading-zone`、`style-coherence`、`lighting-color`、`floorplan-intake`、`layout-check-repair`。
+其余 23 个为 `reserved`；`photo-object-import` 等 S3 资产作业完成后再启用。
 
-## 5 验证（怎么复跑）
+**能力模型**：技能只能声明 `scene.read / catalog.search / candidate.propose / candidate.preflight / candidate.review / candidate.render / floorplan.analyze / floorplan.measure / asset.job`。
+**没有 `scene.write`、`project.commit`**：技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
 
-```powershell
-python tools/skill_lint.py          # 结构：0 error
-python tools/dry_run.py --all       # 案例：正向通过 + 边界按预期被拦
-python tools/make_index.py          # 刷新 skills/README.md
+## 5 验证
+
+```bash
+python tools/skill_lint.py --schema v1
+python tools/dry_run.py --all --report reports/dry_run.v1.json
+python tools/validate_catalog.py
+python tools/make_index.py --schema v1
+git diff --check
 ```
 
-判定不是"跑完没崩"，而是**双向断言**：
-- 正向案例必须 `pass=true` 且禁止触发的错误码一个不出；
-- 边界案例必须 `pass=false` 且指定错误码出现。
+判定是**双向断言**：正向案例必须 `pass=true` 且禁止触发的错误码一个不出；边界案例必须 `pass=false` 且指定错误码出现。
+这证明"技能警告的错误，检查器真能抓到"，而不是各说各话。
 
-这证明"技能警告的错误，检查器真能抓到"——技能与检查口径一致。
+已知局限（详见 `_framework/VERIFY.md`）：
+- 通行只验"可达宽区比例"，不验瓶颈最小净宽；
+- 操作三角、眩光、取景、检修、声学、踏步等判据不在引擎里，属人工验收；
+- 几何引擎是替身，口径以主系统真实检查器为准。
 
-## 6 来源（简版）
+## 6 状态的含义
 
-- 上游 [house-plan-designer](https://github.com/ZWD11/house-plan-designer) @ `b94183f9`（MIT）：判据 13 条、262 个家具 key 尺寸、检查阈值；
-- 外部 [interior-design-expert](https://github.com/curiositech/some_claude_skills)（MIT）：**只取数值**（通行/净距/照度/色温），未复制文本；
-- 其余自写（含 AI 辅助）：判据 28 条经验值 + 6 条项目约定。
+| 字段 | 现在 | 含义 |
+|---|---|---|
+| `status` | `conformant` | 结构 + 案例通过；**不是**真实核心验收 |
+| `validation.structure` | true | L1 通过 |
+| `validation.dryRun` | true | L2 通过 |
+| `validation.realCore` | **false** | 未接主系统真实场景/检查器；接入后由主系统改为 `verified` |
 
-逐项见 `ATTRIBUTIONS.md`，每个包的 `manifest.provenance` 也各自记录。
+## 7 来源
 
-## 7 给评审 agent 的提示
+- 上游 [house-plan-designer](https://github.com/ZWD11/house-plan-designer) @ `b94183f9`（MIT）：判据与家具尺寸；
+- 外部 [interior-design-expert](https://github.com/curiositech/some_claude_skills)（MIT）：只取数值（通行/净距/照度/色温）；
+- 其余自写（含 AI 辅助），逐包来源见 `ATTRIBUTIONS.md`。
 
-- **格式**：`SKILL.md` 用 Agent Skills 规范（便于任何支持该规范的加载器直接读）；`manifest.json` 是本项目加的，因为规范里的 `metadata` 只能是字符串键值对，装不下"依赖+案例+状态"。
-- **可以挑战的点**：① 判据是否该独立成文件而不写进技能正文；② 案例 `ops.json` 是否该换成更中性的场景描述；③ 30 个包的颗粒度是否过细（比如"主卧"和"次卧"是否该合并成"卧室"带参数）；④ 是否需要一个机器可读的"技能选择"字段（现在是 `applies_when` 自由结构）。
-- **改格式的代价**：30 个包 + 60 个案例统一改由脚本可完成（`tools/` 里有解析器），但会把 `version` 全部升一个次版本。
-- 有问题直接提，我按反馈批量改，之后照这个形式继续加包。
+## 8 给评审者的提示
+
+- **可以挑战**：① `kind` 划分是否合理（尤其 5 个 modifier 是否该拆）；② `appliesTo` 的字段是否够选择器用；③ `ops.json` 这种坐标化案例是否要换成更中性的场景描述；④ 30 个包颗粒度是否过细。
+- **改格式的代价**：30 个包 + 60 个案例可由脚本统一改，`tools/` 里有解析器；改完整体升次版本。
+- **不要**把 `conformant` 读成"核心已验收"；L3 必须由主系统跑同批 60 个案例后升级。

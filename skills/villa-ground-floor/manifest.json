@@ -1,36 +1,59 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "villa-ground-floor",
   "name": "独栋别墅首层",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "8.0×12.0m 首层：公共动线与服务动线分开，楼梯/电梯靠边不占采光面，家政设备间贴服务核，玄关柜按人数算量，客厅与餐厨共享庭院视线。",
-  "applies_when": {
-    "scene_types": ["别墅首层", "独栋", "联排", "起居室"],
-    "area_m2": [60, 150],
-    "inputs": ["含墙体与门窗的首层平面", "常住人口", "车库/侧门位置（可选）", "庭院朝向（可选）"],
-    "preconditions": ["场景已有墙体与门窗", "楼梯/电梯井位置已知或可预留"]
-  },
-  "not_applicable": ["多层全屋动线与挑空通高一起定", "需要改承重墙/楼梯结构或加建", "单房间客厅/餐厅布置（转 living-dining-open）"],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "generate_rectangular",
+      "generate_from_text"
     ],
-    "judgements": ["J-CIR-01", "J-CIR-02", "J-DOOR-02", "J-ENT-01", "J-LIGHT-01", "J-STA-02", "J-STA-03", "J-VER-01", "J-VER-02"],
-    "assets": []
+    "roomKinds": [
+      "villa"
+    ],
+    "areaM2": [
+      60,
+      200
+    ],
+    "projectState": "empty",
+    "requiredInputs": [
+      "dimensions"
+    ]
   },
-  "cases": [
-    {"id": "VIL-dev-01", "kind": "positive", "expect": "check.run 全通过：900 主通道、1000 门扇净空、推拉门与窗前净空、无重叠"},
-    {"id": "VIL-dev-02", "kind": "boundary", "expect": "check.run 报 DOOR-02（鞋柜落在入户门扇扫掠内）"}
+  "notApplicable": [],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review"
   ],
-  "provenance": {
-    "based_on": ["house-plan-designer@b94183f9/reference/furnishing.md", "house-plan-designer@b94183f9/reference/spec-format.md"],
-    "license": "MIT",
-    "external_refs": ["interior-design-expert (circulation/clearance)", "NKBA (service core)"]
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-DOOR-02",
+    "J-ENT-01",
+    "J-LIGHT-01",
+    "J-STA-02",
+    "J-STA-03",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

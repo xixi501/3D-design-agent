@@ -2,13 +2,12 @@
 name: kitchen-line-l-u
 description: 给 3–10㎡ 的独立厨房选形（一字 / L / U / 双排）并排橱柜、冰箱与水槽灶台：先按开间定形，再压操作三角、备餐顺序、吊柜避窗与冰箱开门侧。当用户要做厨房、说"厨房太窄/放不下冰箱/吊柜挡窗"或只改厨房某一段时使用；不适用于餐厨一体与中岛（转 dining-island）、需要改燃气与排水点位、或需要拆改墙体的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"的降级路径走（文字坐标方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径走（文字坐标方案 + 人工量尺），状态仍为 pending_adaptation。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-KIT-01,J-KIT-02,J-KIT-03,J-KIT-04,J-CIR-01,J-WIN-01,J-VER-01,J-VER-02"
+  judgement_refs: "J-CIR-01,J-KIT-01,J-KIT-02,J-KIT-03,J-KIT-04,J-VER-01,J-VER-02,J-WIN-01"
 ---
 
 # 一字 / L / U 形厨房布置
@@ -83,36 +82,37 @@ metadata:
 - 小厨房里 700 只是应急下限 [J-CIR-01]，不是可以拿来当设计目标的值。
 
 **第 7 步 · 分批提交与检查（不要一次改完再检查）**
-1. 先提交地柜与冰箱，`scene.apply_edits` 带 `base_version`，`op_id` 唯一；
-2. `check.run` 看通道、窗、重叠；
+1. 先提交地柜与冰箱，`candidate.propose` 带 `base_version`，`op_id` 唯一；
+2. `candidate.preflight` 看通道、窗、重叠；
 3. 再提交吊柜、油烟机、台面小家电，再检查；
 4. 最多 3 轮修复 [J-VER-02]；3 轮后仍不通过的写进"未解决清单"，不要用"看起来能用"收尾；
 5. 只改本次涉及的柜体与家电，户型与无关家具不动 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取柜体、冰箱、油烟机的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、窗台高、房间净尺寸 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 通道、挡窗、挂墙、重叠 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程是"描述厨房 → 生成图纸 → 脚本自查"，本技能是"读场景 → 按形定柜 → 分批提交 → 读检查报告"；柜体 key 与尺寸沿用上游目录，但**选形判断被写成一张可复核的表**，而不是散落在注释里。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：用文字给坐标方案（x/y/mm）+ 开间/进深/洞口三行实测表，交主控转场景；
-- 没有 `check.run`：按第 1、6 步的阈值人工核算，并在交付里注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `KIT-dev-01`：2.7 × 3.3m 厨房（8.9㎡），L 形（北墙 2400 + 西墙 1500），冰箱在东南角朝西，油烟机贴北墙，微波炉落在西侧短台面上。期望 `check.run` 全通过：通道 ≥ 900、窗内侧 150 无高家具、冰箱不在窗前 400、门扇开启区干净、台面物件在支撑面上。
+- **正向** `KIT-dev-01`：2.7 × 3.3m 厨房（8.9㎡），L 形（北墙 2400 + 西墙 1500），冰箱在东南角朝西，油烟机贴北墙，微波炉落在西侧短台面上。期望 `candidate.preflight` 全通过：通道 ≥ 900、窗内侧 150 无高家具、冰箱不在窗前 400、门扇开启区干净、台面物件在支撑面上。
 - **边界** `KIT-dev-02`：2.1 × 3.1m 厨房（6.5㎡）硬做双排。期望报 `CIR-02`（房间内没有 ≥ 900 的通行区）——这正是"开间 2100 不该做双排"的几何证据，技能要拒绝并把方案退回一字形。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。判据取自 `skills/_framework/JUDGEMENTS.md`（D 组厨房 + A 组通行 + B 组遮挡）；选形表中的 1800/2400/2700 由"柜深 600 + [J-KIT-02] 的通道"推出，不另立阈值。
 - 许可：MIT（上游同源）。外部参考：NKBA 操作三角与备餐顺序、interior-design-expert 的人体工程学净空数据。
-- 未验证：真实工具执行（待成员1）；操作三角 [J-KIT-01] 目前**没有几何检查器**，案例里是按坐标手算记录的，需人工复核；真实用户的"好用"评价需人评。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；操作三角 [J-KIT-01] 目前**没有几何检查器**，案例里是按坐标手算记录的，需人工复核；真实用户的"好用"评价需人评。

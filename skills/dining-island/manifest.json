@@ -1,36 +1,61 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "dining-island",
   "name": "餐厨一体与中岛",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "4–30㎡ 餐厨一体：先定中岛角色（操作/早餐/兼餐桌），再定岛台对橱柜的通道、桌岛是并台还是分置，最后排吧椅与吊灯。",
-  "applies_when": {
-    "scene_types": ["餐厨", "开放式厨房", "LDK", "餐厅"],
-    "area_m2": [4, 30],
-    "inputs": ["含墙体与门窗的场景或户型图", "常住人口（可选）", "岛台是否通水（可选）"],
-    "preconditions": ["场景已有墙体与门窗", "与客厅的连通口（门/垭口/推拉门）位置已知", "燃气与下水立管位置已知"]
-  },
-  "not_applicable": ["封闭式独立厨房（转 kitchen-line-l-u）", "需要改燃气、排烟、下水点位", "需要拆改墙体", "只做吧台酒水角、不涉及厨房动线", "整栋/别墅（转 villa-ground-floor）"],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "generate_rectangular",
+      "generate_from_text"
     ],
-    "judgements": ["J-KIT-02", "J-CIR-01", "J-CIR-03", "J-CIR-07", "J-LIGHT-02", "J-VER-01", "J-VER-02"],
-    "assets": []
+    "roomKinds": [
+      "kitchen",
+      "dining"
+    ],
+    "areaM2": [
+      4,
+      30
+    ],
+    "projectState": "empty",
+    "requiredInputs": [
+      "dimensions"
+    ]
   },
-  "cases": [
-    {"id": "ISL-dev-01", "kind": "positive", "expect": "check.run 全通过：通道 ≥900、推拉门前 400 净空、无重叠、吸顶件不参与贴墙判定"},
-    {"id": "ISL-dev-02", "kind": "boundary", "expect": "check.run 报 CIR-02（岛台堵死通客厅的垭口）"}
+  "notApplicable": [
+    "structural_change",
+    "multi_floor"
   ],
-  "provenance": {
-    "based_on": ["skills/_framework/JUDGEMENTS.md#D-厨房", "skills/_framework/JUDGEMENTS.md#A-通行与净空", "skills/_framework/JUDGEMENTS.md#G-光与色"],
-    "license": "MIT",
-    "external_refs": ["NKBA island clearance guidance", "IES illuminance categories"]
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-03",
+    "J-CIR-07",
+    "J-KIT-02",
+    "J-LIGHT-02",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

@@ -17,7 +17,9 @@ from typing import Iterable
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-CATALOG_PATH = os.path.join(ROOT, "src_upstream", "reference", "catalog-sizes.json")
+# 固定尺寸表随本仓库提交（tools/data/），不依赖任何未提交目录。
+# 需要换表时用 --catalog 参数或 CATALOG_PATH 环境变量。
+CATALOG_PATH = os.environ.get("CATALOG_PATH") or os.path.join(HERE, "data", "catalog-sizes.json")
 
 GRID = 50  # mm
 

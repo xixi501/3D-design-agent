@@ -2,13 +2,12 @@
 name: dining-island
 description: 在 4–30㎡ 的餐厨一体空间里决定中岛的角色（操作台 / 早餐吧台 / 兼餐桌），排出岛台、橱柜与餐桌的关系，控制岛台通道、桌岛净距、吧椅进出与吊灯高度。当用户要"把厨房打开""加个中岛""餐厨一体怎么排"时使用；不适用于封闭式独立厨房（转 kitchen-line-l-u）、需要改燃气下水点位、以及需要拆改墙体的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-KIT-02,J-CIR-01,J-CIR-03,J-CIR-07,J-LIGHT-02,J-VER-01,J-VER-02"
+  judgement_refs: "J-CIR-01,J-CIR-03,J-CIR-07,J-KIT-02,J-LIGHT-02,J-VER-01,J-VER-02"
 ---
 
 # 餐厨一体与中岛
@@ -71,36 +70,37 @@ metadata:
 - 吊灯不要装在灶台正上方（那里是油烟机的位置），也不要装在水槽正上方（低头洗东西会撞头）。
 
 **第 6 步 · 分批提交与检查（不要一次改完再检查）**
-1. 先提交橱柜与岛台，`scene.apply_edits` 带 `base_version`、`op_id` 唯一；
-2. `check.run` 看通道、重叠、门洞；
+1. 先提交橱柜与岛台，`candidate.propose` 带 `base_version`、`op_id` 唯一；
+2. `candidate.preflight` 看通道、重叠、门洞；
 3. 再提交餐桌组、吧椅、吊灯，再检查；
 4. 最多 3 轮修复 [J-VER-02]；3 轮后仍不通过的写进"未解决清单"，不要用"看起来宽敞"收尾；
 5. 只改本次涉及的家具，户型与无关家具不动 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取岛台、吧椅、餐桌、吊灯的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间净尺寸 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 通道、重叠、门洞、挂墙 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程靠"看效果图判断岛台够不够宽"，本技能把"角色 → 通道 → 桌岛关系"三步写成可复核的顺序，**先算宽度再谈样式**；岛台尺寸沿用上游目录（1800 × 900）作为起点，不另造一套。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：输出"岛台坐标 + 三条通道宽度 + 桌岛关系"的文字表，交主控转场景；
-- 没有 `check.run`：按第 2、3 步的判据人工核算，交付里注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `ISL-dev-01`：4.2 × 4.8m 餐厨一体（20.2㎡）。北墙橱柜 3000、岛台 1800 × 900 对橱柜留 1000、岛台东端挂两把吧椅、餐桌 1400 × 800 与岛台留 900、四把椅子（两端 + 北侧两把）、岛台上方两盏吊灯。期望 `check.run` 全通过：走廊 ≥ 900、推拉门前 400 净空、无重叠、吸顶件不参与贴墙判定。
+- **正向** `ISL-dev-01`：4.2 × 4.8m 餐厨一体（20.2㎡）。北墙橱柜 3000、岛台 1800 × 900 对橱柜留 1000、岛台东端挂两把吧椅、餐桌 1400 × 800 与岛台留 900、四把椅子（两端 + 北侧两把）、岛台上方两盏吊灯。期望 `candidate.preflight` 全通过：走廊 ≥ 900、推拉门前 400 净空、无重叠、吸顶件不参与贴墙判定。
 - **边界** `ISL-dev-02`：同一尺寸的餐厨，岛台做到 2400 长、一路顶到通客厅的垭口，餐桌与岛台之间只剩 600 的夹缝。期望报 `CIR-02`——垭口被岛台堵死，客厅进不来；技能要拒绝并给出"缩岛台 / 换方向 / 岛台兼餐桌"三条替代。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。判据取自 `skills/_framework/JUDGEMENTS.md`（A 组通行、D 组厨房通道、G 组照明）；"岛台与餐桌只有并台或分置"由 [J-CIR-07] 与 [J-CIR-03] 两个区间推出，不另立阈值。
 - 许可：MIT（上游同源）。外部参考：NKBA 中岛通道建议、IES 台面照度分级。
-- 未验证：真实工具执行（待成员1）；[J-LIGHT-02] 的照度是人工判据，案例只记录了灯具坐标与高度，照度需现场实测；[J-CIR-03] 的"餐椅后推"目前靠人工量，引擎只查连通性与主通道。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；[J-LIGHT-02] 的照度是人工判据，案例只记录了灯具坐标与高度，照度需现场实测；[J-CIR-03] 的"餐椅后推"目前靠人工量，引擎只查连通性与主通道。

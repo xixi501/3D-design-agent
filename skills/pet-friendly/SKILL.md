@@ -2,11 +2,10 @@
 name: pet-friendly
 description: 宠物家庭布置：在 4.2×5.6m 量级的起居空间里定出宠物活动区与清洁点，把猫爬架放在能晒太阳又不在窗帘带里的墙段，把猫砂盆与狗窝挪出餐厨与主动线，再用耐抓耐污材料、门挡与线槽让布置经得住日常。当用户养猫养狗、要求"耐抓、好清理、别让猫爬架挡路"时使用；不适用于需要拆改墙体或做全屋新风/除味的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"的降级路径执行（文字坐标 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径执行（文字坐标 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-CIR-01,J-CIR-02,J-COL-02,J-CUR-01,J-VER-01,J-VER-02"
 ---
@@ -31,6 +30,8 @@ metadata:
 3. 宠物是否上床/上沙发（决定面料与是否需要可拆洗套）。
 
 ## 怎么做
+
+本技能只提供约束与验收项，不独立产生第二轮修改。
 
 **第 1 步 · 先划两块"宠物专用"**
 
@@ -73,34 +74,33 @@ metadata:
 
 **第 7 步 · 提交与检查**
 
-1. 先提交沙发、地毯、宠物活动区三件，`scene.apply_edits` 带 `base_version`；
-2. `check.run` 看通道、窗帘带、重叠；再提交清洁点与收纳；
+1. 先提交沙发、地毯、宠物活动区三件，`candidate.propose` 带 `base_version`；
+2. `candidate.preflight` 看通道、窗帘带、重叠；再提交清洁点与收纳；
 3. 最多 3 轮修复 [J-VER-02]；未解决项如实写进清单；
 4. 只改本次涉及的对象，户型与既有家具不动 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取沙发/地毯/猫爬架/宠物床 key 与尺寸 | 可 mock（猫砂盆无 key） |
-| `scene.get_snapshot` | 读墙、洞口、房间、已有对象 | 待成员1 |
-| `scene.apply_edits` | 分批提交，带版本与幂等 | 待成员1 |
-| `check.run` | 通道、窗帘带、重叠、挂墙 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目的差异：原流程没有"宠物"维度；本技能把"耐抓耐污"落成可执行的选材条目，把宠物用品的位置写成可检查的几何条件（离窗 150、离餐厨 1500、盆前 600）。
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：给文字坐标表 + 材料清单，由主控转场景；
-- catalog 没有猫砂盆/狗窝 key：用 `petBed` 等效占位并标注"需 assets.submit 换真实件"，不假装已落位。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取现状 |
+| `candidate.review` | 只给出约束与验收项，不改动候选 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `PET-dev-01`：4.2×5.6m 起居室（轴线 23.5㎡，净约 21.6㎡）。沙发靠南、茶几距 450、地毯；猫爬架放在北窗东侧的墙段（避开窗内侧 150），宠物床在沙发东侧留 150；宠物用品柜贴西墙避开门扇；门口防带砂垫。期望 `check.run` 全通过。
+- **正向** `PET-dev-01`：4.2×5.6m 起居室（轴线 23.5㎡，净约 21.6㎡）。沙发靠南、茶几距 450、地毯；猫爬架放在北窗东侧的墙段（避开窗内侧 150），宠物床在沙发东侧留 150；宠物用品柜贴西墙避开门扇；门口防带砂垫。期望 `candidate.preflight` 全通过。
 - **边界** `PET-dev-02`：把 1600 高的猫爬架放到窗洞正下方。期望报 `CUR-01`（窗内侧 150 内有 h>600 的落地家具）。技能应把它挪到窗侧墙段，而不是把窗帘拆了。
 
 两个案例在 `examples/` 下；L1/L2 结果回填 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。`J-CUR-01` 的 150/600、`J-CIR-01` 的 700 取自 `_framework/JUDGEMENTS.md`；"猫砂盆远离餐厨 1500""盆前 600""爬架 1200–1600"为经验值，无强制力，交付时注明。
 - 许可：MIT（上游同源）。外部参考：interior-design-expert（clearance/circulation）、NKBA（cleanability 相关经验）。
-- 未验证：真实工具执行（待成员1）、猫砂盆与狗窝的真实几何（catalog 只有 `petBed`）、气味与掉毛的实际改善（需住户回访）。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`、猫砂盆与狗窝的真实几何（catalog 只有 `petBed`）、气味与掉毛的实际改善（需住户回访）。

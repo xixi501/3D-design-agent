@@ -5,37 +5,278 @@
     "units": "mm",
     "min_passage": 700,
     "walls": [
-      {"id": "wN", "a": [0, 0], "b": [4200, 0], "t": 200, "bearing": true},
-      {"id": "wE", "a": [4200, 0], "b": [4200, 5400], "t": 200, "bearing": true},
-      {"id": "wS", "a": [0, 5400], "b": [4200, 5400], "t": 200, "bearing": true},
-      {"id": "wW", "a": [0, 0], "b": [0, 5400], "t": 200, "bearing": true}
+      {
+        "id": "wN",
+        "a": [
+          0,
+          0
+        ],
+        "b": [
+          4200,
+          0
+        ],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wE",
+        "a": [
+          4200,
+          0
+        ],
+        "b": [
+          4200,
+          5400
+        ],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [
+          0,
+          5400
+        ],
+        "b": [
+          4200,
+          5400
+        ],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wW",
+        "a": [
+          0,
+          0
+        ],
+        "b": [
+          0,
+          5400
+        ],
+        "t": 200,
+        "bearing": true
+      }
     ],
     "openings": [
-      {"id": "win1", "wall": "wN", "type": "window", "from": 900, "to": 3300, "sill": 900, "head": 2400},
-      {"id": "d1", "wall": "wW", "type": "door", "from": 800, "to": 1700, "hinge": "from", "into": [600, 1250]}
+      {
+        "id": "win1",
+        "wall": "wN",
+        "type": "window",
+        "from": 900,
+        "to": 3300,
+        "sill": 900,
+        "head": 2400
+      },
+      {
+        "id": "d1",
+        "wall": "wW",
+        "type": "door",
+        "from": 800,
+        "to": 1700,
+        "hinge": "from",
+        "into": [
+          600,
+          1250
+        ]
+      }
     ],
     "rooms": [
-      {"id": "r1", "name": "客餐厅", "polygon": [[0, 0], [4200, 0], [4200, 5400], [0, 5400]]}
+      {
+        "id": "r1",
+        "name": "客餐厅",
+        "polygon": [
+          [
+            0,
+            0
+          ],
+          [
+            4200,
+            0
+          ],
+          [
+            4200,
+            5400
+          ],
+          [
+            0,
+            5400
+          ]
+        ]
+      }
     ],
     "objects": []
   },
   "edits": [
-    {"op": "add", "object": {"id": "o_din", "key": "diningTable", "at": [1600, 1200], "rot": 0, "w": 1400, "d": 800}},
-    {"op": "add", "object": {"id": "o_c1", "key": "chair", "at": [1300, 600], "rot": 0}},
-    {"op": "add", "object": {"id": "o_c2", "key": "chair", "at": [1900, 600], "rot": 0}},
-    {"op": "add", "object": {"id": "o_c3", "key": "chair", "at": [1300, 1800], "rot": 180}},
-    {"op": "add", "object": {"id": "o_c4", "key": "chair", "at": [1900, 1800], "rot": 180}},
-    {"op": "add", "object": {"id": "o_pendant", "key": "pendant", "at": [1600, 1200], "rot": 0, "w": 700, "d": 700, "h": 400}},
-    {"op": "add", "object": {"id": "o_sofa", "key": "sofa", "at": [1900, 4400], "rot": 0, "w": 2200, "d": 950, "wall_ref": "wS"}},
-    {"op": "add", "object": {"id": "o_coffee", "key": "coffeeTable", "at": [2100, 3175], "rot": 0, "w": 1200, "d": 600}},
-    {"op": "add", "object": {"id": "o_arm", "key": "armchair", "at": [3450, 4800], "rot": 270}},
-    {"op": "add", "object": {"id": "o_lamp", "key": "floorLamp", "at": [3800, 3900], "rot": 0}},
-    {"op": "add", "object": {"id": "o_art", "key": "wallArt", "at": [3400, 5280], "rot": 0}},
-    {"op": "add", "object": {"id": "o_cur", "key": "curtain", "at": [2100, 180], "rot": 0, "w": 2600, "d": 160}}
+    {
+      "op": "add",
+      "object": {
+        "id": "o_din",
+        "key": "diningTable",
+        "at": [
+          1600,
+          1200
+        ],
+        "rot": 0,
+        "w": 1400,
+        "d": 800
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_c1",
+        "key": "chair",
+        "at": [
+          1300,
+          600
+        ],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_c2",
+        "key": "chair",
+        "at": [
+          1900,
+          600
+        ],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_c3",
+        "key": "chair",
+        "at": [
+          1300,
+          1800
+        ],
+        "rot": 180
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_c4",
+        "key": "chair",
+        "at": [
+          1900,
+          1800
+        ],
+        "rot": 180
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_pendant",
+        "key": "chandelier",
+        "at": [
+          1600,
+          1200
+        ],
+        "rot": 0,
+        "w": 700,
+        "d": 700,
+        "h": 400
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_sofa",
+        "key": "sofa",
+        "at": [
+          1900,
+          4400
+        ],
+        "rot": 0,
+        "w": 2200,
+        "d": 950,
+        "wall_ref": "wS"
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_coffee",
+        "key": "coffeeTable",
+        "at": [
+          2100,
+          3175
+        ],
+        "rot": 0,
+        "w": 1200,
+        "d": 600
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_arm",
+        "key": "armchair",
+        "at": [
+          3450,
+          4800
+        ],
+        "rot": 270
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_lamp",
+        "key": "floorLamp",
+        "at": [
+          3800,
+          3900
+        ],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_art",
+        "key": "wallArt",
+        "at": [
+          3400,
+          5280
+        ],
+        "rot": 0
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_cur",
+        "key": "curtain",
+        "at": [
+          2100,
+          180
+        ],
+        "rot": 0,
+        "w": 2600,
+        "d": 160
+      }
+    }
   ],
   "expect": {
     "pass": true,
     "must_trigger": [],
-    "must_not_trigger": ["CIR-02", "DOOR-01", "DOOR-02", "CUR-01", "WIN-01", "OVER-01", "WALL-01", "ASSET-02"]
+    "must_not_trigger": [
+      "CIR-02",
+      "DOOR-01",
+      "DOOR-02",
+      "CUR-01",
+      "WIN-01",
+      "OVER-01",
+      "WALL-01",
+      "ASSET-02"
+    ]
   }
 }

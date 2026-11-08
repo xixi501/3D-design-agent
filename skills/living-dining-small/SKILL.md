@@ -2,13 +2,12 @@
 name: living-dining-small
 description: 在 8–25㎡ 的客餐厅里，用"一个主墙 + 一条贯穿通道"的方法排出沙发组与餐桌，保证 700 通行、门窗不被挡，并给出小空间的取舍顺序。当用户要布置客餐厅、给出面积或户型图、或要求"只改客厅/餐厅某一块"时使用；不适用于需要拆改墙体、整栋/别墅或水电改造的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按第 4 节的降级路径执行（文字方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按第 4 节的降级路径执行（文字方案 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-03,J-CIR-07,J-CUR-01,J-DOOR-01,J-PROP-01,J-PROP-02,J-WIN-02,J-VER-01,J-VER-02,J-STA-01"
+  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-03,J-CIR-07,J-CUR-01,J-DOOR-01,J-PROP-01,J-PROP-02,J-STA-01,J-STA-03,J-VER-01,J-VER-02,J-WIN-02"
 ---
 
 # 小空间客餐厅布置
@@ -34,7 +33,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 量可用墙面**
-`scene.get_snapshot` 取墙与洞口；把墙面按"连续、无洞口、≥ 2700"筛出来。少于两面这样的墙，说明这是异形/小开间，直接进第 5 步的取舍表。
+`scene.read` 取墙与洞口；把墙面按"连续、无洞口、≥ 2700"筛出来。少于两面这样的墙，说明这是异形/小开间，直接进第 5 步的取舍表。
 
 **第 2 步 · 定主墙与沙发墙**
 - 主墙 = 最长的那面连续实墙，优先选**不正对入户门**的一侧（进门不直视电视）；
@@ -69,36 +68,37 @@ metadata:
 - 高于窗台的柜子不进窗前 400 范围。
 
 **第 7 步 · 提交与检查（不要一次改完再检查）**
-1. 先提交"沙发 + 茶几 + 电视柜"，`scene.apply_edits` 带 `base_version`，`op_id` 唯一；
-2. `check.run` 看通道与遮挡；
+1. 先提交"沙发 + 茶几 + 电视柜"，`candidate.propose` 带 `base_version`，`op_id` 唯一；
+2. `candidate.preflight` 看通道与遮挡；
 3. 再提交餐桌组，再检查；
 4. 最多 3 轮修复 [J-VER-02]；3 轮后仍不通过的项，写进"未解决清单"交给用户，不要用"看起来可以"收尾；
 5. 全程只改本次涉及的对象，户型与无关家具不动 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取家具 key 与默认尺寸（沙发/茶几/餐桌/椅/地毯） | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间、已有对象 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 通道、遮挡、重叠、挂墙 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程是"写户型描述 → 生成网页 → 用脚本自查"，本技能是"读场景 → 逐批提交 → 读检查报告"；家具 key 与尺寸沿用上游，但**布置判断的载体从脚本注释变成了可追溯的修改记录**。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*` 时，用文字给出坐标方案（x/y/mm）+ 一张手绘式平面描述，交主控转成场景；
-- 没有 `check.run` 时，按第 6 步的阈值人工核算，并在交付里注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `LD-dev-01`：3.6 × 5.4m 客餐厅（19.4㎡），布三人沙发、茶几、电视柜、四人餐桌、地毯、窗帘。期望 `check.run` 全通过（含通道 ≥700、窗 150 净空、门扇开启）。
+- **正向** `LD-dev-01`：3.6 × 5.4m 客餐厅（19.4㎡），布三人沙发、茶几、电视柜、四人餐桌、地毯、窗帘。期望 `candidate.preflight` 全通过（含通道 ≥700、窗 150 净空、门扇开启）。
 - **边界** `LD-dev-02`：把 2400 高的书柜放到窗下。期望报 `CUR-01`（窗帘活动区）与 `WIN-01`（高柜挡窗），技能应主动拒绝这个做法并给出替代位置。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。判据来自 `house-plan-designer@b94183f9` 的 `reference/furnishing.md`（通道 700、窗帘 150、推拉门 400、高柜挡窗 400、窗帘覆盖）与人体工程学通行值（茶几 450、餐椅后推 900）；`J-STA-01` 引自 GB 50096 常用下限，**须按现行版本复核**。
 - 许可：MIT（上游同源）。外部参考：interior-design-expert 的 space-planning 数据（circulation 900/600/450、clearance 450/900/600）。
-- 未验证：真实工具执行（待成员1）、真实用户的"好看"评价（需人评）。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`、真实用户的"好看"评价（需人评）。

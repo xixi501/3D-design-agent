@@ -2,11 +2,10 @@
 name: villa-ground-floor
 description: 独栋别墅首层：在 8.0×12.0m 量级的首层里分开"公共动线"（入户→玄关→客厅→餐厨→庭院）与"服务动线"（入户/侧门→家政设备间→厨房），定楼梯与电梯位置、挑空范围、家政设备间与庭院视线，并按人数算玄关收纳量。当用户给出独栋/联排首层平面、要求"动静分开、进门不见厅、餐厨看院子"时使用；不适用于多层全屋规划、需要改结构或加建的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"的降级路径执行（文字分区 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径执行（文字分区 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-CIR-01,J-CIR-02,J-DOOR-02,J-ENT-01,J-LIGHT-01,J-STA-02,J-STA-03,J-VER-01,J-VER-02"
 ---
@@ -79,34 +78,36 @@ metadata:
 **第 7 步 · 灯光与提交检查**
 
 1. 灯光分三层：环境（筒灯/洗墙）、任务（餐台/操作台）、重点（挑空吊灯/庭院洗树）[J-LIGHT-01]；
-2. 先提交楼梯、电梯、玄关柜（决定动线），`scene.apply_edits` 带 `base_version`；
-3. `check.run` 看通道、门扇、推拉门 400、窗前柜；
+2. 先提交楼梯、电梯、玄关柜（决定动线），`candidate.propose` 带 `base_version`；
+3. `candidate.preflight` 看通道、门扇、推拉门 400、窗前柜；
 4. 再提交客厅、餐厨、庭院侧家具；最多 3 轮修复 [J-VER-02]；
 5. 只改本次涉及的对象 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取楼梯/电梯/玄关柜/沙发/餐桌/岛台 key 与尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间、已有对象 | 待成员1 |
-| `scene.apply_edits` | 分批提交，带版本与幂等 | 待成员1 |
-| `check.run` | 通道、门扇、推拉门、窗前柜、重叠 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目的差异：原流程按"一个房间"处理，本技能把"两条动线 + 服务核 + 庭院视线"作为首层的三个前置决策，房间内部的家具排布反而次要。
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：输出分区图（动线、服务核、庭院视线三条线）+ 玄关柜长度计算；
-- 没有 `check.run`：按 900 通道、门扇 900、推拉门 400、窗前 400 四条人工核算，并注明"未经工具检查"。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `VIL-dev-01`：8.0×12.0m 首层（轴线 96㎡）。南入户门 1000、北庭院推拉门 1800 + 窗 2600、西墙窗 3000；`stairRun` 靠东墙、`elevator` 在楼梯南侧、家政柜与洗衣机组服务核、玄关柜 1200 + 换鞋凳 900、客厅沙发朝北看院子。`min_passage` 设 900。期望 `check.run` 全通过。
+- **正向** `VIL-dev-01`：8.0×12.0m 首层（轴线 96㎡）。南入户门 1000、北庭院推拉门 1800 + 窗 2600、西墙窗 3000；`stairRun` 靠东墙、`elevator` 在楼梯南侧、家政柜与洗衣机组服务核、玄关柜 1200 + 换鞋凳 900、客厅沙发朝北看院子。`min_passage` 设 900。期望 `candidate.preflight` 全通过。
 - **边界** `VIL-dev-02`：把鞋柜放在门后 450（正落在门扇扫掠里）。期望报 `DOOR-02`（门扇开启区有家具）。技能应把鞋柜移到门侧实墙，保入户 900 净宽。
 
 两个案例在 `examples/` 下；L1/L2 结果回填 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。`J-CIR-01/02`、`J-ENT-01`、`J-DOOR-02`、`J-STA-02/03`、`J-LIGHT-01` 取自 `_framework/JUDGEMENTS.md`；"鞋柜 350/人""电梯井 1600""家政间 1.5㎡"为经验值，交付时按当地规范与设备型号复核；`J-STA-02` 的净高与 `J-STA-03` 的结构约定须按现行规范复核。
 - 许可：MIT（上游同源）。外部参考：interior-design-expert（circulation/clearance）、NKBA（service core 经验）。
-- 未验证：真实工具执行（待成员1）、挑空与二层的关系（本技能只做首层）、庭院排水与结构（需建筑专业）、真实住户的动线评价（需回访）。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`、挑空与二层的关系（本技能只做首层）、庭院排水与结构（需建筑专业）、真实住户的动线评价（需回访）。

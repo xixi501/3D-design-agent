@@ -2,11 +2,10 @@
 name: utility-storage
 description: 布置 2–6㎡ 的家政间或储藏间：把洗烘、清洁工具、囤货分成三区，按柜深与通道宽度排 400 浅柜、600 标准柜，处理洞洞板挂具、通风防潮、门后空间与扫地机基站位置和电源。当用户要在小房间放洗衣机烘干机、囤纸巾清洁剂、或问"家政柜怎么做深、扫拖一体机放哪"时使用；不适用于需要新增地漏/排水立管、拆改墙体或整间改厨房/卫浴的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 设备说明书）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 设备说明书）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-BAL-01,J-CIR-01,J-CIR-06,J-CIR-09,J-DOOR-01,J-DOOR-02,J-OVER-01,J-VER-01,J-VER-02,J-WALL-01"
 ---
@@ -34,7 +33,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 三区先分行，再谈柜子**
-`scene.get_snapshot` 取墙与洞口，把房间按"脏 → 半净 → 净"分成三段：
+`scene.read` 取墙与洞口，把房间按"脏 → 半净 → 净"分成三段：
 - **洗烘区**：贴给排水与地漏那面墙，机器前留 700 操作面 [J-BAL-01]；
 - **清洁工具区**：拖把池/水桶/吸尘器/扫地机基站，靠近门口，脏东西不往屋里带；
 - **囤货区**：纸巾、清洁剂、备品，进高柜与吊柜，**放在最里端**（拿的次数最少）。
@@ -88,7 +87,7 @@ metadata:
 柜门开启按 [J-CIR-06]：平开 750、推拉 500；柜体、机器、基站的落地投影互不叠 [J-OVER-01]。
 
 **第 9 步 · 提交与检查（分批）**
-1. 先提"洗烘 + 拖把池"，`scene.apply_edits` 带 `base_version`；2. `check.run` 看门扇、窗帘带、重叠；
+1. 先提"洗烘 + 拖把池"，`candidate.propose` 带 `base_version`；2. `candidate.preflight` 看门扇、窗帘带、重叠；
 3. 再提"高柜 + 洞洞板 + 基站"，再检查；4. 最多 3 轮修复 [J-VER-02]，改不动的写进未解决清单；
 5. 只改本次涉及的对象 [J-VER-01]。
 
@@ -99,33 +98,35 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取 washer / dryer / laundrySink / cabTall / wallPanel / robotVac 的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间尺寸与已有管线位置（若有标注） | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 门扇、推拉门带、重叠、挂墙、房间面积 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：给文字坐标方案（机器/柜/基站中心点、朝向、通道净值）+ 平面草图；
-- 没有 `check.run`：按第 3、6、8 步逐条手算，交付里注明"未经工具检查"；
-- 排水、排风、防潮没有工具：把第 5 步做成清单交用户与施工方确认，技能不替现场判断。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
 - **正向** `UTL-dev-01`：1800 × 2600（4.7㎡）家政间，北墙并排洗烘 1200 + 东墙 1200 长 400 深高柜（南端留 1200 开放端头），
   西墙拖把池 600 宽 + 洞洞板，西南角扫地机基站，门在南墙、门扇弧内无家具。
-  期望 `check.run` 全通过；`min_passage` 按 600（房间 <6㎡，引擎只查门口落脚格，通道靠人工复核）。
+  期望 `candidate.preflight` 全通过；`min_passage` 按 600（房间 <6㎡，引擎只查门口落脚格，通道靠人工复核）。
 - **边界** `UTL-dev-02`：用户"门后那块地空着可惜"，把 800 宽的高柜挪到门后。
   期望报 `DOOR-02`（柜子压在门扇扫掠区）；技能应拒绝并指出门后只能挂薄挂具，不能放柜。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。门扇、推拉门、挂墙沿用 `house-plan-designer@b94183f9` 的 `reference/furnishing.md`；
   洗衣机前 700 取 [J-BAL-01]；通道按 [J-CIR-01] 的 700 设计，案例里 `min_passage=600` 只作 <6㎡ 房间的兜底
   （引擎对该档只查门口），**不构成对 [J-CIR-01] 的放宽**。
 - 柜深 400/600、洞洞板板底 400、基站前后 500/100、机器减振缝 50 为行业经验做法，判据库无专项 ID。
 - 许可：MIT（与上游同源）。
-- 未验证：真实工具执行（待成员1）；排水做法（存水弯、专用地漏）、排风量、防潮效果属现场与人工项。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；排水做法（存水弯、专用地漏）、排风量、防潮效果属现场与人工项。

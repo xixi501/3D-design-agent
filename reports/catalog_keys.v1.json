@@ -1,0 +1,550 @@
+{
+  "schemaVersion": "actiscape.catalog.v1",
+  "catalog": "tools/data/catalog-sizes.json",
+  "catalogKeys": 262,
+  "usedKeys": 86,
+  "unknownCount": 0,
+  "unknown": [],
+  "used": {
+    "armchair": 5,
+    "barStool": 2,
+    "bathHeater": 2,
+    "bayCushion": 2,
+    "bed12": 4,
+    "bed15": 4,
+    "bed18": 5,
+    "bedBench": 2,
+    "bigPlant": 1,
+    "bike": 2,
+    "bookshelf": 7,
+    "bookshelfLow": 1,
+    "cabTall": 10,
+    "cabWardrobe": 2,
+    "catTree": 2,
+    "chair": 35,
+    "chandelier": 9,
+    "clothesRack": 2,
+    "coatRack": 1,
+    "coffeeTable": 19,
+    "conferenceTable": 2,
+    "counter": 10,
+    "crib": 2,
+    "curtain": 23,
+    "desk": 5,
+    "deskLamp": 4,
+    "diningTable": 9,
+    "displayCabinet": 2,
+    "doormat": 2,
+    "dresser": 2,
+    "dryer": 4,
+    "elevator": 1,
+    "entryBench": 3,
+    "fileCabinet": 1,
+    "floorLamp": 12,
+    "fridge": 4,
+    "gamingChair": 2,
+    "hallCabinet": 1,
+    "hood": 1,
+    "kidsDesk": 2,
+    "kitchenIsland": 4,
+    "laundrySink": 4,
+    "lockers": 2,
+    "loveseat": 1,
+    "microwave": 1,
+    "mirror": 5,
+    "mirrorCabinet": 2,
+    "nightstand": 9,
+    "officeChair": 14,
+    "officeDesk": 10,
+    "petBed": 1,
+    "plant": 7,
+    "playMat": 2,
+    "printer": 3,
+    "projScreen": 2,
+    "readingChair": 2,
+    "robotVac": 2,
+    "roundCoffee": 1,
+    "rug": 16,
+    "screenDivider": 1,
+    "shoeCabinet": 4,
+    "shower": 2,
+    "sideTable": 5,
+    "sideboard": 1,
+    "sofa": 13,
+    "speaker": 3,
+    "stairRun": 1,
+    "tableVase": 2,
+    "tatami": 2,
+    "teaTable": 2,
+    "theaterSofa": 2,
+    "toilet": 2,
+    "towelWarmer": 1,
+    "toyCabinet": 3,
+    "trainingChair": 12,
+    "treadmill": 2,
+    "tvCabinet": 6,
+    "vanity": 2,
+    "wallArt": 5,
+    "wallPanel": 2,
+    "wallTV": 1,
+    "wardrobe": 4,
+    "wardrobe2": 8,
+    "washer": 5,
+    "whiteboard": 2,
+    "yogaMat": 2
+  },
+  "perCase": {
+    "aging-friendly/AGE-dev-01": [
+      "armchair",
+      "bed15",
+      "chandelier",
+      "curtain",
+      "nightstand",
+      "wallArt",
+      "wardrobe"
+    ],
+    "aging-friendly/AGE-dev-02": [
+      "bed18"
+    ],
+    "balcony-laundry/BAL-dev-01": [
+      "clothesRack",
+      "dryer",
+      "laundrySink",
+      "plant",
+      "washer"
+    ],
+    "balcony-laundry/BAL-dev-02": [
+      "clothesRack",
+      "dryer",
+      "laundrySink",
+      "washer"
+    ],
+    "bathroom-standard/BAT-dev-01": [
+      "bathHeater",
+      "mirrorCabinet",
+      "shower",
+      "toilet",
+      "towelWarmer",
+      "vanity"
+    ],
+    "bathroom-standard/BAT-dev-02": [
+      "bathHeater",
+      "mirrorCabinet",
+      "shower",
+      "toilet",
+      "vanity"
+    ],
+    "dining-island/ISL-dev-01": [
+      "barStool",
+      "chair",
+      "chandelier",
+      "counter",
+      "diningTable",
+      "kitchenIsland"
+    ],
+    "dining-island/ISL-dev-02": [
+      "counter",
+      "diningTable",
+      "kitchenIsland"
+    ],
+    "entry-storage/ENT-dev-01": [
+      "doormat",
+      "entryBench",
+      "mirror",
+      "shoeCabinet"
+    ],
+    "entry-storage/ENT-dev-02": [
+      "entryBench",
+      "mirror",
+      "shoeCabinet"
+    ],
+    "floorplan-intake/FIN-dev-01": [
+      "bed15",
+      "curtain",
+      "nightstand",
+      "wardrobe2"
+    ],
+    "floorplan-intake/FIN-dev-02": [
+      "bed18",
+      "wardrobe"
+    ],
+    "gaming-room/GAM-dev-01": [
+      "cabTall",
+      "curtain",
+      "desk",
+      "deskLamp",
+      "gamingChair"
+    ],
+    "gaming-room/GAM-dev-02": [
+      "cabTall",
+      "curtain",
+      "desk",
+      "deskLamp",
+      "gamingChair"
+    ],
+    "guest-bedroom/GBR-dev-01": [
+      "bed12",
+      "curtain",
+      "desk",
+      "nightstand",
+      "officeChair",
+      "rug",
+      "wardrobe2"
+    ],
+    "guest-bedroom/GBR-dev-02": [
+      "bed12",
+      "wardrobe2"
+    ],
+    "home-gym/GYM-dev-01": [
+      "bike",
+      "lockers",
+      "mirror",
+      "rug",
+      "treadmill",
+      "yogaMat"
+    ],
+    "home-gym/GYM-dev-02": [
+      "bike",
+      "lockers",
+      "mirror",
+      "treadmill",
+      "yogaMat"
+    ],
+    "home-office/HOF-dev-01": [
+      "bookshelf",
+      "bookshelfLow",
+      "curtain",
+      "desk",
+      "deskLamp",
+      "fileCabinet",
+      "officeChair"
+    ],
+    "home-office/HOF-dev-02": [
+      "bookshelf",
+      "desk",
+      "officeChair",
+      "printer"
+    ],
+    "kids-room/KID-dev-01": [
+      "bed12",
+      "chair",
+      "kidsDesk",
+      "playMat",
+      "toyCabinet",
+      "wardrobe2"
+    ],
+    "kids-room/KID-dev-02": [
+      "bed12",
+      "chair",
+      "kidsDesk",
+      "playMat",
+      "wardrobe2"
+    ],
+    "kitchen-line-l-u/KIT-dev-01": [
+      "counter",
+      "fridge",
+      "hood",
+      "microwave"
+    ],
+    "kitchen-line-l-u/KIT-dev-02": [
+      "counter"
+    ],
+    "layout-check-repair/LCR-dev-01": [
+      "coffeeTable",
+      "plant",
+      "rug",
+      "sofa"
+    ],
+    "layout-check-repair/LCR-dev-02": [
+      "cabTall",
+      "officeChair",
+      "officeDesk"
+    ],
+    "lighting-color/LGT-dev-01": [
+      "armchair",
+      "chair",
+      "chandelier",
+      "coffeeTable",
+      "curtain",
+      "diningTable",
+      "floorLamp",
+      "sofa",
+      "wallArt"
+    ],
+    "lighting-color/LGT-dev-02": [
+      "chair",
+      "chandelier",
+      "coffeeTable",
+      "curtain",
+      "diningTable",
+      "floorLamp",
+      "sofa"
+    ],
+    "living-dining-open/LDO-dev-01": [
+      "chair",
+      "chandelier",
+      "coffeeTable",
+      "counter",
+      "curtain",
+      "diningTable",
+      "floorLamp",
+      "fridge",
+      "rug",
+      "sofa",
+      "tvCabinet"
+    ],
+    "living-dining-open/LDO-dev-02": [
+      "chair",
+      "coffeeTable",
+      "counter",
+      "diningTable",
+      "fridge",
+      "kitchenIsland",
+      "rug",
+      "sideboard",
+      "sofa",
+      "tvCabinet"
+    ],
+    "living-dining-small/LD-dev-01": [
+      "chair",
+      "coffeeTable",
+      "curtain",
+      "diningTable",
+      "rug",
+      "sofa",
+      "tvCabinet"
+    ],
+    "living-dining-small/LD-dev-02": [
+      "bookshelf"
+    ],
+    "master-bedroom/MBR-dev-01": [
+      "bed18",
+      "bedBench",
+      "curtain",
+      "deskLamp",
+      "nightstand",
+      "wallArt",
+      "wardrobe"
+    ],
+    "master-bedroom/MBR-dev-02": [
+      "bed18",
+      "bedBench",
+      "curtain",
+      "nightstand",
+      "wardrobe"
+    ],
+    "media-room/MED-dev-01": [
+      "cabTall",
+      "coffeeTable",
+      "curtain",
+      "floorLamp",
+      "projScreen",
+      "rug",
+      "speaker",
+      "theaterSofa"
+    ],
+    "media-room/MED-dev-02": [
+      "cabTall",
+      "coffeeTable",
+      "projScreen",
+      "theaterSofa"
+    ],
+    "nursery/NUR-dev-01": [
+      "armchair",
+      "crib",
+      "curtain",
+      "dresser",
+      "floorLamp",
+      "toyCabinet"
+    ],
+    "nursery/NUR-dev-02": [
+      "armchair",
+      "crib",
+      "curtain",
+      "dresser",
+      "floorLamp",
+      "toyCabinet"
+    ],
+    "office-workstation/OFW-dev-01": [
+      "cabTall",
+      "conferenceTable",
+      "officeChair",
+      "officeDesk",
+      "plant",
+      "printer",
+      "trainingChair",
+      "wallArt",
+      "wallTV",
+      "whiteboard"
+    ],
+    "office-workstation/OFW-dev-02": [
+      "cabTall",
+      "conferenceTable",
+      "officeChair",
+      "officeDesk",
+      "printer",
+      "trainingChair",
+      "whiteboard"
+    ],
+    "pet-friendly/PET-dev-01": [
+      "catTree",
+      "coffeeTable",
+      "curtain",
+      "doormat",
+      "floorLamp",
+      "hallCabinet",
+      "petBed",
+      "plant",
+      "rug",
+      "sofa"
+    ],
+    "pet-friendly/PET-dev-02": [
+      "catTree"
+    ],
+    "photo-object-import/POI-dev-01": [
+      "coffeeTable",
+      "tableVase"
+    ],
+    "photo-object-import/POI-dev-02": [
+      "coffeeTable",
+      "tableVase"
+    ],
+    "rental-makeover/RNT-dev-01": [
+      "bed15",
+      "chandelier",
+      "curtain",
+      "floorLamp",
+      "loveseat",
+      "plant",
+      "roundCoffee",
+      "rug",
+      "wardrobe2"
+    ],
+    "rental-makeover/RNT-dev-02": [
+      "cabWardrobe"
+    ],
+    "social-reading-zone/SRZ-dev-01": [
+      "bookshelf",
+      "coffeeTable",
+      "floorLamp",
+      "readingChair",
+      "rug",
+      "sideTable",
+      "sofa",
+      "tvCabinet"
+    ],
+    "social-reading-zone/SRZ-dev-02": [
+      "bookshelf",
+      "coffeeTable",
+      "floorLamp",
+      "readingChair",
+      "rug",
+      "sideTable",
+      "sofa",
+      "tvCabinet"
+    ],
+    "studio-micro/STU-dev-01": [
+      "bed15",
+      "bookshelf",
+      "chair",
+      "chandelier",
+      "coffeeTable",
+      "curtain",
+      "diningTable",
+      "floorLamp",
+      "nightstand",
+      "officeChair",
+      "plant",
+      "rug",
+      "sofa",
+      "wardrobe2"
+    ],
+    "studio-micro/STU-dev-02": [
+      "bed18",
+      "bookshelf"
+    ],
+    "style-coherence/STY-dev-01": [
+      "coffeeTable",
+      "curtain",
+      "plant",
+      "rug",
+      "sideTable",
+      "sofa",
+      "tvCabinet"
+    ],
+    "style-coherence/STY-dev-02": [
+      "cabTall",
+      "coffeeTable",
+      "curtain",
+      "rug",
+      "sofa"
+    ],
+    "tatami-multipurpose/TAT-dev-01": [
+      "bayCushion",
+      "coffeeTable",
+      "screenDivider",
+      "tatami",
+      "wardrobe2"
+    ],
+    "tatami-multipurpose/TAT-dev-02": [
+      "coffeeTable",
+      "tatami"
+    ],
+    "tea-room/TEA-dev-01": [
+      "chair",
+      "curtain",
+      "displayCabinet",
+      "rug",
+      "sideTable",
+      "teaTable"
+    ],
+    "tea-room/TEA-dev-02": [
+      "chair",
+      "displayCabinet",
+      "sideTable",
+      "teaTable"
+    ],
+    "utility-storage/UTL-dev-01": [
+      "cabTall",
+      "dryer",
+      "laundrySink",
+      "robotVac",
+      "wallPanel",
+      "washer"
+    ],
+    "utility-storage/UTL-dev-02": [
+      "cabTall",
+      "dryer",
+      "laundrySink",
+      "robotVac",
+      "wallPanel",
+      "washer"
+    ],
+    "villa-ground-floor/VIL-dev-01": [
+      "armchair",
+      "bigPlant",
+      "cabWardrobe",
+      "chair",
+      "chandelier",
+      "coatRack",
+      "coffeeTable",
+      "counter",
+      "curtain",
+      "diningTable",
+      "elevator",
+      "entryBench",
+      "floorLamp",
+      "fridge",
+      "kitchenIsland",
+      "mirror",
+      "rug",
+      "shoeCabinet",
+      "sofa",
+      "stairRun",
+      "washer"
+    ],
+    "villa-ground-floor/VIL-dev-02": [
+      "shoeCabinet"
+    ]
+  }
+}

@@ -2,11 +2,10 @@
 name: home-gym
 description: 在 4–15㎡ 的健身角或家庭健身房里，按"器械靠墙、镜面对着空地、瑜伽区可收"的思路排跑步机、动感单车与拉伸垫，处理器械操作间距、器械不挡门、连续 700 通道、镜面墙与自拍视线、减震吸音、通风与层高。当用户说"想在家练"、给出一间小房或阳台一角、或问"跑步机放哪、镜子挂哪"时使用；不适用于需要拆改墙体、吊挂承重架或按商业健身房排布器材的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run / view.capture；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 手机拍照）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 手机拍照）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-CIR-01,J-CIR-02,J-CUR-01,J-DOOR-01,J-DOOR-02,J-LIGHT-02,J-OVER-01,J-STA-02,J-STA-03,J-VER-01,J-VER-02,J-WALL-01"
 ---
@@ -34,7 +33,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 先定"器械面"和"空地"，再放器械**
-`scene.get_snapshot` 取墙与洞口。把房间切成两半：靠墙 600–900 深的一条是器械面，剩下的是空地。
+`scene.read` 取墙与洞口。把房间切成两半：靠墙 600–900 深的一条是器械面，剩下的是空地。
 器械必须落在器械面里，**空地要留成一整块**——瑜伽、拉伸、开合跳都在空地上做，空地被切碎的房间没法用。
 
 **第 2 步 · 器械间距（本技能第一条硬判断）**
@@ -54,7 +53,7 @@ metadata:
 - 镜子挂在**实墙**上，不压洞口、不跨窗 [J-WALL-01]；窗那一面不做镜面墙；
 - 镜子正对的那片地必须是空地，**退距 ≥ 2.5m 才能照到全身**，镜子中心离地 1.0–1.2m；
 - 人在垫上或器械上时，镜子里要能看见动作侧身，所以镜子与主要训练位**不要成 90° 侧对**；
-- 自拍/视频取景：镜头背后是镜子或素墙，别把床、杂物、主通道拍进去；用 `view.capture` 出一帧"站在垫上朝镜子"的视角当证据。
+- 自拍/视频取景：镜头背后是镜子或素墙，别把床、杂物、主通道拍进去；用 `candidate.render` 出一帧"站在垫上朝镜子"的视角当证据。
 
 **第 5 步 · 地面减震与吸音（住楼房尤其重要）**
 跑步机、哑铃区下面垫 8–12mm 橡胶垫（场景里用 `rug` 占位，h≈12，不计入通行与遮挡，也不参与重叠判定）；
@@ -71,7 +70,7 @@ metadata:
 需要固定拉伸杆时，杆装在空地上方的实墙，杆下 600 内不放器械。
 
 **第 8 步 · 提交与检查（分批，不要一次改完）**
-1. 先提"跑步机 + 单车"，`scene.apply_edits` 带 `base_version`；2. `check.run` 看门扇、通道、器械是否互相压；3. 再提"镜子 + 垫 + 收纳"，再检查；
+1. 先提"跑步机 + 单车"，`candidate.propose` 带 `base_version`；2. `candidate.preflight` 看门扇、通道、器械是否互相压；3. 再提"镜子 + 垫 + 收纳"，再检查；
 4. 最多 3 轮修复 [J-VER-02]，改不动的写进未解决清单，不要用"看起来能练"收尾；5. 只改本次涉及的对象 [J-VER-01]。
 
 **第 9 步 · 放不下时的取舍顺序**
@@ -85,31 +84,32 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取 treadmill / bike / yogaMat / mirror / rug / cabTall 的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、层高字段、已有对象 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带 `base_version` 与幂等 `op_id` | 待成员1 |
-| `check.run` | 门扇、窗帘带、重叠、挂墙、通道 | 可 mock |
-| `view.capture` | 出"站在垫上朝镜子"一帧，验证镜面与自拍视线 | 待成员1 |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：给文字坐标方案（器械中心点、朝向、四边净值）+ 一张平面草图，交主控转场景；
-- 没有 `check.run`：按第 2、3、6 步逐条手算，交付里注明"未经工具检查"；
-- 没有 `view.capture`：让用户站在训练位用手机拍一张，"镜子里能不能看见全身"人工判。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
 - **正向** `GYM-dev-01`：3400 × 4000（13.6㎡）健身角，跑步机尾部朝南留 1000、两侧 600/700，单车靠西墙，瑜伽垫 1830 铺在东南空地，镜子 1800 挂东墙，lockers 做器械收纳。
-  期望 `check.run` 全通过：门扇净空、镜面贴实墙不压洞口、通道 ≥700 且连续、落地件不重叠。
+  期望 `candidate.preflight` 全通过：门扇净空、镜面贴实墙不压洞口、通道 ≥700 且连续、落地件不重叠。
 - **边界** `GYM-dev-02`：同一房间，用户"省地方"把跑步机顶到门后、把全身镜挂在窗户那面墙上。
   期望报 `DOOR-02`（门扇扫到跑步机）与 `WALL-01`（挂墙镜压住窗洞）；技能应拒绝这两处并给替代（机器尾端朝门、离门弧 ≥1000；镜子改挂东墙实墙）。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。门扇、窗帘带、推拉门、高柜挡窗沿用 `house-plan-designer@b94183f9` 的 `reference/furnishing.md`（对应 [J-DOOR-02]/[J-CUR-01]/[J-WALL-01]）；通道沿用人体工程学通行值（[J-CIR-01]/[J-CIR-02]）。
 - 器械间距（尾 1m、侧 0.5m）、镜面退距 2.5m、减震垫 8–12mm 为行业经验做法，**判据库暂无对应 ID**，本技能只作为设计判断，不写成判据阈值。
 - 许可：MIT（与上游同源）。外部参考：interior-design-expert 的 anthropometric / space-planning 数据。
-- 未验证：真实工具执行（待成员1）；层高与楼板承重只能人评（[J-STA-02] 为半自动）；"练得舒不舒服"需人评。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；层高与楼板承重只能人评（[J-STA-02] 为半自动）；"练得舒不舒服"需人评。

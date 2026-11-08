@@ -2,11 +2,10 @@
 name: bathroom-standard
 description: 给 1.2–6㎡ 的单卫做干湿分离与洁具排布：按排水立管定马桶与淋浴位，控马桶前后左右、淋浴区尺寸、浴室柜前净空，并决定门内开还是外开、挡水与防滑怎么做。当用户要"卫生间重排""做干湿分离""淋浴房放不下"时使用；不适用于需要改排水立管与楼板、适老化改造（转 aging-friendly）、以及需要拆改墙体的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-BATH-01,J-BATH-02,J-BATH-03,J-BATH-04,J-CIR-01,J-DOOR-02,J-LIGHT-02,J-VER-01,J-VER-02"
 ---
@@ -71,36 +70,37 @@ metadata:
 - 热水来源：每个卫生间都要有热水，燃气近则共用、远则独立电热水器 [J-BATH-04]（人工判断，需现场确认）。
 
 **第 7 步 · 分批提交与检查**
-1. 先提交马桶与淋浴，`scene.apply_edits` 带 `base_version`、`op_id` 唯一；
-2. `check.run` 看门扇扫掠、重叠、挂墙件；
+1. 先提交马桶与淋浴，`candidate.propose` 带 `base_version`、`op_id` 唯一；
+2. `candidate.preflight` 看门扇扫掠、重叠、挂墙件；
 3. 再提交浴室柜、镜柜、毛巾架、浴霸，再检查；
 4. 最多 3 轮修复 [J-VER-02]；放不下时如实报告"这个尺寸做不了三件套"，不要缩到不能用的尺寸硬塞；
 5. 只改本次涉及的洁具，户型与无关家具不动 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取马桶、淋浴房、浴室柜、镜柜的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、门扇朝向、房间净尺寸 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 门扇扫掠、重叠、挂墙件贴墙 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程按"看图觉得挤不挤"判断，本技能把"马桶先定 → 淋浴 → 浴室柜"的落位顺序写成硬顺序，**先保排水位，再保净空，最后才是尺寸好看**；洁具尺寸沿用上游目录，不另造。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：输出"三件套坐标 + 每条净空实测值"的文字表，交主控转场景；
-- 没有 `check.run`：按第 3、4、5 步的判据人工核算，交付里注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `BAT-dev-01`：1.8 × 2.4m 卫生间（4.32㎡，< 6㎡）。淋浴 900 × 900 占西北角，马桶在东墙（面朝西，前方净空 900），浴室柜在东墙南段（柜前 1100），镜柜贴东墙压在柜上方，毛巾架贴西墙、浴霸吸顶。期望 `check.run` 全通过：门扇 700 × 700 扫掠区内无洁具、无重叠、挂墙件贴实墙且不压洞口。
+- **正向** `BAT-dev-01`：1.8 × 2.4m 卫生间（4.32㎡，< 6㎡）。淋浴 900 × 900 占西北角，马桶在东墙（面朝西，前方净空 900），浴室柜在东墙南段（柜前 1100），镜柜贴东墙压在柜上方，毛巾架贴西墙、浴霸吸顶。期望 `candidate.preflight` 全通过：门扇 700 × 700 扫掠区内无洁具、无重叠、挂墙件贴实墙且不压洞口。
 - **边界** `BAT-dev-02`：同一个卫生间，把马桶挪到门内侧、正对门扇。期望报 `DOOR-02`——门只能开到 45°，技能要拒绝并把马桶退回东墙，或改外开门。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。判据取自 `skills/_framework/JUDGEMENTS.md`（E 组卫生间、B 组门扇遮挡、G 组照明）；干湿分离的三种做法与"门内开→外开→折叠"的判断顺序是本技能补的操作经验，不新增阈值。
 - 许可：MIT（上游同源）。外部参考：interior-design-expert 的卫浴净空数据、IES 镜前垂直照度分级。
-- 未验证：真实工具执行（待成员1）；[J-BATH-04] 热水来源是人工判据，案例未覆盖；[J-BATH-02] 的浴缸外沿净距靠人工量，引擎只查重叠与门扇。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；[J-BATH-04] 热水来源是人工判据，案例未覆盖；[J-BATH-02] 的浴缸外沿净距靠人工量，引擎只查重叠与门扇。

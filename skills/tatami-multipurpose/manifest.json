@@ -1,101 +1,64 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "tatami-multipurpose",
   "name": "榻榻米 / 多功能房",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "5–12㎡ 榻榻米房：先定地台占多少与上翻/侧抽，再让开门扇与窗帘、留出台阶与 700 通道。",
-  "applies_when": {
-    "scene_types": [
-      "榻榻米房",
-      "多功能房",
-      "次卧兼书房"
+  "appliesTo": {
+    "modes": [
+      "generate_rectangular",
+      "generate_from_text"
     ],
-    "area_m2": [
+    "roomKinds": [
+      "tatami"
+    ],
+    "areaM2": [
       5,
       12
     ],
-    "inputs": [
-      "含墙体与门窗的场景或户型图",
-      "地台下要收什么（可选）",
-      "是否要升降桌（可选）",
-      "门型：平开/推拉（可选）"
-    ],
-    "preconditions": [
-      "场景已有墙体与门窗",
-      "门窗开启方向可信（缺失时先问）",
-      "地台范围内无管道井/检修口"
+    "projectState": "empty",
+    "requiredInputs": [
+      "dimensions"
     ]
   },
-  "not_applicable": [
-    "普通次卧不做地台（转 guest-bedroom）",
-    "儿童房（转 kids-room）",
-    "地台要压住管道井或检修口",
-    "需要拆改墙体或门窗洞口"
+  "notApplicable": [
+    "structural_change"
   ],
-  "depends": {
-    "tools": [
-      {
-        "name": "catalog.search",
-        "min_version": "0.1"
-      },
-      {
-        "name": "scene.get_snapshot",
-        "min_version": "0.1"
-      },
-      {
-        "name": "scene.apply_edits",
-        "min_version": "0.1"
-      },
-      {
-        "name": "check.run",
-        "min_version": "0.1"
-      }
-    ],
-    "judgements": [
-      "J-CIR-01",
-      "J-CIR-02",
-      "J-CIR-09",
-      "J-CUR-01",
-      "J-DOOR-01",
-      "J-DOOR-02",
-      "J-STA-01",
-      "J-VER-01",
-      "J-VER-02",
-      "J-CIR-11"
-    ],
-    "assets": []
-  },
-  "cases": [
-    {
-      "id": "TAT-dev-01",
-      "kind": "positive",
-      "expect": "check.run 全通过：地台让开门扇、矮台贴窗不挡窗帘、屏风留绕行口"
-    },
-    {
-      "id": "TAT-dev-02",
-      "kind": "boundary",
-      "expect": "check.run 报 DOOR-02：地台压进 900 门扇开启区，门打不开"
-    }
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review"
   ],
-  "provenance": {
-    "based_on": [
-      "house-plan-designer@b94183f9/reference/furnishing.md",
-      "house-plan-designer@b94183f9/reference/spec-format.md"
-    ],
-    "license": "MIT",
-    "external_refs": [
-      "interior-design-expert (platform / tatami 台面与通道经验)",
-      "GB 50096 常用下限（须按现行版本复核）"
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-CIR-09",
+    "J-CIR-11",
+    "J-CUR-01",
+    "J-DOOR-01",
+    "J-DOOR-02",
+    "J-STA-01",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": [
+      "guest-bedroom"
     ]
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
   },
   "validation": {
-    "record": null,
-    "checked_at": null,
-    "checks": []
-  },
-  "metadata": {
-    "judgement_refs": "J-CIR-11"
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
   }
 }

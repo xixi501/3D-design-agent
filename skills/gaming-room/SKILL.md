@@ -2,11 +2,10 @@
 name: gaming-room
 description: 在 6–15㎡ 的电竞房或游戏角里排"桌 + 双屏 + 电竞椅 + 收纳"，处理桌面进深与双屏视距、屏幕与窗的侧光关系、椅子后推、主机散热与走线、暗环境辅助照明，以及与卧室共用时的隔音。当用户要装一台双屏主机、说"别反光/别太吵/晚上要开着灯"时使用；不适用于需要改水电点位、做整墙氛围灯带布线或多人开黑工位的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 手机测光）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 手机测光）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-ASSET-02,J-CIR-05,J-CIR-06,J-CUR-01,J-DOOR-02,J-LIGHT-01,J-LIGHT-03,J-LIGHT-05,J-OVER-01,J-STY-03,J-VER-01,J-VER-02"
 ---
@@ -34,7 +33,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 定墙面：先看窗，再看门**
-`scene.get_snapshot` 取墙与洞口。桌子放在**窗的侧向**墙面上：屏幕面法线与窗面法线成 90°，
+`scene.read` 取墙与洞口。桌子放在**窗的侧向**墙面上：屏幕面法线与窗面法线成 90°，
 窗在人的左侧或右侧最理想；窗在屏幕背后（人背窗）或屏幕正对窗，都要换向 [J-LIGHT-05]。
 先让开门扇扫掠区 [J-DOOR-02]，再定桌位——桌子和椅子一旦压到门弧，门就只能开一半。
 窗那一面按下两条守：窗内侧 150 内不放高于 600 的落地件 [J-CUR-01]，窗帘才落得下来；
@@ -78,7 +77,7 @@ metadata:
 桌面只留当天在用的东西；线、盒、备用键盘进柜，画面里不留。
 
 **第 9 步 · 提交与检查（分批）**
-1. 先提"桌 + 椅"，`scene.apply_edits` 带 `base_version`；2. `check.run` 看门扇、桌前区、重叠；3. 再提"柜 + 灯 + 窗帘"，再检查；
+1. 先提"桌 + 椅"，`candidate.propose` 带 `base_version`；2. `candidate.preflight` 看门扇、桌前区、重叠；3. 再提"柜 + 灯 + 窗帘"，再检查；
 4. 最多 3 轮修复 [J-VER-02]，改不动的写进未解决清单；5. 只改本次涉及的对象 [J-VER-01]。
 
 **第 10 步 · 放不下时的取舍**
@@ -88,33 +87,35 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取 desk / gamingChair / cabTall / deskLamp / curtain 的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间朝向与已有家具 | 待成员1 |
-| `scene.apply_edits` | 提交增删改与 `on` 支撑关系（台灯），带版本与幂等 | 待成员1 |
-| `check.run` | 门扇、窗帘带、重叠、支撑、通道 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：给文字坐标方案（桌/椅/柜中心点、朝向、四边净值）+ 桌面布置图；
-- 没有 `check.run`：按第 2、3、5 步逐条手算，交付里注明"未经工具检查"；
-- 眩光与声学没有工具：让用户坐在椅子上用手机拍一张屏幕（看有没有反光），并说明"隔音未实测"。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
 - **正向** `GAM-dev-01`：3000 × 3800（11.4㎡）电竞房，1800 × 700 桌面靠北墙，屏幕朝南（窗在东墙 → 侧光 90°），
   电竞椅在桌前、椅后 2150，西墙 1200 宽密闭柜（柜前 2400 ≥750），台灯压在桌面内，东窗落地窗帘。
-  期望 `check.run` 全通过：门扇净空、窗帘带 150 无高件、柜与椅不重叠、桌前 900 × 900 成立。
+  期望 `candidate.preflight` 全通过：门扇净空、窗帘带 150 无高件、柜与椅不重叠、桌前 900 × 900 成立。
 - **边界** `GAM-dev-02`：用户"想借光"把 1800 × 700 的桌子推到东窗下（屏幕背窗）。
   期望报 `CUR-01`（窗内侧 150 被桌面占住、窗帘落不下来）；技能应拒绝并改回"窗在侧向"，并说明这一摆法同时还败了 [J-LIGHT-05]（人工项，引擎不查）。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。门扇、窗帘带沿用 `house-plan-designer@b94183f9` 的 `reference/furnishing.md`；
   桌前使用区与柜门开启沿用人体工程学通行值（[J-CIR-05]/[J-CIR-06]）；照明分层、色温、屏幕眩光按 IES 与
   `interior-design-expert` 的照明数据（[J-LIGHT-01]/[J-LIGHT-03]/[J-LIGHT-05]）。
 - 桌深 700/800、视距 60–80cm、主机后侧 250 散热缝为行业经验做法，**判据库暂无对应 ID**。
 - 许可：MIT（与上游同源）。
-- 未验证：真实工具执行（待成员1）；屏幕反光、隔音效果、体感舒适度需人评与实测。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；屏幕反光、隔音效果、体感舒适度需人评与实测。

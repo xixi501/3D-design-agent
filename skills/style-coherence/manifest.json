@@ -1,37 +1,61 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "style-coherence",
   "name": "全屋风格统一",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "modifier",
+  "status": "conformant",
+  "activation": "active",
   "summary": "把口头风格翻成硬装—软装—材质—五金四件套，用 60-30-10、主材 ≤3、焦点 ≤1 把整屋拉齐；硬装不可改时只换软装。",
-  "applies_when": {
-    "scene_types": ["全屋", "起居室", "客餐厅", "卧室", "书房"],
-    "area_m2": [8, 200],
-    "inputs": ["已有硬装信息（门/地板/墙色）", "风格偏好（口语即可）", "是否有必须保留的家具（可选）"],
-    "preconditions": ["场景已有墙体与门窗", "硬装三件（门、地板、墙色）可读取或可描述"]
-  },
-  "not_applicable": ["需要拆改硬装（换门/换地板/改墙色）", "品牌选品与比价采购", "只调家具位置、不做风格判断", "出效果图替代方案评审"],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "scene.diff", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "edit_existing"
     ],
-    "judgements": ["J-CIR-01", "J-COL-01", "J-COL-02", "J-COL-03", "J-CUR-01", "J-PROP-01", "J-STY-01", "J-STY-02", "J-STY-03", "J-VER-01", "J-VER-02", "J-WIN-01"],
-    "assets": []
+    "roomKinds": [
+      "any"
+    ],
+    "areaM2": [
+      4,
+      200
+    ],
+    "projectState": "existing",
+    "requiredInputs": [
+      "existing_scene"
+    ]
   },
-  "cases": [
-    {"id": "STY-dev-01", "kind": "positive", "expect": "check.run 全通过；配色/材质/焦点按人评清单核对"},
-    {"id": "STY-dev-02", "kind": "boundary", "expect": "check.run 报 CUR-01 与 WIN-01"}
+  "notApplicable": [
+    "structural_change",
+    "heavy_renovation"
   ],
-  "provenance": {
-    "based_on": ["house-plan-designer@b94183f9/reference/furnishing.md"],
-    "license": "MIT",
-    "external_refs": ["interior-design-expert (color/material palette)"]
+  "capabilities": [
+    "scene.read",
+    "candidate.review"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-COL-01",
+    "J-COL-02",
+    "J-COL-03",
+    "J-CUR-01",
+    "J-PROP-01",
+    "J-STY-01",
+    "J-STY-02",
+    "J-STY-03",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WIN-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

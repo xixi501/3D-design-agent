@@ -2,11 +2,10 @@
 name: nursery
 description: 布置 6–12㎡ 的婴儿房或月嫂房：婴儿床两侧各留 600 双通道、床不压窗下与空调直吹、尿布台 750 高且不靠窗可单手操作、哺乳椅配夜灯、玩具收纳放下层，并处理小件与电线的安全固定。当用户要准备待产房、请月嫂、或说"床放哪、夜里喂奶怎么走"时使用；不适用于需要拆改墙体、加装空调/新风管线或改造插座点位的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 安全清单）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 安全清单）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-CIR-01,J-CIR-04,J-CUR-01,J-DOOR-02,J-LIGHT-03,J-OVER-01,J-SAFE-01,J-STA-01,J-STA-03,J-VER-01,J-VER-02,J-WIN-01"
 ---
@@ -34,7 +33,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 先定婴儿床，再定别的**
-`scene.get_snapshot` 取墙与洞口。婴儿床（1250 × 700）是唯一"不能将就"的家具：
+`scene.read` 取墙与洞口。婴儿床（1250 × 700）是唯一"不能将就"的家具：
 - 床头靠**实墙**，但**不靠窗**、不靠外墙的冷桥；窗内侧 150 内不放它 [J-CUR-01]，窗前 400 内更不放高件 [J-WIN-01]；
 - 不放在空调内机/暖气片正下方——这条不在判据库，属安全常识，交付里要写明；
 - 床边不要直接贴着柜角与桌角 [J-OVER-01]。
@@ -76,7 +75,7 @@ metadata:
 任何取舍都不许把床侧通道压到 600 以下，也不许把床挪到窗下。
 
 **第 8 步 · 提交与检查（分批）**
-1. 先提"婴儿床 + 哺乳椅"，`scene.apply_edits` 带 `base_version`；2. `check.run` 看床侧通道、门扇、窗带；
+1. 先提"婴儿床 + 哺乳椅"，`candidate.propose` 带 `base_version`；2. `candidate.preflight` 看床侧通道、门扇、窗带；
 3. 再提"尿布台 + 玩具柜 + 夜灯 + 窗帘"，再检查；4. 最多 3 轮修复 [J-VER-02]，改不动的写进未解决清单；
 5. 只改本次涉及的对象 [J-VER-01]。
 
@@ -86,33 +85,35 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取 crib / dresser / armchair / toyCabinet / floorLamp / curtain 的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、窗台高、已有家具 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 窗帘带、高柜挡窗、门扇、重叠、房间面积 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：给文字坐标方案（床/台/椅中心点、朝向、两侧净值）+ 平面草图，交主控转场景；
-- 没有 `check.run`：按第 2、3、7 步逐条手算，交付里注明"未经工具检查"；
-- 没有空调/插座数据：把第 9 步的六项清单交给用户自己勾，技能不要替他判断"安全"。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
 - **正向** `NUR-dev-01`：3000 × 3600（10.8㎡）婴儿房，婴儿床 1250 × 700 靠北墙、两侧 875/675 双通道，
   尿布台 1000 × 450 靠东墙（落在窗洞以外的墙段、离窗洞边缘 200、台面 750），哺乳椅靠西墙、椅前 1500，玩具柜 800 高贴南墙，暖光落地灯，东窗短窗帘。
-  期望 `check.run` 全通过：床侧 ≥600、窗内侧 150 无高件、门扇净空、落地件不重叠。
+  期望 `candidate.preflight` 全通过：床侧 ≥600、窗内侧 150 无高件、门扇净空、落地件不重叠。
 - **边界** `NUR-dev-02`：把婴儿床推到东窗下（"窗边凉快、看着院子睡得香"）。
   期望报 `CUR-01`（窗内侧 150 内有 h>600 的床），技能应拒绝并给替代墙面，同时说明"床下也不能有窗帘绳与风口"这条人工检查。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。窗帘带、高柜挡窗、门扇沿用 `house-plan-designer@b94183f9` 的 `reference/furnishing.md`；
   床侧通道取人体工程学通行值（[J-CIR-04]）；柜体固定与插座高度按 [J-SAFE-01]（**须按现行规范复核**）；
   面积下限引用 GB 50096 常用值 [J-STA-01]（**须按现行版本与地方标准复核**）。
 - 尿布台 750 高、离窗墙 300、夜灯 ≤2700K（夜间档，引 [J-LIGHT-03]）、电线离床 300 为行业经验做法，判据库无专项 ID。
 - 许可：MIT（与上游同源）。
-- 未验证：真实工具执行（待成员1）；空调直吹、插座高度、柜体固定、绳长、防滑、夜灯眩光均属人工项。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；空调直吹、插座高度、柜体固定、绳长、防滑、夜灯眩光均属人工项。

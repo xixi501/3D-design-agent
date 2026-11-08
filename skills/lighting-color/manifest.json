@@ -1,36 +1,58 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "lighting-color",
   "name": "照明分层与配色",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "modifier",
+  "status": "conformant",
+  "activation": "active",
   "summary": "按环境/任务/重点三层定比例，按房间给照度与色温，再把灯位落到家具上（餐桌吊灯对中、阅读角落地灯、镜前灯垂直照面），配色落到可采购的材质。",
-  "applies_when": {
-    "scene_types": ["起居室", "客餐厅", "卧室", "书房", "全屋"],
-    "area_m2": [8, 200],
-    "inputs": ["已定稿的平面布局", "层高", "主要活动时段（可选）", "既有灯位或线路（可选）"],
-    "preconditions": ["家具位置已定", "房间尺寸与层高可读"]
-  },
-  "not_applicable": ["需要电气施工图（回路/线径/开关点位）", "家具位置未定（先跑场景技能）", "智能家居协议与品牌选型", "需要实测照度报告"],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "edit_existing"
     ],
-    "judgements": ["J-ASSET-02", "J-COL-01", "J-COL-02", "J-CUR-01", "J-CIR-07", "J-DOOR-02", "J-LIGHT-01", "J-LIGHT-02", "J-LIGHT-03", "J-LIGHT-04", "J-VER-02", "J-WALL-01"],
-    "assets": []
+    "roomKinds": [
+      "any"
+    ],
+    "areaM2": [
+      4,
+      200
+    ],
+    "projectState": "existing",
+    "requiredInputs": [
+      "existing_scene"
+    ]
   },
-  "cases": [
-    {"id": "LGT-dev-01", "kind": "positive", "expect": "check.run 全通过；照度/色温/均匀度按人评清单核对"},
-    {"id": "LGT-dev-02", "kind": "boundary", "expect": "check.run 报 DOOR-02"}
+  "notApplicable": [],
+  "capabilities": [
+    "scene.read",
+    "candidate.review"
   ],
-  "provenance": {
-    "based_on": ["house-plan-designer@b94183f9/reference/furnishing.md"],
-    "license": "MIT",
-    "external_refs": ["interior-design-expert (lighting: illuminance/colour temperature)"]
+  "judgements": [
+    "J-ASSET-02",
+    "J-CIR-07",
+    "J-COL-01",
+    "J-COL-02",
+    "J-CUR-01",
+    "J-DOOR-02",
+    "J-LIGHT-01",
+    "J-LIGHT-02",
+    "J-LIGHT-03",
+    "J-LIGHT-04",
+    "J-VER-02",
+    "J-WALL-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

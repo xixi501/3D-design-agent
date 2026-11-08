@@ -52,3 +52,40 @@
 - 没有抓取付费内容或未公开资料；
 - 没有整段复制第三方技能文本（外部只取数值）；
 - 没有把来源项目的脚本作为本项目实现。
+
+## 6 逐包来源（v1 迁移前的记录）
+
+下表的 `based_on` 指内容依据的既有材料，`ext` 指外部数值参考。v1 manifest 不再内嵌 provenance，来源统一由本文件承担。
+
+| 技能 | based_on | ext |
+|---|---|---|
+| `aging-friendly` | 上游/reference/furnishing.md；上游/reference/workflow-check.md | interior-design-expert (anthropometric: seat height / reach)；NKBA (bath clearances) |
+| `balcony-laundry` | skills/_framework/JUDGEMENTS.md#F-玄关阳台入户；skills/_framework/JUDGEMENTS.md#B-遮挡与冲突 | washer/dryer standard dimensions；balcony drainage practice |
+| `bathroom-standard` | skills/_framework/JUDGEMENTS.md#E-卫生间；skills/_framework/JUDGEMENTS.md#B-遮挡与冲突 | interior-design-expert (bath clearance)；IES bathroom mirror illuminance |
+| `dining-island` | skills/_framework/JUDGEMENTS.md#D-厨房；skills/_framework/JUDGEMENTS.md#A-通行与净空；skills/_framework/JUDGEMENTS.md#G-光与色 | NKBA island clearance guidance；IES illuminance categories |
+| `entry-storage` | skills/_framework/JUDGEMENTS.md#F-玄关阳台入户；skills/_framework/JUDGEMENTS.md#A-通行与净空 | interior-design-expert (entry clearance)；common shoe size ranges |
+| `floorplan-intake` | 上游/reference/spec-format.md；上游/reference/route-image.md | — |
+| `gaming-room` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (desk clearance / anthropometrics)；IES 照明分层、色温与屏幕眩光参考；桌深 700/800、视距 60–80cm、主机散热缝 250，行业经验，判据库暂无对应 ID |
+| `guest-bedroom` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (bedroom: bed side clearance / wardrobe door swing)；GB 50096 常用下限（须按现行版本复核） |
+| `home-gym` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (space-planning: circulation / clearance)；器械安全操作区（尾 1m / 侧 0.5m）与减震垫做法，行业经验，判据库暂无对应 ID |
+| `home-office` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (desk clearance / anthropometrics)；IES 照度与色温参考（读写 300–750 lux / 白天 4000–5000K / 晚间 2700–3000K） |
+| `kids-room` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (children room anthropometrics: desk clearance)；GB 50096 常用下限（须按现行版本复核） |
+| `kitchen-line-l-u` | skills/_framework/JUDGEMENTS.md#D-厨房；skills/_framework/JUDGEMENTS.md#A-通行与净空 | NKBA kitchen work triangle；interior-design-expert (anthropometric clearance) |
+| `layout-check-repair` | 上游/reference/workflow-check.md；ICT 项目设计书 §4.4（内层修复） | interior-design-expert (clearance data) |
+| `lighting-color` | 上游/reference/furnishing.md | interior-design-expert (lighting: illuminance/colour temperature) |
+| `living-dining-open` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (space-planning: circulation/clearance)；GB 50096 常用下限（须按现行版本复核） |
+| `living-dining-small` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (space-planning: circulation/clearance) |
+| `master-bedroom` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (bedroom anthropometrics: bed side clearance / wardrobe door swing)；NKBA 通行经验；GB 50096 常用下限（须按现行版本复核） |
+| `media-room` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (clearance / seating layout)；IES 照明分层（经判据库引用）；THX/CEA 观看距离经验（本技能待入库的系数） |
+| `nursery` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (bed clearance / anthropometrics)；GB 50096 常用面积下限（须按现行版本复核）；尿布台 750 高、离窗墙 300、电线离床 300，行业经验，判据库暂无专项 ID |
+| `office-workstation` | 上游/reference/furnishing.md；上游/reference/workflow-check.md | interior-design-expert (space-planning: circulation/clearance; IES illuminance) |
+| `pet-friendly` | 上游/reference/furnishing.md；上游/reference/workflow-check.md | interior-design-expert (clearance/circulation)；NKBA (cleanability) |
+| `photo-object-import` | ICT项目设计书@v1.1 §4.1；上游/assets/template.html（GLB 导入对象身份思路） | — |
+| `rental-makeover` | 上游/reference/furnishing.md；上游/reference/workflow-check.md | interior-design-expert (lighting/color heuristics) |
+| `social-reading-zone` | 上游/reference/furnishing.md；上游/workflow-check.md | interior-design-expert (seating anthropometrics)；IES 照度与色温参考（阅读 300–500 lux / 晚间 2700–3000K） |
+| `studio-micro` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (space-planning: circulation 900/700/450) |
+| `style-coherence` | 上游/reference/furnishing.md | interior-design-expert (color/material palette) |
+| `tatami-multipurpose` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (platform / tatami 台面与通道经验)；GB 50096 常用下限（须按现行版本复核） |
+| `tea-room` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (clearance / conversation distance)；IES 照度参考（经判据库引用） |
+| `utility-storage` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (laundry clearance / anthropometrics)；柜深 400/600、洞洞板板底 400、扫地机基站 500/100，行业经验，判据库暂无专项 ID |
+| `villa-ground-floor` | 上游/reference/furnishing.md；上游/reference/spec-format.md | interior-design-expert (circulation/clearance)；NKBA (service core) |

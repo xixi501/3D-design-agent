@@ -1,51 +1,65 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "kids-room",
   "name": "儿童房：成长性、安全与学习区",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "6–15㎡ 儿童房：把家具分成睡眠/学习/活动三组保证可替换，守住书桌使用区、窗前高柜、门扇与高柜安全三件。",
-  "applies_when": {
-    "scene_types": ["儿童房", "次卧", "婴儿房"],
-    "area_m2": [6, 15],
-    "inputs": ["含墙体与门窗的场景或户型图", "孩子年龄", "是否考虑换房或上下床（可选）", "高柜能否上墙固定"],
-    "preconditions": ["场景已有墙体与门窗", "窗有防护栏或可开合状态已知", "用户确认高柜是否可以固定到实墙"]
-  },
-  "not_applicable": [
-    "需要定制榻榻米/地台/包窗等木作（交回主控）",
-    "两个以上孩子共用一间且要求独立分区（先做一组，再复制并重跑检查）",
-    "需要改门窗洞口或新增插座点位",
-    "使用面积 < 6㎡（放不下学习组，改走 studio-micro 的复合布局）"
-  ],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"},
-      {"name": "view.capture", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "generate_rectangular",
+      "generate_from_text"
     ],
-    "judgements": [
-      "J-CIR-01", "J-CIR-05", "J-CUR-01", "J-WIN-01", "J-DOOR-02", "J-OVER-01",
-      "J-PROP-01", "J-STA-01", "J-LIGHT-02", "J-VER-01", "J-VER-02"
+    "roomKinds": [
+      "kids_room"
     ],
-    "assets": []
-  },
-  "cases": [
-    {"id": "KID-dev-01", "kind": "positive", "expect": "check.run 全通过：桌背后 900 空地、窗带无高柜、门扇区空闲"},
-    {"id": "KID-dev-02", "kind": "boundary", "expect": "check.run 报 OVER-01：第二张书桌压进床"}
-  ],
-  "provenance": {
-    "based_on": [
-      "house-plan-designer@b94183f9/reference/furnishing.md",
-      "house-plan-designer@b94183f9/reference/spec-format.md"
+    "areaM2": [
+      6,
+      15
     ],
-    "license": "MIT",
-    "external_refs": [
-      "interior-design-expert (children room anthropometrics: desk clearance)",
-      "GB 50096 常用下限（须按现行版本复核）"
+    "projectState": "empty",
+    "requiredInputs": [
+      "dimensions"
     ]
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "notApplicable": [
+    "structural_change"
+  ],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-05",
+    "J-CUR-01",
+    "J-DOOR-02",
+    "J-LIGHT-02",
+    "J-OVER-01",
+    "J-PROP-01",
+    "J-STA-01",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WIN-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": [
+      "nursery"
+    ]
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

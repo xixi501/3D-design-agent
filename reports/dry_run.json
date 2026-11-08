@@ -1,0 +1,129 @@
+{
+  "generated_at": "2026-11-08T23:49:16+08:00",
+  "engine": "mockscene/0.1",
+  "skills": [
+    {
+      "id": "home-gym",
+      "cases": [
+        {
+          "case_id": "GYM-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "GYM-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02",
+            "WALL-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02",
+              "WALL-01"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "skills": 1,
+    "cases": 2,
+    "cases_ok": 2,
+    "all_ok": true
+  }
+}

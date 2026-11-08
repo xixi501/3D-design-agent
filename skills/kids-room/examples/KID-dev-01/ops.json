@@ -1,0 +1,39 @@
+{
+  "case_id": "KID-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [3000, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [3000, 0], "b": [3000, 3600], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 3600], "b": [3000, 3600], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 3600], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wN", "type": "window", "from": 800, "to": 1800, "sill": 900, "head": 2400},
+      {"id": "d1", "wall": "wS", "type": "door", "from": 1700, "to": 2600, "hinge": "from", "into": [2150, 3200]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "儿童房", "polygon": [[0, 0], [3000, 0], [3000, 3600], [0, 3600]]}
+    ],
+    "objects": [
+      {"id": "o_bed", "key": "bed12", "at": [700, 2400], "rot": 180, "w": 1200, "d": 2000}
+    ]
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_ward", "key": "wardrobe2", "at": [400, 600], "rot": 90, "w": 1000, "d": 600}},
+    {"op": "add", "object": {"id": "o_desk", "key": "kidsDesk", "at": [2400, 400], "rot": 0, "w": 1000, "d": 600}},
+    {"op": "add", "object": {"id": "o_chair", "key": "chair", "at": [2400, 950], "rot": 180}},
+    {"op": "add", "object": {"id": "o_toy", "key": "toyCabinet", "at": [2725, 1800], "rot": 90, "w": 900, "d": 350}},
+    {"op": "add", "object": {"id": "o_mat", "key": "playMat", "at": [1900, 2300], "rot": 0, "w": 1200, "d": 900}},
+    {"op": "group", "name": "睡眠组", "ids": ["o_bed", "o_ward"]},
+    {"op": "group", "name": "学习组", "ids": ["o_desk", "o_chair"]},
+    {"op": "group", "name": "活动组", "ids": ["o_toy", "o_mat"]}
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": ["CIR-02", "CUR-01", "DOOR-01", "DOOR-02", "WIN-01", "OVER-01", "WALL-01", "ASSET-02"]
+  }
+}

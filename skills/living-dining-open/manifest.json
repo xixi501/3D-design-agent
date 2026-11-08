@@ -1,0 +1,54 @@
+{
+  "schema_version": "0.1",
+  "id": "living-dining-open",
+  "name": "LDK 一体大空间的分区与动线",
+  "version": "0.1.0",
+  "status": "pending_adaptation",
+  "level": "structure",
+  "summary": "30–60㎡ LDK 一体厅：三段分区（会客/用餐/西厨或工作角）+ 一条环线，用地毯与灯位划区，分区只做半岛、不做到墙。",
+  "applies_when": {
+    "scene_types": ["LDK 一体厅", "客餐厨一体", "大横厅", "起居室"],
+    "area_m2": [30, 60],
+    "inputs": ["含墙体与门窗的场景或户型图", "常住人口（可选）", "是否要中岛或办公位（可选）", "风格与家具偏好（可选）"],
+    "preconditions": ["场景已有墙体与门窗", "至少两面连续实墙", "墙体与洞口尺寸可信（缺失时先补）"]
+  },
+  "not_applicable": [
+    "使用面积 < 30㎡ 或开间 < 4000（转 living-dining-small）",
+    "只需局部加阅读角或工作角（转 social-reading-zone）",
+    "需要砌墙、加隔断门或改门窗洞口",
+    "需要水电点位设计",
+    "整栋/别墅"
+  ],
+  "depends": {
+    "tools": [
+      {"name": "catalog.search", "min_version": "0.1"},
+      {"name": "scene.get_snapshot", "min_version": "0.1"},
+      {"name": "scene.apply_edits", "min_version": "0.1"},
+      {"name": "scene.diff", "min_version": "0.1"},
+      {"name": "check.run", "min_version": "0.1"},
+      {"name": "view.capture", "min_version": "0.1"}
+    ],
+    "judgements": [
+      "J-CIR-01", "J-CIR-02", "J-PROP-01", "J-PROP-02", "J-PROP-03", "J-LAY-01",
+      "J-LIGHT-01", "J-COL-01", "J-STY-01", "J-STY-03", "J-CUR-01", "J-DOOR-01",
+      "J-WIN-01", "J-STA-01", "J-STA-03", "J-VER-01", "J-VER-02"
+    ],
+    "assets": []
+  },
+  "cases": [
+    {"id": "LDO-dev-01", "kind": "positive", "expect": "check.run 全通过：三段分区 + 环线，半岛两端通道 2100/1500"},
+    {"id": "LDO-dev-02", "kind": "boundary", "expect": "check.run 报 CIR-02：分区带从墙连到墙，从门口只能到达 17% 的通行区域"}
+  ],
+  "provenance": {
+    "based_on": [
+      "house-plan-designer@b94183f9/reference/furnishing.md",
+      "house-plan-designer@b94183f9/reference/spec-format.md"
+    ],
+    "license": "MIT",
+    "external_refs": [
+      "interior-design-expert (space-planning: circulation/clearance)",
+      "GB 50096 常用下限（须按现行版本复核）"
+    ]
+  },
+  "validation": {"record": null, "checked_at": null, "checks": []}
+}

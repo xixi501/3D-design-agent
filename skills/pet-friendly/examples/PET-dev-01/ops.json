@@ -1,0 +1,39 @@
+{
+  "case_id": "PET-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [4200, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [4200, 0], "b": [4200, 5600], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 5600], "b": [4200, 5600], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 5600], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "d1", "wall": "wW", "type": "door", "from": 3800, "to": 4700, "hinge": "from", "into": [450, 4250]},
+      {"id": "win1", "wall": "wN", "type": "window", "from": 1000, "to": 3000, "sill": 900, "head": 2400}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "起居室", "polygon": [[0, 0], [4200, 0], [4200, 5600], [0, 5600]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_sofa", "key": "sofa", "at": [2100, 5025], "rot": 180}},
+    {"op": "add", "object": {"id": "o_ct", "key": "coffeeTable", "at": [2100, 3800], "rot": 0}},
+    {"op": "add", "object": {"id": "o_rug", "key": "rug", "at": [2100, 4100], "rot": 0}},
+    {"op": "add", "object": {"id": "o_cat", "key": "catTree", "at": [3700, 500], "rot": 0}},
+    {"op": "add", "object": {"id": "o_pet", "key": "petBed", "at": [3700, 4800], "rot": 0}},
+    {"op": "add", "object": {"id": "o_cab", "key": "hallCabinet", "at": [300, 1400], "rot": 270}},
+    {"op": "add", "object": {"id": "o_lamp", "key": "floorLamp", "at": [3400, 3800], "rot": 0}},
+    {"op": "add", "object": {"id": "o_plant", "key": "plant", "at": [3700, 1500], "rot": 0}},
+    {"op": "add", "object": {"id": "o_mat", "key": "doormat", "at": [550, 4450], "rot": 0, "w": 900, "d": 600}},
+    {"op": "add", "object": {"id": "o_cur", "key": "curtain", "at": [2000, 180], "rot": 0, "w": 2400, "d": 160}}
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": ["CUR-01", "DOOR-01", "DOOR-02", "WIN-01", "OVER-01", "WALL-01", "ASSET-02", "CIR-02"]
+  }
+}

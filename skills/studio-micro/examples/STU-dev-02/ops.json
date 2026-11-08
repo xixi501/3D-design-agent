@@ -1,0 +1,31 @@
+{
+  "case_id": "STU-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [4000, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [4000, 0], "b": [4000, 7000], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 7000], "b": [4000, 7000], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 7000], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "d1", "wall": "wN", "type": "door", "from": 400, "to": 1300, "hinge": "from", "into": [850, 450]},
+      {"id": "win1", "wall": "wE", "type": "window", "from": 3600, "to": 5200, "sill": 900, "head": 2400}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "开间起居", "polygon": [[0, 0], [4000, 0], [4000, 7000], [0, 7000]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_bed", "key": "bed18", "at": [1150, 1175], "rot": 0}},
+    {"op": "add", "object": {"id": "o_shelf", "key": "bookshelf", "at": [1800, 2850], "rot": 0}}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["CIR-02"],
+    "must_not_trigger": ["CUR-01", "WIN-01", "WALL-01", "OVER-01", "ASSET-02"]
+  }
+}

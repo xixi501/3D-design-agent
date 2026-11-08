@@ -1,0 +1,192 @@
+{
+  "snapshot": "2026-11-08",
+  "skills": 30,
+  "cases": 60,
+  "judgements": 62,
+  "skill_list": [
+    {
+      "id": "aging-friendly",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "balcony-laundry",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "bathroom-standard",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "dining-island",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "entry-storage",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "floorplan-intake",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "gaming-room",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "guest-bedroom",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "home-gym",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "home-office",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "kids-room",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "kitchen-line-l-u",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "layout-check-repair",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "lighting-color",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "living-dining-open",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "living-dining-small",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "master-bedroom",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "media-room",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "nursery",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "office-workstation",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "pet-friendly",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "photo-object-import",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "rental-makeover",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "social-reading-zone",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "studio-micro",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "style-coherence",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "tatami-multipurpose",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "tea-room",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "utility-storage",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    },
+    {
+      "id": "villa-ground-floor",
+      "version": "0.1.0",
+      "status": "pending_adaptation",
+      "cases": 2
+    }
+  ],
+  "hashes": {
+    "skills": "ba25cdd5f17cbb01",
+    "index": "c0d1bfd651b177b2"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "case_id": "HOF-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [3000, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [3000, 0], "b": [3000, 3600], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 3600], "b": [3000, 3600], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 3600], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wN", "type": "window", "from": 700, "to": 2300, "sill": 750, "head": 2400},
+      {"id": "d1", "wall": "wE", "type": "door", "from": 2600, "to": 3500, "hinge": "from", "into": [2400, 3050]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "书房", "polygon": [[0, 0], [3000, 0], [3000, 3600], [0, 3600]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_desk", "key": "desk", "at": [1500, 750], "rot": 0, "w": 1200, "d": 600}},
+    {"op": "add", "object": {"id": "o_chair", "key": "officeChair", "at": [1500, 1350], "rot": 180}},
+    {"op": "add", "object": {"id": "o_shelf", "key": "bookshelf", "at": [2725, 1200], "rot": 90, "w": 900, "d": 350}},
+    {"op": "add", "object": {"id": "o_low", "key": "bookshelfLow", "at": [1200, 3350], "rot": 180, "w": 1200, "d": 300}},
+    {"op": "add", "object": {"id": "o_file", "key": "fileCabinet", "at": [325, 1200], "rot": 0, "w": 450, "d": 550}},
+    {"op": "add", "object": {"id": "o_lamp", "key": "deskLamp", "at": [1950, 620], "rot": 0, "on": "o_desk", "w": 250, "d": 250}},
+    {"op": "add", "object": {"id": "o_cur", "key": "curtain", "at": [1500, 180], "rot": 0, "w": 2000, "d": 160}},
+    {"op": "group", "name": "工作位组", "ids": ["o_desk", "o_chair", "o_lamp"]},
+    {"op": "group", "name": "收纳组", "ids": ["o_shelf", "o_low", "o_file"]}
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": ["CIR-02", "CUR-01", "DOOR-01", "DOOR-02", "WIN-01", "OVER-01", "WALL-01", "ASSET-02"]
+  }
+}

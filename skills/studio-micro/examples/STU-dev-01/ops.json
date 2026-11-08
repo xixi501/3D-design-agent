@@ -1,0 +1,44 @@
+{
+  "case_id": "STU-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [4000, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [4000, 0], "b": [4000, 7000], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 7000], "b": [4000, 7000], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 7000], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "d1", "wall": "wN", "type": "door", "from": 400, "to": 1300, "hinge": "from", "into": [850, 450]},
+      {"id": "win1", "wall": "wE", "type": "window", "from": 3600, "to": 5200, "sill": 900, "head": 2400}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "开间起居", "polygon": [[0, 0], [4000, 0], [4000, 7000], [0, 7000]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_wardrobe", "key": "wardrobe2", "at": [400, 1500], "rot": 270}},
+    {"op": "add", "object": {"id": "o_table", "key": "diningTable", "at": [2700, 1300], "rot": 0, "w": 1200, "d": 800, "h": 750}},
+    {"op": "add", "object": {"id": "o_c1", "key": "chair", "at": [2400, 700], "rot": 0}},
+    {"op": "add", "object": {"id": "o_c2", "key": "chair", "at": [3000, 700], "rot": 0}},
+    {"op": "add", "object": {"id": "o_wc", "key": "officeChair", "at": [2700, 2000], "rot": 180}},
+    {"op": "add", "object": {"id": "o_sofa", "key": "sofa", "at": [575, 3200], "rot": 270, "w": 2200, "d": 950}},
+    {"op": "add", "object": {"id": "o_ct", "key": "coffeeTable", "at": [1800, 3200], "rot": 90, "w": 1200, "d": 600}},
+    {"op": "add", "object": {"id": "o_rug", "key": "rug", "at": [1700, 3200], "rot": 0, "w": 2000, "d": 1700}},
+    {"op": "add", "object": {"id": "o_shelf", "key": "bookshelf", "at": [1900, 4300], "rot": 0}},
+    {"op": "add", "object": {"id": "o_bed", "key": "bed15", "at": [1900, 5875], "rot": 180}},
+    {"op": "add", "object": {"id": "o_ns", "key": "nightstand", "at": [900, 6600], "rot": 0}},
+    {"op": "add", "object": {"id": "o_lamp", "key": "floorLamp", "at": [1350, 2250], "rot": 0}},
+    {"op": "add", "object": {"id": "o_pendant", "key": "pendant", "at": [2700, 1300], "rot": 0, "w": 300, "d": 300, "h": 400, "mount": "ceiling"}},
+    {"op": "add", "object": {"id": "o_cur", "key": "curtain", "at": [3820, 4400], "rot": 90, "w": 2400, "d": 160}},
+    {"op": "add", "object": {"id": "o_plant", "key": "plant", "at": [3500, 6300], "rot": 0}}
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": ["CUR-01", "DOOR-01", "DOOR-02", "WIN-01", "OVER-01", "WALL-01", "ASSET-02", "CIR-02"]
+  }
+}

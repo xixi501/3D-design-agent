@@ -1,0 +1,51 @@
+{
+  "schema_version": "0.1",
+  "id": "home-gym",
+  "name": "健身角 / 家庭健身房",
+  "version": "0.1.0",
+  "status": "pending_adaptation",
+  "level": "structure",
+  "summary": "4–15㎡ 健身角：器械靠墙、镜面正对空地、瑜伽垫可收，保器械后 1m/侧 0.5m 安全距、器械不挡门、连续 700 通道，并核层高通风与减震吸音。",
+  "applies_when": {
+    "scene_types": ["健身角", "家庭健身房", "多功能房", "封闭阳台"],
+    "area_m2": [4, 15],
+    "inputs": ["含墙体与门窗的场景或户型图", "器械清单与型号（可选）", "层高（可选）", "是否需要整面镜墙（可选）"],
+    "preconditions": ["场景已有墙体与门窗", "门的开启方式已知（平开/推拉）", "房间层高已标注或可量"]
+  },
+  "not_applicable": [
+    "需要拆改墙体、加固楼板或吊挂承重器械架",
+    "整面墙镜面 + 商业健身房级器材排布",
+    "只有一张垫子要塞进客厅/卧室一角（转 studio-micro / master-bedroom）",
+    "与洗烘、储物混用的 < 6㎡ 小间（转 utility-storage）"
+  ],
+  "depends": {
+    "tools": [
+      {"name": "catalog.search", "min_version": "0.1"},
+      {"name": "scene.get_snapshot", "min_version": "0.1"},
+      {"name": "scene.apply_edits", "min_version": "0.1"},
+      {"name": "check.run", "min_version": "0.1"},
+      {"name": "view.capture", "min_version": "0.1"}
+    ],
+    "judgements": [
+      "J-CIR-01", "J-CIR-02", "J-CUR-01", "J-DOOR-01", "J-DOOR-02",
+      "J-LIGHT-02", "J-OVER-01", "J-STA-02", "J-STA-03", "J-VER-01", "J-VER-02", "J-WALL-01"
+    ],
+    "assets": []
+  },
+  "cases": [
+    {"id": "GYM-dev-01", "kind": "positive", "expect": "check.run 全通过：尾端 1000、两侧 600/700、镜子贴实墙不压洞口、通道 ≥700 且连续"},
+    {"id": "GYM-dev-02", "kind": "boundary", "expect": "check.run 报 DOOR-02 与 WALL-01：跑步机压门弧、镜子压在窗洞上"}
+  ],
+  "provenance": {
+    "based_on": [
+      "house-plan-designer@b94183f9/reference/furnishing.md",
+      "house-plan-designer@b94183f9/reference/spec-format.md"
+    ],
+    "license": "MIT",
+    "external_refs": [
+      "interior-design-expert (space-planning: circulation / clearance)",
+      "器械安全操作区（尾 1m / 侧 0.5m）与减震垫做法，行业经验，判据库暂无对应 ID"
+    ]
+  },
+  "validation": {"record": null, "checked_at": null, "checks": []}
+}

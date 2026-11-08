@@ -1,0 +1,40 @@
+{
+  "case_id": "SRZ-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [4500, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [4500, 0], "b": [4500, 6000], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 6000], "b": [4500, 6000], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 6000], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wN", "type": "window", "from": 1000, "to": 3600, "sill": 600, "head": 2400},
+      {"id": "d1", "wall": "wS", "type": "door", "from": 3300, "to": 4200, "hinge": "to", "into": [3750, 5300]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "客厅", "polygon": [[0, 0], [4500, 0], [4500, 6000], [0, 6000]]}
+    ],
+    "objects": [
+      {"id": "o_sofa", "key": "sofa", "at": [575, 2700], "rot": 270, "w": 2200, "d": 950},
+      {"id": "o_coffee", "key": "coffeeTable", "at": [1800, 2700], "rot": 90, "w": 1200, "d": 600},
+      {"id": "o_rug", "key": "rug", "at": [2025, 2700], "rot": 0, "w": 2050, "d": 1700},
+      {"id": "o_tv", "key": "tvCabinet", "at": [4200, 2700], "rot": 90, "w": 2000, "d": 400}
+    ]
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_read", "key": "readingChair", "at": [3600, 800], "rot": 90, "w": 750, "d": 800}},
+    {"op": "add", "object": {"id": "o_side", "key": "sideTable", "at": [3150, 700], "rot": 0, "w": 500, "d": 500}},
+    {"op": "add", "object": {"id": "o_lamp", "key": "floorLamp", "at": [3550, 1450], "rot": 0, "w": 400, "d": 400}},
+    {"op": "add", "object": {"id": "o_shelf", "key": "bookshelf", "at": [4225, 800], "rot": 90, "w": 900, "d": 350}},
+    {"op": "group", "name": "会客组", "ids": ["o_sofa", "o_coffee", "o_rug", "o_tv"]},
+    {"op": "group", "name": "阅读组", "ids": ["o_read", "o_side", "o_lamp", "o_shelf"]}
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": ["CIR-02", "CUR-01", "DOOR-01", "DOOR-02", "WIN-01", "OVER-01", "WALL-01", "ASSET-02"]
+  }
+}

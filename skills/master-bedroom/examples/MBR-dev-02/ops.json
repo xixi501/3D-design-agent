@@ -1,0 +1,36 @@
+{
+  "case_id": "MBR-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [3600, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [3600, 0], "b": [3600, 4200], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 4200], "b": [3600, 4200], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 4200], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wE", "type": "window", "from": 1400, "to": 2600, "sill": 600, "head": 2400},
+      {"id": "d1", "wall": "wS", "type": "door", "from": 2200, "to": 3100, "hinge": "to", "into": [2650, 3400]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "主卧", "polygon": [[0, 0], [3600, 0], [3600, 4200], [0, 4200]]}
+    ],
+    "objects": [
+      {"id": "o_bed", "key": "bed18", "at": [1650, 1150], "rot": 0, "w": 1800, "d": 2100},
+      {"id": "o_ns1", "key": "nightstand", "at": [450, 540], "rot": 0, "w": 500, "d": 420},
+      {"id": "o_ns2", "key": "nightstand", "at": [2850, 540], "rot": 0, "w": 500, "d": 420},
+      {"id": "o_bench", "key": "bedBench", "at": [1650, 2400], "rot": 0, "w": 1400, "d": 400},
+      {"id": "o_cur", "key": "curtain", "at": [3420, 2000], "rot": 90, "w": 1600, "d": 160}
+    ]
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_ward", "key": "wardrobe", "at": [2200, 3700], "rot": 0, "w": 2000, "d": 600}}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["DOOR-02"],
+    "must_not_trigger": ["OVER-01", "CUR-01", "WIN-01"]
+  }
+}

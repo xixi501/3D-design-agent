@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.1",
+  "id": "guest-bedroom",
+  "name": "次卧 / 客房布置",
+  "version": "0.1.0",
+  "status": "pending_adaptation",
+  "level": "structure",
+  "summary": "6–14㎡ 次卧：先分临时住/长期住，再取舍床靠墙与床居中，排衣柜与（折叠）书桌，守住门扇、窗帘与 700 通行。",
+  "applies_when": {
+    "scene_types": ["次卧", "客房", "客房兼书房"],
+    "area_m2": [6, 14],
+    "inputs": ["含墙体与门窗的场景或户型图", "住的人与居住时长（可选）", "床的规格 1.2/1.5（可选）", "衣柜门型（可选）"],
+    "preconditions": ["场景已有墙体与门窗", "房间净尺寸可信（缺失时先补）"]
+  },
+  "not_applicable": ["主卧（转 master-bedroom）", "儿童房（转 kids-room）", "需要拆改墙体或门窗洞口", "使用面积低于单人卧室下限且无法补足"],
+  "depends": {
+    "tools": [
+      {"name": "catalog.search", "min_version": "0.1"},
+      {"name": "scene.get_snapshot", "min_version": "0.1"},
+      {"name": "scene.apply_edits", "min_version": "0.1"},
+      {"name": "check.run", "min_version": "0.1"}
+    ],
+    "judgements": ["J-CIR-01", "J-CIR-02", "J-CIR-04", "J-CIR-06", "J-CUR-01", "J-DOOR-02", "J-PROP-01", "J-STA-01", "J-VER-01", "J-VER-02"],
+    "assets": []
+  },
+  "cases": [
+    {"id": "GBR-dev-01", "kind": "positive", "expect": "check.run 全通过：床头避开窗、门扇区让开、床侧与柜前通道达标"},
+    {"id": "GBR-dev-02", "kind": "boundary", "expect": "check.run 报 DOOR-02 与 CIR-02：衣柜塞进门后，门扇打不开且门口被堵"}
+  ],
+  "provenance": {
+    "based_on": ["house-plan-designer@b94183f9/reference/furnishing.md", "house-plan-designer@b94183f9/reference/spec-format.md"],
+    "license": "MIT",
+    "external_refs": ["interior-design-expert (bedroom: bed side clearance / wardrobe door swing)", "GB 50096 常用下限（须按现行版本复核）"]
+  },
+  "validation": {"record": null, "checked_at": null, "checks": []}
+}

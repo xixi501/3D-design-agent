@@ -1,0 +1,30 @@
+{
+  "case_id": "ENT-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [1800, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [1800, 0], "b": [1800, 2600], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 2600], "b": [1800, 2600], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 2600], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "d1", "wall": "wS", "type": "door", "from": 400, "to": 1300, "hinge": "from", "into": [850, 2000]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "玄关", "polygon": [[0, 0], [1800, 0], [1800, 2600], [0, 2600]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_shoe", "key": "shoeCabinet", "at": [850, 1900], "rot": 0, "w": 1200, "d": 350}},
+    {"op": "add", "object": {"id": "o_bench", "key": "entryBench", "at": [700, 275], "rot": 180, "w": 900, "d": 350}},
+    {"op": "add", "object": {"id": "o_mirror", "key": "mirror", "at": [130, 1200], "rot": 270, "w": 600, "d": 60}}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["DOOR-02"]
+  }
+}

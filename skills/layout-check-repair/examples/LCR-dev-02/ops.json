@@ -1,0 +1,34 @@
+{
+  "case_id": "LCR-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [3600, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [3600, 0], "b": [3600, 4200], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 4200], "b": [3600, 4200], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 4200], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wN", "type": "window", "from": 700, "to": 2500, "sill": 900, "head": 2400},
+      {"id": "d1", "wall": "wS", "type": "door", "from": 1200, "to": 2100, "hinge": "from", "into": [1650, 3700]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "书房", "polygon": [[0, 0], [3600, 0], [3600, 4200], [0, 4200]]}
+    ],
+    "objects": [
+      {"id": "o_cab", "key": "cabTall", "at": [1600, 460], "rot": 0, "w": 1200, "d": 400, "h": 2400},
+      {"id": "o_desk", "key": "officeDesk", "at": [1300, 3400], "rot": 0, "w": 1400, "d": 700},
+      {"id": "o_chair", "key": "officeChair", "at": [1600, 3900], "rot": 180}
+    ]
+  },
+  "edits": [
+    {"op": "move", "id": "o_chair", "to": [1800, 2900]},
+    {"op": "move", "id": "o_desk", "to": [1200, 2400]}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["WIN-01"]
+  }
+}

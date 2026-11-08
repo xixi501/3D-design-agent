@@ -1,0 +1,35 @@
+{
+  "case_id": "GAM-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [3000, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [3000, 0], "b": [3000, 3800], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 3800], "b": [3000, 3800], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 3800], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wE", "type": "window", "from": 300, "to": 1500, "sill": 800, "head": 2400},
+      {"id": "d1", "wall": "wS", "type": "door", "from": 1900, "to": 2800, "hinge": "from", "into": [2350, 3350]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "电竞房", "polygon": [[0, 0], [3000, 0], [3000, 3800], [0, 3800]]}
+    ],
+    "objects": [
+      {"id": "o_cab", "key": "cabTall", "at": [300, 2200], "rot": 270, "w": 1200, "d": 400},
+      {"id": "o_cur", "key": "curtain", "at": [2920, 900], "rot": 90, "w": 1400, "d": 160}
+    ]
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_desk", "key": "desk", "at": [2550, 1500], "rot": 270, "w": 1800, "d": 700}},
+    {"op": "add", "object": {"id": "o_chair", "key": "gamingChair", "at": [1850, 1500], "rot": 270, "w": 700, "d": 700}},
+    {"op": "add", "object": {"id": "o_lamp", "key": "deskLamp", "at": [2550, 1800], "rot": 0, "on": "o_desk", "w": 250, "d": 250}}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["CUR-01"],
+    "must_not_trigger": ["CIR-02", "DOOR-02", "OVER-01", "WIN-01", "ASSET-02"]
+  }
+}

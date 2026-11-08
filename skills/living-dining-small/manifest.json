@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.1",
+  "id": "living-dining-small",
+  "name": "小空间客餐厅布置",
+  "version": "0.1.0",
+  "status": "pending_adaptation",
+  "level": "structure",
+  "summary": "8–25㎡ 客餐厅：一个主墙 + 一条贯穿通道，按面积取舍沙发/茶几/餐桌，保证 700 通行与门窗净空。",
+  "applies_when": {
+    "scene_types": ["客餐厅", "起居室", "客厅"],
+    "area_m2": [8, 25],
+    "inputs": ["含墙体与门窗的场景或户型图", "常住人口（可选）", "风格或家具偏好（可选）"],
+    "preconditions": ["场景已有墙体与门窗", "墙体与洞口尺寸可信（缺失时先补）"]
+  },
+  "not_applicable": ["需要拆改墙体或门窗", "整栋/别墅", "需要水电点位设计", "开间 < 2600（转 studio-micro）", "面积 > 25㎡（转 living-dining-open）"],
+  "depends": {
+    "tools": [
+      {"name": "catalog.search", "min_version": "0.1"},
+      {"name": "scene.get_snapshot", "min_version": "0.1"},
+      {"name": "scene.apply_edits", "min_version": "0.1"},
+      {"name": "check.run", "min_version": "0.1"}
+    ],
+    "judgements": ["J-CIR-01", "J-CIR-02", "J-CIR-03", "J-CIR-07", "J-CUR-01", "J-DOOR-01", "J-PROP-01", "J-PROP-02", "J-WIN-02", "J-VER-01", "J-VER-02", "J-STA-01", "J-STA-03"],
+    "assets": []
+  },
+  "cases": [
+    {"id": "LD-dev-01", "kind": "positive", "expect": "check.run 全通过"},
+    {"id": "LD-dev-02", "kind": "boundary", "expect": "check.run 报 CUR-01 与 WIN-01"}
+  ],
+  "provenance": {
+    "based_on": ["house-plan-designer@b94183f9/reference/furnishing.md", "house-plan-designer@b94183f9/reference/spec-format.md"],
+    "license": "MIT",
+    "external_refs": ["interior-design-expert (space-planning: circulation/clearance)"]
+  },
+  "validation": {"record": null, "checked_at": null, "checks": []}
+}

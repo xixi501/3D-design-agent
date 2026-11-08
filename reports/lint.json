@@ -1,0 +1,129 @@
+{
+  "skills": 30,
+  "judgements": 62,
+  "tools": 13,
+  "errors": [],
+  "warnings": [],
+  "per_skill": {
+    "aging-friendly": {
+      "errors": [],
+      "warnings": []
+    },
+    "balcony-laundry": {
+      "errors": [],
+      "warnings": []
+    },
+    "bathroom-standard": {
+      "errors": [],
+      "warnings": []
+    },
+    "dining-island": {
+      "errors": [],
+      "warnings": []
+    },
+    "entry-storage": {
+      "errors": [],
+      "warnings": []
+    },
+    "floorplan-intake": {
+      "errors": [],
+      "warnings": []
+    },
+    "gaming-room": {
+      "errors": [],
+      "warnings": []
+    },
+    "guest-bedroom": {
+      "errors": [],
+      "warnings": []
+    },
+    "home-gym": {
+      "errors": [],
+      "warnings": []
+    },
+    "home-office": {
+      "errors": [],
+      "warnings": []
+    },
+    "kids-room": {
+      "errors": [],
+      "warnings": []
+    },
+    "kitchen-line-l-u": {
+      "errors": [],
+      "warnings": []
+    },
+    "layout-check-repair": {
+      "errors": [],
+      "warnings": []
+    },
+    "lighting-color": {
+      "errors": [],
+      "warnings": []
+    },
+    "living-dining-open": {
+      "errors": [],
+      "warnings": []
+    },
+    "living-dining-small": {
+      "errors": [],
+      "warnings": []
+    },
+    "master-bedroom": {
+      "errors": [],
+      "warnings": []
+    },
+    "media-room": {
+      "errors": [],
+      "warnings": []
+    },
+    "nursery": {
+      "errors": [],
+      "warnings": []
+    },
+    "office-workstation": {
+      "errors": [],
+      "warnings": []
+    },
+    "pet-friendly": {
+      "errors": [],
+      "warnings": []
+    },
+    "photo-object-import": {
+      "errors": [],
+      "warnings": []
+    },
+    "rental-makeover": {
+      "errors": [],
+      "warnings": []
+    },
+    "social-reading-zone": {
+      "errors": [],
+      "warnings": []
+    },
+    "studio-micro": {
+      "errors": [],
+      "warnings": []
+    },
+    "style-coherence": {
+      "errors": [],
+      "warnings": []
+    },
+    "tatami-multipurpose": {
+      "errors": [],
+      "warnings": []
+    },
+    "tea-room": {
+      "errors": [],
+      "warnings": []
+    },
+    "utility-storage": {
+      "errors": [],
+      "warnings": []
+    },
+    "villa-ground-floor": {
+      "errors": [],
+      "warnings": []
+    }
+  }
+}

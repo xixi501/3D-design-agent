@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.1",
+  "id": "kitchen-line-l-u",
+  "name": "一字/L/U 形厨房布置",
+  "version": "0.1.0",
+  "status": "pending_adaptation",
+  "level": "structure",
+  "summary": "3–10㎡ 独立厨房：先按开间选形（单排/L/U/双排），再压操作三角与备餐顺序，吊柜避窗、冰箱留开门侧，通道按判据复核。",
+  "applies_when": {
+    "scene_types": ["厨房", "封闭式厨房", "中厨"],
+    "area_m2": [3, 10],
+    "inputs": ["含墙体与门窗的厨房场景或实测尺寸", "燃气/下水立管位置（可选）", "冰箱宽深与开门方向（可选）"],
+    "preconditions": ["场景已有墙体与门窗", "开间与进深为净尺寸或已标注是轴线尺寸", "窗台高度已知"]
+  },
+  "not_applicable": ["餐厨一体或要中岛（转 dining-island）", "需要改燃气、排烟、下水点位", "需要拆改墙体", "面积 < 3㎡（转 studio-micro）", "开放式厨房与起居合一"],
+  "depends": {
+    "tools": [
+      {"name": "catalog.search", "min_version": "0.1"},
+      {"name": "scene.get_snapshot", "min_version": "0.1"},
+      {"name": "scene.apply_edits", "min_version": "0.1"},
+      {"name": "check.run", "min_version": "0.1"}
+    ],
+    "judgements": ["J-KIT-01", "J-KIT-02", "J-KIT-03", "J-KIT-04", "J-CIR-01", "J-WIN-01", "J-VER-01", "J-VER-02"],
+    "assets": []
+  },
+  "cases": [
+    {"id": "KIT-dev-01", "kind": "positive", "expect": "check.run 全通过：通道 ≥900、窗内侧 150 无高家具、冰箱不在窗前 400、门扇开启区干净"},
+    {"id": "KIT-dev-02", "kind": "boundary", "expect": "check.run 报 CIR-02（房间内没有 ≥900 的通行区）"}
+  ],
+  "provenance": {
+    "based_on": ["skills/_framework/JUDGEMENTS.md#D-厨房", "skills/_framework/JUDGEMENTS.md#A-通行与净空"],
+    "license": "MIT",
+    "external_refs": ["NKBA kitchen work triangle", "interior-design-expert (anthropometric clearance)"]
+  },
+  "validation": {"record": null, "checked_at": null, "checks": []}
+}

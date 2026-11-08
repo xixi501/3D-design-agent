@@ -1,0 +1,36 @@
+{
+  "case_id": "GBR-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [3000, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [3000, 0], "b": [3000, 3600], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 3600], "b": [3000, 3600], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 3600], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wN", "type": "window", "from": 1500, "to": 2700, "sill": 900, "head": 2400},
+      {"id": "d1", "wall": "wE", "type": "door", "from": 200, "to": 1100, "hinge": "from", "into": [2600, 650]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "次卧", "polygon": [[0, 0], [3000, 0], [3000, 3600], [0, 3600]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_bed", "key": "bed12", "at": [700, 1100], "rot": 0, "w": 1200, "d": 2000, "h": 950, "wall_ref": "wN"}},
+    {"op": "add", "object": {"id": "o_ns", "key": "nightstand", "at": [1550, 310], "rot": 0, "w": 500, "d": 420, "h": 500}},
+    {"op": "add", "object": {"id": "o_ward", "key": "wardrobe2", "at": [900, 3200], "rot": 180, "w": 1000, "d": 600, "h": 2200, "wall_ref": "wS"}},
+    {"op": "add", "object": {"id": "o_desk", "key": "desk", "at": [2600, 2400], "rot": 90, "w": 1200, "d": 600, "h": 750}},
+    {"op": "add", "object": {"id": "o_chair", "key": "officeChair", "at": [2600, 1650], "rot": 270, "w": 600, "d": 600, "h": 1050}},
+    {"op": "add", "object": {"id": "o_rug", "key": "rug", "at": [1100, 2500], "rot": 0, "w": 1800, "d": 1200}},
+    {"op": "add", "object": {"id": "o_cur", "key": "curtain", "at": [2100, 180], "rot": 0, "w": 1600, "d": 160}}
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": ["CUR-01", "DOOR-01", "DOOR-02", "WIN-01", "OVER-01", "WALL-01", "ASSET-02", "CIR-02", "PROP-01"]
+  }
+}

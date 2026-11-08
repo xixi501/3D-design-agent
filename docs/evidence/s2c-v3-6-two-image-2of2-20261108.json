@@ -1,0 +1,106 @@
+{
+  "purpose": "Frozen release evidence for the S2-C same-version two-image automatic zero-correction matrix",
+  "generatedAt": "2026-11-08",
+  "serviceCommit": "4f204a9407fcc71c34d11d2ebe192aa8b247f314",
+  "businessCodeCommit": "b3d26170b3acb47f0ffd2b535f3b3f76d4cd5346",
+  "recognitionVersion": "s2c-floorplan-v3-6-1",
+  "adapterVersion": "hpd-adapter-6-1",
+  "scoringVersion": "s2c-5",
+  "model": "deepseek-flash",
+  "visionModel": "Qwen/Qwen3-VL-32B-Instruct-FP8",
+  "cases": {
+    "oneBedroom": {
+      "reportFile": "test-results/floorplan-tool-live/2026-11-08T14-58-12-752Z/report.json",
+      "reportSha256": "55f0965c3e458c5864d22094c0e76b51f658e10c367768b43c650f6299f896af",
+      "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+      "referenceSha256": "2b6e646602f0e96cdb6d5246b1a8ead6551917ce2c5e68e9b8bf3ece3a0c559e",
+      "codeCommit": "4f204a9407fcc71c34d11d2ebe192aa8b247f314",
+      "runs": [
+        {
+          "taskId": "de685a0c-1c46-487e-a87f-694146c810ef",
+          "status": "completed",
+          "modelCalls": 14,
+          "activeSeconds": 102.1543321609497,
+          "repairs": 0,
+          "objectCorrections": 0,
+          "firstRecognitionPassed": true,
+          "finalScoringPassed": true,
+          "formalRevision": 4,
+          "imageFidelityAccepted": true,
+          "projectId": "e803b032-ff44-40ff-822e-18894ae558ec"
+        },
+        {
+          "taskId": "e4f5e585-cff5-4ea1-a074-9fcc1d57abcf",
+          "status": "completed",
+          "modelCalls": 18,
+          "activeSeconds": 115.67300176620483,
+          "repairs": 0,
+          "objectCorrections": 0,
+          "firstRecognitionPassed": true,
+          "finalScoringPassed": true,
+          "formalRevision": 4,
+          "imageFidelityAccepted": true,
+          "projectId": "427b0232-1edc-41d2-8190-eddd65578b82"
+        }
+      ],
+      "totalActiveSeconds": 217.82733392715454,
+      "compilationPasses": 2,
+      "total": 2,
+      "accepted": true
+    },
+    "ninetyTwo": {
+      "reportFile": "test-results/floorplan-tool-live/2026-11-08T15-02-39-122Z/report.json",
+      "reportSha256": "55ad605d7ca0e9cf631e22d0e6bab3dbe36310349883be0ed2d534c0d442e15e",
+      "sourceImageSha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+      "referenceSha256": "b6d60e41ce794a230e6312e09992d40c64ff5c6984a85ec62d9954c930028792",
+      "codeCommit": "4f204a9407fcc71c34d11d2ebe192aa8b247f314",
+      "runs": [
+        {
+          "taskId": "e6b8fb37-cef8-4dfd-bb4f-998a227c1e75",
+          "status": "completed",
+          "modelCalls": 18,
+          "activeSeconds": 125.27994012832642,
+          "repairs": 0,
+          "objectCorrections": 0,
+          "firstRecognitionPassed": true,
+          "finalScoringPassed": true,
+          "formalRevision": 4,
+          "imageFidelityAccepted": true,
+          "projectId": "2bff8abd-530d-4b86-ad13-b29e42aa1420"
+        },
+        {
+          "taskId": "63a1c197-a00a-4a5c-9a7d-8b81c732f779",
+          "status": "completed",
+          "modelCalls": 18,
+          "activeSeconds": 136.75637316703796,
+          "repairs": 0,
+          "objectCorrections": 0,
+          "firstRecognitionPassed": true,
+          "finalScoringPassed": true,
+          "formalRevision": 4,
+          "imageFidelityAccepted": true,
+          "projectId": "12626d3f-75ad-43a9-afd5-5d833392b56e"
+        }
+      ],
+      "totalActiveSeconds": 262.0363132953644,
+      "compilationPasses": 2,
+      "total": 2,
+      "accepted": true
+    }
+  },
+  "gates": {
+    "twoImages": true,
+    "twoRunsPerImage": true,
+    "zeroRepairs": true,
+    "zeroObjectCorrections": true,
+    "compilationPasses": 4,
+    "totalRuns": 4,
+    "totalActiveSeconds": 479.86364722251894,
+    "imageFidelityAccepted": true
+  },
+  "notes": [
+    "Evaluation references were used only by the scorer.",
+    "No model prompt or production tool received a reference file.",
+    "S3 photo assets, S4 GEPA and S5 AgentArts deployment are outside this evidence."
+  ]
+}

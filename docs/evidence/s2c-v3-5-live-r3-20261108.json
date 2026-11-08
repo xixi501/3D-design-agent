@@ -1,0 +1,65 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "108aee50ef39f7b86836c198f5811d7851d4534d",
+  "scope": "third-independent-single-real-image-run",
+  "task": {
+    "projectId": "55b6fbf9-22ae-4cd0-b717-62a4d02d5642",
+    "taskId": "e19f61f7-4bb3-47c5-9043-ecc844c52827",
+    "status": "waiting_input",
+    "errorCode": null,
+    "error": "两阶段识别后仍有阻断问题，正式项目未改变。请查看原图证据及检查结果。",
+    "modelCalls": 13,
+    "activeSeconds": 127.25153231620792,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0,
+    "repairs": 1
+  },
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "openings": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "furniture": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "symbolCount": 13,
+      "chairCount": 6
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "blocker": {
+    "stage": "measurement",
+    "code": "INVALID_FLOORPLAN",
+    "message": "每个已读标注必须绑定对应的几何特征，不能忽略冲突标注",
+    "compilationPassed": false,
+    "sourceReviewReached": false,
+    "confirmationReached": false
+  },
+  "diagnosis": {
+    "recognitionLayer": "Passed. The object graph, exact required fields, activity group and furniture semantics are no longer the active blocker.",
+    "measurementLayer": "The measured draft contains scale observations but lacks valid geometry dimension bindings, so deterministic diagnostics fail closed.",
+    "nextAction": "Fix measurement feature/dimension binding offline, then start another separately approved real batch. Do not rerun in this batch."
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r3-20261108-report.json",
+      "sha256": "5417aaad48d0c7ef4637aeca8572b1ff0a8c4ba24bb23996546d94d82fc463dc"
+    }
+  }
+}

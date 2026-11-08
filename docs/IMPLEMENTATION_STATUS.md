@@ -62,6 +62,8 @@ The single real run at `423d826` completed structure but failed closed with `FUR
 
 After explicit approval, `81ee0b1` was run once as an independent new batch. It failed again with `FURNITURE_MISSING`: both guided responses omitted `symbols` entirely. The schema bug is now isolated to JSON Schema property optionality; `symbols` and `activityGroups` are added to the schema `required` array while retaining exact count bounds. The corrected schema passes a real local-vLLM offline replay at 13/13 objects, six chairs and 1.0 category precision/recall, but it has not been run against real imagery. See [second live failure](evidence/s2c-v3-5-live-r2-20261108.json).
 
+The next real run at `108aee5` passed first recognition completely: walls, seven openings, 13 furniture objects and activity groups all scored 1.0, including six chairs. It then stopped in measurement because labelled dimensions lacked deterministic geometry-feature bindings. No compile, confirmation or project write occurred. This moves the active blocker from recognition to the measurement layer. See [third live run](evidence/s2c-v3-5-live-r3-20261108.json).
+
 The orthogonal image draft compiler, durable image storage, overlay correction and explicit confirmation workflow are implemented. Four-role reconstruction retains confirmed positions and per-symbol sizes; catalogue decisions are separate from recognition. Controlled browser/WebGL, transaction and restart tests pass. The two real user floorplans and their quality matrix remain pending, so complete S2 is not accepted. See [S2-C status](S2C_STATUS.md) and [runbook](S2C_RUNBOOK.md).
 
 ## Remaining scope

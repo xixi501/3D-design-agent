@@ -351,6 +351,65 @@ assert.equal(
   capturedFixture.expected.rawFurnitureRecall,
 );
 
+const numericCapture = capturedFixture.numericRoomNameCase;
+assert.equal(
+  numericCapture.sourceImageSha256,
+  secondManifest.sourceImageSha256,
+  "Numeric-label captured failure source image changed",
+);
+const numericConsolidation = capturedConsolidation.numericRoomNameCase;
+assert.equal(numericConsolidation.taskId, numericCapture.capturedTaskId);
+const numericDraft = structuredClone(numericCapture.draft);
+numericDraft.rooms = numericConsolidation.rooms;
+numericDraft.targetRoomIds = numericConsolidation.targetRoomIds;
+const numericMergedTarget = numericConsolidation.targetRoomIds[0];
+const numericRemovedTargets = new Set(
+  numericCapture.draft.targetRoomIds.filter(
+    (roomId) => !numericConsolidation.targetRoomIds.includes(roomId),
+  ),
+);
+numericDraft.symbols = numericDraft.symbols.map((symbol) => ({
+  ...symbol,
+  roomId: numericRemovedTargets.has(symbol.roomId)
+    ? numericMergedTarget
+    : symbol.roomId,
+}));
+const numericCompiled = compileFloorplan(
+  numericDraft,
+  "v36-captured-numeric-room-label",
+);
+assert.equal(
+  numericCompiled.state.plan.walls.length,
+  numericCapture.expected.compiledWalls,
+);
+assert.equal(
+  numericCompiled.state.plan.openings.length,
+  numericCapture.expected.compiledOpenings,
+);
+assert.deepEqual(
+  numericCompiled.rooms
+    .map((room) => ({
+      id: room.id.split(":").at(-1),
+      name: room.name,
+    }))
+    .sort((left, right) => left.id.localeCompare(right.id)),
+  [...numericCapture.expected.rooms].sort((left, right) =>
+    left.id.localeCompare(right.id),
+  ),
+);
+assert.equal(numericCompiled.symbols.length, numericCapture.expected.symbols);
+const numericScore = scoreFloorplan(
+  { ...numericCapture.recognition, image: secondReference.image },
+  numericDraft,
+  secondReference,
+  0,
+  secondManifest.aliases,
+);
+assert.equal(numericScore.passed, true, JSON.stringify(numericScore));
+assert.equal(numericScore.rawPassed, true);
+assert.equal(numericScore.finalPassed, true);
+assert.equal(numericScore.confirmed.structure.passed, true);
+
 const furnitureCandidates = toolRequest(ninetyTwoImage, "contours", {
   spec: secondDraft,
 });
@@ -471,6 +530,15 @@ const output = {
     unknownObjectIds: capturedReview.unknownObjectIds.length,
     openingOverflow,
     passed: capturedReview.passed,
+  },
+  capturedNumericRoomLabelReplay: {
+    taskId: numericCapture.capturedTaskId,
+    capturedRooms: numericCapture.draft.rooms.length,
+    consolidatedRooms: numericConsolidation.rooms.length,
+    compiledWalls: numericCompiled.state.plan.walls.length,
+    compiledOpenings: numericCompiled.state.plan.openings.length,
+    symbols: numericCompiled.symbols.length,
+    scoringPassed: numericScore.passed,
   },
   note: "Offline candidate replay only; furniture classification, model passes and the real 2-of-2 gate are not claimed.",
 };

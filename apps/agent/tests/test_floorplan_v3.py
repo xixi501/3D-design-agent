@@ -102,6 +102,7 @@ def test_open_living_dining_and_foyer_labels_merge_by_enclosed_region():
         {"id": "dining", "name": "餐厅", "functionalArea": "dining", "at": {"x": 60, "y": 210}},
         {"id": "foyer", "name": "玄关", "functionalArea": "other", "at": {"x": 120, "y": 50}},
         {"id": "hall", "name": "过道", "functionalArea": "other", "at": {"x": 170, "y": 120}},
+        {"id": "numeric", "name": "8", "functionalArea": "other", "at": {"x": 190, "y": 170}},
         {"id": "bed", "name": "次卧01", "functionalArea": "bedroom", "at": {"x": 300, "y": 120}},
     ]
     output, targets, notes = _consolidate_open_room_labels(
@@ -116,7 +117,13 @@ def test_open_living_dining_and_foyer_labels_merge_by_enclosed_region():
     assert next(room for room in output if room["id"] == "living")["name"] == "客餐厅"
     assert any(room["id"] == "bed" for room in output)
     assert len(notes) == 1
-    assert set(notes[0]["objectIds"]) == {"living", "dining", "foyer", "hall"}
+    assert set(notes[0]["objectIds"]) == {
+        "living",
+        "dining",
+        "foyer",
+        "hall",
+        "numeric",
+    }
 
 
 def test_single_open_dining_label_is_canonicalized_to_living_dining():

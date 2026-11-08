@@ -34,6 +34,26 @@ def main():
         "r_entry",
         "r_hall",
     }
+    numeric_case = fixture["numericRoomNameCase"]
+    numeric_draft = numeric_case["draft"]
+    numeric_rooms, numeric_targets, numeric_notes = _consolidate_open_room_labels(
+        numeric_draft["walls"],
+        numeric_draft["rooms"],
+        numeric_draft["targetRoomIds"],
+        numeric_draft["image"]["width"],
+        numeric_draft["image"]["height"],
+    )
+    assert [
+        {"id": room["id"], "name": room["name"]} for room in numeric_rooms
+    ] == numeric_case["expected"]["rooms"]
+    assert numeric_targets == numeric_case["expected"]["targetRoomIds"]
+    assert len(numeric_notes) == 1
+    assert set(numeric_notes[0]["objectIds"]) == {
+        "r_dining",
+        "r_living",
+        "r_entry",
+        "r_corridor",
+    }
     review_fixture = json.loads(
         (
             ROOT / "fixtures/s2c-real/ninety-two.v36-review-identity-replay.json"
@@ -55,6 +75,12 @@ def main():
                 "rooms": rooms,
                 "targetRoomIds": target_ids,
                 "notes": notes,
+                "numericRoomNameCase": {
+                    "taskId": numeric_case["capturedTaskId"],
+                    "rooms": numeric_rooms,
+                    "targetRoomIds": numeric_targets,
+                    "notes": numeric_notes,
+                },
                 "candidateReview": review,
             },
             ensure_ascii=False,

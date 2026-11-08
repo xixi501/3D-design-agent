@@ -1594,7 +1594,6 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
             unplaced.append(room)
             continue
         grouped.setdefault(label, []).append(room)
-    allowed_names = {"客餐厅", "客厅", "餐厅", "玄关", "过道"}
     allowed_areas = {"living", "dining", "other"}
     output = list(unplaced)
     targets = list(dict.fromkeys(target_ids))
@@ -1604,7 +1603,6 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
             room = members[0]
             if (
                 room["id"] in targets
-                and room.get("name") in allowed_names
                 and room.get("functionalArea") in allowed_areas
                 and room.get("name") != "客餐厅"
             ):
@@ -1628,8 +1626,7 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
                 output.append(room)
             continue
         if not (
-            all(member.get("name") in allowed_names for member in members)
-            and all(member.get("functionalArea") in allowed_areas for member in members)
+            all(member.get("functionalArea") in allowed_areas for member in members)
             and any(member["id"] in targets for member in members)
         ):
             output.extend(members)

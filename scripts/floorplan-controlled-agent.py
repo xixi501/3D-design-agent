@@ -60,7 +60,7 @@ class ControlledRoles(Roles):
                 end = max(wall["a"][along], wall["b"][along])
                 candidates = [
                     item
-                    for item in skeleton["segments"]
+                    for item in skeleton["candidateWalls"]
                     if item["orient"] == orientation
                     and abs(item["line"] - line) <= 2
                     and min(item["s1"], end) >= max(item["s0"], start) - 2
@@ -69,9 +69,8 @@ class ControlledRoles(Roles):
                 walls.append(
                     {
                         "id": wall["id"],
-                        "segments": [
-                            {"analysisId": analysis_id, "index": item["index"]}
-                            for item in candidates
+                        "candidateWallIds": [
+                            item["candidateWallId"] for item in candidates
                         ],
                     }
                 )
@@ -100,7 +99,6 @@ class ControlledRoles(Roles):
                 openings.append(
                     {
                         "id": opening["id"],
-                        "wallId": opening["wallId"],
                         "analysisId": analysis_id,
                         "index": gap["index"],
                         "type": opening["type"],

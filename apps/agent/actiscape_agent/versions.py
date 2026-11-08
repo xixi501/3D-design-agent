@@ -57,7 +57,7 @@ def runtime_versions():
         "modelConfigVersion": "per-role-output-budget-3",
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
         "floorplanReviewOptions": FLOORPLAN_REVIEW_OPTIONS,
-        "floorplanPromptVersion": "s2c-floorplan-v3-1",
+        "floorplanPromptVersion": "s2c-floorplan-v3-2",
         "floorplanToolAdapter": "hpd-adapter-4",
         "floorplanUpdateContract": "discriminated-commands-2",
         "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",

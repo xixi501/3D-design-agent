@@ -136,3 +136,14 @@ V3 真实单图结果必须单独记录；受控链路通过不代替真实识�
 | 正式版本   | revision 0，undo/redo 0         | revision 0，undo/redo 0           |
 
 两次审核均关闭 thinking，结构角色没有出现上一轮的 8192 推理 token 截断；新失败集中在候选语义选择和断口归属。全部原始结果见本机 `test-results/floorplan-tool-live/2026-11-08T02-38-36-402Z/`，[证据索引](evidence/s2c-v3-two-pass-20261108.json) 固定任务、计数和文件哈希。按既定停止条件，本轮没有追加第三次真实运行，也没有启动第二张图或完整 S2。
+
+### V3-2 候选墙修复与人工重审
+
+真实失败复核确认参考工具的墙段和断口索引自洽，直接原因是模型自由组合原始段：一次把水平段 4 与竖直段 9 放进同一墙，另一次只选断口一侧的段 0。V3-2 使用 `structureSkeletonVersion=2`：
+
+- 固定代码按共线、相接及 gap.a/b 关系构建稳定 candidateWalls，如 `cw_0_2`。
+- 结构角色只选择 candidateWallIds；门窗只引用 gap，代码根据两侧段唯一确定所属业务墙。
+- 结构组装失败时最多进行一次有界修复，保存两次响应和固定错误码；重启不重新执行初始结构识别。
+- 人工修改草稿会撤掉 sourceReview；新增 `recheck-floorplan` 对当前 revision/hash 重新审核，重复 requestId 不重复调用模型。
+
+对应版本为 `s2c-floorplan-v3-2`、`floorplan-reconstruction@0.5.1`，底层工具继续使用 `hpd-adapter-4`。

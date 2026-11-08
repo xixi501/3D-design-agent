@@ -20,7 +20,7 @@ from .floorplan_v2 import FloorplanV2
 from .skill_registry import FLOORPLAN_TOOLS, load_design_skill, skill_record
 from .store import TaskError, fingerprint
 
-VERSION = "s2c-floorplan-v3-1"
+VERSION = "s2c-floorplan-v3-2"
 COMMON = (
     RULES
     + PIXEL_RULES.replace("餐椅四把就是四个符号", "每把餐椅都要单独记录")
@@ -30,13 +30,19 @@ COMMON = (
 )
 STRUCTURE = (
     COMMON
-    + """\n你是结构识别角色。输入包含 StructureSkeleton、编号分析图、墙掩膜和原图。
-walls 中每项 business wall 必须通过 segments=[{analysisId,index}] 或 customSegments 引用真实候选；代码会取同一直线上所有段的并集形成墙端点。
+    + """\n你是结构识别角色。输入包含 StructureSkeleton、candidateWalls、编号分析图、墙掩膜和原图。
+walls 中每项 business wall 必须通过 candidateWallIds 选择代码预先合并的候选墙；不得引用原始段索引。candidateWalls 已按共线、相接和断口 a/b 关系合并，同一 candidateWallId 只能使用一次。
 不要把外侧尺寸线、家具边或同一墙的另一侧描边当墙。连接墙需在房间闭合处共享端点。分析图漏墙时才允许引用实际裁剪生成 customSegments；没有裁剪证据的坐标会被拒绝。
-openings 必须引用 StructureSkeleton.gaps 中的真实断口，wallId 指向本次 walls.id，type 只写图上门窗类型；同一断口不能重复使用。
+openings 必须引用 StructureSkeleton.gaps 中的真实断口，只写 analysisId、index 和 type；代码根据 gap.a/b 自动确定所属 business wall。同一断口不能重复使用。
 rooms 使用房间名所在原图点，每个封闭区域一个标签；functionalArea 写 living/dining/kitchen/bedroom/bathroom/other。targetRoomIds 只选需要复现家具的客餐厅。
 anchors 只抄录清晰尺寸标注或用户明确长度；basis 区分 interior/centerline/exterior。未知 height/wallThickness 留 null。无法确认的关键结构写入 uncertainties(blocking=true)。
 证据引用使用 analysisId、cropId 或 image:<sha256>。status=unsupported 仅用于非单层正交清晰平面图。"""
+)
+STRUCTURE_REPAIR = (
+    COMMON
+    + """\n上一轮结构结果无法由固定代码组装。你只修正 StructureRecognition，不修改候选骨架，不增加无证据墙。
+只选择 StructureSkeleton.candidateWalls 中存在的 candidateWallId；门窗只引用真实 gap 索引，所属墙由代码根据 gap.a/b 决定。
+按输入的 errorCode、objectIds、message 和 allowedCandidateWallIds 修正；不得用相近候选凑数，不得删除阻断不确定项。只返回结构化结果，不输出解释。"""
 )
 FURNITURE = (
     COMMON
@@ -66,6 +72,91 @@ def _candidate_id(index, prefix):
     return f"{prefix}{index}"
 
 
+def _group_candidate_walls(segments, gaps):
+    parent = list(range(len(segments)))
+
+    def find(index):
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    def union(left, right):
+        left, right = find(left), find(right)
+        if left != right:
+            parent[max(left, right)] = min(left, right)
+
+    for left in range(len(segments)):
+        a = segments[left]
+        for right in range(left + 1, len(segments)):
+            b = segments[right]
+            if a["orient"] != b["orient"]:
+                continue
+            tolerance = max(2.0, min(float(a["t"]), float(b["t"])) / 2)
+            if abs(float(a["line"]) - float(b["line"])) > tolerance:
+                continue
+            if max(float(a["s0"]), float(b["s0"])) <= min(float(a["s1"]), float(b["s1"])) + 1:
+                union(left, right)
+
+    for gap in gaps:
+        left, right = gap.get("a"), gap.get("b")
+        if (
+            isinstance(left, int)
+            and isinstance(right, int)
+            and 0 <= left < len(segments)
+            and 0 <= right < len(segments)
+            and segments[left]["orient"] == segments[right]["orient"]
+            and abs(float(segments[left]["line"]) - float(segments[right]["line"]))
+            <= max(2.0, min(float(segments[left]["t"]), float(segments[right]["t"])) * 0.6)
+        ):
+            union(left, right)
+
+    groups = {}
+    for index in range(len(segments)):
+        groups.setdefault(find(index), []).append(index)
+    candidate_walls = []
+    group_by_index = {}
+    for indices in sorted(groups.values(), key=lambda values: (min(values), max(values))):
+        indices = sorted(indices)
+        wall_id = f"cw_{indices[0]}_{indices[-1]}"
+        pieces = [segments[index] for index in indices]
+        candidate_walls.append(
+            {
+                "candidateWallId": wall_id,
+                "indices": indices,
+                "orient": pieces[0]["orient"],
+                "line": statistics.median(float(piece["line"]) for piece in pieces),
+                "s0": min(float(piece["s0"]) for piece in pieces),
+                "s1": max(float(piece["s1"]) for piece in pieces),
+                "t": statistics.median(float(piece["t"]) for piece in pieces),
+                "gapIndices": [],
+            }
+        )
+        for index in indices:
+            group_by_index[index] = wall_id
+
+    by_id = {wall["candidateWallId"]: wall for wall in candidate_walls}
+    enriched_gaps = []
+    for index, gap in enumerate(gaps):
+        left, right = gap.get("a"), gap.get("b")
+        owner = (
+            group_by_index.get(left)
+            if isinstance(left, int)
+            and isinstance(right, int)
+            and group_by_index.get(left) == group_by_index.get(right)
+            else None
+        )
+        enriched = {
+            **gap,
+            "candidateId": _candidate_id(index, "g"),
+            "candidateWallId": owner,
+        }
+        enriched_gaps.append(enriched)
+        if owner:
+            by_id[owner]["gapIndices"].append(index)
+    return candidate_walls, enriched_gaps
+
+
 def build_structure_skeleton(record, image):
     result = record.get("result") or {}
     segments = []
@@ -78,21 +169,22 @@ def build_structure_skeleton(record, image):
                 **segment,
             }
         )
-    gaps = []
-    for index, gap in enumerate(result.get("gaps_px") or []):
-        gaps.append(
-            {
-                "candidateId": _candidate_id(index, "g"),
-                "analysisId": record["id"],
-                "index": index,
-                **gap,
-            }
-        )
+    raw_gaps = [
+        {
+            "analysisId": record["id"],
+            "index": index,
+            **gap,
+        }
+        for index, gap in enumerate(result.get("gaps_px") or [])
+    ]
+    candidate_walls, gaps = _group_candidate_walls(segments, raw_gaps)
     return {
+        "structureSkeletonVersion": 2,
         "analysisId": record["id"],
         "image": {k: image[k] for k in ("id", "sha256", "width", "height")},
         "outline_px": result.get("outline_px"),
         "segments": segments,
+        "candidateWalls": candidate_walls,
         "gaps": gaps,
         "dimensions": result.get("dims_px") or {},
         "repository": record.get("repository"),
@@ -121,16 +213,38 @@ def _assemble_structure(skeleton, recognition, evidence_index):
     if recognition["status"] == "unsupported":
         return recognition
 
+    candidate_by_id = {wall["candidateWallId"]: wall for wall in skeleton.get("candidateWalls", [])}
     wall_geometry = {}
+    candidate_owner = {}
     draft_walls = []
     for wall in recognition["walls"]:
-        pieces = [
-            _segment_piece(skeleton, segment["analysisId"], segment["index"])
-            for segment in wall.get("segments", [])
-        ]
+        pieces = []
+        for candidate_id in wall.get("candidateWallIds", []):
+            candidate = candidate_by_id.get(candidate_id)
+            if candidate is None:
+                raise TaskError(
+                    "UNKNOWN_WALL_GROUP",
+                    f"墙 {wall['id']} 引用了未知候选墙 {candidate_id}",
+                    details={"objectIds": [wall["id"], candidate_id]},
+                )
+            if candidate_id in candidate_owner:
+                raise TaskError(
+                    "INVALID_WALL_GEOMETRY",
+                    f"候选墙 {candidate_id} 被多个业务墙重复使用",
+                    details={"objectIds": [wall["id"], candidate_id]},
+                )
+            candidate_owner[candidate_id] = wall["id"]
+            pieces.extend(
+                _segment_piece(skeleton, skeleton["analysisId"], index)
+                for index in candidate["indices"]
+            )
         for custom in wall.get("customSegments", []):
             if custom["cropId"] not in evidence_index:
-                raise TaskError("INVALID_STRUCTURE", f"新增墙段 {wall['id']} 缺少有效裁剪证据")
+                raise TaskError(
+                    "INVALID_WALL_GEOMETRY",
+                    f"新增墙段 {wall['id']} 缺少有效裁剪证据",
+                    details={"objectIds": [wall["id"], custom["cropId"]]},
+                )
             pieces.append(
                 {
                     "orient": custom["kind"].lower(),
@@ -141,17 +255,33 @@ def _assemble_structure(skeleton, recognition, evidence_index):
                 }
             )
         if not pieces:
-            raise TaskError("INVALID_STRUCTURE", f"墙 {wall['id']} 没有真实候选")
+            raise TaskError(
+                "INVALID_WALL_GEOMETRY",
+                f"墙 {wall['id']} 没有真实候选",
+                details={"objectIds": [wall["id"]]},
+            )
         orientations = {piece["orient"] for piece in pieces}
         if len(orientations) != 1:
-            raise TaskError("INVALID_STRUCTURE", f"墙 {wall['id']} 混合了水平和竖直候选")
+            raise TaskError(
+                "MIXED_WALL_ORIENTATION",
+                f"墙 {wall['id']} 混合了水平和竖直候选",
+                details={"objectIds": [wall["id"]]},
+            )
         lines = [float(piece["line"]) for piece in pieces]
         if max(lines) - min(lines) > 3:
-            raise TaskError("INVALID_STRUCTURE", f"墙 {wall['id']} 的候选不在同一直线上")
+            raise TaskError(
+                "INVALID_WALL_GEOMETRY",
+                f"墙 {wall['id']} 的候选不在同一直线上",
+                details={"objectIds": [wall["id"]]},
+            )
         start = min(float(piece["s0"]) for piece in pieces)
         end = max(float(piece["s1"]) for piece in pieces)
         if end - start < 2:
-            raise TaskError("INVALID_STRUCTURE", f"墙 {wall['id']} 长度无效")
+            raise TaskError(
+                "INVALID_WALL_GEOMETRY",
+                f"墙 {wall['id']} 长度无效",
+                details={"objectIds": [wall["id"]]},
+            )
         orient = next(iter(orientations))
         line = statistics.median(lines)
         thickness_values = [
@@ -214,26 +344,48 @@ def _assemble_structure(skeleton, recognition, evidence_index):
 
     used_gaps = set()
     for opening in recognition["openings"]:
-        wall = wall_geometry.get(opening["wallId"])
-        if wall is None:
-            raise TaskError("INVALID_STRUCTURE", f"门窗 {opening['id']} 引用了未知墙")
         gap_key = (opening["analysisId"], opening["index"])
         if gap_key in used_gaps:
-            raise TaskError("INVALID_STRUCTURE", "同一个门窗断口被重复使用")
+            raise TaskError(
+                "OPENING_OWNER_UNRESOLVED",
+                "同一个门窗断口被重复使用",
+                details={"objectIds": [opening["id"]]},
+            )
         used_gaps.add(gap_key)
         gap = _gap_piece(skeleton, opening["analysisId"], opening["index"])
+        candidate_id = gap.get("candidateWallId")
+        owner = candidate_owner.get(candidate_id) if candidate_id else None
+        if owner is None:
+            raise TaskError(
+                "OPENING_OWNER_UNRESOLVED",
+                f"门窗 {opening['id']} 的断口两侧候选墙未被同一业务墙选中",
+                details={"objectIds": [opening["id"]]},
+            )
+        wall = wall_geometry[owner]
         if gap["orient"] != wall["orient"]:
-            raise TaskError("INVALID_STRUCTURE", f"门窗 {opening['id']} 与所属墙方向不一致")
+            raise TaskError(
+                "OPENING_OWNER_UNRESOLVED",
+                f"门窗 {opening['id']} 与所属墙方向不一致",
+                details={"objectIds": [opening["id"]]},
+            )
         if abs(float(gap["line"]) - wall["line"]) > 3:
-            raise TaskError("INVALID_STRUCTURE", f"门窗 {opening['id']} 不在所属墙中线上")
+            raise TaskError(
+                "OPENING_OWNER_UNRESOLVED",
+                f"门窗 {opening['id']} 不在所属墙中线上",
+                details={"objectIds": [opening["id"]]},
+            )
         start = min(float(gap["s0"]), float(gap["s1"]))
         end = max(float(gap["s0"]), float(gap["s1"]))
         if start < wall["start"] - 2 or end > wall["end"] + 2:
-            raise TaskError("INVALID_STRUCTURE", f"门窗 {opening['id']} 超出所属墙范围")
+            raise TaskError(
+                "OPENING_OUT_OF_RANGE",
+                f"门窗 {opening['id']} 超出所属墙范围",
+                details={"objectIds": [opening["id"], owner]},
+            )
         draft_openings.append(
             {
                 "id": opening["id"],
-                "wallId": opening["wallId"],
+                "wallId": owner,
                 "type": opening["type"],
                 "offset": (start + end) / 2 - wall["start"],
                 "width": end - start,
@@ -247,7 +399,11 @@ def _assemble_structure(skeleton, recognition, evidence_index):
 
     room_ids = {room["id"] for room in recognition["rooms"]}
     if any(room_id not in room_ids for room_id in recognition["targetRoomIds"]):
-        raise TaskError("INVALID_STRUCTURE", "目标客餐厅引用了未知房间")
+        raise TaskError(
+            "TARGET_ROOM_MISSING",
+            "目标客餐厅引用了未知房间",
+            details={"objectIds": recognition["targetRoomIds"]},
+        )
 
     return {
         "status": "draft",
@@ -302,28 +458,170 @@ class FloorplanV3(FloorplanV2):
         )
         images = [await self.client.image(f"/floorplan-images/{image['id']}/file")]
         images += [await self.client.image(file["path"]) for file in analysis.get("files", [])]
-        value = await self.base.invoke(
-            "main",
-            STRUCTURE,
-            StructureRecognition,
-            [context, evidence.crop_tool()],
-            {
-                "userRequest": task["input"],
-                "image": image,
-                "structureSkeleton": skeleton,
-                "skill": self.store.task(task["id"], internal=True)["generation"]["skillSnapshot"],
-            },
-            task["id"],
-            images,
-            prompt_version=VERSION,
-            bounded_schema=True,
-            model_options=FLOORPLAN_RECOGNITION_OPTIONS,
-        )
-        value = StructureRecognition.model_validate(value).model_dump(
-            exclude_none=True, by_alias=True
-        )
+
+        async def invoke(prompt, payload):
+            result = await self.base.invoke(
+                "main",
+                prompt,
+                StructureRecognition,
+                [context, evidence.crop_tool()],
+                payload,
+                task["id"],
+                images,
+                prompt_version=VERSION,
+                bounded_schema=True,
+                model_options=FLOORPLAN_RECOGNITION_OPTIONS,
+            )
+            return StructureRecognition.model_validate(result).model_dump(
+                exclude_none=True, by_alias=True
+            )
+
+        payload = {
+            "userRequest": task["input"],
+            "image": image,
+            "structureSkeleton": skeleton,
+            "skill": self.store.task(task["id"], internal=True)["generation"]["skillSnapshot"],
+        }
         generation = self.store.task(task["id"], internal=True)["generation"]
-        assembled = _assemble_structure(skeleton, value, generation.get("evidenceIndex", {}))
+        repaired_value = generation.get("structureRepairResponse")
+        pending_value = generation.get("pendingStructure")
+        resuming_repair = bool(pending_value and generation.get("structureRepairAttempts", 0))
+        value = repaired_value if repaired_value else pending_value if resuming_repair else None
+        if value is None:
+            value = await invoke(STRUCTURE, payload)
+            value = StructureRecognition.model_validate(value).model_dump(
+                exclude_none=True, by_alias=True
+            )
+            attempts = generation.setdefault("structureAttempts", [])
+            attempts.append(value)
+            self.patch(task["id"], structureAttempts=attempts, pendingStructure=value)
+        else:
+            value = StructureRecognition.model_validate(value).model_dump(
+                exclude_none=True, by_alias=True
+            )
+        if value["status"] == "unsupported":
+            self.patch(
+                task["id"],
+                rawStructure=value,
+                structure=value,
+                pendingStructure=None,
+                structureRepairResponse=None,
+            )
+            return value
+        try:
+            assembled = _assemble_structure(skeleton, value, generation.get("evidenceIndex", {}))
+        except TaskError as error:
+            allowed = {
+                "UNKNOWN_WALL_GROUP",
+                "MIXED_WALL_ORIENTATION",
+                "OPENING_OWNER_UNRESOLVED",
+                "OPENING_OUT_OF_RANGE",
+                "INVALID_WALL_GEOMETRY",
+                "TARGET_ROOM_MISSING",
+            }
+            object_ids = (getattr(error, "details", None) or {}).get("objectIds", [])
+            generation = self.store.task(task["id"], internal=True)["generation"]
+            if error.code not in allowed or repaired_value:
+                history = generation.setdefault("structureErrors", [])
+                history.append(
+                    {
+                        "code": error.code,
+                        "message": str(error),
+                        "objectIds": object_ids,
+                        "skeletonVersion": skeleton["structureSkeletonVersion"],
+                    }
+                )
+                self.patch(
+                    task["id"],
+                    structureErrors=history,
+                    pendingStructure=None,
+                )
+                raise
+            errors = [
+                *generation.get("structureErrors", []),
+                {
+                    "code": error.code,
+                    "message": str(error),
+                        "objectIds": object_ids,
+                    "skeletonVersion": skeleton["structureSkeletonVersion"],
+                },
+            ]
+            self.patch(
+                task["id"],
+                structureRepairAttempts=1,
+                pendingStructure=value,
+                structureErrors=errors,
+            )
+            self.store.event(
+                task["id"],
+                "structure_repair",
+                {
+                    "attempt": 1,
+                    "code": error.code,
+                    "message": str(error),
+                },
+            )
+            repaired = await invoke(
+                STRUCTURE_REPAIR,
+                {
+                    **payload,
+                    "previousResult": value,
+                    "errorCode": error.code,
+                    "message": str(error),
+                    "objectIds": object_ids,
+                    "allowedCandidateWallIds": [
+                        wall["candidateWallId"] for wall in skeleton.get("candidateWalls", [])
+                    ],
+                },
+            )
+            current_generation = self.store.task(task["id"], internal=True)["generation"]
+            attempts = current_generation["structureAttempts"]
+            attempts.append(repaired)
+            self.patch(
+                task["id"],
+                structureAttempts=attempts,
+                pendingStructure=repaired,
+                structureRepairResponse=repaired,
+            )
+            if repaired["status"] == "unsupported":
+                self.patch(
+                    task["id"],
+                    rawStructure=repaired,
+                    structure=repaired,
+                    pendingStructure=None,
+                    structureRepairResponse=None,
+                )
+                return repaired
+            try:
+                assembled = _assemble_structure(
+                    skeleton,
+                    repaired,
+                    self.store.task(task["id"], internal=True)["generation"].get(
+                        "evidenceIndex", {}
+                    ),
+                )
+                value = repaired
+            except TaskError as repaired_error:
+                history = self.store.task(task["id"], internal=True)["generation"][
+                    "structureErrors"
+                ]
+                history.append(
+                    {
+                        "code": repaired_error.code,
+                        "message": str(repaired_error),
+                        "objectIds": (getattr(repaired_error, "details", None) or {}).get(
+                            "objectIds", []
+                        ),
+                        "skeletonVersion": skeleton["structureSkeletonVersion"],
+                    }
+                )
+                self.patch(
+                    task["id"],
+                    structureErrors=history,
+                    pendingStructure=None,
+                    structureRepairResponse=None,
+                )
+                raise
         assembled = RecognitionV3.model_validate(assembled).model_dump(
             exclude_none=True, by_alias=True
         )
@@ -331,6 +629,8 @@ class FloorplanV3(FloorplanV2):
             task["id"],
             rawStructure=value,
             structure=assembled,
+            pendingStructure=None,
+            structureRepairResponse=None,
             phase="recognizing_furniture",
         )
         self.store.event(

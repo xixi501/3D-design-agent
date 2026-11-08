@@ -704,6 +704,13 @@ export class ChatPanel {
         this.update(next);
         this.watchActive();
       },
+      async (body) => {
+        const next = await post(
+          `/agent/tasks/${task.id}/recheck-floorplan`,
+          body,
+        );
+        this.update(next);
+      },
       task.status === "completed",
     );
   }

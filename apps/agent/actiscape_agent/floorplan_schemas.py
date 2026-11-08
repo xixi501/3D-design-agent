@@ -123,14 +123,13 @@ class StructureCustomSegment(StrictModel):
 
 class StructureWall(StrictModel):
     id: str
-    segments: list[StructureSegmentRef] = Field(default_factory=list, max_length=20)
+    candidateWallIds: list[str] = Field(default_factory=list, max_length=20)
     customSegments: list[StructureCustomSegment] = Field(default_factory=list, max_length=5)
     thicknessPx: FiniteFloat | None = Field(default=None, gt=0)
 
 
 class StructureGapRef(StrictModel):
     id: str
-    wallId: str
     analysisId: str
     index: int = Field(ge=0)
     type: Literal["door", "window", "hole", "sliding"]

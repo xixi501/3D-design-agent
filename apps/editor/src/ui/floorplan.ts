@@ -31,6 +31,7 @@ export class FloorplanPanel {
   private checks = el("div");
   private summary = el("div");
   private notice = el("p");
+  private recheck = el("button", "重新审核当前草稿");
   private confirm = el("button", "确认结构与原图布局");
   private select = el("select");
   private collection = el("select");
@@ -60,6 +61,7 @@ export class FloorplanPanel {
     private taskId: string,
     private draftId: string,
     private onConfirm: (body: any) => Promise<void>,
+    private onRecheck: (body: any) => Promise<void>,
     private readOnly = false,
   ) {
     this.dialog.className = "floorplan-dialog";
@@ -186,6 +188,9 @@ export class FloorplanPanel {
     this.confirm.className = "primary";
     this.confirm.dataset.testid = "confirm-floorplan";
     this.confirm.onclick = () => void this.confirmDraft();
+    this.recheck.disabled = true;
+    this.recheck.dataset.testid = "recheck-floorplan";
+    this.recheck.onclick = () => void this.recheckDraft();
     side.append(
       this.summary,
       el("h3", "比例尺"),
@@ -203,6 +208,7 @@ export class FloorplanPanel {
       el("h3", "结构检查"),
       this.checks,
       this.notice,
+      this.recheck,
       this.confirm,
       el(
         "p",
@@ -282,6 +288,8 @@ export class FloorplanPanel {
     this.renderObjects();
     this.renderSummary();
     this.draw();
+    this.recheck.disabled = this.busy || !this.preview.checks.passed;
+    this.confirm.disabled = this.busy || !this.ready();
     if (this.readOnly) {
       this.dialog
         .querySelectorAll<HTMLInputElement | HTMLButtonElement>(
@@ -289,6 +297,7 @@ export class FloorplanPanel {
         )
         .forEach((n) => (n.disabled = true));
       this.confirm.hidden = true;
+      this.recheck.hidden = true;
     }
   }
   private resize() {
@@ -601,6 +610,7 @@ export class FloorplanPanel {
     if (this.busy || this.readOnly) return;
     this.busy = true;
     this.confirm.disabled = true;
+    this.recheck.disabled = true;
     this.notice.textContent = "保存草稿…";
     try {
       await post(this.path() + "/commands", {
@@ -615,6 +625,33 @@ export class FloorplanPanel {
       await this.load().catch(() => {});
     } finally {
       this.busy = false;
+      this.recheck.disabled = !this.preview?.checks.passed;
+      this.confirm.disabled = !this.ready();
+    }
+  }
+  private async recheckDraft() {
+    if (this.busy || !this.preview?.checks.passed) return;
+    this.busy = true;
+    this.confirm.disabled = true;
+    this.recheck.disabled = true;
+    this.notice.textContent = "正在重新审核当前草稿…";
+    try {
+      await this.onRecheck({
+        requestId: crypto.randomUUID(),
+        draftId: this.draft.id,
+        draftRevision: this.draft.revision,
+        draftHash: this.draft.hash,
+      });
+      await this.load();
+      this.notice.textContent = this.ready()
+        ? "当前草稿审核通过，可以确认。"
+        : "审核完成，仍有阻断问题或审核未通过。";
+    } catch (e) {
+      this.notice.textContent = (e as Error).message;
+      await this.load().catch(() => {});
+    } finally {
+      this.busy = false;
+      this.recheck.disabled = !this.preview?.checks.passed;
       this.confirm.disabled = !this.ready();
     }
   }
@@ -622,6 +659,7 @@ export class FloorplanPanel {
     if (this.busy || !this.ready()) return;
     this.busy = true;
     this.confirm.disabled = true;
+    this.recheck.disabled = true;
     const key = `actiscape-floorplan-confirm:${this.taskId}`,
       signature = `${this.draft.id}:${this.draft.revision}:${this.draft.hash}`;
     let old: any;
@@ -647,6 +685,7 @@ export class FloorplanPanel {
       await this.load().catch(() => {});
     } finally {
       this.busy = false;
+      this.recheck.disabled = !this.preview?.checks.passed;
       this.confirm.disabled = !this.ready();
     }
   }

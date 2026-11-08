@@ -272,6 +272,21 @@ try {
     assert.ok(
       preview.measurement.dimensions.every((d) => Math.abs(d.residualMm) <= 1),
     );
+    const rechecked = page.waitForResponse(
+      (r) =>
+        r.request().method() === "POST" &&
+        r.url().endsWith(`/api/agent/tasks/${task.id}/recheck-floorplan`) &&
+        r.status() === 200,
+    );
+    await page.click("[data-testid=recheck-floorplan]");
+    await rechecked;
+    await page.waitForFunction(() =>
+      document
+        .querySelector(".floorplan-controls")
+        ?.textContent?.includes("当前草稿审核通过"),
+    );
+    const recheckedTask = await api(`/agent/tasks/${task.id}`);
+    assert.ok(recheckedTask.generation.manualRechecks.length >= 1);
     await page.screenshot({ path: path.join(out, "draft-overlay.png") });
     await button("关闭", ".floorplan-dialog");
     await page.reload({ waitUntil: "load" });

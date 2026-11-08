@@ -139,6 +139,107 @@ class TaskManager:
                 },
             )
 
+    async def recheck_floorplan(self, id: str, body: dict):
+        from .floorplan_v3 import FloorplanV3
+
+        task = self.store.task(id, internal=True)
+        if task["mode"] != "reconstruct_floorplan":
+            raise TaskError("INVALID_STATE", "此任务不是户型图任务", 409)
+        if task["status"] != "waiting_input":
+            raise TaskError("INVALID_STATE", "只有等待确认的草稿可以重新审核", 409)
+        generation = task["generation"]
+        if generation.get("draftId") != body["draftId"]:
+            raise TaskError("DRAFT_CONFLICT", "草稿不属于此任务", 409)
+        if task["modelCalls"] >= 24 or task["elapsedSeconds"] >= 600:
+            raise TaskError("BUDGET_EXHAUSTED", "本任务预算已耗尽，请新建任务", 409)
+        if not self.store.claim_action(id, body):
+            return self.store.task(id)
+
+        previous_result = task["result"]
+        self.store.start(id)
+        try:
+            draft = await self.client.request(
+                f"/projects/{task['projectId']}/floorplan-drafts/{body['draftId']}"
+            )
+            if draft["revision"] != body["draftRevision"] or draft["hash"] != body["draftHash"]:
+                raise TaskError("DRAFT_CONFLICT", "审核草稿版本或哈希已失效", 409)
+            image = await self.client.request(f"/floorplan-images/{generation['imageId']}")
+            diagnostics = await self.client.request(
+                f"/projects/{task['projectId']}/floorplan-drafts/{body['draftId']}/diagnostics",
+                {},
+            )
+            reviewer = FloorplanV3(self.store, self.client, self.roles)
+            review = await reviewer.review(
+                self.store.task(id, internal=True),
+                image,
+                draft,
+                diagnostics,
+                "manual-recheck",
+            )
+            updated = await self.client.request(
+                f"/projects/{task['projectId']}/floorplan-drafts/{body['draftId']}/review",
+                {
+                    "requestId": body["requestId"],
+                    "draftRevision": body["draftRevision"],
+                    "draftHash": body["draftHash"],
+                    "review": review,
+                    "evidenceRefs": [diagnostics["id"]],
+                },
+            )
+            current = self.store.task(id, internal=True)
+            current_generation = dict(current["generation"])
+            current_generation.update(
+                floorplan=updated,
+                diagnostics=diagnostics,
+                phase="reviewing_floorplan",
+                manualRechecks=[
+                    *current_generation.get("manualRechecks", []),
+                    {
+                        "draftId": body["draftId"],
+                        "draftRevision": body["draftRevision"],
+                        "draftHash": body["draftHash"],
+                        "review": review,
+                    },
+                ],
+            )
+            result = {
+                "status": "waiting_input",
+                "phase": "reviewing_floorplan",
+                "draftId": body["draftId"],
+                "report": review,
+                "message": "当前草稿原图审核通过，可以确认。"
+                if review["passed"]
+                else "当前草稿原图审核未通过，请继续修正后重新审核。",
+            }
+            self.store.update(
+                id,
+                status="waiting_input",
+                generation=current_generation,
+                result=result,
+                error=None,
+            )
+            self.store.event(
+                id,
+                "floorplan_rechecked",
+                {
+                    "draftId": body["draftId"],
+                    "draftRevision": body["draftRevision"],
+                    "draftHash": body["draftHash"],
+                    "passed": review["passed"],
+                },
+            )
+            return self.store.task(id)
+        except BaseException as error:
+            self.store.update(
+                id,
+                status="waiting_input",
+                result=previous_result,
+                error=str(error),
+            )
+            raise
+        finally:
+            self.store.pause_clock(id)
+
     async def close(self):
         for task in self.delayed:
             task.cancel()

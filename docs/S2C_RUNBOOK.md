@@ -139,3 +139,5 @@ Agent 终止预检工具增加可选 `change_reasons`：以 `anchors:0`、`symbo
 新任务默认第二版工作流，旧任务保留原快照和工具适配器。Node数据版本升至4；升级前停两服务备份整个data目录，旧版本回退恢复该备份，不使用旧二进制打开新库。新旧受控浏览器与真实单图复现命令见 [流程对齐](S2C_FLOW_ALIGNMENT.md)。
 
 V3 新任务使用受控两阶段识别和固定类别代码。受控验收运行 `npm run test:floorplan:v3`；真实同图两次运行使用 `npm run test:floorplan:tools:live -- /absolute/path/to/original.png 2 --v3-acceptance`。旧草稿没有 `categoryCode` 时继续读取自由文本 `category`，不改写历史数据。
+
+V3-2 固定代码按墙段共线和断口 `a/b` 关系构建候选墙，结构角色只选择候选墙。首次结构结果无法组装时最多进行一次有界修复。手工修改草稿会清空原审核；点击“重新审核当前草稿”或调用 `/api/agent/tasks/:id/recheck-floorplan` 后，审核重新绑定当前 revision 和 hash。

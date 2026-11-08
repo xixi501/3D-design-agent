@@ -34,6 +34,19 @@ S2-B 已增加矩形文字生成，操作与恢复见 [S2B_RUNBOOK.md](S2B_RUNBO
 
 任务可附 `mode: "edit" | "generate_rectangular" | "reconstruct_floorplan"`，默认 edit。默认值不改变旧请求的去重哈希。生成任务仅在空白项目使用，后续澄清继续恢复同一任务；成功后新增的对话任务使用 edit。
 
+户型草稿手工修改后，使用 `POST /api/agent/tasks/:id/recheck-floorplan` 重新审核当前哈希：
+
+```json
+{
+  "requestId": "new-id",
+  "draftId": "draft-id",
+  "draftRevision": 3,
+  "draftHash": "64-hex"
+}
+```
+
+该入口只读取当前草稿和诊断证据，不修改几何、不产生正式项目写入。审核通过后保存绑定当前哈希的 `sourceReview`；相同 `requestId` 重试不会重复调用模型或新增审核记录。
+
 GET `/api/agent/skills` 返回可用设计 Skill 的身份、版本、哈希、来源、许可、适用用途与所需工具。任务的 `generation` 包含已收集 brief、missing、defaults、冻结状态和 skillsUsed；完整 Skill 正文只在服务端持久快照与角色上下文中保留。
 
 状态为 queued、running、waiting_input、committing、completed、failed、conflict、cancelled。只有服务确认固定候选已提交，才返回 completed 和 committedRevision。任务结果包含业务差异、具体字段变化、代码检查、检查角色意见及两个证据 URL。

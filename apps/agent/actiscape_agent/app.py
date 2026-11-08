@@ -46,7 +46,12 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
     @app.exception_handler(TaskError)
     async def task_error(_request: Request, error: TaskError):
         return JSONResponse(
-            status_code=error.status, content={"error": error.code, "message": str(error)}
+            status_code=error.status,
+            content={
+                "error": error.code,
+                "message": str(error),
+                **({"details": error.details} if error.details else {}),
+            },
         )
 
     def manager():
@@ -131,6 +136,10 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
     @app.post("/tasks/{id}/confirm-floorplan", status_code=202)
     async def confirm_floorplan(id: str, body: FloorplanConfirmInput):
         return await manager().confirm_floorplan(id, body.model_dump())
+
+    @app.post("/tasks/{id}/recheck-floorplan")
+    async def recheck_floorplan(id: str, body: FloorplanConfirmInput):
+        return await manager().recheck_floorplan(id, body.model_dump())
 
     @app.post("/tasks/{id}/resume", status_code=202)
     async def resume(id: str, body: ResumeInput):

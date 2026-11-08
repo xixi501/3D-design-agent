@@ -14,9 +14,15 @@ TERMINAL = ("completed", "failed", "conflict", "cancelled")
 
 
 class TaskError(Exception):
-    def __init__(self, code: str, message: str, status: int = 400):
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        status: int = 400,
+        details: dict | None = None,
+    ):
         super().__init__(message)
-        self.code, self.status = code, status
+        self.code, self.status, self.details = code, status, details
 
 
 def fingerprint(value) -> str:
@@ -354,6 +360,24 @@ class TaskStore:
                 raise TaskError("PROJECT_BUSY", "项目已有其他活动任务", 409) from e
         self.event(id, "resumed", {"message": "任务已恢复"})
         return self.task(id)
+
+    def claim_action(self, id: str, body: dict):
+        """Claim one external task action without changing task state."""
+        self.task(id)
+        with self.transaction():
+            old = self.db.execute(
+                "SELECT hash FROM actions WHERE task_id=? AND request_id=?",
+                (id, body["requestId"]),
+            ).fetchone()
+            if old:
+                if old["hash"] != fingerprint(body):
+                    raise TaskError("OPERATION_CONFLICT", "相同请求身份对应不同内容", 409)
+                return False
+            self.db.execute(
+                "INSERT INTO actions VALUES(?,?,?)",
+                (id, body["requestId"], fingerprint(body)),
+            )
+            return True
 
     def cancel(self, id: str):
         task = self.task(id)

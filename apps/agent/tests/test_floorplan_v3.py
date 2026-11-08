@@ -689,7 +689,7 @@ def test_finalized_measurement_overrides_revision_and_appends_code_bindings():
                 "type": "patch",
                 "collection": "walls",
                 "id": "left",
-                "patch": {"a": {"x": 8, "y": 10}, "thickness": None},
+                "patch": {"a": {"x": 8, "y": 10}, "thicknessPx": 9},
             },
             {
                 "type": "patch",
@@ -764,7 +764,7 @@ def test_finalized_measurement_overrides_revision_and_appends_code_bindings():
         "features",
         "dimensions",
     ]
-    assert result["commands"][0]["patch"] == {"a": {"x": 8, "y": 10}}
+    assert result["commands"][0]["patch"] == {"thicknessPx": 9}
     assert not any(
         command["collection"] in ("rooms", "symbols", "dimensionObservations")
         or command.get("id") == "model-owned"

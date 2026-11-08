@@ -708,7 +708,7 @@ def _finalize_measured_update(
             patch = {
                 key: item
                 for key, item in (command.get("patch") or {}).items()
-                if key in ("a", "b", "thicknessPx")
+                if key == "thicknessPx"
             }
             if patch:
                 sanitized.append({**command, "patch": patch})

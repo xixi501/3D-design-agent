@@ -1,0 +1,206 @@
+{
+  "purpose": "Captured V3-6 measurement endpoint-oscillation failure for deterministic offline replay; never sent to a model or production service",
+  "capturedTaskId": "d9a110c0-8f97-48ad-bb77-edd9cc587cd9",
+  "sourceImageSha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+  "expected": {
+    "wallPatchKeys": ["thicknessPx"],
+    "endpointPatchCount": 0
+  },
+  "draft": {
+    "revision": 5,
+    "hash": "cefc9c39c618b6322a420e18a35ce3f5531915e50c7a1e4ff154ff935c2ff976"
+  },
+  "value": {
+    "baseDraftRevision": 5,
+    "baseDraftHash": "cefc9c39c618b6322a420e18a35ce3f5531915e50c7a1e4ff154ff935c2ff976",
+    "commands": [
+      {
+        "type": "patch",
+        "collection": "walls",
+        "id": "w_kitchen_study",
+        "patch": {
+          "thicknessPx": 8
+        }
+      },
+      {
+        "type": "patch",
+        "collection": "walls",
+        "id": "w_bedroom_north",
+        "patch": {
+          "a": {
+            "x": 288,
+            "y": 350.5
+          },
+          "b": {
+            "x": 543,
+            "y": 350.5
+          },
+          "thicknessPx": 7
+        }
+      },
+      {
+        "type": "patch",
+        "collection": "walls",
+        "id": "w_study_wardrobe",
+        "patch": {
+          "a": {
+            "x": 544,
+            "y": 280.5
+          },
+          "b": {
+            "x": 544,
+            "y": 349
+          },
+          "thicknessPx": 7
+        }
+      },
+      {
+        "type": "patch",
+        "collection": "walls",
+        "id": "w_study_north",
+        "patch": {
+          "a": {
+            "x": 544,
+            "y": 315
+          },
+          "thicknessPx": 7
+        }
+      },
+      {
+        "type": "patch",
+        "collection": "walls",
+        "id": "w_kitchen_bath_south",
+        "patch": {
+          "b": {
+            "x": 544,
+            "y": 280.5
+          },
+          "thicknessPx": 8
+        }
+      },
+      {
+        "type": "upsert",
+        "collection": "features",
+        "object": {
+          "id": "feat_anchor_0_low",
+          "objectId": "w_west_exterior",
+          "kind": "wall_face",
+          "axis": "x",
+          "side": "min",
+          "evidenceRefs": [
+            "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb"
+          ]
+        }
+      },
+      {
+        "type": "upsert",
+        "collection": "features",
+        "object": {
+          "id": "feat_anchor_0_high",
+          "objectId": "w_east_exterior",
+          "kind": "wall_face",
+          "axis": "x",
+          "side": "max",
+          "evidenceRefs": [
+            "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb"
+          ]
+        }
+      },
+      {
+        "type": "upsert",
+        "collection": "dimensions",
+        "object": {
+          "id": "dim_anchor_0",
+          "anchorIndex": 0,
+          "from": "feat_anchor_0_low",
+          "to": "feat_anchor_0_high",
+          "distance": {
+            "value": 9700,
+            "unit": "mm"
+          },
+          "basis": "exterior",
+          "evidenceRefs": [
+            "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb"
+          ]
+        }
+      }
+    ],
+    "changeReasons": [
+      {
+        "collection": "walls",
+        "id": "w_kitchen_study",
+        "reason": "预计算实测墙带 faces 360.5..368.5、thick_px=8（n=29），草稿 12px 与实测不符，按像素实测改为 8px；中线 366.5 保持以维持与 y=76.5、y=280.5 横墙连接。",
+        "evidenceRefs": [
+          "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb"
+        ]
+      },
+      {
+        "collection": "walls",
+        "id": "w_bedroom_north",
+        "reason": "原图墙带位于 faces 345.5..352.5，分部件线 350.38/350.77/350.96/350.74，候选中心约 350.5；把中线由 349 调至墙带实测中心 350.5（仍在门洞候选 op_005/op_006 的同一墙带上），厚度取墙带实测 7px，端点 x 保持 288 与短墙 544。",
+        "evidenceRefs": [
+          "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb",
+          "0d52775488b11e2622f8fb82fbb896717b891193a8d9f8fce2eb174c2b061fad"
+        ]
+      },
+      {
+        "collection": "walls",
+        "id": "w_study_wardrobe",
+        "reason": "原图书房西侧短竖墙墙带 faces 540.5..547.5、分部件 545.13/546.0；中线取墙带内 544 与两端横墙端对齐，厚度按墙带实宽取 7px。",
+        "evidenceRefs": [
+          "c5c44dbb529eab545893e868da93709d441e237717419c5e481c9b79ae5dbda2",
+          "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb"
+        ]
+      },
+      {
+        "collection": "walls",
+        "id": "w_study_north",
+        "reason": "书房北墙西端在原图与短墙中线对齐，端 x 由 543 回到 544 以保证与短墙共用同一连接点；y=315 与 7px 厚度按预计算实测保留。",
+        "evidenceRefs": [
+          "c5c44dbb529eab545893e868da93709d441e237717419c5e481c9b79ae5dbda2",
+          "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb"
+        ]
+      },
+      {
+        "collection": "walls",
+        "id": "w_kitchen_bath_south",
+        "reason": "该横墙东端在原图接到短墙北端，端 x 由 543 回到 544 与短墙中线一致；y=280.5 与实测 8px 厚度保留，其余端点不动。",
+        "evidenceRefs": [
+          "b6dff23c39e53ac3305558a54e785aa038ac4a6bf0fd818f2ce879b5a76b154a",
+          "c5c44dbb529eab545893e868da93709d441e237717419c5e481c9b79ae5dbda2"
+        ]
+      },
+      {
+        "collection": "features",
+        "id": "feat_anchor_0_low",
+        "reason": "固定代码根据墙面实测与尺寸锚点生成",
+        "evidenceRefs": [
+          "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb"
+        ]
+      },
+      {
+        "collection": "features",
+        "id": "feat_anchor_0_high",
+        "reason": "固定代码根据墙面实测与尺寸锚点生成",
+        "evidenceRefs": [
+          "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb"
+        ]
+      },
+      {
+        "collection": "dimensions",
+        "id": "dim_anchor_0",
+        "reason": "固定代码将尺寸观测绑定到两侧墙面特征",
+        "evidenceRefs": [
+          "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb"
+        ]
+      }
+    ],
+    "evidenceRefs": [
+      "8999e4f5b4c68aa99152ef80c29fbf5409607d56bdd1db7738bd07d75e0478eb",
+      "b6dff23c39e53ac3305558a54e785aa038ac4a6bf0fd818f2ce879b5a76b154a",
+      "c5c44dbb529eab545893e868da93709d441e237717419c5e481c9b79ae5dbda2",
+      "0d52775488b11e2622f8fb82fbb896717b891193a8d9f8fce2eb174c2b061fad"
+    ],
+    "summary": "只修改墙体字段：w_kitchen_study 厚度按实测改为 8px；w_bedroom_north 中线按候选墙带实测中心移到 y=350.5 并保持 7px；书房西侧短墙与相邻三墙端点统一回到短墙墙带中线 x=544，短墙厚度按墙带取 7px。未改动 openings、rooms、symbols、activityGroups、targetRoomIds、anchors；草稿仍需用户确认后才可由固定代码保存。"
+  }
+}

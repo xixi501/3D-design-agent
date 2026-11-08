@@ -251,6 +251,9 @@ assert.equal(
 );
 assert.notEqual(capturedConsolidation.assetChoice.sofaKey, "officeSofa");
 assert.equal(capturedConsolidation.roomLabelUncertainty.resolvedByCode, true);
+assert.deepEqual(capturedConsolidation.wallEndpointReplay.wallPatchKeys, [
+  "thicknessPx",
+]);
 const capturedReview = capturedConsolidation.candidateReview;
 assert.equal(capturedReview.passed, true);
 assert.deepEqual(capturedReview.unknownObjectIds, []);
@@ -666,6 +669,10 @@ const output = {
     compiledOpenings: markerCompiled.state.plan.openings.length,
     symbols: markerCompiled.symbols.length,
     scoringPassed: markerScore.passed,
+  },
+  capturedWallEndpointReplay: {
+    taskId: capturedConsolidation.wallEndpointReplay.taskId,
+    wallPatchKeys: capturedConsolidation.wallEndpointReplay.wallPatchKeys,
   },
   note: "Offline candidate replay only; furniture classification, model passes and the real 2-of-2 gate are not claimed.",
 };

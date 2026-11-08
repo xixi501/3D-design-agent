@@ -13,6 +13,7 @@ from actiscape_agent.floorplan_roles import (
 )
 from actiscape_agent.floorplan_v3 import (
     _consolidate_open_room_labels,
+    _finalize_measured_update,
     _uncertainty_resolved_by_code,
 )
 
@@ -149,6 +150,23 @@ def main():
         {},
     )
     assert room_label_resolved is room_label_fixture["expected"]["resolvedByCode"]
+    endpoint_fixture = json.loads(
+        (
+            ROOT / "fixtures/s2c-real/ninety-two.v36-wall-endpoint-replay.json"
+        ).read_text()
+    )
+    finalized_update = _finalize_measured_update(
+        endpoint_fixture["value"],
+        endpoint_fixture["draft"],
+        [],
+        [],
+    )
+    wall_patches = [
+        command
+        for command in finalized_update["commands"]
+        if command["type"] == "patch" and command["collection"] == "walls"
+    ]
+    assert all(set(command["patch"]) == {"thicknessPx"} for command in wall_patches)
     print(
         json.dumps(
             {
@@ -183,6 +201,12 @@ def main():
                 "roomLabelUncertainty": {
                     "taskId": room_label_fixture["capturedTaskId"],
                     "resolvedByCode": room_label_resolved,
+                },
+                "wallEndpointReplay": {
+                    "taskId": endpoint_fixture["capturedTaskId"],
+                    "wallPatchKeys": sorted(
+                        {key for command in wall_patches for key in command["patch"]}
+                    ),
                 },
             },
             ensure_ascii=False,

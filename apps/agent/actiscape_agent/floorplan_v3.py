@@ -542,7 +542,7 @@ class FloorplanV3(FloorplanV2):
                 {
                     "code": error.code,
                     "message": str(error),
-                        "objectIds": object_ids,
+                    "objectIds": object_ids,
                     "skeletonVersion": skeleton["structureSkeletonVersion"],
                 },
             ]
@@ -722,9 +722,7 @@ class FloorplanV3(FloorplanV2):
         raw_structure = generation.get("rawStructure") or {}
         candidate_by_id = {
             candidate["candidateWallId"]: candidate
-            for candidate in generation.get("structureSkeleton", {}).get(
-                "candidateWalls", []
-            )
+            for candidate in generation.get("structureSkeleton", {}).get("candidateWalls", [])
         }
         wall_candidates = []
         for wall in raw_structure.get("walls", []):
@@ -743,19 +741,13 @@ class FloorplanV3(FloorplanV2):
                 )
         precomputed_walls = []
         if wall_candidates:
-            wall_record = await tools.request(
-                "fit-bound", {"walls": wall_candidates}
-            )
+            wall_record = await tools.request("fit-bound", {"walls": wall_candidates})
             await tools.result("fit_wall_candidates", wall_record, pictures=False)
             precomputed_walls.append(
                 {
                     "recordId": wall_record.get("id"),
                     "result": wall_record.get("result", []),
-                    **(
-                        {"error": wall_record["error"]}
-                        if wall_record.get("error")
-                        else {}
-                    ),
+                    **({"error": wall_record["error"]} if wall_record.get("error") else {}),
                 }
             )
         precomputed_dimensions = []
@@ -765,15 +757,16 @@ class FloorplanV3(FloorplanV2):
             if min(dx, dy) > 1:
                 continue
             coordinate = "x" if dx >= dy else "y"
-            ticks = sorted(
-                [anchor["a"][coordinate], anchor["b"][coordinate]]
-            )
+            ticks = sorted([anchor["a"][coordinate], anchor["b"][coordinate]])
             unit = anchor["distance"]["unit"]
-            millimetres = anchor["distance"]["value"] * {
-                "mm": 1,
-                "cm": 10,
-                "m": 1000,
-            }[unit]
+            millimetres = (
+                anchor["distance"]["value"]
+                * {
+                    "mm": 1,
+                    "cm": 10,
+                    "m": 1000,
+                }[unit]
+            )
             record = await tools.request(
                 "axis",
                 {
@@ -789,11 +782,7 @@ class FloorplanV3(FloorplanV2):
                     "anchorIndex": index,
                     "recordId": record.get("id"),
                     "result": record.get("result", []),
-                    **(
-                        {"error": record["error"]}
-                        if record.get("error")
-                        else {}
-                    ),
+                    **({"error": record["error"]} if record.get("error") else {}),
                 }
             )
 

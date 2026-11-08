@@ -25,6 +25,7 @@ from actiscape_agent.floorplan_schemas import (
 )
 from actiscape_agent.floorplan_tools import FloorplanToolset
 from actiscape_agent.floorplan_v3 import (
+    STRUCTURE,
     FloorplanV3,
     _arbitrate_review,
     _assemble_activity_symbols,
@@ -475,6 +476,11 @@ def test_prompt_version_keeps_frozen_floorplan_task_version(tmp_path):
     helper = FloorplanV3(store, base.client, base)
     assert helper.prompt_version(store.task(task["id"], internal=True)) == "s2c-floorplan-v3-3"
     store.close()
+
+
+def test_structure_prompt_requires_verbatim_room_labels():
+    assert "逐字复制原图可见标签" in STRUCTURE
+    assert "不翻译、不扩写、不拼接中英文" in STRUCTURE
 
 
 def test_captured_real_candidates_are_grouped_before_model_selection():

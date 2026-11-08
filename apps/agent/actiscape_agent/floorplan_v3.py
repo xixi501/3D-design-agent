@@ -48,6 +48,7 @@ walls 中每项 business wall 必须通过 candidateWallIds 选择代码预先�
 不要把外侧尺寸线、家具边或同一墙的另一侧描边当墙。连接墙需在房间闭合处共享端点。分析图漏墙时才允许引用实际裁剪生成 customSegments；没有裁剪证据的坐标会被拒绝。
 openings 必须引用 openingCandidates 的 candidateId 和 type；代码决定所属墙、偏移和宽度。同一洞口候选不能重复使用。
 rooms 使用房间名所在原图点，每个封闭区域一个标签；functionalArea 写 living/dining/kitchen/bedroom/bathroom/other。targetRoomIds 只选需要复现家具的客餐厅。
+rooms.name 必须逐字复制原图可见标签，不翻译、不扩写、不拼接中英文；用途说明只能写入 functionalArea 或 uncertainties。
 dimensionReads 只选择 dimensionCandidates，并逐字抄录图中真实数字与单位；代码根据候选位置决定端点、墙面基准和 evidence。不要返回 anchors 或自行填写锚点。未知 height/wallThickness 留 null。
 无法确认的关键结构写入 uncertainties(blocking=true)。
 证据引用使用 analysisId、cropId 或 image:<sha256>。status=unsupported 仅用于非单层正交清晰平面图。"""

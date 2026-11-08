@@ -713,6 +713,74 @@ def _center(candidate):
     )
 
 
+def _tight_long_group_bbox(candidate, image: Image.Image | None):
+    bbox = list(candidate["bbox"])
+    if image is None:
+        return bbox
+    x, y, width, height = bbox
+    crop = np.asarray(image.convert("L").crop((x, y, x + width, y + height)))
+    ink = crop < 215
+    if height >= width * 2.3:
+        columns = np.nonzero(ink.sum(0) >= max(4, height * 0.25))[0]
+        if len(columns) < 2:
+            return bbox
+        left, right = int(columns.min()), int(columns.max()) + 1
+        rows = np.nonzero(ink[:, left:right].any(1))[0]
+        if len(rows):
+            return [
+                x + left,
+                y + int(rows.min()),
+                max(8, right - left),
+                max(8, int(rows.max() - rows.min() + 1)),
+            ]
+    elif width >= height * 2.3:
+        rows = np.nonzero(ink.sum(1) >= max(4, width * 0.25))[0]
+        if len(rows) < 2:
+            return bbox
+        top, bottom = int(rows.min()), int(rows.max()) + 1
+        columns = np.nonzero(ink[top:bottom, :].any(0))[0]
+        if len(columns):
+            return [
+                x + int(columns.min()),
+                y + top,
+                max(8, int(columns.max() - columns.min() + 1)),
+                max(8, bottom - top),
+            ]
+    return bbox
+
+
+def _trim_aligned_composite(candidate, by_id):
+    if candidate.get("kind") != "composite":
+        return candidate
+    members = [
+        by_id[contour_id] for contour_id in candidate["contourCandidateIds"] if contour_id in by_id
+    ]
+    if len(members) < 3:
+        return candidate
+    largest = max(float(member.get("area") or 0) for member in members)
+    large = [
+        member for member in members if float(member.get("area") or 0) >= max(80, largest * 0.18)
+    ]
+    if len(large) < 2:
+        return candidate
+    centers = [_center(member) for member in large]
+    x_spread = max(value[0] for value in centers) - min(value[0] for value in centers)
+    y_spread = max(value[1] for value in centers) - min(value[1] for value in centers)
+    if min(x_spread, y_spread) > 8 or max(x_spread, y_spread) < 12:
+        return candidate
+    axis = 0 if x_spread <= y_spread else 1
+    center = statistics.median(value[axis] for value in centers)
+    sizes = [member["bbox"][2 if axis == 0 else 3] for member in large]
+    tolerance = max(6, statistics.median(sizes) * 0.22)
+    kept = [member for member in members if abs(_center(member)[axis] - center) <= tolerance]
+    if len(kept) < 2 or len(kept) == len(members):
+        return candidate
+    candidate = dict(candidate)
+    candidate["contourCandidateIds"] = sorted(member["candidateId"] for member in kept)
+    candidate["bbox"] = _union_bbox(kept)
+    return candidate
+
+
 def _descendant_contours(candidate, children):
     output = [candidate["candidateId"]]
     for child in children.get(candidate["candidateId"], []):
@@ -801,7 +869,63 @@ def _radial_candidate(candidate, children):
     return primary, satellites
 
 
-def furniture_object_candidates(candidates: list[dict], image: Image.Image | None = None):
+def _quad_seating_cluster(candidate, children, children_map):
+    """Infer a table body from two opposite rows of independent chairs."""
+    if len(children) < 5:
+        return None
+    parent_area = candidate["bbox"][2] * candidate["bbox"][3]
+    _parent_x, parent_y = _center(candidate)
+    small = []
+    for child in children:
+        width, height = child["bbox"][2], child["bbox"][3]
+        area = width * height
+        ratio = width / max(1, height)
+        if area >= 80 and area <= parent_area * 0.22 and 0.45 <= ratio <= 2.2:
+            small.append(child)
+    top = [child for child in small if _center(child)[1] < parent_y - candidate["bbox"][3] * 0.08]
+    bottom = [
+        child for child in small if _center(child)[1] > parent_y + candidate["bbox"][3] * 0.08
+    ]
+    if len(top) < 2 or len(bottom) < 2:
+        return None
+
+    def similar(items):
+        widths = [item["bbox"][2] for item in items]
+        heights = [item["bbox"][3] for item in items]
+        return max(widths) - min(widths) <= max(4, statistics.median(widths) * 0.35) and max(
+            heights
+        ) - min(heights) <= max(4, statistics.median(heights) * 0.35)
+
+    if not similar(top) or not similar(bottom):
+        return None
+    top_y = max(item["bbox"][1] + item["bbox"][3] for item in top)
+    bottom_y = min(item["bbox"][1] for item in bottom)
+    if bottom_y - top_y < candidate["bbox"][3] * 0.18:
+        return None
+    satellites = {item["candidateId"]: item for item in [*top, *bottom]}
+    inner = [child for child in children if child["candidateId"] not in satellites]
+    primary_ids = list(_descendant_contours(candidate, children_map))
+    primary_ids = [candidate_id for candidate_id in primary_ids if candidate_id not in satellites]
+    table_bbox = [
+        candidate["bbox"][0],
+        round(top_y),
+        candidate["bbox"][2],
+        max(1, round(bottom_y - top_y)),
+    ]
+    return {
+        "bbox": table_bbox,
+        "kind": "composite",
+        "contourCandidateIds": primary_ids,
+        "satellites": [*top, *bottom],
+        "innerContours": inner,
+    }
+
+
+def furniture_object_candidates(
+    candidates: list[dict],
+    image: Image.Image | None = None,
+    target_bbox: list[int] | None = None,
+):
     contours = [dict(candidate) for candidate in candidates if candidate["shape"] == "contour"]
     by_id = {candidate["candidateId"]: candidate for candidate in contours}
     children = {candidate["candidateId"]: [] for candidate in contours}
@@ -868,6 +992,25 @@ def furniture_object_candidates(candidates: list[dict], image: Image.Image | Non
                 }
             )
             return _descendant_contours(candidate, children)
+        quad = _quad_seating_cluster(candidate, direct, children)
+        if quad:
+            objects.append(
+                {
+                    "bbox": quad["bbox"],
+                    "kind": quad["kind"],
+                    "contourCandidateIds": sorted(quad["contourCandidateIds"]),
+                }
+            )
+            satellite_members = []
+            for satellite in quad["satellites"]:
+                satellite_members.extend(materialize(satellite))
+            radial_groups.append(
+                {
+                    "primaryContourIds": quad["contourCandidateIds"],
+                    "satelliteContourIds": satellite_members,
+                }
+            )
+            return _descendant_contours(candidate, children)
         if _similar_repeated_parts(candidate, direct) or _concentric_children(candidate, direct):
             append_object([candidate, *direct], "composite")
             return _descendant_contours(candidate, children)
@@ -903,6 +1046,7 @@ def furniture_object_candidates(candidates: list[dict], image: Image.Image | Non
             unique[key] = candidate
     filtered = []
     for candidate in unique.values():
+        candidate = _trim_aligned_composite(candidate, by_id)
         members = [
             by_id[candidate_id]
             for candidate_id in candidate["contourCandidateIds"]
@@ -917,6 +1061,47 @@ def furniture_object_candidates(candidates: list[dict], image: Image.Image | Non
         if candidate["kind"] == "atomic" and bbox_area >= 200 and candidate["fillRatio"] < 0.08:
             continue
         filtered.append(candidate)
+    group_objects = []
+    used_group_ids = set()
+    selected_group_bboxes = []
+    for group in candidates:
+        if group.get("shape") != "group":
+            continue
+        x, y, width, height = group["bbox"]
+        short, long = sorted((width, height))
+        area = float(group.get("area") or 0)
+        if not (
+            20 <= short <= 45
+            and 60 <= long <= 140
+            and area >= 300
+            and area / max(1, width * height) >= 0.08
+        ):
+            continue
+        group_objects.append(
+            {
+                "bbox": _tight_long_group_bbox(group, image),
+                "kind": "composite",
+                "contourCandidateIds": [group["candidateId"]],
+                "sourceGroupId": group["candidateId"],
+                "fillRatio": round(area / max(1, width * height), 4),
+                "requiredForCoverage": True,
+            }
+        )
+        used_group_ids.add(group["candidateId"])
+        selected_group_bboxes.append((group["bbox"], area))
+    for group in candidates:
+        if group.get("shape") != "group" or group["candidateId"] in used_group_ids:
+            continue
+        x, y = _center(group)
+        group_area = float(group.get("area") or 0)
+        if any(
+            bbox[0] <= x <= bbox[0] + bbox[2]
+            and bbox[1] <= y <= bbox[1] + bbox[3]
+            and group_area <= selected_area
+            for bbox, selected_area in selected_group_bboxes
+        ):
+            used_group_ids.add(group["candidateId"])
+    filtered.extend(group_objects)
     objects = sorted(
         filtered,
         key=lambda item: (
@@ -949,10 +1134,20 @@ def furniture_object_candidates(candidates: list[dict], image: Image.Image | Non
                 )
                 if float(green.mean()) >= 0.08:
                     candidate["colorTags"].append("green")
+    for group in radial_groups:
+        primary_key = tuple(sorted(group["primaryContourIds"]))
+        satellite_ids = set(group["satelliteContourIds"])
+        for candidate in objects:
+            key = tuple(sorted(candidate["contourCandidateIds"]))
+            if key == primary_key:
+                candidate["categoryHints"].append("diningTable")
+            if satellite_ids.intersection(candidate["contourCandidateIds"]):
+                candidate["categoryHints"].append("chair")
     fixed_runs = [
         candidate
         for candidate in candidates
         if candidate.get("shape") == "group"
+        and candidate["candidateId"] not in used_group_ids
         and max(
             candidate["bbox"][2] / max(1, candidate["bbox"][3]),
             candidate["bbox"][3] / max(1, candidate["bbox"][2]),
@@ -975,14 +1170,31 @@ def furniture_object_candidates(candidates: list[dict], image: Image.Image | Non
             tag.get("tag") == "fixed_run" for tag in candidate["contextTags"]
         )
         width, depth = candidate["bbox"][2], candidate["bbox"][3]
+        if target_bbox:
+            x0, y0, x1, y1 = target_bbox
+            if (
+                candidate["center"]["x"] <= x0 + (x1 - x0) * 0.25
+                and candidate["center"]["y"] <= y0 + (y1 - y0) * 0.35
+            ):
+                candidate["contextTags"].append({"tag": "fixed_entry"})
+                candidate["selectable"] = False
         members = [
             by_id[candidate_id]
             for candidate_id in candidate["contourCandidateIds"]
             if candidate_id in by_id
         ]
-        if width >= depth * 3 and any(
-            member["bbox"][2] >= max(24, width * 0.35) and member["bbox"][3] <= 10
-            for member in members
+        if (
+            width >= depth * 3
+            and depth >= 10
+            and any(
+                member["bbox"][2] >= max(24, width * 0.35) and member["bbox"][3] <= 10
+                for member in members
+            )
+        ):
+            candidate["categoryHints"].append("tvCabinet")
+        if (
+            candidate.get("sourceGroupId")
+            and 2.3 <= max(width / max(1, depth), depth / max(1, width)) <= 6.0
         ):
             candidate["categoryHints"].append("tvCabinet")
         if "green" in candidate["colorTags"] and max(width, depth) <= min(width, depth) * 1.3:
@@ -1292,7 +1504,13 @@ def contour_candidates(image: Image.Image, spec: dict):
         min(image.height, int(ys.max() + 1) + margin),
     )
     target_overlay = _candidate_overlay(image, candidates, crop_box)
-    graph = furniture_object_candidates(candidates, image)
+    target_bbox = [
+        int(xs.min()),
+        int(ys.min()),
+        int(xs.max() + 1),
+        int(ys.max() + 1),
+    ]
+    graph = furniture_object_candidates(candidates, image, target_bbox)
     selectable_objects = [
         candidate for candidate in graph["objectCandidates"] if candidate.get("selectable")
     ]

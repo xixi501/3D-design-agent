@@ -114,6 +114,8 @@ V3-4 保持上述工具和 HTTP 路径，家具语义 Pass 改由独立 groundin
 
 V3-5 新任务使用 `s2c-floorplan-v3-5`、Skill `0.5.4`、`activity-unit-1` 和评分 `s2c-5`。`contours` 在旧字段上增加稳定 `objectCandidates`、`activityGroupCandidates`、`objects.png` 和 `groups.png`；模型只选择一个 `objectCandidateId`，并提交餐桌／椅子等活动组关系。草稿新增可选 `activityGroups`，家具符号可带 `objectCandidateId`、`activityGroupIds` 与 `activityRole`；确认后的 `plan.source.activityGroups` 保存对应的正式对象 ID。旧 V1 至 V3-4 任务继续使用各自冻结版本。
 
+V3-6 新任务使用 `s2c-floorplan-v3-6`、Skill `0.5.5`、`structureSkeletonVersion=4`、`hpd-adapter-6` 和同一 `s2c-5` 门槛。复杂图的 `analyze` 不再用整图包围盒生成矩形四面墙，而是从真实低饱和灰墙掩膜提取定向连通段、吸附交点、保留分析断口并单独检测外部尺寸线；简单矩形图可回退到已验证的旧候选层。家具对象图新增上下各两椅的桌面合成、细长 group 柜体收纳、固定玄关柜排除和旋转前后宽深归一。分析响应增加 `wallmask.png` 和候选诊断字段，旧 V1 至 V3-5 任务继续使用各自冻结适配器与 Skill。
+
 V3-5 硬阻断错误包括 `UNKNOWN_OBJECT_CANDIDATE`、`OBJECT_CANDIDATE_REUSED`、`ACTIVITY_GROUP_INCOMPLETE`、`ACTIVITY_GROUP_ROLE_INVALID` 和 `UNRESOLVED_ACTIVITY_GROUP`。一次有界修复仍使用同一任务预算和请求上限。
 
 草稿可附 `dimensionObservations` 保存全部已读标注；只有最长外围外尺寸作为统一比例锚点，其余标注作为交叉核对证据，避免把示意墙厚和标注差值误当成多套比例。审核问题可附 `source`、`severity`、`evidenceRefs`、`bbox`。代码先执行确定性检查，无法由候选或诊断复现的模型问题记为 `advisory`；自动验收入口使用冻结参考和对应版本的 `s2c-4`／`s2c-5` 评分，不放宽 90% 与 1 mm 门槛。

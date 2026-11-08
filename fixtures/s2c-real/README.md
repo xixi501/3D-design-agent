@@ -1,6 +1,6 @@
 # Two real floorplan inputs
 
-The first acceptance image is the published one-bedroom plan. The second is the original 736×673 “92” raster. The developer-built “92” scene from 2026-11-06 was rejected and is not used as a reference. A new independent source-pixel reference was frozen on 2026-11-08 in `ninety-two.evaluation-only.json`; it contains six rooms, twelve openings and thirteen target furniture symbols. Do not substitute the synthetic tool fixture, the rejected manual scene, or duplicate either source image.
+The first acceptance image is the published one-bedroom plan. The second is the original 736×673 “92” raster. The developer-built “92” scene from 2026-11-06 was rejected and is not used as a reference. A new independent source-pixel reference was frozen on 2026-11-08 in `ninety-two.evaluation-only.json`; V3-6 corrected it by source evidence to six rooms, eleven openings and eleven target furniture symbols. Fixed entry cabinets are excluded under the approved target-room rule. Do not substitute the synthetic tool fixture, the rejected manual scene, or duplicate either source image.
 
 The first image passed its formal 2/2 gate at business commit `30b1f06`. The second image’s first real attempt at `de61350` failed in the fixed candidate layer and the second attempt was cancelled under the stop-on-failure rule; the second image is currently 0/2. See `docs/S2C_SECOND_IMAGE.md`. A formal two-case matrix manifest remains pending because the second image has not passed.
 

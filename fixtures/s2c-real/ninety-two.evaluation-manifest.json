@@ -1,12 +1,15 @@
 {
   "purpose": "Frozen second-image scoring reference; NEVER supplied to Agent, production service or recognition tools",
   "sourceImageSha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
-  "referenceSha256": "7d41256c2c16cc5cc3a2de58a55241bb7d08d2110688ec46a8661033bb6f0c60",
+  "referenceSha256": "b6d60e41ce794a230e6312e09992d40c64ff5c6984a85ec62d9954c930028792",
   "referenceFile": "ninety-two.evaluation-only.json",
   "sourceCommit": "e1fe94c",
+  "referenceRevision": "v3-6-source-corrected-2",
+  "targetFurnitureCount": 11,
+  "referenceOpeningCount": 11,
   "coordinateSpace": "EXIF-oriented original image pixels",
   "annotationMethod": "Independent visual reading of the original raster before the V3-5 second-image batch; no Agent draft copied",
-  "limits": "Raster positions approximate. The top overall 9700 mm dimension is the sole scale anchor. Three south bay projections are normalized to standard window openings, and the unenclosed white north strip is not invented as a room.",
+  "limits": "Raster positions approximate. The top overall 9700 mm dimension is the sole scale anchor. Three south bay projections are normalized to standard window openings; fixed entry cabinets are excluded from target furniture under the approved open-kitchen/entry rule; and the unenclosed white north strip is not invented as a room.",
   "manualObjectCorrectionLimit": 0,
   "requiredRuns": 2,
   "aliases": {
@@ -28,9 +31,7 @@
     "边几": "sidetable",
     "电视柜": "tvcabinet",
     "落地灯": "floorlamp",
-    "钓鱼灯底座": "floorlamp",
-    "玄关低鞋柜": "cabinet",
-    "玄关鞋柜": "cabinet"
+    "钓鱼灯底座": "floorlamp"
   },
   "scoringVersion": "s2c-5",
   "dimensionPolicy": "Measure the solved feature distance, not reference-pixel length times candidate scale. Raster localization thresholds remain unchanged.",
@@ -45,8 +46,6 @@
     "side-table": ["sideTable", "nestTables"],
     "tv-console": ["tvCabinet", "cabTV"],
     "lamp-north": ["floorLamp"],
-    "lamp-south-base": ["arcLamp", "floorLamp"],
-    "shoe-low": ["shoeCabinet", "cabShoe", "hallCabinet"],
-    "shoe-tall": ["shoeCabinet", "cabShoe", "hallCabinet"]
+    "lamp-south-base": ["arcLamp", "floorLamp"]
   }
 }

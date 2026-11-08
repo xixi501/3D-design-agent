@@ -152,7 +152,7 @@ for (let repeat = 1; repeat <= repeats; repeat++) {
       3,
       "V3 live acceptance must run workflowVersion=3",
     );
-    assert.equal(task.generation?.floorplanVersion, "s2c-floorplan-v3-5");
+    assert.equal(task.generation?.floorplanVersion, "s2c-floorplan-v3-6");
   }
   save(`${repeat}-accepted.json`, {
     projectId: before.id,

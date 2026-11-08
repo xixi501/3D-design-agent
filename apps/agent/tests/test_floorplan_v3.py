@@ -1595,7 +1595,7 @@ def activity_vision_fixture(tmp_path):
         },
     )
     generation = store.task(task["id"], internal=True)["generation"]
-    generation.update(workflowVersion=3, floorplanVersion="s2c-floorplan-v3-5")
+    generation.update(workflowVersion=3, floorplanVersion="s2c-floorplan-v3-6")
     store.update(task["id"], generation=generation)
     raw_candidates, graph = activity_object_graph()
     draft = {
@@ -1664,7 +1664,7 @@ def activity_vision_fixture(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_v35_vision_uses_object_and_group_images(tmp_path, monkeypatch):
+async def test_v36_vision_uses_object_and_group_images(tmp_path, monkeypatch):
     store, task, image, draft, record, evidence, client, base = activity_vision_fixture(tmp_path)
     captured = {}
 

@@ -213,7 +213,7 @@
       },
       "b": {
         "x": 546.722,
-        "y": 343.5
+        "y": 349
       },
       "thicknessPx": 5.619
     },
@@ -233,11 +233,11 @@
       "id": "master_n",
       "a": {
         "x": 451.206,
-        "y": 343.5
+        "y": 349
       },
       "b": {
         "x": 546.722,
-        "y": 343.5
+        "y": 349
       },
       "thicknessPx": 5.619
     },
@@ -245,7 +245,7 @@
       "id": "bed_master",
       "a": {
         "x": 451.206,
-        "y": 343.5
+        "y": 349
       },
       "b": {
         "x": 451.206,
@@ -257,7 +257,7 @@
       "id": "bed_w",
       "a": {
         "x": 288.268,
-        "y": 343.5
+        "y": 349
       },
       "b": {
         "x": 288.268,
@@ -269,11 +269,11 @@
       "id": "bed_n",
       "a": {
         "x": 288.268,
-        "y": 343.5
+        "y": 349
       },
       "b": {
         "x": 451.206,
-        "y": 343.5
+        "y": 349
       },
       "thicknessPx": 5.619
     }
@@ -292,17 +292,8 @@
       "id": "kitchen_entry",
       "wallId": "kitchen_w",
       "type": "sliding",
-      "offset": 117.99,
-      "width": 89.897,
-      "side": 1,
-      "hinge": 0
-    },
-    {
-      "id": "kitchen_platform_window",
-      "wallId": "kitchen_e",
-      "type": "window",
-      "offset": 50.567,
-      "width": 44.948,
+      "offset": 112.4,
+      "width": 74,
       "side": 1,
       "hinge": 0
     },
@@ -346,8 +337,8 @@
       "id": "master_entry",
       "wallId": "master_n",
       "type": "door",
-      "offset": 34.27,
-      "width": 50.567,
+      "offset": 37.294,
+      "width": 49,
       "side": 1,
       "hinge": 0
     },
@@ -355,8 +346,8 @@
       "id": "bed_entry",
       "wallId": "bed_n",
       "type": "door",
-      "offset": 36.521,
-      "width": 50.567,
+      "offset": 37.732,
+      "width": 48,
       "side": 1,
       "hinge": 0
     },
@@ -373,8 +364,8 @@
       "id": "bed_window",
       "wallId": "south",
       "type": "window",
-      "offset": 253.381,
-      "width": 90,
+      "offset": 273.881,
+      "width": 124,
       "side": 1,
       "hinge": 0
     },
@@ -382,8 +373,8 @@
       "id": "master_window",
       "wallId": "south",
       "type": "window",
-      "offset": 81.881,
-      "width": 107,
+      "offset": 103.881,
+      "width": 138,
       "side": 1,
       "hinge": 0
     }
@@ -576,30 +567,6 @@
       "w": 22.474,
       "d": 22.474,
       "rot": 0
-    },
-    {
-      "id": "shoe-low",
-      "roomId": "living",
-      "category": "cabinet",
-      "categoryCode": "cabinet",
-      "sourceLabel": "玄关低鞋柜",
-      "x": 130.948,
-      "y": 211.464,
-      "w": 67.423,
-      "d": 22.474,
-      "rot": 0
-    },
-    {
-      "id": "shoe-tall",
-      "roomId": "living",
-      "category": "cabinet",
-      "categoryCode": "cabinet",
-      "sourceLabel": "玄关鞋柜",
-      "x": 175.897,
-      "y": 194.608,
-      "w": 56.186,
-      "d": 22.474,
-      "rot": 270
     }
   ],
   "targetRoomIds": ["living"],

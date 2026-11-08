@@ -33,7 +33,7 @@ from .skill_registry import FLOORPLAN_TOOLS, load_design_skill, skill_record
 from .store import TaskError, fingerprint
 from .vision_client import VisionModelClient, VisionModelFailure
 
-VERSION = "s2c-floorplan-v3-5"
+VERSION = "s2c-floorplan-v3-6"
 COMMON = (
     RULES
     + PIXEL_RULES.replace("餐椅四把就是四个符号", "每把餐椅都要单独记录")
@@ -512,11 +512,9 @@ def _automatic_activity_type(category_code):
 
 def _object_symbol_geometry(candidate, category_code, rotation):
     x, y, width, depth = candidate["bbox"]
-    if depth > width * 1.25:
+    quarter_turn = abs(float(rotation)) % 180 in (90,)
+    if quarter_turn:
         width, depth = depth, width
-        rotation = 90
-    elif width > depth * 1.25:
-        rotation = 0
     if category_code == "chair":
         size = max(width, depth, 18)
         width = depth = size
@@ -1345,7 +1343,7 @@ def build_structure_skeleton(record, image):
             for candidate in result.get("dimensionCandidates") or []
         ]
         return {
-            "structureSkeletonVersion": 3,
+            "structureSkeletonVersion": result.get("structureSkeletonVersion", 3),
             "analysisId": record["id"],
             "image": {k: image[k] for k in ("id", "sha256", "width", "height")},
             "outline_px": result.get("outline_px"),
@@ -1436,6 +1434,31 @@ def _dimension_anchor(candidate, geometry, label):
             details={"objectIds": [candidate["candidateId"]]},
         )
     value, unit = _dimension_value(label)
+    if (
+        isinstance(candidate.get("a"), dict)
+        and isinstance(candidate.get("b"), dict)
+        and all(
+            isinstance(point.get(axis), (int, float))
+            for point in (candidate["a"], candidate["b"])
+            for axis in ("x", "y")
+        )
+    ):
+        return {
+            "a": {
+                "x": round(float(candidate["a"]["x"]), 3),
+                "y": round(float(candidate["a"]["y"]), 3),
+            },
+            "b": {
+                "x": round(float(candidate["b"]["x"]), 3),
+                "y": round(float(candidate["b"]["y"]), 3),
+            },
+            "distance": {"value": value, "unit": unit},
+            "basis": basis,
+            "evidence": (
+                f"dimension candidate {candidate['candidateId']} "
+                f"ticks {candidate['ticks'][0]}..{candidate['ticks'][1]}: {label}"
+            ),
+        }
     role = geometry["role"]
     orient = geometry["orient"]
     line = geometry["line"]
@@ -2199,7 +2222,10 @@ class FloorplanV3(FloorplanV2):
 
     async def recognize_furniture(self, task, image, draft, diagnostics):
         generation = self.store.task(task["id"], internal=True)["generation"]
-        if generation.get("floorplanVersion") == "s2c-floorplan-v3-5":
+        if generation.get("floorplanVersion") in (
+            "s2c-floorplan-v3-5",
+            "s2c-floorplan-v3-6",
+        ):
             return await self.recognize_furniture_activity(task, image, draft, diagnostics)
         if generation.get("floorplanVersion") == "s2c-floorplan-v3-4":
             return await self.recognize_furniture_vision(task, image, draft, diagnostics)

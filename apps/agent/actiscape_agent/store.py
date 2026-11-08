@@ -206,7 +206,7 @@ class TaskStore:
                                 "phase": "recognizing",
                                 "workflowVersion": 3,
                                 "recognitionVersion": 3,
-                                "floorplanVersion": "s2c-floorplan-v3-5",
+                                "floorplanVersion": "s2c-floorplan-v3-6",
                             }
                         ),
                         id,

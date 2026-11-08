@@ -485,6 +485,7 @@ export function floorplanToolRoutes(
           "hpd-adapter-3",
           "hpd-adapter-4",
           "hpd-adapter-5",
+          "hpd-adapter-6",
         ].includes(adapterVersion)
       )
         throw new SceneError("INVALID_REQUEST", "不支持的工具适配版本");

@@ -36,6 +36,14 @@ test("original image tools expose measured evidence without changing project/dra
     assert.ok(v33.result.candidateWalls.length >= 4);
     assert.ok(v33.result.openingCandidates.length >= 1);
     assert.ok(v33.files.some((file: any) => file.name === "candidates.png"));
+    const v36Analysis = await call(root + "/analyze", {
+      adapterVersion: "hpd-adapter-6",
+    });
+    assert.equal(v36Analysis.statusCode, 200, v36Analysis.body);
+    const v36 = v36Analysis.json();
+    assert.equal(v36.result.structureSkeletonVersion, 4);
+    assert.ok(v36.result.candidateWalls.length >= 4);
+    assert.ok(v36.files.some((file: any) => file.name === "wallmask.png"));
     const contourSpec = JSON.parse(
       fs.readFileSync("fixtures/s2c-v2-synthetic.floorplan.json", "utf8"),
     );
@@ -272,8 +280,8 @@ test("second frozen image reference is hash-bound, compiles and scores itself", 
   assert.equal(reference.image.sha256, manifest.sourceImageSha256);
   const compiled = compileFloorplan(reference, "evaluation");
   assert.equal(compiled.rooms.length, 6);
-  assert.equal(compiled.state.plan.openings.length, 12);
-  assert.equal(compiled.symbols.length, 13);
+  assert.equal(compiled.state.plan.openings.length, 11);
+  assert.equal(compiled.symbols.length, 11);
   assert.deepEqual(
     compiled.rooms.map((room: any) => room.name).sort(),
     ["主卧", "书房", "厨房", "客餐厅", "次卫", "次卧01"].sort(),

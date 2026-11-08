@@ -39,7 +39,10 @@ COMMON = (
     + PIXEL_RULES.replace("餐椅四把就是四个符号", "每把餐椅都要单独记录")
     + """\n本任务使用受控两阶段识别。固定代码已经取得墙段、断口和尺寸刻度候选；模型只判断候选语义，不自由生成整张草稿。
 只返回指定结构化结果，不输出 chain-of-thought 或解释性正文。所有坐标使用原图像素。不得索要或猜测评估参考。
-结构阶段只处理墙、门窗、房间、尺寸锚点和阻断不确定项；家具阶段只清点已选客餐厅。"""
+结构阶段只处理墙、门窗、房间、尺寸锚点和阻断不确定项；家具阶段只清点已选客餐厅。
+不确定性项必须返回 code、objectIds、evidenceRefs 和 blocking。code 只能使用 ROOM_LABEL、ROOM_SCOPE_OPEN_KITCHEN、WALL_GEOMETRY、WALL_THICKNESS、DIMENSION_BINDING、DIMENSION_LOCAL、OPENING_OWNERSHIP、OPENING_TYPE、DOOR_SWING、FURNITURE_AMBIGUITY 或 OTHER。
+只有固定候选无法解释且会改变关键几何的问题才设 blocking=true；门型、开向、窗台、墙厚和局部装饰默认 blocking=false，由代码根据现有证据最终裁决。
+"""
 )
 STRUCTURE = (
     COMMON
@@ -202,14 +205,14 @@ def _deterministic_checks_passed(checks):
     )
 
 
-def _uncertainty_resolved_by_code(uncertainty, data, checks, skeleton):
-    if not _deterministic_checks_passed(checks):
-        return False
+def _infer_uncertainty_code(uncertainty):
     text = (str(uncertainty.get("id") or "") + " " + str(uncertainty.get("message") or "")).lower()
-    if any(
-        term in text for term in ("dimension", "尺寸", "anchor", "标注")
-    ) and _measurement_bindings_complete(data):
-        return True
+    if any(term in text for term in ("kitchen", "厨房")) and any(
+        term in text for term in ("living", "客厅", "客餐厅")
+    ):
+        return "ROOM_SCOPE_OPEN_KITCHEN"
+    if any(term in text for term in ("dimension", "尺寸", "anchor", "标注")):
+        return "DIMENSION_BINDING"
     if any(
         term in text
         for term in (
@@ -220,36 +223,43 @@ def _uncertainty_resolved_by_code(uncertainty, data, checks, skeleton):
             "门洞",
             "门窗",
             "断口",
+            "入户门",
         )
     ):
+        return "OPENING_TYPE"
+    if any(term in text for term in ("hinge", "swing", "开启", "铰链")):
+        return "DOOR_SWING"
+    if any(term in text for term in ("墙厚", "thickness")):
+        return "WALL_THICKNESS"
+    return "OTHER"
+
+
+def _uncertainty_resolved_by_code(uncertainty, data, checks, skeleton):
+    if not _deterministic_checks_passed(checks):
+        return False
+    code = uncertainty.get("code") or _infer_uncertainty_code(uncertainty)
+    text = (str(uncertainty.get("id") or "") + " " + str(uncertainty.get("message") or "")).lower()
+    if code == "DIMENSION_BINDING":
+        return _measurement_bindings_complete(data)
+    if code in ("OPENING_OWNERSHIP", "OPENING_TYPE"):
         candidates = skeleton.get("openingCandidates") or []
-        if candidates and not _opening_mismatches(data, skeleton):
-            return True
-    rooms = {room.get("id"): room for room in data.get("rooms") or []}
-    targets = [rooms.get(room_id) for room_id in data.get("targetRoomIds") or []]
-    if (
-        targets
-        and all(targets)
-        and any(room.get("functionalArea") in ("living", "dining") for room in targets)
-        and any(term in text for term in ("kitchen", "厨房"))
-        and any(term in text for term in ("living", "客厅", "客餐厅"))
+        return bool(candidates) and not _opening_mismatches(data, skeleton)
+    if code == "ROOM_SCOPE_OPEN_KITCHEN":
+        rooms = {room.get("id"): room for room in data.get("rooms") or []}
+        targets = [rooms.get(room_id) for room_id in data.get("targetRoomIds") or []]
+        return bool(
+            targets
+            and all(targets)
+            and any(room.get("functionalArea") in ("living", "dining") for room in targets)
+        )
+    if code in (
+        "DOOR_SWING",
+        "WALL_THICKNESS",
+        "FURNITURE_AMBIGUITY",
     ):
         return True
-    return any(
-        term in text
-        for term in (
-            "hinge",
-            "swing",
-            "sill",
-            "head",
-            "墙厚",
-            "thickness",
-            "开启",
-            "铰链",
-            "窗台",
-            "装饰",
-            "decoration",
-        )
+    return code == "OTHER" and any(
+        term in text for term in ("sill", "head", "窗台", "装饰", "decoration")
     )
 
 
@@ -2845,6 +2855,71 @@ class FloorplanV3(FloorplanV2):
         )
         return review
 
+    async def reconcile_code_uncertainties(self, task, root, draft, diagnostics):
+        skeleton = (
+            self.store.task(task["id"], internal=True)["generation"].get("structureSkeleton") or {}
+        )
+        resolved = [
+            uncertainty
+            for uncertainty in draft["data"].get("uncertainties", [])
+            if uncertainty.get("blocking")
+            and _uncertainty_resolved_by_code(
+                uncertainty,
+                draft["data"],
+                diagnostics.get("checks") or {},
+                skeleton,
+            )
+        ]
+        if not resolved:
+            return draft, diagnostics
+        diagnostic_id = diagnostics.get("id") or "diagnostics"
+        commands = [
+            {
+                "type": "patch",
+                "collection": "uncertainties",
+                "id": uncertainty["id"],
+                "patch": {"blocking": False},
+            }
+            for uncertainty in resolved
+        ]
+        reasons = [
+            {
+                "collection": "uncertainties",
+                "id": uncertainty["id"],
+                "reason": "固定代码已用当前候选、测量绑定或目标房间拓扑覆盖该说明",
+                "evidenceRefs": [diagnostic_id],
+            }
+            for uncertainty in resolved
+        ]
+        draft = await self.client.request(
+            root + "/" + draft["id"] + "/measurement-updates",
+            {
+                "requestId": (
+                    task["id"]
+                    + ":v3:uncertainty:"
+                    + draft["hash"]
+                    + ":"
+                    + fingerprint([item["id"] for item in resolved])[:16]
+                ),
+                "draftRevision": draft["revision"],
+                "draftHash": draft["hash"],
+                "commands": commands,
+                "changeReasons": reasons,
+                "evidenceRefs": [diagnostic_id],
+            },
+        )
+        diagnostics = await self.client.request(root + "/" + draft["id"] + "/diagnostics", {})
+        self.patch(task["id"], floorplan=draft, diagnostics=diagnostics)
+        self.store.event(
+            task["id"],
+            "code_uncertainties_resolved",
+            {
+                "draftHash": draft["hash"],
+                "uncertaintyIds": [item["id"] for item in resolved],
+            },
+        )
+        return draft, diagnostics
+
     async def ground(self, state, task, legacy):
         project = state["project"]
         task_id = task["id"]
@@ -2920,6 +2995,7 @@ class FloorplanV3(FloorplanV2):
             )
 
         diagnostics = await self.client.request(root + "/" + draft["id"] + "/diagnostics", {})
+        draft, diagnostics = await self.reconcile_code_uncertainties(task, root, draft, diagnostics)
         if not draft["data"].get("symbols"):
             generation = self.store.task(task_id, internal=True)["generation"]
             pending_furniture = generation.get("pendingFurniture")
@@ -2965,6 +3041,9 @@ class FloorplanV3(FloorplanV2):
                 },
             )
             diagnostics = await self.client.request(root + "/" + draft["id"] + "/diagnostics", {})
+            draft, diagnostics = await self.reconcile_code_uncertainties(
+                task, root, draft, diagnostics
+            )
             self.patch(task_id, pendingFurniture=None)
         recognized = {
             **draft["data"],
@@ -3031,6 +3110,9 @@ class FloorplanV3(FloorplanV2):
                 )
                 diagnostics = await self.client.request(
                     root + "/" + draft["id"] + "/diagnostics", {}
+                )
+                draft, diagnostics = await self.reconcile_code_uncertainties(
+                    task, root, draft, diagnostics
                 )
                 review = None
                 if diagnostics["checks"]["passed"]:

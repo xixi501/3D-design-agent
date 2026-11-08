@@ -66,8 +66,10 @@ const pythonReplay = JSON.parse(python.stdout.trim().split("\n").at(-1));
 assert.equal(pythonReplay.passed, true);
 assert.equal(pythonReplay.assetKeys[2], "sofa");
 assert.equal(pythonReplay.assetKeys[4], "cabTall");
-assert.equal(pythonReplay.reviewPassed, true);
-assert.equal(pythonReplay.blockingIssues, 0);
+for (const name of ["r9", "r10"]) {
+  assert.equal(pythonReplay.reviews[name].passed, true);
+  assert.equal(pythonReplay.reviews[name].blockingIssues, 0);
+}
 
 const choices = new Map(
   Object.entries(pythonReplay.assetKeys).map(([index, key]) => [
@@ -145,11 +147,7 @@ console.log(
       catalogueProof: mapping.passed,
       geometryProof: geometry.passed,
       r8Workflow: r8Evidence.completedWorkflow,
-      r9Review: {
-        passed: pythonReplay.reviewPassed,
-        blockingIssues: pythonReplay.blockingIssues,
-        advisoryIssues: pythonReplay.advisoryIssues,
-      },
+      reviews: pythonReplay.reviews,
     },
     null,
     2,

@@ -27,31 +27,33 @@ def main():
     assert choices[4] == "cabTall"
     assert choices[1] == "plant"
 
-    r9 = replay["r9"]
-    review = _arbitrate_review(
-        {"passed": True, "summary": "offline replay", "issues": []},
-        r9["draft"],
-        r9["diagnostics"],
-        r9["structureSkeleton"],
-    )
-    assert review["passed"] is True
-    assert not any(issue.get("severity") == "blocking" for issue in review["issues"])
-    assert any(
-        issue.get("severity") == "advisory"
-        and "u_room_label" in issue.get("object_ids", [])
-        for issue in review["issues"]
-    )
+    reviews = {}
+    for name in ("r9", "r10"):
+        capture = replay[name]
+        review = _arbitrate_review(
+            {"passed": True, "summary": "offline replay", "issues": []},
+            capture["draft"],
+            capture["diagnostics"],
+            capture["structureSkeleton"],
+        )
+        assert review["passed"] is True
+        assert not any(
+            issue.get("severity") == "blocking" for issue in review["issues"]
+        )
+        reviews[name] = {
+            "passed": review["passed"],
+            "blockingIssues": 0,
+            "advisoryIssues": sum(
+                issue.get("severity") == "advisory" for issue in review["issues"]
+            ),
+        }
     print(
         json.dumps(
             {
                 "passed": True,
                 "assetKeys": choices,
                 "overrides": overrides,
-                "reviewPassed": review["passed"],
-                "blockingIssues": 0,
-                "advisoryIssues": sum(
-                    issue.get("severity") == "advisory" for issue in review["issues"]
-                ),
+                "reviews": reviews,
             },
             ensure_ascii=False,
         )

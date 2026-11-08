@@ -37,6 +37,22 @@ test("V3 category contract accepts canonical codes and preserves old drafts", ()
   const invalid = structuredClone(v3);
   invalid.symbols[0].categoryCode = "三人沙发（靠北）";
   assert.throws(() => validateFloorplan(invalid), /未知家具类别代码/);
+
+  const coded = structuredClone(v3);
+  coded.uncertainties = [
+    {
+      id: "entry-door",
+      message: "门型待确认",
+      blocking: true,
+      code: "OPENING_TYPE",
+      objectIds: ["op_3"],
+      evidenceRefs: ["analysis"],
+    },
+  ];
+  assert.doesNotThrow(() => validateFloorplan(coded));
+  const badCode = structuredClone(coded);
+  (badCode.uncertainties[0] as any).code = "DOOR_MAGIC";
+  assert.throws(() => validateFloorplan(badCode), /不确定项类型/);
 });
 
 test("V3 scoring keeps categoryCode separate from sourceLabel", () => {

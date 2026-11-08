@@ -821,6 +821,16 @@ def test_v33_assembly_generates_anchor_and_dimension_observations_from_ids():
     assert len(value["dimensionObservations"]) == 4
     assert value["dimensionObservations"][0]["scaleReference"] is True
     assert sum(observation["scaleReference"] for observation in value["dimensionObservations"]) == 1
+    value["uncertainties"] = [
+        {
+            "id": "u_door_swing",
+            "message": "门开向待确认",
+            "blocking": False,
+            "code": "DOOR_SWING",
+            "objectIds": ["window"],
+            "evidenceRefs": ["analysis"],
+        }
+    ]
     RecognitionV3.model_validate(value)
 
 
@@ -970,6 +980,7 @@ def test_review_downgrades_opening_uncertainty_when_candidates_all_match():
                     "id": "u_int_v_split",
                     "message": "门洞 openings 候选仍需拆分",
                     "blocking": True,
+                    "code": "OPENING_TYPE",
                 }
             ],
             "symbols": [{"id": "sofa"}],
@@ -1013,6 +1024,26 @@ def test_review_downgrades_opening_uncertainty_when_candidates_all_match():
     assert any(
         issue["object_ids"] == ["u_int_v_split"] and issue["severity"] == "advisory"
         for issue in arbitrated["issues"]
+    )
+    hard = {
+        **draft,
+        "data": {
+            **draft["data"],
+            "uncertainties": [
+                {
+                    "id": "u_wall_geometry",
+                    "message": "墙体几何无法确认",
+                    "blocking": True,
+                    "code": "WALL_GEOMETRY",
+                }
+            ],
+        },
+    }
+    blocked = _arbitrate_review(review, hard, diagnostics, skeleton)
+    assert blocked["passed"] is False
+    assert any(
+        issue["object_ids"] == ["u_wall_geometry"] and issue["severity"] == "blocking"
+        for issue in blocked["issues"]
     )
 
 
@@ -1129,6 +1160,122 @@ def test_floorplan_asset_normalization_preserves_user_catalog_key():
     normalized, overrides = normalize_floorplan_asset_choices(selection, task, catalogue)
     assert normalized["choices"][0]["key"] == "fourSofa"
     assert overrides == []
+
+
+@pytest.mark.asyncio
+async def test_code_reconciliation_patches_only_resolved_uncertainties(tmp_path):
+    store = TaskStore(tmp_path)
+    conversation = store.create_conversation("project")
+    task = store.create_task(
+        conversation["id"],
+        {
+            "requestId": "uncertainty-reconcile",
+            "input": "复现户型",
+            "mode": "reconstruct_floorplan",
+            "imageId": "image",
+        },
+    )
+    generation = store.task(task["id"], internal=True)["generation"]
+    generation["structureSkeleton"] = {
+        "structureSkeletonVersion": 3,
+        "analysisId": "analysis",
+        "openingCandidates": [],
+        "dimensionCandidates": [],
+    }
+    store.update(task["id"], generation=generation)
+    draft = {
+        "id": "draft",
+        "revision": 2,
+        "hash": "a" * 64,
+        "data": {
+            "rooms": [
+                {
+                    "id": "living",
+                    "name": "Living Room",
+                    "functionalArea": "living",
+                }
+            ],
+            "targetRoomIds": ["living"],
+            "uncertainties": [
+                {
+                    "id": "u_room_label",
+                    "message": "Living Room 与厨房是否为同一区域",
+                    "blocking": True,
+                    "code": "ROOM_SCOPE_OPEN_KITCHEN",
+                },
+                {
+                    "id": "u_wall_geometry",
+                    "message": "墙体几何待确认",
+                    "blocking": True,
+                    "code": "WALL_GEOMETRY",
+                },
+            ],
+        },
+    }
+    diagnostics = {
+        "id": "diagnostic",
+        "checks": {
+            "passed": False,
+            "issues": [
+                {
+                    "code": "FLOORPLAN_UNCERTAIN",
+                    "blocking": True,
+                    "message": "uncertain",
+                }
+            ],
+        },
+    }
+    requests = []
+
+    class Client:
+        async def request(self, path, body=None):
+            requests.append((path, body))
+            if path.endswith("/measurement-updates"):
+                assert body["commands"] == [
+                    {
+                        "type": "patch",
+                        "collection": "uncertainties",
+                        "id": "u_room_label",
+                        "patch": {"blocking": False},
+                    }
+                ]
+                return {
+                    **draft,
+                    "revision": 3,
+                    "hash": "b" * 64,
+                    "data": {
+                        **draft["data"],
+                        "uncertainties": [
+                            {
+                                **draft["data"]["uncertainties"][0],
+                                "blocking": False,
+                            },
+                            draft["data"]["uncertainties"][1],
+                        ],
+                    },
+                }
+            if path.endswith("/diagnostics"):
+                return {**diagnostics, "checks": {"passed": True, "issues": []}}
+            raise AssertionError(path)
+
+    client = Client()
+    helper = FloorplanV3(store, client, object())
+    updated, checks = await helper.reconcile_code_uncertainties(
+        store.task(task["id"], internal=True),
+        "/projects/project/floorplan-drafts",
+        draft,
+        diagnostics,
+    )
+    assert updated["revision"] == 3
+    assert updated["data"]["uncertainties"][0]["blocking"] is False
+    assert updated["data"]["uncertainties"][1]["blocking"] is True
+    assert checks["checks"]["passed"] is True
+    assert any(
+        event["kind"] == "code_uncertainties_resolved"
+        and event["data"]["uncertaintyIds"] == ["u_room_label"]
+        for event in store.events(task["id"])
+    )
+    store.close()
 
 
 def test_vision_parser_and_contour_ownership_reject_duplicate_symbols():

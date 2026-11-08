@@ -124,6 +124,18 @@ export interface ActivityGroup {
   roles: Record<string, ActivityRole>;
   evidenceRefs?: string[];
 }
+export type UncertaintyCode =
+  | "ROOM_LABEL"
+  | "ROOM_SCOPE_OPEN_KITCHEN"
+  | "WALL_GEOMETRY"
+  | "WALL_THICKNESS"
+  | "DIMENSION_BINDING"
+  | "DIMENSION_LOCAL"
+  | "OPENING_OWNERSHIP"
+  | "OPENING_TYPE"
+  | "DOOR_SWING"
+  | "FURNITURE_AMBIGUITY"
+  | "OTHER";
 export interface FloorplanData {
   recognitionVersion?: 3;
   measurementVersion?: 1 | 2;
@@ -141,7 +153,14 @@ export interface FloorplanData {
   symbols: ImageSymbol[];
   activityGroups?: ActivityGroup[];
   targetRoomIds: string[];
-  uncertainties: { id: string; message: string; blocking: boolean }[];
+  uncertainties: {
+    id: string;
+    message: string;
+    blocking: boolean;
+    code?: UncertaintyCode;
+    objectIds?: string[];
+    evidenceRefs?: string[];
+  }[];
 }
 export interface FloorplanBinding {
   draftId: string;
@@ -609,9 +628,44 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
   )
     invalid("目标客餐厅房间身份无效", "targetRoomIds");
   for (const u of data.uncertainties) {
-    object(u, ["id", "message", "blocking"], "uncertainties." + u.id);
+    object(
+      u,
+      ["id", "message", "blocking", "code", "objectIds", "evidenceRefs"],
+      "uncertainties." + u.id,
+    );
     text(u.message, u.id + ".message", 1000);
     if (typeof u.blocking !== "boolean") invalid("不确定项缺少阻断标志", u.id);
+    if (
+      u.code !== undefined &&
+      ![
+        "ROOM_LABEL",
+        "ROOM_SCOPE_OPEN_KITCHEN",
+        "WALL_GEOMETRY",
+        "WALL_THICKNESS",
+        "DIMENSION_BINDING",
+        "DIMENSION_LOCAL",
+        "OPENING_OWNERSHIP",
+        "OPENING_TYPE",
+        "DOOR_SWING",
+        "FURNITURE_AMBIGUITY",
+        "OTHER",
+      ].includes(u.code)
+    )
+      invalid("不确定项类型无效", u.id + ".code");
+    for (const [field, values] of [
+      ["objectIds", u.objectIds],
+      ["evidenceRefs", u.evidenceRefs],
+    ] as const) {
+      if (
+        values !== undefined &&
+        (!Array.isArray(values) ||
+          values.length > 20 ||
+          values.some(
+            (value) => typeof value !== "string" || value.length > 200,
+          ))
+      )
+        invalid("不确定项引用无效", u.id + "." + field);
+    }
   }
   validateMeasurement(data);
   return clone(data);

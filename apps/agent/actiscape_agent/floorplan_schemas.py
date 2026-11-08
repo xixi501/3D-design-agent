@@ -108,6 +108,24 @@ class Uncertainty(StrictModel):
     id: str
     message: str
     blocking: bool
+    code: (
+        Literal[
+            "ROOM_LABEL",
+            "ROOM_SCOPE_OPEN_KITCHEN",
+            "WALL_GEOMETRY",
+            "WALL_THICKNESS",
+            "DIMENSION_BINDING",
+            "DIMENSION_LOCAL",
+            "OPENING_OWNERSHIP",
+            "OPENING_TYPE",
+            "DOOR_SWING",
+            "FURNITURE_AMBIGUITY",
+            "OTHER",
+        ]
+        | None
+    ) = None
+    objectIds: list[str] = Field(default_factory=list, max_length=20)
+    evidenceRefs: list[str] = Field(default_factory=list, max_length=20)
 
 
 class FloorplanRecognition(StrictModel):

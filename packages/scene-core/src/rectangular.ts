@@ -31,7 +31,12 @@ export interface RectangularOpening {
   head?: Dimension;
 }
 export interface RectangularBrief {
-  purpose: "living_dining" | "reading_lounge";
+  roomType?: string;
+  /** Legacy field retained for frozen V1/V2 tasks. */
+  purpose?: string;
+  roomName?: string;
+  floorMaterial?: string;
+  wallMaterial?: string;
   name?: string;
   width: Dimension;
   depth: Dimension;
@@ -78,6 +83,10 @@ export function compileRectangular(brief: RectangularBrief, seed: string) {
     brief,
     [
       "purpose",
+      "roomType",
+      "roomName",
+      "floorMaterial",
+      "wallMaterial",
       "name",
       "width",
       "depth",
@@ -90,8 +99,19 @@ export function compileRectangular(brief: RectangularBrief, seed: string) {
   );
   if (!/^[a-zA-Z0-9_-]{1,100}$/.test(seed))
     invalid("生成任务身份无效", "taskId");
-  if (!["living_dining", "reading_lounge"].includes(brief.purpose))
-    invalid("仅支持矩形客餐厅或阅读会客间", "purpose");
+  const roomType: string = brief.roomType ?? brief.purpose ?? "";
+  if (!/^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(roomType))
+    invalid("房间类型缺失或无效", "roomType");
+  const roomName =
+    brief.roomName ??
+    (roomType === "living_dining"
+      ? "客餐厅"
+      : roomType === "reading_lounge"
+        ? "阅读会客间"
+        : roomType);
+  if (roomName.length > 100) invalid("房间名称最多 100 字", "roomName");
+  const floorMaterial = brief.floorMaterial || "oak";
+  const wallMaterial = brief.wallMaterial || "latexWhite";
   if (
     brief.name !== undefined &&
     (typeof brief.name !== "string" || brief.name.length > 100)
@@ -210,9 +230,7 @@ export function compileRectangular(brief: RectangularBrief, seed: string) {
   }
   const name =
     brief.name ||
-    (brief.purpose === "living_dining"
-      ? "文字生成 · 客餐厅"
-      : "文字生成 · 阅读会客间");
+    `文字生成 · ${roomName}`;
   const state = importDocument({
     name,
     height,
@@ -220,9 +238,9 @@ export function compileRectangular(brief: RectangularBrief, seed: string) {
     rooms: [
       {
         at: [width / 2, depth / 2],
-        name: brief.purpose === "living_dining" ? "客餐厅" : "阅读会客间",
-        mat: "oak",
-        wallMat: "latexWhite",
+        name: roomName,
+        mat: floorMaterial,
+        wallMat: wallMaterial,
         ceil: { type: "none" },
       },
     ],

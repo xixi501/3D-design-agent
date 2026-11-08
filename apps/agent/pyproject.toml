@@ -21,6 +21,7 @@ packages = ["actiscape_agent"]
 
 [tool.setuptools.package-data]
 actiscape_agent = [
+  "scene-registry.v1.json",
   "skills/*.json",
   "skills/*.md",
   "skills/_framework/*.json",

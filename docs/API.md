@@ -8,6 +8,8 @@ S2-C 的图片上传、版本化草稿、标定、叠加、确认和整层初始
 
 入口 `/api`，运行时 OpenAPI：`GET /api/openapi.json`。本目录 `openapi.json` 是交付版本的静态副本。场景坐标、距离、实例及资产标称尺寸为毫米，x/y 是地面，z 是离地高度；旋转为度。Three.js 内部是米，坐标 `(x,z,y)/1000`，偏航为 `-rot`。
 
+通用场景输入、证据、意图、程序和 revision/hash 草稿边界见 [场景架构](SCENE_ARCHITECTURE.md)。`scene-drafts` 只创建可编辑草稿，不写正式项目；旧户型草稿 API 继续兼容 V1/V2/V3 任务。
+
 资产 `normalization.center` 使用 GLB 源文件坐标单位，顺序为 `[中心 X, 底部 Y, 中心 Z]`；`normalization.scale` 是源文件单位转换到米的系数。渲染层先平移，再缩放，业务工具直接使用返回的 w/d/h 毫米尺寸。
 
 | 方法与路径                         | 作用                                                                           |
@@ -23,6 +25,11 @@ S2-C 的图片上传、版本化草稿、标定、叠加、确认和整层初始
 | POST `/projects/:id/undo`、`/redo` | 持久撤销 / 重做，生成新修订号                                                  |
 | GET `/projects/:id/events`         | SSE `revision` 事件；客户端据此重新读取快照                                    |
 | GET `/projects/:id/checks`         | 确定性检查结果、对象 ID、覆盖范围与限制                                        |
+| GET `/projects/:id/scene-drafts`   | 通用场景草稿摘要列表                                                           |
+| POST `/projects/:id/scene-drafts`  | 创建绑定当前项目 revision 的通用场景草稿                                       |
+| GET `/projects/:id/scene-drafts/:draft` | 读取草稿、program、资产解析、预算与字段权威                              |
+| POST `/projects/:id/scene-drafts/:draft/patches` | 用 `requestId`、`draftRevision` 和命令原子更新草稿              |
+| POST `/projects/:id/scene-drafts/:draft/preview` | 只读返回未解析对象、资产缺口与自动提交就绪状态                  |
 | GET `/assets`、`/assets/:id`       | 已上传资产与尺寸/归一化元数据                                                  |
 | POST `/assets`                     | multipart 单个 GLB 文件字段 `file`                                             |
 | GET `/assets/:id/file`             | 持久 GLB 文件                                                                  |

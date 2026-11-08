@@ -1,6 +1,7 @@
 from .client import SceneFailure
 from .generation_roles import GenerationRoles
 from .generation_schemas import resolve_request
+from .scene_registry import get_scene_registry
 from .skill_registry import get_registry
 from .store import TaskError, fingerprint
 
@@ -102,6 +103,10 @@ class GenerationFlow:
             bundle = None
         else:
             registry = get_registry()
+            room_type = brief.get("roomType") or brief.get("purpose")
+            room = get_scene_registry().room(room_type)
+            if room is None:
+                raise TaskError("ROOM_TYPE_UNRESOLVED", "任务房间类型不在场景注册表中")
             area_m2 = None
             width, depth = brief.get("width"), brief.get("depth")
             if width and depth:
@@ -115,7 +120,7 @@ class GenerationFlow:
             candidates = registry.candidates(
                 "generate_rectangular",
                 project_state="empty",
-                room_kind=brief["purpose"],
+                room_kind=room.skillRoomKind,
                 area_m2=area_m2,
             )
             selection = registry.validate_selection(
@@ -131,7 +136,7 @@ class GenerationFlow:
             snapshot = bundle["primary"]
             if (
                 "any" not in snapshot["appliesTo"]["roomKinds"]
-                and brief["purpose"] not in snapshot["appliesTo"]["roomKinds"]
+                and room.skillRoomKind not in snapshot["appliesTo"]["roomKinds"]
             ):
                 raise TaskError("SKILL_NOT_APPLICABLE", "当前 Skill 不支持该房间用途")
             generation["skillSelection"] = selection.model_dump()

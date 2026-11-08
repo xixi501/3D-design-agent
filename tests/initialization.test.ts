@@ -109,6 +109,24 @@ test("rectangular compiler preserves net dimensions, units, stable references an
     /有限数值/,
   );
 });
+
+test("rectangular compiler consumes room metadata without a fixed purpose enum", () => {
+  const generic = compileRectangular(
+    {
+      ...brief,
+      purpose: undefined,
+      roomType: "master_bedroom",
+      roomName: "主卧",
+      floorMaterial: "walnut",
+      wallMaterial: "latexSage",
+    },
+    "generic-room",
+  );
+  assert.equal(generic.state.plan.rooms.length, 1);
+  assert.equal(generic.state.plan.rooms[0].name, "主卧");
+  assert.equal(generic.state.plan.rooms[0].mat, "walnut");
+  assert.equal(generic.state.plan.rooms[0].wallMat, "latexSage");
+});
 test("initialization previews and candidates leave projects unchanged; enforce quantities, doorway and empty-project scope", async () => {
   const s = await createApp({
     dataDir: fs.mkdtempSync(path.join(os.tmpdir(), "init-")),

@@ -23,6 +23,8 @@ import { inspectGlb } from "./assets.js";
 import { candidateRoutes } from "./candidate-routes.js";
 import { FloorplanStore } from "./floorplans.js";
 import { floorplanRoutes } from "./floorplan-routes.js";
+import { SceneDraftStore } from "./scene-drafts.js";
+import { sceneDraftRoutes } from "./scene-draft-routes.js";
 import { agentProxy } from "./agent-proxy.js";
 
 export async function createApp(options: {
@@ -79,6 +81,8 @@ export async function createApp(options: {
   const candidates = candidateRoutes(app, store, notify);
   const floorplans = new FloorplanStore(store);
   floorplanRoutes(app, floorplans);
+  const sceneDrafts = new SceneDraftStore(store);
+  sceneDraftRoutes(app, sceneDrafts);
   agentProxy(app);
   app.get(
     "/api/catalog",
@@ -283,5 +287,5 @@ export async function createApp(options: {
     for (const set of streams.values()) for (const stream of set) stream.end();
   });
   app.addHook("onClose", async () => store.close());
-  return { app, store, candidates, floorplans };
+  return { app, store, candidates, floorplans, sceneDrafts };
 }

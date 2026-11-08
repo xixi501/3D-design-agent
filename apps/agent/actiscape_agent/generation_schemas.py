@@ -2,6 +2,7 @@ from typing import Literal
 
 from pydantic import Field, FiniteFloat, field_validator
 
+from .scene_registry import get_scene_registry
 from .schemas import Addition, AssetChoice, AssetSelection, SkillSelection, StrictModel
 
 
@@ -40,7 +41,7 @@ class OpeningBrief(StrictModel):
 class GenerationRequest(StrictModel):
     status: Literal["ready", "clarify", "unsupported"]
     question: str = ""
-    purpose: Literal["living_dining", "reading_lounge"] | None = None
+    purpose: str | None = Field(default=None, min_length=1, max_length=64)
     name: str | None = Field(default=None, max_length=100)
     width: Dimension | None = None
     depth: Dimension | None = None
@@ -58,22 +59,34 @@ class GenerationRequest(StrictModel):
     skillSelection: SkillSelection = Field(default_factory=SkillSelection)
 
 
-DEFAULT_FURNITURE = {
-    "living_dining": [
-        ("三人沙发", 1),
-        ("茶几", 1),
-        ("电视柜", 1),
-        ("餐桌", 1),
-        ("餐椅", 4),
-        ("落地灯", 1),
-    ],
-    "reading_lounge": [("单人沙发", 2), ("茶几", 1), ("书柜", 1), ("落地灯", 1)],
-}
-
-
 def resolve_request(value: dict, user_input: str) -> dict:
     """Preserve raw units; geometry and conversion remain in TypeScript."""
     request = GenerationRequest.model_validate(value)
+    room = get_scene_registry().room(request.purpose) if request.purpose else None
+    if request.purpose and room is None:
+        return {
+            "brief": {},
+            "furniture": [],
+            "style": request.style or "简约中性配色",
+            "missing": [],
+            "defaults": [],
+            "evidence": request.evidence,
+            "unsupported": True,
+            "question": f"未知房间类型：{request.purpose}",
+            "skillSelection": request.skillSelection.model_dump(),
+        }
+    if room is not None and room.status != "active":
+        return {
+            "brief": {},
+            "furniture": [],
+            "style": request.style or "简约中性配色",
+            "missing": [],
+            "defaults": [],
+            "evidence": request.evidence,
+            "unsupported": True,
+            "question": f"{room.label}仍处于 reserved 状态，尚未通过真实房间生成验收",
+            "skillSelection": request.skillSelection.model_dump(),
+        }
     missing = []
     labels = {
         "purpose": "房间用途",
@@ -108,8 +121,8 @@ def resolve_request(value: dict, user_input: str) -> dict:
     if not request.style:
         defaults.append("简约中性配色")
     furniture = [a.model_dump() for a in request.furniture]
-    if not furniture and request.purpose:
-        furniture = [{"query": q, "count": n} for q, n in DEFAULT_FURNITURE[request.purpose]]
+    if not furniture and room is not None:
+        furniture = [item.model_dump() for item in room.defaultFurniture]
         defaults.append("采用该用途的基础家具清单，数量可在对话中调整")
     brief = request.model_dump(
         exclude_none=True,
@@ -124,6 +137,13 @@ def resolve_request(value: dict, user_input: str) -> dict:
             "windows",
         },
     )
+    if room is not None:
+        brief.update(
+            roomType=room.id,
+            roomName=room.label,
+            floorMaterial=room.floorMaterial,
+            wallMaterial=room.wallMaterial,
+        )
     return {
         "brief": brief,
         "furniture": furniture,

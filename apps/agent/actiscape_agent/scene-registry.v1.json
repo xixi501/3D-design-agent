@@ -1,0 +1,255 @@
+{
+  "schemaVersion": "actiscape.scene-registry.v1",
+  "version": "2026-11-09",
+  "roomTypes": [
+    {
+      "id": "living_dining",
+      "label": "客餐厅",
+      "status": "active",
+      "skillRoomKind": "living_dining",
+      "skillIds": ["living-dining-small", "living-dining-open"],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["room_bounds", "door_clearance"] },
+      "defaultFurniture": [
+        { "query": "三人沙发", "count": 1 },
+        { "query": "茶几", "count": 1 },
+        { "query": "电视柜", "count": 1 },
+        { "query": "餐桌", "count": 1 },
+        { "query": "餐椅", "count": 4 },
+        { "query": "落地灯", "count": 1 }
+      ]
+    },
+    {
+      "id": "reading_lounge",
+      "label": "阅读会客间",
+      "status": "active",
+      "skillRoomKind": "reading_lounge",
+      "skillIds": ["rectangular-living-reading"],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["room_bounds", "door_clearance"] },
+      "defaultFurniture": [
+        { "query": "单人沙发", "count": 2 },
+        { "query": "茶几", "count": 1 },
+        { "query": "书柜", "count": 1 },
+        { "query": "落地灯", "count": 1 }
+      ]
+    },
+    {
+      "id": "master_bedroom",
+      "label": "主卧",
+      "status": "reserved",
+      "skillRoomKind": "bedroom",
+      "skillIds": ["master-bedroom"],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["bed_clearance", "wardrobe_access"] },
+      "defaultFurniture": [
+        { "query": "双人床", "count": 1 },
+        { "query": "床头柜", "count": 2 },
+        { "query": "衣柜", "count": 1 }
+      ]
+    },
+    {
+      "id": "guest_bedroom",
+      "label": "次卧",
+      "status": "reserved",
+      "skillRoomKind": "bedroom",
+      "skillIds": ["guest-bedroom"],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["bed_clearance"] },
+      "defaultFurniture": [
+        { "query": "双人床", "count": 1 },
+        { "query": "床头柜", "count": 1 },
+        { "query": "衣柜", "count": 1 }
+      ]
+    },
+    {
+      "id": "kids_room",
+      "label": "儿童房",
+      "status": "reserved",
+      "skillRoomKind": "bedroom",
+      "skillIds": ["kids-room"],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["bed_clearance"] },
+      "defaultFurniture": [
+        { "query": "儿童床", "count": 1 },
+        { "query": "儿童书桌", "count": 1 },
+        { "query": "衣柜", "count": 1 }
+      ]
+    },
+    {
+      "id": "nursery",
+      "label": "婴儿房",
+      "status": "reserved",
+      "skillRoomKind": "bedroom",
+      "skillIds": ["nursery"],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["crib_clearance"] },
+      "defaultFurniture": [
+        { "query": "婴儿床", "count": 1 },
+        { "query": "五斗柜", "count": 1 },
+        { "query": "单人沙发", "count": 1 }
+      ]
+    },
+    {
+      "id": "study",
+      "label": "书房",
+      "status": "reserved",
+      "skillRoomKind": "study",
+      "skillIds": ["home-office"],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["desk_clearance"] },
+      "defaultFurniture": [
+        { "query": "书桌", "count": 1 },
+        { "query": "办公椅", "count": 1 },
+        { "query": "书柜", "count": 1 }
+      ]
+    },
+    {
+      "id": "kitchen",
+      "label": "厨房",
+      "status": "reserved",
+      "skillRoomKind": "kitchen",
+      "skillIds": ["kitchen-line-l-u"],
+      "floorMaterial": "bath",
+      "wallMaterial": "wallTile",
+      "policy": { "geometry": "rectangular_v1", "checks": ["counter_clearance", "appliance_access"] },
+      "defaultFurniture": [
+        { "query": "整体橱柜", "count": 1 },
+        { "query": "冰箱", "count": 1 }
+      ]
+    },
+    {
+      "id": "bathroom",
+      "label": "卫生间",
+      "status": "reserved",
+      "skillRoomKind": "bathroom",
+      "skillIds": ["bathroom-standard"],
+      "floorMaterial": "bath",
+      "wallMaterial": "wallTile",
+      "policy": { "geometry": "rectangular_v1", "checks": ["fixture_clearance", "door_clearance"] },
+      "defaultFurniture": [
+        { "query": "马桶", "count": 1 },
+        { "query": "浴室柜", "count": 1 },
+        { "query": "淋浴房", "count": 1 }
+      ]
+    },
+    {
+      "id": "entry",
+      "label": "玄关",
+      "status": "reserved",
+      "skillRoomKind": "entry",
+      "skillIds": ["entry-storage"],
+      "floorMaterial": "tile",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["door_clearance"] },
+      "defaultFurniture": [
+        { "query": "鞋柜", "count": 1 },
+        { "query": "换鞋凳", "count": 1 }
+      ]
+    },
+    {
+      "id": "balcony",
+      "label": "生活阳台",
+      "status": "reserved",
+      "skillRoomKind": "balcony",
+      "skillIds": ["balcony-laundry"],
+      "floorMaterial": "deck",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["laundry_access"] },
+      "defaultFurniture": [
+        { "query": "洗衣机", "count": 1 },
+        { "query": "晾衣架", "count": 1 }
+      ]
+    },
+    {
+      "id": "utility",
+      "label": "家政与储藏",
+      "status": "reserved",
+      "skillRoomKind": "utility",
+      "skillIds": ["utility-storage"],
+      "floorMaterial": "tile",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["storage_access"] },
+      "defaultFurniture": []
+    },
+    {
+      "id": "multipurpose",
+      "label": "多功能空间",
+      "status": "reserved",
+      "skillRoomKind": "multipurpose",
+      "skillIds": ["studio-micro", "tatami-multipurpose", "tea-room"],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["door_clearance"] },
+      "defaultFurniture": []
+    },
+    {
+      "id": "circulation",
+      "label": "过道",
+      "status": "reserved",
+      "skillRoomKind": "any",
+      "skillIds": [],
+      "floorMaterial": "tile",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": ["circulation_width"] },
+      "defaultFurniture": []
+    },
+    {
+      "id": "other",
+      "label": "其他空间",
+      "status": "reserved",
+      "skillRoomKind": "any",
+      "skillIds": [],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": { "geometry": "rectangular_v1", "checks": [] },
+      "defaultFurniture": []
+    }
+  ],
+  "categories": [
+    { "id": "seating", "label": "座椅", "parent": null, "catalogKeys": [] },
+    { "id": "table", "label": "桌类", "parent": null, "catalogKeys": [] },
+    { "id": "storage", "label": "收纳", "parent": null, "catalogKeys": [] },
+    { "id": "appliance", "label": "家电", "parent": null, "catalogKeys": [] },
+    { "id": "fixture", "label": "固定设备", "parent": null, "catalogKeys": [] },
+    { "id": "lighting", "label": "灯具", "parent": null, "catalogKeys": [] },
+    { "id": "decor", "label": "装饰与软装", "parent": null, "catalogKeys": [] },
+    { "id": "sofa", "label": "沙发", "parent": "seating", "catalogKeys": ["sofa", "modularSofa", "fourSofa", "lSofa"] },
+    { "id": "armchair", "label": "单人座椅", "parent": "seating", "catalogKeys": ["armchair", "readingChair", "lounge"] },
+    { "id": "chair", "label": "椅子", "parent": "seating", "catalogKeys": ["chair", "armDiningChair", "officeChair"] },
+    { "id": "bench", "label": "凳类", "parent": "seating", "catalogKeys": ["entryBench", "shoeBench", "bedBench", "diningBench"] },
+    { "id": "coffeeTable", "label": "茶几", "parent": "table", "catalogKeys": ["coffeeTable", "roundCoffee", "ovalCoffee", "nestTables"] },
+    { "id": "sideTable", "label": "边几", "parent": "table", "catalogKeys": ["sideTable"] },
+    { "id": "diningTable", "label": "餐桌", "parent": "table", "catalogKeys": ["diningTable", "diningTable4", "diningTable6", "roundTable"] },
+    { "id": "desk", "label": "书桌", "parent": "table", "catalogKeys": ["desk", "officeDesk", "lDesk", "standingDesk"] },
+    { "id": "bed", "label": "床", "parent": null, "catalogKeys": ["bed12", "bed15", "bed18", "bed20", "kingBed", "kidsBed"] },
+    { "id": "crib", "label": "婴儿床", "parent": "bed", "catalogKeys": ["crib"] },
+    { "id": "nightstand", "label": "床头柜", "parent": "storage", "catalogKeys": ["nightstand"] },
+    { "id": "wardrobe", "label": "衣柜", "parent": "storage", "catalogKeys": ["wardrobe", "wardrobe2", "wardrobe3", "cabWardrobe"] },
+    { "id": "cabinet", "label": "柜体", "parent": "storage", "catalogKeys": ["cabBase", "cabWall", "cabTall", "cabShoe"] },
+    { "id": "tvCabinet", "label": "电视柜", "parent": "storage", "catalogKeys": ["tvCabinet", "cabTV"] },
+    { "id": "bookshelf", "label": "书架", "parent": "storage", "catalogKeys": ["bookshelf", "bookshelfLow", "cabTall"] },
+    { "id": "kitchenUnit", "label": "整体橱柜", "parent": "storage", "catalogKeys": ["counter", "lCounter", "uCounter"] },
+    { "id": "island", "label": "中岛", "parent": "kitchenUnit", "catalogKeys": ["kitchenIsland", "island"] },
+    { "id": "fridge", "label": "冰箱", "parent": "appliance", "catalogKeys": ["fridge", "fridgeDouble", "fridgeFrench"] },
+    { "id": "washer", "label": "洗衣机", "parent": "appliance", "catalogKeys": ["washer"] },
+    { "id": "dryer", "label": "烘干机", "parent": "appliance", "catalogKeys": ["dryer"] },
+    { "id": "toilet", "label": "马桶", "parent": "fixture", "catalogKeys": ["toilet", "wallToilet", "squatToilet"] },
+    { "id": "vanity", "label": "浴室柜", "parent": "storage", "catalogKeys": ["vanity", "doubleVanity", "pedestalSink"] },
+    { "id": "shower", "label": "淋浴", "parent": "fixture", "catalogKeys": ["shower", "showerScreen", "showerSet"] },
+    { "id": "bathtub", "label": "浴缸", "parent": "fixture", "catalogKeys": ["bathtub", "freeTub"] },
+    { "id": "floorLamp", "label": "落地灯", "parent": "lighting", "catalogKeys": ["floorLamp", "arcLamp"] },
+    { "id": "lamp", "label": "灯具", "parent": "lighting", "catalogKeys": ["deskLamp", "chandelier"] },
+    { "id": "plant", "label": "绿植", "parent": "decor", "catalogKeys": ["plant", "bigPlant", "smallPlant", "hangingPlant"] },
+    { "id": "rug", "label": "地毯", "parent": "decor", "catalogKeys": ["rug", "roundRug", "doormat"] },
+    { "id": "art", "label": "墙面装饰", "parent": "decor", "catalogKeys": ["wallArt", "wallArt3", "wallClock"] },
+    { "id": "other", "label": "未分类对象", "parent": null, "catalogKeys": [] }
+  ]
+}

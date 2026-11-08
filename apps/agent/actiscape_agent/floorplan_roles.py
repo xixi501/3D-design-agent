@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from langchain_core.tools import tool
 
-from .config import FLOORPLAN_RECOGNITION_OPTIONS
+from .config import FLOORPLAN_RECOGNITION_OPTIONS, FLOORPLAN_REVIEW_OPTIONS
 from .floorplan_schemas import (
     DraftCorrections,
     FloorplanRecognition,
@@ -619,6 +619,7 @@ class FloorplanRoles:
             task["id"],
             images,
             prompt_version=VERSION,
+            model_options=FLOORPLAN_REVIEW_OPTIONS,
         )
         g = self.store.task(task["id"], internal=True)["generation"]
         if "audit_floorplan_source" in g.get("skillSnapshot", {}).get(

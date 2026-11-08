@@ -9,8 +9,7 @@
   "summary": "2–6㎡ 家政间：洗烘/清洁工具/囤货三区分行，400 浅柜或 600 标准柜按净宽选，洗烘前 700、长柜一端留 600 绕行，洞洞板挂实墙，门后只挂薄具，扫地机基站留 500 进出与同侧电源。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "utility"

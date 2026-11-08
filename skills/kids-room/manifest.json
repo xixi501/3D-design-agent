@@ -9,8 +9,7 @@
   "summary": "6–15㎡ 儿童房：把家具分成睡眠/学习/活动三组保证可替换，守住书桌使用区、窗前高柜、门扇与高柜安全三件。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "kids_room"

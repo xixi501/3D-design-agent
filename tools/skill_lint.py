@@ -29,7 +29,7 @@ JUDGE_RE = re.compile(r"\bJ-[A-Z]{2,6}-\d{2}\b")
 REQUIRED_SECTIONS = ["什么时候用", "怎么做", "依赖什么", "怎么验证", "版本与来源"]
 FORBIDDEN_TOOLS = ["scene.get_snapshot", "scene.apply_edits", "scene.diff", "check.run", "view.capture",
                    "assets.submit", "assets.status", "assets.get", "skills.list", "skills.get", "session.echo"]
-FORBIDDEN_CAPS = {"scene.write", "project.commit"}
+FORBIDDEN_CAPS = {"scene.write", "project.commit", "script.execute"}
 
 KIND = {
     "living-dining-small": "layout", "living-dining-open": "layout", "master-bedroom": "layout",
@@ -48,6 +48,18 @@ KIND = {
 }
 ACTIVE = {"living-dining-small", "living-dining-open", "social-reading-zone", "style-coherence",
           "lighting-color", "floorplan-intake", "layout-check-repair"}
+
+EXPECT_MODES = {
+    "layout": ["generate_rectangular"],
+    "edit": ["edit"],
+    "modifier": ["generate_rectangular", "edit"],
+    "intake": ["generate_rectangular", "reconstruct_floorplan"],
+    "repair": ["edit", "generate_rectangular", "reconstruct_floorplan"],
+    "asset": ["asset_import"],
+}
+ALL_CAPS = ["scene.read", "catalog.search", "candidate.propose", "candidate.preflight",
+            "candidate.review", "candidate.render", "floorplan.analyze", "floorplan.measure",
+            "asset.job", "scene.write", "project.commit", "script.execute"]
 
 TYPE_MAP = {"object": dict, "array": list, "string": str, "number": (int, float), "integer": int, "boolean": bool}
 
@@ -148,7 +160,8 @@ def main():
     catalog = set(json.load(open(CATALOG, encoding="utf-8")))
 
     ids = [d for d in sorted(os.listdir(SKILLS))
-           if os.path.isdir(os.path.join(SKILLS, d)) and not d.startswith("_")]
+           if os.path.isdir(os.path.join(SKILLS, d)) and not d.startswith("_")
+           and os.path.isfile(os.path.join(SKILLS, d, "manifest.json"))]
     all_err, per = [], {}
     for sid in ids:
         errs, warns = [], []
@@ -199,12 +212,30 @@ def main():
             caps = set(man.get("capabilities", []))
             if caps & FORBIDDEN_CAPS:
                 errs.append(f"capabilities 含禁止项：{sorted(caps & FORBIDDEN_CAPS)}")
+            kind = man.get("kind", "layout")
+            modes = list((man.get("appliesTo") or {}).get("modes", []))
+            if modes != EXPECT_MODES[kind]:
+                errs.append(f"{kind} 的 modes 应为 {EXPECT_MODES[kind]}，实际 {modes}")
             need = {"layout": "candidate.propose", "edit": "candidate.propose", "repair": "candidate.propose",
-                    "asset": "asset.job", "intake": "floorplan.analyze", "modifier": "candidate.review"}[man.get("kind", "layout")]
+                    "asset": "asset.job", "intake": "candidate.preflight", "modifier": "candidate.review"}[kind]
             if need not in caps:
-                errs.append(f"{man.get('kind')} 缺少必需 capability {need}")
-            if man.get("kind") == "modifier" and "candidate.propose" in caps:
-                errs.append("modifier 不得拥有 candidate.propose（不得独立产生第二轮修改）")
+                errs.append(f"{kind} 缺少必需 capability {need}")
+            if kind == "modifier":
+                bad = sorted(caps & {"candidate.propose", "candidate.preflight"})
+                if bad:
+                    errs.append(f"modifier 不得声明 {bad}（只提供约束与验收项）")
+            if kind == "intake":
+                bad = sorted(caps & {"candidate.propose", "candidate.render", "floorplan.analyze", "floorplan.measure"})
+                if bad:
+                    errs.append(f"intake 不得声明 {bad}（识图与提交由主系统执行）")
+            # 正文正向使用的 capability 必须已声明
+            used = {c for c in ALL_CAPS if c in body}
+            undeclared = sorted(used - caps)
+            if undeclared:
+                errs.append(f"正文使用了未声明的 capability：{undeclared}")
+            forbidden_used = sorted(used & FORBIDDEN_CAPS)
+            if forbidden_used:
+                errs.append(f"正文出现禁止的 capability：{forbidden_used}")
 
             judged = set(man.get("judgements", []))
             missing = sorted(judged - judge_ids)
@@ -257,12 +288,57 @@ def main():
                     k = o.get("key")
                     if k and k not in catalog:
                         errs.append(f"{c}: 未知 catalog key `{k}`")
+                groups = (case.get("scene", {}).get("source") or {}).get("activityGroups") or []
+                for g in groups:
+                    if "ids" in g:
+                        errs.append(f"{c}: activityGroups 仍用 `ids`，应为 `memberIds`")
+                    if "memberIds" not in g:
+                        errs.append(f"{c}: activityGroups 缺 `memberIds`")
 
         per[sid] = {"errors": errs, "warnings": warns, "kind": KIND.get(sid),
                     "activation": "active" if sid in ACTIVE else "reserved"}
         all_err += [f"{sid}: {e}" for e in errs]
 
     n_active = sum(1 for s in ids if s in ACTIVE)
+
+    # 池索引契约（actiscape.skill-pool.v1）
+    idx_path = os.path.join(SKILLS, "index.v1.json")
+    if not os.path.isfile(idx_path):
+        all_err.append("池索引缺失：skills/index.v1.json")
+    else:
+        try:
+            idx = json.load(open(idx_path, encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            all_err.append(f"池索引不是合法 JSON：{exc}")
+            idx = {}
+        if idx:
+            if idx.get("schemaVersion") != "actiscape.skill-pool.v1":
+                all_err.append(f"池索引 schemaVersion 应为 actiscape.skill-pool.v1，实际 {idx.get('schemaVersion')}")
+            if not idx.get("poolVersion"):
+                all_err.append("池索引缺 poolVersion")
+            active_ids = set(idx.get("active") or [])
+            reserved_ids = set(idx.get("reserved") or [])
+            if active_ids != ACTIVE:
+                all_err.append(f"池索引 active 与约定不一致：{sorted(active_ids ^ ACTIVE)}")
+            if reserved_ids != set(ids) - ACTIVE:
+                all_err.append(f"池索引 reserved 与目录不一致：{sorted(reserved_ids ^ (set(ids) - ACTIVE))}")
+            entry_ids = {s.get("id") for s in idx.get("skills", [])}
+            if entry_ids != set(ids):
+                all_err.append(f"池索引 skills 与目录不一致：{sorted(entry_ids ^ set(ids))}")
+            for s in idx.get("skills", []):
+                for f in ("id", "version", "kind", "status", "activation"):
+                    if f not in s:
+                        all_err.append(f"池索引条目缺字段 {f}：{s.get('id')}")
+
+    # 共享许可证
+    lic = os.path.join(SKILLS, "LICENSES", "MIT.txt")
+    if not os.path.isfile(lic):
+        all_err.append("缺共享许可证：skills/LICENSES/MIT.txt")
+    else:
+        lt = open(lic, encoding="utf-8").read()
+        if "MIT License" not in lt or "Permission is hereby granted" not in lt:
+            all_err.append("许可证内容不是标准 MIT 文本")
+
     print(f"schema={args.schema}  技能 {len(ids)}  判据 {len(judge_ids)}  active {n_active}  reserved {len(ids)-n_active}")
     for sid in ids:
         e = per.get(sid, {}).get("errors", [])

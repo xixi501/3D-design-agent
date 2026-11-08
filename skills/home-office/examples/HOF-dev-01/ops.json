@@ -110,7 +110,7 @@
       "activityGroups": [
         {
           "name": "工作位组",
-          "ids": [
+          "memberIds": [
             "o_desk",
             "o_chair",
             "o_lamp"
@@ -118,7 +118,7 @@
         },
         {
           "name": "收纳组",
-          "ids": [
+          "memberIds": [
             "o_shelf",
             "o_low",
             "o_file"

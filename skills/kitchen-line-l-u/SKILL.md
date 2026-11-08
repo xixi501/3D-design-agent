@@ -2,7 +2,7 @@
 name: kitchen-line-l-u
 description: 给 3–10㎡ 的独立厨房选形（一字 / L / U / 双排）并排橱柜、冰箱与水槽灶台：先按开间定形，再压操作三角、备餐顺序、吊柜避窗与冰箱开门侧。当用户要做厨房、说"厨房太窄/放不下冰箱/吊柜挡窗"或只改厨房某一段时使用；不适用于餐厨一体与中岛（转 dining-island）、需要改燃气与排水点位、或需要拆改墙体的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径走（文字坐标方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 依赖主系统提供的语义 capability（见"依赖什么"）；未接入时按降级路径执行，不声称已执行。
 metadata:
   version: "0.2.0"
   status: "conformant"
@@ -94,13 +94,13 @@ metadata:
 
 | capability | 用途 |
 |---|---|
-| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `scene.read` | 读取当前场景/现状 |
 | `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
-| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.propose` | 产出候选（主系统审批后落库） |
 | `candidate.preflight` | 几何与净空预检，返回问题码 |
 | `candidate.review` | 复核候选与需求、判据的一致性 |
 
-**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**边界**：不持有写权限——没有场景写入能力，也没有项目提交能力。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
 **降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证

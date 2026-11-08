@@ -199,12 +199,14 @@
     }
   ],
   "hashes": {
-    "judgements": "c4ffe61148e9384b",
-    "index": "f5fc81bcf0ade485",
+    "judgements": "1fac536737e0f743",
+    "index": "03439ea9f632255f",
     "catalog": "d299f37787ae1a23"
   },
   "validation": {
     "realCore": false,
     "note": "L3 由主系统接入真实场景/检查器后完成，池内全部 status=conformant"
-  }
+  },
+  "poolSchema": "actiscape.skill-pool.v1",
+  "poolVersion": "2026-11-09"
 }

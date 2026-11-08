@@ -73,7 +73,8 @@ def main():
 
     catalog = load_catalog(args.catalog) if args.catalog else load_catalog()
     ids = args.skill or ([d for d in sorted(os.listdir(SKILLS_DIR))
-                          if os.path.isdir(os.path.join(SKILLS_DIR, d)) and not d.startswith("_")] if args.all else [])
+                          if os.path.isdir(os.path.join(SKILLS_DIR, d)) and not d.startswith("_")
+                          and os.path.isfile(os.path.join(SKILLS_DIR, d, "manifest.json"))] if args.all else [])
     if not ids:
         print("没有选中任何技能：用 --all 或 --skill <id>")
         return 2

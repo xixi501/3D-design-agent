@@ -86,9 +86,8 @@
           "items": {
             "enum": [
               "generate_rectangular",
-              "generate_from_text",
-              "edit_existing",
-              "floorplan_import",
+              "edit",
+              "reconstruct_floorplan",
               "asset_import"
             ]
           }

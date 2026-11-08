@@ -9,8 +9,7 @@
   "summary": "6–15㎡ 电竞房：桌面 700 深、双屏视距 60–80cm、屏幕与窗成 90° 侧光，椅子后推 900，主机进风与走线，暗环境三层照明，共用墙隔音。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "gaming"

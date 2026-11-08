@@ -9,7 +9,9 @@
   "summary": "对已有布置跑 check.run，按严重度与影响对象数排序，一次只修一类，每轮重跑，3 轮预算用完即停，修不动的写进未解决清单并如实报告。",
   "appliesTo": {
     "modes": [
-      "edit_existing"
+      "edit",
+      "generate_rectangular",
+      "reconstruct_floorplan"
     ],
     "roomKinds": [
       "any"
@@ -28,9 +30,11 @@
   ],
   "capabilities": [
     "scene.read",
-    "candidate.preflight",
+    "catalog.search",
     "candidate.propose",
-    "candidate.review"
+    "candidate.preflight",
+    "candidate.review",
+    "candidate.render"
   ],
   "judgements": [
     "J-CIR-01",

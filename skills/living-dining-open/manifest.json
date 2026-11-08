@@ -9,8 +9,7 @@
   "summary": "30–60㎡ LDK 一体厅：三段分区（会客/用餐/西厨或工作角）+ 一条环线，用地毯与灯位划区，分区只做半岛、不做到墙。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "living_dining"
@@ -34,7 +33,8 @@
     "catalog.search",
     "candidate.propose",
     "candidate.preflight",
-    "candidate.review"
+    "candidate.review",
+    "candidate.render"
   ],
   "judgements": [
     "J-CIR-01",

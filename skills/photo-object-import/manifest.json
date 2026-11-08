@@ -9,8 +9,7 @@
   "summary": "单件照片 → 异步资产作业 → 外观与尺寸确认 → 落到点选或语言指定的支撑面 → 检查与留证。",
   "appliesTo": {
     "modes": [
-      "asset_import",
-      "edit_existing"
+      "asset_import"
     ],
     "roomKinds": [
       "any"
@@ -31,9 +30,11 @@
   "capabilities": [
     "asset.job",
     "scene.read",
+    "catalog.search",
     "candidate.propose",
     "candidate.preflight",
-    "candidate.review"
+    "candidate.review",
+    "candidate.render"
   ],
   "judgements": [
     "J-ASSET-01",

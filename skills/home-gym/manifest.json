@@ -9,8 +9,7 @@
   "summary": "4–15㎡ 健身角：器械靠墙、镜面正对空地、瑜伽垫可收，保器械后 1m/侧 0.5m 安全距、器械不挡门、连续 700 通道，并核层高通风与减震吸音。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "gym"
@@ -32,7 +31,8 @@
     "catalog.search",
     "candidate.propose",
     "candidate.preflight",
-    "candidate.review"
+    "candidate.review",
+    "candidate.render"
   ],
   "judgements": [
     "J-CIR-01",

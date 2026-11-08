@@ -9,7 +9,8 @@
   "summary": "养猫养狗的起居空间：先划宠物活动区与清洁点，猫爬架靠窗但不进窗帘带，猫砂盆/狗窝避开餐厨与主动线，耐抓耐污材料 + 门挡 + 线槽。",
   "appliesTo": {
     "modes": [
-      "edit_existing"
+      "generate_rectangular",
+      "edit"
     ],
     "roomKinds": [
       "living_dining",
@@ -29,6 +30,7 @@
   ],
   "capabilities": [
     "scene.read",
+    "catalog.search",
     "candidate.review"
   ],
   "judgements": [

@@ -110,7 +110,7 @@
       "activityGroups": [
         {
           "name": "会客组",
-          "ids": [
+          "memberIds": [
             "o_sofa",
             "o_coffee",
             "o_rug",
@@ -120,7 +120,7 @@
         },
         {
           "name": "用餐组",
-          "ids": [
+          "memberIds": [
             "o_din",
             "o_c1",
             "o_c2",
@@ -130,7 +130,7 @@
         },
         {
           "name": "西厨组",
-          "ids": [
+          "memberIds": [
             "o_counter",
             "o_fridge"
           ]

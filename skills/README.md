@@ -1,6 +1,6 @@
 # Skill 池索引（v1，自动生成）
 
-> schema `actiscape.skill.v1`；30 个技能、7 active / 23 reserved、60 个案例、69 条判据。
+> schema `actiscape.skill-pool.v1`（池）/ `actiscape.skill.v1`（包）；30 个技能、7 active / 23 reserved、60 个案例、69 条判据。
 > 重新生成：`python tools/make_index.py --schema v1`。
 
 ## 读数
@@ -10,6 +10,7 @@
 | kind | `layout / edit / modifier / intake / repair / asset` |
 | activation | `active` 首批启用；`reserved` 预留，等核心能力就绪 |
 | 案例 | 正向 / 边界数量（每个包至少各 1 个） |
+| modes | `generate_rectangular / edit / reconstruct_floorplan / asset_import` |
 
 ## 起居
 

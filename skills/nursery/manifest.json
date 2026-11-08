@@ -9,8 +9,7 @@
   "summary": "6–12㎡ 婴儿房：婴儿床两侧各 600 双通道、床不压窗与风口、尿布台 750 高不靠窗可单手操作、哺乳椅配暖光夜灯、玩具收纳低位并把电线与小件管住。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "nursery"

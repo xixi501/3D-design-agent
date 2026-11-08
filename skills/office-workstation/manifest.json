@@ -9,8 +9,7 @@
   "summary": "30–60㎡ 工作室：分四块后按 1200×600/1400×700 排工位，留 900 主通道，玻璃隔断围会议区，贴边放打印机，只给插座网口位置建议。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "office"

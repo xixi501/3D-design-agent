@@ -110,27 +110,27 @@
       "activityGroups": [
         {
           "name": "睡眠组",
-          "ids": [
+          "memberIds": [
             "o_crib"
           ]
         },
         {
           "name": "喂奶组",
-          "ids": [
+          "memberIds": [
             "o_chair",
             "o_lamp"
           ]
         },
         {
           "name": "换洗组",
-          "ids": [
+          "memberIds": [
             "o_dresser",
             "o_cur"
           ]
         },
         {
           "name": "收纳组",
-          "ids": [
+          "memberIds": [
             "o_toy"
           ]
         }

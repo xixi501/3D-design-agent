@@ -2,7 +2,7 @@
 name: home-gym
 description: 在 4–15㎡ 的健身角或家庭健身房里，按"器械靠墙、镜面对着空地、瑜伽区可收"的思路排跑步机、动感单车与拉伸垫，处理器械操作间距、器械不挡门、连续 700 通道、镜面墙与自拍视线、减震吸音、通风与层高。当用户说"想在家练"、给出一间小房或阳台一角、或问"跑步机放哪、镜子挂哪"时使用；不适用于需要拆改墙体、吊挂承重架或按商业健身房排布器材的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 手机拍照）。
+compatibility: 依赖主系统提供的语义 capability（见"依赖什么"）；未接入时按降级路径执行，不声称已执行。
 metadata:
   version: "0.2.0"
   status: "conformant"
@@ -88,13 +88,14 @@ metadata:
 
 | capability | 用途 |
 |---|---|
-| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `scene.read` | 读取当前场景/现状 |
 | `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
-| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.propose` | 产出候选（主系统审批后落库） |
 | `candidate.preflight` | 几何与净空预检，返回问题码 |
 | `candidate.review` | 复核候选与需求、判据的一致性 |
+| `candidate.render` | 输出视角截图，作为验收证据 |
 
-**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**边界**：不持有写权限——没有场景写入能力，也没有项目提交能力。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
 **降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证

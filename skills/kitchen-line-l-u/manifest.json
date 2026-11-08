@@ -9,8 +9,7 @@
   "summary": "3–10㎡ 独立厨房：先按开间选形（单排/L/U/双排），再压操作三角与备餐顺序，吊柜避窗、冰箱留开门侧，通道按判据复核。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "kitchen"

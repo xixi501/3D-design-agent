@@ -9,8 +9,7 @@
   "summary": "5–15㎡ 书房或居家办公位：书桌对窗但离窗墙留出窗帘与暖气，屏幕侧光不背光，椅后留出起身净空，视频背景干净，收纳分三处。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "study",
@@ -31,7 +30,8 @@
     "catalog.search",
     "candidate.propose",
     "candidate.preflight",
-    "candidate.review"
+    "candidate.review",
+    "candidate.render"
   ],
   "judgements": [
     "J-ASSET-02",

@@ -1,6 +1,7 @@
 {
-  "schemaVersion": "actiscape.skill.v1",
-  "generatedAt": "2026-11-09T00:17:15+0800",
+  "schemaVersion": "actiscape.skill-pool.v1",
+  "poolVersion": "2026-11-09",
+  "generatedAt": "2026-11-09T01:07:00+0800",
   "counts": {
     "skills": 30,
     "active": 7,
@@ -8,6 +9,40 @@
     "cases": 60,
     "judgements": 69
   },
+  "active": [
+    "floorplan-intake",
+    "layout-check-repair",
+    "lighting-color",
+    "living-dining-open",
+    "living-dining-small",
+    "social-reading-zone",
+    "style-coherence"
+  ],
+  "reserved": [
+    "aging-friendly",
+    "balcony-laundry",
+    "bathroom-standard",
+    "dining-island",
+    "entry-storage",
+    "gaming-room",
+    "guest-bedroom",
+    "home-gym",
+    "home-office",
+    "kids-room",
+    "kitchen-line-l-u",
+    "master-bedroom",
+    "media-room",
+    "nursery",
+    "office-workstation",
+    "pet-friendly",
+    "photo-object-import",
+    "rental-makeover",
+    "studio-micro",
+    "tatami-multipurpose",
+    "tea-room",
+    "utility-storage",
+    "villa-ground-floor"
+  ],
   "skills": [
     {
       "id": "aging-friendly",
@@ -19,6 +54,7 @@
       "summary": "长者卧室与卫浴：净宽取更严格的 800、无高差、扶手与助力、床边与马桶旁转移空间、夜间起夜照明、圆角固定家具与 450 坐高。",
       "capabilities": [
         "scene.read",
+        "catalog.search",
         "candidate.review"
       ],
       "judgements": [
@@ -166,9 +202,8 @@
       "status": "conformant",
       "summary": "把户型图或文字需求整理成要素表、假设表与待确认清单；先判断「放不放得下」，再交给具体房间技能。",
       "capabilities": [
-        "floorplan.analyze",
-        "floorplan.measure",
-        "scene.read"
+        "scene.read",
+        "candidate.preflight"
       ],
       "judgements": [
         "J-STA-01",
@@ -267,7 +302,8 @@
         "catalog.search",
         "candidate.propose",
         "candidate.preflight",
-        "candidate.review"
+        "candidate.review",
+        "candidate.render"
       ],
       "judgements": [
         "J-CIR-01",
@@ -304,7 +340,8 @@
         "catalog.search",
         "candidate.propose",
         "candidate.preflight",
-        "candidate.review"
+        "candidate.review",
+        "candidate.render"
       ],
       "judgements": [
         "J-ASSET-02",
@@ -405,9 +442,11 @@
       "summary": "对已有布置跑 check.run，按严重度与影响对象数排序，一次只修一类，每轮重跑，3 轮预算用完即停，修不动的写进未解决清单并如实报告。",
       "capabilities": [
         "scene.read",
-        "candidate.preflight",
+        "catalog.search",
         "candidate.propose",
-        "candidate.review"
+        "candidate.preflight",
+        "candidate.review",
+        "candidate.render"
       ],
       "judgements": [
         "J-CIR-01",
@@ -436,19 +475,19 @@
       "summary": "按环境/任务/重点三层定比例，按房间给照度与色温，再把灯位落到家具上（餐桌吊灯对中、阅读角落地灯、镜前灯垂直照面），配色落到可采购的材质。",
       "capabilities": [
         "scene.read",
+        "catalog.search",
         "candidate.review"
       ],
       "judgements": [
         "J-ASSET-02",
-        "J-CIR-07",
         "J-COL-01",
         "J-COL-02",
         "J-CUR-01",
-        "J-DOOR-02",
         "J-LIGHT-01",
         "J-LIGHT-02",
         "J-LIGHT-03",
         "J-LIGHT-04",
+        "J-VER-01",
         "J-VER-02",
         "J-WALL-01"
       ],
@@ -471,7 +510,8 @@
         "catalog.search",
         "candidate.propose",
         "candidate.preflight",
-        "candidate.review"
+        "candidate.review",
+        "candidate.render"
       ],
       "judgements": [
         "J-CIR-01",
@@ -694,6 +734,7 @@
       "summary": "养猫养狗的起居空间：先划宠物活动区与清洁点，猫爬架靠窗但不进窗帘带，猫砂盆/狗窝避开餐厨与主动线，耐抓耐污材料 + 门挡 + 线槽。",
       "capabilities": [
         "scene.read",
+        "catalog.search",
         "candidate.review"
       ],
       "judgements": [
@@ -721,9 +762,11 @@
       "capabilities": [
         "asset.job",
         "scene.read",
+        "catalog.search",
         "candidate.propose",
         "candidate.preflight",
-        "candidate.review"
+        "candidate.review",
+        "candidate.render"
       ],
       "judgements": [
         "J-ASSET-01",
@@ -748,6 +791,7 @@
       "summary": "3.2×4.6m 出租单间：不拆改、可逆、可复原；0/500/2000 元三档预算，先摆位再换软装，灯光分层 + 60/30/10 配色 + 一个视觉焦点，退租能全部搬走。",
       "capabilities": [
         "scene.read",
+        "catalog.search",
         "candidate.review"
       ],
       "judgements": [
@@ -777,9 +821,11 @@
       "summary": "把客厅家具声明成会客组/阅读组，只对目标组下发编辑，新增或重排“单人椅 + 落地灯 + 边几（可加书架）”的阅读角，并守住组内通道与窗带。",
       "capabilities": [
         "scene.read",
+        "catalog.search",
         "candidate.propose",
         "candidate.preflight",
-        "candidate.review"
+        "candidate.review",
+        "candidate.render"
       ],
       "judgements": [
         "J-CIR-01",
@@ -847,6 +893,7 @@
       "summary": "把口头风格翻成硬装—软装—材质—五金四件套，用 60-30-10、主材 ≤3、焦点 ≤1 把整屋拉齐；硬装不可改时只换软装。",
       "capabilities": [
         "scene.read",
+        "catalog.search",
         "candidate.review"
       ],
       "judgements": [

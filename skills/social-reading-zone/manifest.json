@@ -9,7 +9,7 @@
   "summary": "把客厅家具声明成会客组/阅读组，只对目标组下发编辑，新增或重排“单人椅 + 落地灯 + 边几（可加书架）”的阅读角，并守住组内通道与窗带。",
   "appliesTo": {
     "modes": [
-      "edit_existing"
+      "edit"
     ],
     "roomKinds": [
       "living_dining"
@@ -26,9 +26,11 @@
   "notApplicable": [],
   "capabilities": [
     "scene.read",
+    "catalog.search",
     "candidate.propose",
     "candidate.preflight",
-    "candidate.review"
+    "candidate.review",
+    "candidate.render"
   ],
   "judgements": [
     "J-CIR-01",

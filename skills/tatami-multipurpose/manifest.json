@@ -9,8 +9,7 @@
   "summary": "5–12㎡ 榻榻米房：先定地台占多少与上翻/侧抽，再让开门扇与窗帘、留出台阶与 700 通道。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "tatami"

@@ -60,3 +60,19 @@ git diff --check
 ```
 
 全新 checkout 即可运行：尺寸表随 `tools/data/` 提交，无任何外部目录依赖。
+
+## 7 兼容性收口（2026-11-09，第二次提交）
+
+| # | 项 | 处理 |
+|---|---|---|
+| 1 | 模式枚举 | 删除 `generate_from_text` / `edit_existing` / `floorplan_import`；统一为 `generate_rectangular` / `edit` / `reconstruct_floorplan` / `asset_import`，并按 kind 固定组合（lint 校验） |
+| 2 | modifier 越权 | 5 个 modifier 不再声明 `candidate.propose` / `candidate.preflight`；正文"提交与检查"步骤改为"交付约束与验收项（不自己提交）" |
+| 3 | intake 越权 | `floorplan-intake` 删除 `floorplan.analyze/measure`、正文去掉 `candidate.propose/render`，只声明 `scene.read` + `candidate.preflight`，并写明识图由主系统执行 |
+| 4 | active capability | `social-reading-zone` / `layout-check-repair` / `photo-object-import` 补齐 `candidate.render`（后者补 `catalog.search`）；`living-dining-open` 补 `candidate.render`；正文使用即声明，由 lint 强校验 |
+| 5 | 池索引 | `skills/index.v1.json` 改为 `actiscape.skill-pool.v1`，含 `poolVersion`、`active[]`、`reserved[]`、`skills[]` |
+| 6 | 许可证 | 新增 `skills/LICENSES/MIT.txt`（全池共享，不逐包复制） |
+| 7 | 活动组字段 | 8 个案例的 `activityGroups` 由 `ids` 改为 `memberIds`；`expected.md` 固定写明"主系统不提供成组移动权限 / 只用于识别与证据 / 轮廓与所有权一对一" |
+
+**关于 `wallArt`**：catalog 无 `wallLamp`，`aging-friendly` 等 reserved 案例用 `wallArt` 表示"墙面装饰/壁灯占位"。它是挂墙装饰、不是实际壁灯，仅用于 reserved 案例的几何与挂墙验证；启用真实壁灯必须新增 `wallLamp` 目录配方，不能用 `wallArt` 冒充。
+
+仍待主系统完成的 L3 不变：真实场景/检查器接入后，把 7 个 active Skill 的 `validation.realCore` 改 `true`、`status` 升 `verified`；本池不自行宣布通过。

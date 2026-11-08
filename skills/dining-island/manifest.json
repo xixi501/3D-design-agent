@@ -9,8 +9,7 @@
   "summary": "4–30㎡ 餐厨一体：先定中岛角色（操作/早餐/兼餐桌），再定岛台对橱柜的通道、桌岛是并台还是分置，最后排吧椅与吊灯。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "kitchen",

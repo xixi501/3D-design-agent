@@ -9,8 +9,7 @@
   "summary": "1.2–6㎡ 生活阳台：先定排水再定机器，决定叠放或并排，留洗衣机前操作面、定晾衣杆高度与长度、处理地漏，并与通客厅的推拉门/窗帘避让。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "balcony"

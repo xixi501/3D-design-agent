@@ -37,7 +37,7 @@ test("original image tools expose measured evidence without changing project/dra
     assert.ok(v33.result.openingCandidates.length >= 1);
     assert.ok(v33.files.some((file: any) => file.name === "candidates.png"));
     const v36Analysis = await call(root + "/analyze", {
-      adapterVersion: "hpd-adapter-6",
+      adapterVersion: "hpd-adapter-6-1",
     });
     assert.equal(v36Analysis.statusCode, 200, v36Analysis.body);
     const v36 = v36Analysis.json();

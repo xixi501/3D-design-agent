@@ -25,7 +25,7 @@ from floorplan_image import MAX_BYTES, decode_image, overlay_image, png
 from PIL import Image
 
 ROOT = Path(__file__).parent / "vendor" / "house_plan_designer"
-VERSION = "hpd-adapter-6"
+VERSION = "hpd-adapter-6-1"
 
 
 class ParameterError(ValueError):
@@ -121,10 +121,14 @@ def analyze(image, image_path, args, out, adapter_version):
     raw = json.loads((out / "analysis.json").read_text())
     result = {k: raw[k] for k in ("size", "outline_px", "segments_px", "gaps_px", "dims_px")}
     files = {name: artifact(out / name) for name in ("analysis.png", "mask.png")}
-    if adapter_version in ("hpd-adapter-5", "hpd-adapter-6"):
+    if adapter_version in (
+        "hpd-adapter-5",
+        "hpd-adapter-6",
+        "hpd-adapter-6-1",
+    ):
         candidates = (
             structure_candidates_v4(image, result)
-            if adapter_version == "hpd-adapter-6"
+            if adapter_version in ("hpd-adapter-6", "hpd-adapter-6-1")
             else structure_candidates(image, result)
         )
         wall_mask = candidates.pop("_mask", None)
@@ -150,12 +154,12 @@ def analyze(image, image_path, args, out, adapter_version):
                 [
                     (
                         "V3-6 使用真实墙掩膜连通段、凹形外轮廓、分析断口与外部尺寸线；语义仍需原图复核"
-                        if adapter_version == "hpd-adapter-6"
+                        if adapter_version in ("hpd-adapter-6", "hpd-adapter-6-1")
                         else "V3-3 候选已完成外围墙闭合、开洞扫描和尺寸线聚类；语义仍需原图复核"
                     ),
                     "家具轮廓候选只提供像素证据，最终类别与组合由受控模型选择",
                 ]
-                if adapter_version in ("hpd-adapter-5", "hpd-adapter-6")
+                if adapter_version in ("hpd-adapter-5", "hpd-adapter-6", "hpd-adapter-6-1")
                 else []
             ),
         ],
@@ -322,8 +326,12 @@ def process(payload):
         elif mode == "fit":
             result = fits(image, image_path, args, out)
         elif mode == "contours":
-            if adapter_version not in ("hpd-adapter-5", "hpd-adapter-6"):
-                raise ValueError("家具轮廓候选仅支持 hpd-adapter-5/6")
+            if adapter_version not in (
+                "hpd-adapter-5",
+                "hpd-adapter-6",
+                "hpd-adapter-6-1",
+            ):
+                raise ValueError("家具轮廓候选仅支持 hpd-adapter-5/6/6-1")
             spec = args.get("spec", args)
             if not isinstance(spec, dict):
                 raise ValueError("家具轮廓候选缺少草稿")

@@ -15,7 +15,7 @@ const tool = path.join(
 function toolRequest(imageFile, mode, parameters) {
   const payload = {
     mode,
-    adapterVersion: "hpd-adapter-6",
+    adapterVersion: "hpd-adapter-6-1",
     parameters,
     image: fs.readFileSync(imageFile).toString("base64"),
   };
@@ -281,7 +281,7 @@ for (const match of objectMatches) {
 const output = {
   passed: true,
   modelCalls: 0,
-  adapterVersion: "hpd-adapter-6",
+  adapterVersion: "hpd-adapter-6-1",
   structureSkeletonVersion: 4,
   oneBedroom: {
     fallback: oneRecord.result.candidateSummary.fallback,

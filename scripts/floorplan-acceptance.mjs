@@ -254,7 +254,7 @@ try {
         waiting.generation?.upstreamTools?.some(
           (entry) =>
             entry.tool === "furniture_contours" &&
-            entry.record?.adapterVersion === "hpd-adapter-6",
+            entry.record?.adapterVersion === "hpd-adapter-6-1",
         ),
         "V3 browser acceptance must use deterministic furniture contours",
       );

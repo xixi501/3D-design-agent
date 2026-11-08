@@ -59,7 +59,7 @@ def runtime_versions():
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
         "floorplanReviewOptions": FLOORPLAN_REVIEW_OPTIONS,
         "floorplanPromptVersion": "s2c-floorplan-v3-6-1",
-        "floorplanToolAdapter": "hpd-adapter-6",
+        "floorplanToolAdapter": "hpd-adapter-6-1",
         "floorplanVisionConfigVersion": "vision-furniture-1",
         "floorplanActivityUnitVersion": "activity-unit-1",
         "floorplanScoringVersion": "s2c-5",

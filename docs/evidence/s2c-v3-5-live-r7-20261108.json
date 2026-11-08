@@ -1,0 +1,76 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "f2e96c08f5c65387529d2beed8fd9f8ae1725d14",
+  "scope": "seventh-independent-single-real-image-run",
+  "task": {
+    "projectId": "d10142e9-b69b-4400-ae60-3bc76b271d9d",
+    "taskId": "295f6bf6-61f6-4583-8b39-0804b5178ad8",
+    "status": "failed",
+    "errorCode": "MODEL_FORMAT",
+    "error": "模型在一次格式恢复后仍未返回可验证的结构化结果",
+    "modelCalls": 8,
+    "activeSeconds": 62.284557819366455,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0,
+    "repairs": 0
+  },
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "openings": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "furniture": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "symbolCount": 13,
+      "chairCount": 6
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "blocker": {
+    "stage": "initial-review-before-measurement",
+    "role": "check",
+    "message": "The system invoked the review model on a draft whose deterministic diagnostics still failed because measurement rows were not yet written. Two check responses ended without structured output.",
+    "compilationPassed": false,
+    "sourceReviewReached": false,
+    "confirmationReached": false,
+    "candidateSubmitted": false,
+    "projectWritten": false
+  },
+  "rootCause": {
+    "message": "Initial review was unconditional after draft creation instead of waiting for deterministic checks to pass. A failed pre-measurement draft cannot provide a usable source review.",
+    "diagnosticsFailure": "每个已读标注必须绑定对应的几何特征，不能忽略冲突标注"
+  },
+  "postFailureOfflineFix": {
+    "commit": "ab4e7a7",
+    "change": "Skip the initial review when deterministic checks require measurement repair; record the skip and proceed to deterministic measurement. Pre-confirmation review remains mandatory after diagnostics pass.",
+    "realRunAfterFixStarted": false
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r7-20261108-report.json",
+      "sha256": "1a11c4a56e44594bbbc3ca7f3a9a29cfcbbf236e38d9dda2ea3eab5a7a45ea29"
+    },
+    "scoring": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r7-20261108-scoring.json",
+      "sha256": "a230afbd421ff6f786984c9063d393fbf204ed220b549be5a10bcc5d319232a9"
+    },
+    "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T07-05-49-048Z"
+  }
+}

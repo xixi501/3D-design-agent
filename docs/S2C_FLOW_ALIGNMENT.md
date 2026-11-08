@@ -247,3 +247,9 @@ V3-5 保留 Qwen 作为唯一家具语义模型，但不再让模型直接组合
 任务仍在确认前以 `compilationPassed=false` 停止。根因不是几何，而是审核层把四个模型留下的 `blocking` 不确定项无条件升级成硬错误，同时把对应的 `FLOORPLAN_UNCERTAIN` 诊断重复计入。四条尺寸绑定实际全部存在且 residual 为 0，7 个固定门窗候选也全部与草稿精确匹配；仍被阻断的文本是“dimensions 为空”“门洞待拆分”等已经失效的旧说明。
 
 `cec6510` 将不确定项纳入代码仲裁：尺寸类说明仅在全部 anchor 都有尺寸绑定时降为 advisory，门窗类说明仅在全部固定候选都精确匹配时降为 advisory，墙厚/铰链/窗台等软项降为 advisory；没有相应代码证据的阻断项继续 fail-closed。同一真实失败草稿离线回放从 `passed=false` 变为 `passed=true`，四个旧阻断均成为 advisory。Python 93/93、受控 V3 浏览器通过；任务使用 17 次请求、110.76 秒、正式项目 revision 0，没有运行第二次。证据见 [V3-5 第六次真实运行](evidence/s2c-v3-5-live-r6-20261108.json)。
+
+### V3-5 不确定项仲裁后的第七次真实运行
+
+`f2e96c0` 的独立单次任务结构、家具和活动组首次识别 P/R 仍全部 1.0，但结构草稿刚创建时 `features/dimensions` 尚未写入，确定性预检按设计返回 `INVALID_FLOORPLAN`。流程仍无条件调用测量前初审，审核角色两次只返回正文而没有结构化 `FloorplanReview`，任务在 8 次请求、62.28 秒后以 `MODEL_FORMAT` 停止；正式项目 revision 0，无编译、确认或写入。
+
+这不是新的识别错误，而是流程顺序错误：对一张确定性检查明确未通过的测量前草稿做源图审核没有可执行意义。`ab4e7a7` 现在只在确定性检查通过后运行初始审核；若检查需要测量修复，则记录 `initial_review_skipped`、携带空 `sourceReview` 直接进入测量。测量后的确认前审核仍是强制门禁，不能跳过。Python 94/94、受控 V3 浏览器和 WebGL 闭环通过；该修复未重新实图运行。证据见 [V3-5 第七次真实运行](evidence/s2c-v3-5-live-r7-20261108.json)。

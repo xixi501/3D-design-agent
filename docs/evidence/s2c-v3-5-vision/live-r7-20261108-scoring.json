@@ -1,0 +1,118 @@
+{
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1,
+      "recall": 1,
+      "allMatched": true
+    },
+    "openings": {
+      "matches": [
+        {
+          "i": 0,
+          "j": 3
+        },
+        {
+          "i": 3,
+          "j": 0
+        },
+        {
+          "i": 5,
+          "j": 1
+        },
+        {
+          "i": 1,
+          "j": 4
+        },
+        {
+          "i": 2,
+          "j": 5
+        },
+        {
+          "i": 6,
+          "j": 2
+        },
+        {
+          "i": 4,
+          "j": 6
+        }
+      ],
+      "precision": 1,
+      "recall": 1
+    },
+    "furniture": {
+      "matches": [
+        {
+          "i": 9,
+          "j": 11
+        },
+        {
+          "i": 4,
+          "j": 4
+        },
+        {
+          "i": 1,
+          "j": 5
+        },
+        {
+          "i": 5,
+          "j": 1
+        },
+        {
+          "i": 11,
+          "j": 9
+        },
+        {
+          "i": 12,
+          "j": 10
+        },
+        {
+          "i": 0,
+          "j": 3
+        },
+        {
+          "i": 3,
+          "j": 6
+        },
+        {
+          "i": 8,
+          "j": 2
+        },
+        {
+          "i": 10,
+          "j": 12
+        },
+        {
+          "i": 6,
+          "j": 7
+        },
+        {
+          "i": 7,
+          "j": 8
+        },
+        {
+          "i": 2,
+          "j": 0
+        }
+      ],
+      "precision": 1,
+      "recall": 1
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "scoring": {
+    "passed": false,
+    "reason": "每个已读标注必须绑定对应的几何特征，不能忽略冲突标注"
+  },
+  "zeroObjectCorrections": true,
+  "completeFourRoleWorkflow": false,
+  "workflow": {
+    "passed": false,
+    "confirmationSimulated": false
+  }
+}

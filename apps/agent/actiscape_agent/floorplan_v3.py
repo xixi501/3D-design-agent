@@ -118,11 +118,136 @@ issues 只能使用固定 code；description 写一条可定位的具体问题�
 )
 
 
+def _opening_mismatches(data, skeleton):
+    issues = []
+    for candidate in skeleton.get("openingCandidates") or []:
+        owner = next(
+            (
+                wall
+                for wall in data.get("walls", [])
+                if (
+                    abs(
+                        (wall["a"]["y"] if wall["a"]["y"] == wall["b"]["y"] else wall["a"]["x"])
+                        - float(candidate["line"])
+                    )
+                    <= 3
+                )
+            ),
+            None,
+        )
+        matched = False
+        if owner:
+            along = "x" if owner["a"]["y"] == owner["b"]["y"] else "y"
+            wall_start = min(owner["a"][along], owner["b"][along])
+            for opening in data.get("openings", []):
+                if opening["wallId"] != owner["id"]:
+                    continue
+                start = wall_start + opening["offset"] - opening["width"] / 2
+                end = wall_start + opening["offset"] + opening["width"] / 2
+                if (
+                    abs(start - float(candidate["start"])) <= 3
+                    and abs(end - float(candidate["end"])) <= 3
+                ):
+                    matched = True
+                    break
+        if not matched:
+            issues.append(
+                {
+                    "code": "OPENING_MISMATCH",
+                    "source": "code",
+                    "severity": "blocking",
+                    "object_ids": [
+                        owner["id"] if owner else "",
+                        candidate["candidateId"],
+                    ],
+                    "description": "固定洞口候选没有被完整绑定到草稿",
+                    "evidenceRefs": [skeleton["analysisId"]],
+                    "bbox": [
+                        candidate["line"] - 10,
+                        candidate["start"],
+                        candidate["line"] + 10,
+                        candidate["end"],
+                    ]
+                    if candidate["orient"] == "v"
+                    else [
+                        candidate["start"],
+                        candidate["line"] - 10,
+                        candidate["end"],
+                        candidate["line"] + 10,
+                    ],
+                }
+            )
+    return issues
+
+
+def _measurement_bindings_complete(data):
+    features = {feature.get("id") for feature in data.get("features") or [] if feature.get("id")}
+    dimensions = data.get("dimensions") or []
+    anchors = data.get("anchors") or []
+    return (
+        bool(anchors)
+        and len(features) >= 2
+        and len(dimensions) >= len(anchors)
+        and all(
+            any(dimension.get("anchorIndex") == index for dimension in dimensions)
+            for index in range(len(anchors))
+        )
+    )
+
+
+def _deterministic_checks_passed(checks):
+    return not any(
+        issue.get("blocking", True) and issue.get("code") != "FLOORPLAN_UNCERTAIN"
+        for issue in checks.get("issues") or []
+    )
+
+
+def _uncertainty_resolved_by_code(uncertainty, data, checks, skeleton):
+    if not _deterministic_checks_passed(checks):
+        return False
+    text = (str(uncertainty.get("id") or "") + " " + str(uncertainty.get("message") or "")).lower()
+    if any(
+        term in text for term in ("dimension", "尺寸", "anchor", "标注")
+    ) and _measurement_bindings_complete(data):
+        return True
+    if any(
+        term in text
+        for term in (
+            "opening",
+            "door",
+            "window",
+            "洞口",
+            "门洞",
+            "门窗",
+            "断口",
+        )
+    ):
+        candidates = skeleton.get("openingCandidates") or []
+        if candidates and not _opening_mismatches(data, skeleton):
+            return True
+    return any(
+        term in text
+        for term in (
+            "hinge",
+            "swing",
+            "sill",
+            "head",
+            "墙厚",
+            "thickness",
+            "开启",
+            "铰链",
+            "窗台",
+            "装饰",
+            "decoration",
+        )
+    )
+
+
 def _code_review_issues(draft, diagnostics, skeleton):
     issues = []
     checks = diagnostics.get("checks") or {}
     for issue in checks.get("issues") or []:
-        if not issue.get("blocking", True):
+        if not issue.get("blocking", True) or issue.get("code") == "FLOORPLAN_UNCERTAIN":
             continue
         issues.append(
             {
@@ -136,16 +261,21 @@ def _code_review_issues(draft, diagnostics, skeleton):
             }
         )
     data = draft["data"]
-    if any(item.get("blocking") for item in data.get("uncertainties", [])):
+    for item in data.get("uncertainties", []):
+        if not item.get("blocking"):
+            continue
+        resolved = _uncertainty_resolved_by_code(item, data, checks, skeleton)
         issues.append(
             {
                 "code": "OTHER",
                 "source": "code",
-                "severity": "blocking",
-                "object_ids": [
-                    item["id"] for item in data.get("uncertainties", []) if item.get("blocking")
-                ][:20],
-                "description": "仍有阻断不确定项",
+                "severity": "advisory" if resolved else "blocking",
+                "object_ids": [item["id"]],
+                "description": (
+                    f"代码证据已覆盖该不确定项，保留人工说明：{item.get('message', '')}"
+                    if resolved
+                    else f"仍有未由代码消解的阻断不确定项：{item.get('message', '')}"
+                )[:300],
                 "evidenceRefs": [diagnostics["id"]] if diagnostics.get("id") else [],
                 "bbox": None,
             }
@@ -176,68 +306,13 @@ def _code_review_issues(draft, diagnostics, skeleton):
                     "bbox": None,
                 }
             )
-        for candidate in skeleton.get("openingCandidates") or []:
-            owner = next(
-                (
-                    wall
-                    for wall in data.get("walls", [])
-                    if (
-                        abs(
-                            (wall["a"]["y"] if wall["a"]["y"] == wall["b"]["y"] else wall["a"]["x"])
-                            - float(candidate["line"])
-                        )
-                        <= 3
-                    )
-                ),
-                None,
-            )
-            matched = False
-            if owner:
-                along = "x" if owner["a"]["y"] == owner["b"]["y"] else "y"
-                wall_start = min(owner["a"][along], owner["b"][along])
-                for opening in data.get("openings", []):
-                    if opening["wallId"] != owner["id"]:
-                        continue
-                    start = wall_start + opening["offset"] - opening["width"] / 2
-                    end = wall_start + opening["offset"] + opening["width"] / 2
-                    if (
-                        abs(start - float(candidate["start"])) <= 3
-                        and abs(end - float(candidate["end"])) <= 3
-                    ):
-                        matched = True
-                        break
-            if not matched:
-                issues.append(
-                    {
-                        "code": "OPENING_MISMATCH",
-                        "source": "code",
-                        "severity": "blocking",
-                        "object_ids": [
-                            owner["id"] if owner else "",
-                            candidate["candidateId"],
-                        ],
-                        "description": "固定洞口候选没有被完整绑定到草稿",
-                        "evidenceRefs": [skeleton["analysisId"]],
-                        "bbox": [
-                            candidate["line"] - 10,
-                            candidate["start"],
-                            candidate["line"] + 10,
-                            candidate["end"],
-                        ]
-                        if candidate["orient"] == "v"
-                        else [
-                            candidate["start"],
-                            candidate["line"] - 10,
-                            candidate["end"],
-                            candidate["line"] + 10,
-                        ],
-                    }
-                )
+        issues.extend(_opening_mismatches(data, skeleton))
     return issues
 
 
 def _arbitrate_review(review, draft, diagnostics, skeleton):
     code_issues = _code_review_issues(draft, diagnostics, skeleton)
+    blocking_code_issues = [issue for issue in code_issues if issue.get("severity") == "blocking"]
     model_issues = []
     for issue in review.get("issues", []):
         item = {
@@ -267,11 +342,13 @@ def _arbitrate_review(review, draft, diagnostics, skeleton):
             }
         )
     issues = [*code_issues, *model_issues, *conflicts]
-    passed = not code_issues
-    if code_issues:
+    passed = not blocking_code_issues
+    if blocking_code_issues:
         summary = "确定性检查发现阻断问题；模型意见仅保留为辅助证据。"
     elif conflicts:
         summary = "确定性检查通过；未能复现的模型审核意见已记录为 advisory。"
+    elif code_issues:
+        summary = "确定性检查通过；已由代码证据覆盖的遗留说明保留为 advisory。"
     else:
         summary = "确定性检查通过，模型未提出可复现的阻断问题。"
     return {

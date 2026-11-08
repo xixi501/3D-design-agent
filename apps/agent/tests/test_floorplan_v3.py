@@ -876,6 +876,134 @@ def test_v33_furniture_contours_and_review_arbitration():
     )
 
 
+def test_review_downgrades_dimension_uncertainty_resolved_by_code_bindings():
+    draft = {
+        "data": {
+            "uncertainties": [
+                {
+                    "id": "u_dim_basis",
+                    "message": "dimensions 集合为空，尺寸基准待确认",
+                    "blocking": True,
+                }
+            ],
+            "symbols": [{"id": "sofa"}],
+            "anchors": [
+                {
+                    "a": {"x": 0, "y": 0},
+                    "b": {"x": 100, "y": 0},
+                    "distance": {"value": 1000, "unit": "mm"},
+                    "basis": "exterior",
+                    "evidence": "dimension",
+                }
+            ],
+            "features": [{"id": "left"}, {"id": "right"}],
+            "dimensions": [{"id": "dim", "anchorIndex": 0}],
+            "walls": [],
+            "openings": [],
+        }
+    }
+    diagnostics = {"id": "diagnostic", "checks": {"passed": True, "issues": []}}
+    review = {"passed": True, "summary": "ok", "issues": []}
+    arbitrated = _arbitrate_review(review, draft, diagnostics, {})
+    assert arbitrated["passed"] is True
+    assert any(
+        issue["object_ids"] == ["u_dim_basis"]
+        and issue["severity"] == "advisory"
+        and "代码证据已覆盖" in issue["description"]
+        for issue in arbitrated["issues"]
+    )
+
+
+def test_review_keeps_uncertainty_blocking_without_code_resolution():
+    draft = {
+        "data": {
+            "uncertainties": [
+                {
+                    "id": "u_dim_basis",
+                    "message": "dimensions 集合为空，尺寸基准待确认",
+                    "blocking": True,
+                }
+            ],
+            "symbols": [{"id": "sofa"}],
+            "anchors": [
+                {
+                    "a": {"x": 0, "y": 0},
+                    "b": {"x": 100, "y": 0},
+                    "distance": {"value": 1000, "unit": "mm"},
+                    "basis": "exterior",
+                    "evidence": "dimension",
+                }
+            ],
+            "features": [],
+            "dimensions": [],
+            "walls": [],
+            "openings": [],
+        }
+    }
+    diagnostics = {"id": "diagnostic", "checks": {"passed": True, "issues": []}}
+    review = {"passed": True, "summary": "ok", "issues": []}
+    arbitrated = _arbitrate_review(review, draft, diagnostics, {})
+    assert arbitrated["passed"] is False
+    assert any(
+        issue["object_ids"] == ["u_dim_basis"] and issue["severity"] == "blocking"
+        for issue in arbitrated["issues"]
+    )
+
+
+def test_review_downgrades_opening_uncertainty_when_candidates_all_match():
+    draft = {
+        "data": {
+            "uncertainties": [
+                {
+                    "id": "u_int_v_split",
+                    "message": "门洞 openings 候选仍需拆分",
+                    "blocking": True,
+                }
+            ],
+            "symbols": [{"id": "sofa"}],
+            "anchors": [],
+            "features": [],
+            "dimensions": [],
+            "walls": [
+                {
+                    "id": "north",
+                    "a": {"x": 0, "y": 0},
+                    "b": {"x": 100, "y": 0},
+                }
+            ],
+            "openings": [
+                {
+                    "id": "window",
+                    "wallId": "north",
+                    "offset": 50,
+                    "width": 20,
+                }
+            ],
+        }
+    }
+    skeleton = {
+        "structureSkeletonVersion": 3,
+        "analysisId": "analysis",
+        "openingCandidates": [
+            {
+                "candidateId": "op_0",
+                "line": 0,
+                "start": 40,
+                "end": 60,
+                "orient": "h",
+            }
+        ],
+    }
+    diagnostics = {"id": "diagnostic", "checks": {"passed": True, "issues": []}}
+    review = {"passed": True, "summary": "ok", "issues": []}
+    arbitrated = _arbitrate_review(review, draft, diagnostics, skeleton)
+    assert arbitrated["passed"] is True
+    assert any(
+        issue["object_ids"] == ["u_int_v_split"] and issue["severity"] == "advisory"
+        for issue in arbitrated["issues"]
+    )
+
+
 def test_vision_parser_and_contour_ownership_reject_duplicate_symbols():
     parsed = _parse_structured_content(
         '```json\n{"status":"draft","question":"","symbols":[]}\n```'

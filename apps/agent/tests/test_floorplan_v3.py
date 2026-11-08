@@ -32,7 +32,9 @@ from actiscape_agent.floorplan_v3 import (
     _assemble_activity_symbols,
     _assemble_contour_symbols,
     _assemble_structure,
+    _consolidate_open_room_labels,
     _deterministic_measurement_bindings,
+    _dimension_value,
     _finalize_measured_update,
     _parse_structured_content,
     _repair_activity_object_bindings,
@@ -72,6 +74,41 @@ def analysis_record():
         },
         "files": [],
     }
+
+
+def test_unitless_dimension_uses_candidate_unit_hint():
+    assert _dimension_value("9700", "mm") == (9700, "mm")
+    assert _dimension_value("9.7m") == (9.7, "m")
+    with pytest.raises(TaskError):
+        _dimension_value("9700")
+
+
+def test_open_living_dining_and_foyer_labels_merge_by_enclosed_region():
+    walls = [
+        {"a": {"x": 10, "y": 10}, "b": {"x": 390, "y": 10}, "thicknessPx": 8},
+        {"a": {"x": 390, "y": 10}, "b": {"x": 390, "y": 290}, "thicknessPx": 8},
+        {"a": {"x": 390, "y": 290}, "b": {"x": 10, "y": 290}, "thicknessPx": 8},
+        {"a": {"x": 10, "y": 290}, "b": {"x": 10, "y": 10}, "thicknessPx": 8},
+        {"a": {"x": 220, "y": 10}, "b": {"x": 220, "y": 290}, "thicknessPx": 8},
+    ]
+    rooms = [
+        {"id": "living", "name": "客厅", "functionalArea": "living", "at": {"x": 60, "y": 120}},
+        {"id": "dining", "name": "餐厅", "functionalArea": "dining", "at": {"x": 60, "y": 210}},
+        {"id": "foyer", "name": "玄关", "functionalArea": "other", "at": {"x": 120, "y": 50}},
+        {"id": "bed", "name": "次卧01", "functionalArea": "bedroom", "at": {"x": 300, "y": 120}},
+    ]
+    output, targets, notes = _consolidate_open_room_labels(
+        walls,
+        rooms,
+        ["living", "dining"],
+        400,
+        300,
+    )
+    assert len(output) == 2
+    assert targets == ["living"]
+    assert next(room for room in output if room["id"] == "living")["name"] == "客餐厅"
+    assert any(room["id"] == "bed" for room in output)
+    assert len(notes) == 1
 
 
 def structure_response():
@@ -1595,7 +1632,7 @@ def activity_vision_fixture(tmp_path):
         },
     )
     generation = store.task(task["id"], internal=True)["generation"]
-    generation.update(workflowVersion=3, floorplanVersion="s2c-floorplan-v3-6")
+    generation.update(workflowVersion=3, floorplanVersion="s2c-floorplan-v3-6-1")
     store.update(task["id"], generation=generation)
     raw_candidates, graph = activity_object_graph()
     draft = {

@@ -24,7 +24,7 @@ S2-C 图片预处理新增 Pillow 13.0.0（MIT-CMU）、opencv-python-headless 4
 
 `floorplan-reconstruction@0.5.3` 增加独立家具 grounding 模型配置。默认使用 `Qwen/Qwen3-VL-32B-Instruct-FP8`（Apache-2.0），候选实现为 `zai-org/GLM-4.6V-Flash`（MIT）。模型权重由 vLLM 从仓库外缓存加载，不随本项目分发；DeepSeek 继续保留结构与常规 Agent 职责。
 
-`floorplan-reconstruction@0.5.5` 参考 ACRScene 的主辅对象和活动组语义，实现轻量对象图与 `group_seated`／`direct_occupancy`／`direct_access`／`standalone` 关系；V3-6 另增加四椅桌面合成、细长 group 柜体对象和固定玄关柜排除。未引入 ACRScene 的 HSSD、Blender 或布局求解器依赖。
+`floorplan-reconstruction@0.5.6` 参考 ACRScene 的主辅对象和活动组语义，实现轻量对象图与 `group_seated`／`direct_occupancy`／`direct_access`／`standalone` 关系；V3-6 另增加四椅桌面合成、细长 group 柜体对象和固定玄关柜排除。未引入 ACRScene 的 HSSD、Blender 或布局求解器依赖。
 
 `floorplan-reconstruction@0.2.1` 增加上述固定上游的真实读图工作流。`analyze.py`、`axismap.py`、`wallfit.py`、`wallaudit.py`、`furnoverlay.py`、`dimticks.py`、`dimocr.py`、`imgio.py`、尺寸目录和两份工作流说明原样保存在 Python 包内 `vendor/house_plan_designer`；原始 MIT 许可及逐文件哈希一并保留。适配器限制输入、文件和进程边界，正式场景继续由 TypeScript 编译；详情见 [原版工具适配](S2C_UPSTREAM_TOOLS.md)。
 

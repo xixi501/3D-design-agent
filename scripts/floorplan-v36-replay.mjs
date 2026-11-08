@@ -72,6 +72,9 @@ function candidateDraft(record, reference) {
   });
   const dimension = result.dimensionCandidates[0];
   assert.ok(dimension, "V3-6 must emit at least one external dimension line");
+  if (!result.candidateSummary.fallback) {
+    assert.equal(dimension.unitHint, "mm");
+  }
   const anchors = [
     {
       a: dimension.a || reference.anchors[0].a,

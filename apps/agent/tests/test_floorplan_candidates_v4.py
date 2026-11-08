@@ -253,6 +253,7 @@ def test_v36_source_mask_candidates_compile_geometrically_and_score_walls_openin
     assert opening_precision >= 0.9
     assert opening_recall >= 0.9
     dimension = candidate["dimensionCandidates"][0]
+    assert dimension["unitHint"] == "mm"
     assert dimension["at"] < min(wall["line"] for wall in candidate["candidateWalls"])
     assert dimension["b"]["x"] - dimension["a"]["x"] == pytest.approx(546, abs=2)
     json.dumps(candidate)

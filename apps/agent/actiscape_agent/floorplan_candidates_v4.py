@@ -764,6 +764,7 @@ def _dimension_candidates(
             "b": {"x": round(right_outer, 3), "y": round(at, 3)},
             "suggestedWallRole": "top",
             "suggestedBasis": "exterior",
+            "unitHint": "mm",
             "source": "external-line",
             "confidence": round(
                 min(

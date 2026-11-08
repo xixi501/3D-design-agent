@@ -55,7 +55,10 @@ class FloorplanToolset:
         )
         adapter = (
             "hpd-adapter-6"
-            if floorplan_version == "s2c-floorplan-v3-6"
+            if floorplan_version in (
+                "s2c-floorplan-v3-6",
+                "s2c-floorplan-v3-6-1",
+            )
             else "hpd-adapter-5"
             if floorplan_version
             in (

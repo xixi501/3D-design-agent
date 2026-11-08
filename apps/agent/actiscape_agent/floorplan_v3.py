@@ -6,6 +6,8 @@ import math
 import re
 import statistics
 
+import cv2
+import numpy as np
 from langchain_core.tools import tool
 from pydantic import ValidationError
 
@@ -33,7 +35,7 @@ from .skill_registry import FLOORPLAN_TOOLS, load_design_skill, skill_record
 from .store import TaskError, fingerprint
 from .vision_client import VisionModelClient, VisionModelFailure
 
-VERSION = "s2c-floorplan-v3-6"
+VERSION = "s2c-floorplan-v3-6-1"
 COMMON = (
     RULES
     + PIXEL_RULES.replace("餐椅四把就是四个符号", "每把餐椅都要单独记录")
@@ -52,14 +54,14 @@ walls 中每项 business wall 必须通过 candidateWallIds 选择代码预先�
 openings 必须引用 openingCandidates 的 candidateId 和 type；代码决定所属墙、偏移和宽度。同一洞口候选不能重复使用。
 rooms 使用房间名所在原图点，每个封闭区域一个标签；functionalArea 写 living/dining/kitchen/bedroom/bathroom/other。targetRoomIds 只选需要复现家具的客餐厅。
 rooms.name 必须逐字复制原图可见标签，不翻译、不扩写、不拼接中英文；用途说明只能写入 functionalArea 或 uncertainties。
-dimensionReads 只选择 dimensionCandidates，并逐字抄录图中真实数字与单位；代码根据候选位置决定端点、墙面基准和 evidence。不要返回 anchors 或自行填写锚点。未知 height/wallThickness 留 null。
+dimensionReads 只选择 dimensionCandidates，并逐字抄录图中真实数字与单位；原图只写数字时只抄数字，候选 unitHint 由代码补足。代码根据候选位置决定端点、墙面基准和 evidence。不要返回 anchors 或自行填写锚点。未知 height/wallThickness 留 null。
 无法确认的关键结构写入 uncertainties(blocking=true)。
 证据引用使用 analysisId、cropId 或 image:<sha256>。status=unsupported 仅用于非单层正交清晰平面图。"""
 )
 STRUCTURE_REPAIR = (
     COMMON
     + """\n上一轮结构结果无法由固定代码组装。你只修正 StructureRecognition，不修改候选骨架，不增加无证据墙。
-只选择 StructureSkeleton.candidateWalls 中存在的 candidateWallId；门窗只引用 openingCandidates，尺寸只引用 dimensionCandidates，并逐字抄录图中标注。
+只选择 StructureSkeleton.candidateWalls 中存在的 candidateWallId；门窗只引用 openingCandidates，尺寸只引用 dimensionCandidates，并逐字抄录图中标注。原图只写数字时保留数字，不得因单位未印出而删除已读尺寸。
 按输入的 errorCode、objectIds、message 和 allowedCandidateWallIds 修正；不得用相近候选凑数，不得删除阻断不确定项。只返回结构化结果，不输出解释。"""
 )
 FURNITURE = (
@@ -1410,9 +1412,9 @@ def _gap_piece(skeleton, analysis_id, index):
     return skeleton["gaps"][index]
 
 
-def _dimension_value(label):
+def _dimension_value(label, unit_hint=None):
     match = re.search(
-        r"([0-9]+(?:\.[0-9]+)?)\s*(mm|cm|m)(?![a-z])",
+        r"([0-9]+(?:\.[0-9]+)?)\s*(mm|cm|m)?(?![a-z])",
         label,
         flags=re.IGNORECASE,
     )
@@ -1422,7 +1424,14 @@ def _dimension_value(label):
             f"尺寸标注 {label!r} 不含可解析的长度",
             details={"objectIds": [label]},
         )
-    return float(match.group(1)), match.group(2).lower()
+    unit = match.group(2) or unit_hint
+    if unit not in ("mm", "cm", "m"):
+        raise TaskError(
+            "INVALID_DIMENSION_REFERENCE",
+            f"尺寸标注 {label!r} 缺少可确定单位",
+            details={"objectIds": [label]},
+        )
+    return float(match.group(1)), unit.lower()
 
 
 def _dimension_anchor(candidate, geometry, label):
@@ -1433,7 +1442,7 @@ def _dimension_anchor(candidate, geometry, label):
             f"尺寸候选 {candidate['candidateId']} 缺少有效基准",
             details={"objectIds": [candidate["candidateId"]]},
         )
-    value, unit = _dimension_value(label)
+    value, unit = _dimension_value(label, candidate.get("unitHint"))
     if (
         isinstance(candidate.get("a"), dict)
         and isinstance(candidate.get("b"), dict)
@@ -1490,6 +1499,82 @@ def _dimension_anchor(candidate, geometry, label):
             f"ticks {candidate['ticks'][0]}..{candidate['ticks'][1]}: {label}"
         ),
     }
+
+
+def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
+    """Merge living/dining/foyer points that share one enclosed free region."""
+    barrier = np.zeros((height, width), np.uint8)
+    for wall in walls:
+        start = (
+            round(float(wall["a"]["x"])),
+            round(float(wall["a"]["y"])),
+        )
+        end = (
+            round(float(wall["b"]["x"])),
+            round(float(wall["b"]["y"])),
+        )
+        thickness = max(3, round(float(wall.get("thicknessPx") or 8)) + 2)
+        cv2.line(barrier, start, end, 1, thickness)
+    count, labels = cv2.connectedComponents(
+        (barrier == 0).astype(np.uint8),
+        8,
+    )
+    grouped = {}
+    unplaced = []
+    for room in rooms:
+        x = round(float(room["at"]["x"]))
+        y = round(float(room["at"]["y"]))
+        if not (0 <= x < width and 0 <= y < height):
+            unplaced.append(room)
+            continue
+        label = int(labels[y, x])
+        if label <= 0 or label >= count:
+            unplaced.append(room)
+            continue
+        grouped.setdefault(label, []).append(room)
+    allowed_names = {"客餐厅", "客厅", "餐厅", "玄关"}
+    allowed_areas = {"living", "dining", "other"}
+    output = list(unplaced)
+    targets = list(dict.fromkeys(target_ids))
+    notes = []
+    for members in grouped.values():
+        if len(members) == 1:
+            output.extend(members)
+            continue
+        if not (
+            all(member.get("name") in allowed_names for member in members)
+            and all(member.get("functionalArea") in allowed_areas for member in members)
+            and any(member["id"] in targets for member in members)
+        ):
+            output.extend(members)
+            continue
+        preferred = next(
+            (member for member in members if member.get("functionalArea") == "living"),
+            next(
+                (member for member in members if member.get("functionalArea") == "dining"),
+                members[0],
+            ),
+        )
+        removed = [member["id"] for member in members]
+        merged = {
+            **preferred,
+            "name": "客餐厅",
+            "functionalArea": "living",
+        }
+        output.append(merged)
+        targets = [merged["id"] if target in removed else target for target in targets]
+        targets = list(dict.fromkeys(targets))
+        notes.append(
+            {
+                "id": f"u_merge_{merged['id']}",
+                "message": "固定代码把同一连通区域的客厅、餐厅和玄关标签合并为客餐厅目标区域。",
+                "blocking": False,
+                "code": "ROOM_SCOPE_OPEN_KITCHEN",
+                "objectIds": removed,
+                "evidenceRefs": [],
+            }
+        )
+    return output, targets, notes
 
 
 def _assemble_structure_v3(skeleton, recognition, evidence_index):
@@ -1745,6 +1830,24 @@ def _assemble_structure_v3(skeleton, recognition, evidence_index):
             "固定墙体候选没有被完整选择",
             details={"objectIds": sorted(missing_walls)},
         )
+    image_size = skeleton.get("image") or {}
+    width = image_size.get("width") or round(
+        max(
+            coordinate
+            for wall in draft_walls
+            for point in (wall["a"], wall["b"])
+            for coordinate in (point["x"], point["y"])
+        )
+        + 2
+    )
+    height = image_size.get("height") or width
+    rooms, target_room_ids, room_notes = _consolidate_open_room_labels(
+        draft_walls,
+        recognition["rooms"],
+        recognition["targetRoomIds"],
+        width,
+        height,
+    )
     return {
         "status": "draft",
         "question": recognition.get("question", ""),
@@ -1760,11 +1863,14 @@ def _assemble_structure_v3(skeleton, recognition, evidence_index):
         **({"dimensionObservations": observations} if observations else {}),
         "walls": draft_walls,
         "openings": draft_openings,
-        "rooms": recognition["rooms"],
+        "rooms": rooms,
         "symbols": [],
         "activityGroups": [],
-        "targetRoomIds": recognition["targetRoomIds"],
-        "uncertainties": recognition["uncertainties"],
+        "targetRoomIds": target_room_ids,
+        "uncertainties": [
+            *recognition["uncertainties"],
+            *room_notes,
+        ],
         "features": [],
         "dimensions": [],
     }
@@ -2225,6 +2331,7 @@ class FloorplanV3(FloorplanV2):
         if generation.get("floorplanVersion") in (
             "s2c-floorplan-v3-5",
             "s2c-floorplan-v3-6",
+            "s2c-floorplan-v3-6-1",
         ):
             return await self.recognize_furniture_activity(task, image, draft, diagnostics)
         if generation.get("floorplanVersion") == "s2c-floorplan-v3-4":

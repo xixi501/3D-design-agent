@@ -474,7 +474,7 @@ def manager_factory(directory):
                         ),
                     )
                 else:
-                    g["floorplanVersion"] = "s2c-floorplan-v3-6"
+                    g["floorplanVersion"] = "s2c-floorplan-v3-6-1"
                 manager.store.update(task["id"], generation=g)
                 task = manager.store.task(task["id"])
             return task

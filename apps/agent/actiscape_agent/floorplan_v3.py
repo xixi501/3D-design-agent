@@ -793,6 +793,67 @@ def _finalize_measured_update(
     ).model_dump(exclude_none=True, by_alias=True)
 
 
+def _room_normalization_update(draft, diagnostics_id=None):
+    data = draft["data"]
+    rooms, targets, notes = _consolidate_open_room_labels(
+        data.get("walls") or [],
+        data.get("rooms") or [],
+        data.get("targetRoomIds") or [],
+        data["image"]["width"],
+        data["image"]["height"],
+    )
+    current_rooms = {room["id"]: room for room in data.get("rooms") or []}
+    next_rooms = {room["id"]: room for room in rooms}
+    current_uncertainties = {
+        uncertainty["id"]: uncertainty for uncertainty in data.get("uncertainties") or []
+    }
+    commands = []
+    reasons = []
+    for room_id in sorted(set(current_rooms) - set(next_rooms)):
+        commands.append({"type": "delete", "collection": "rooms", "id": room_id})
+        reasons.append(
+            {
+                "collection": "rooms",
+                "id": room_id,
+                "reason": "固定代码移除了重复或无效房间标签。",
+                "evidenceRefs": [diagnostics_id] if diagnostics_id else [],
+            }
+        )
+    for room_id, room in next_rooms.items():
+        if current_rooms.get(room_id) != room:
+            commands.append({"type": "upsert", "collection": "rooms", "object": room})
+            reasons.append(
+                {
+                    "collection": "rooms",
+                    "id": room_id,
+                    "reason": "固定代码按最终候选墙体重新归并开放房间标签。",
+                    "evidenceRefs": [diagnostics_id] if diagnostics_id else [],
+                }
+            )
+    if (data.get("targetRoomIds") or []) != targets:
+        commands.append({"type": "targets", "roomIds": targets})
+    for note in notes:
+        if current_uncertainties.get(note["id"]) != note:
+            commands.append({"type": "upsert", "collection": "uncertainties", "object": note})
+            reasons.append(
+                {
+                    "collection": "uncertainties",
+                    "id": note["id"],
+                    "reason": "固定代码记录最终候选墙体的房间标签归并结果。",
+                    "evidenceRefs": [diagnostics_id] if diagnostics_id else [],
+                }
+            )
+    if not commands:
+        return None
+    return {
+        "draftRevision": draft["revision"],
+        "draftHash": draft["hash"],
+        "commands": commands,
+        "changeReasons": reasons,
+        "evidenceRefs": [diagnostics_id] if diagnostics_id else [],
+    }
+
+
 def _repair_activity_object_bindings(value, group_candidates):
     symbols = {symbol["id"]: symbol for symbol in value.get("symbols", [])}
     groups = {candidate["activityGroupCandidateId"]: candidate for candidate in group_candidates}
@@ -3156,6 +3217,34 @@ class FloorplanV3(FloorplanV2):
             measurement_dimensions,
         )
 
+    async def normalize_rooms_after_measurement(self, task, root, draft, diagnostics):
+        update = _room_normalization_update(draft, diagnostics.get("id"))
+        if update is None:
+            return draft
+        normalized = await self.client.request(
+            root + "/" + draft["id"] + "/measurement-updates",
+            {
+                "requestId": (
+                    task["id"]
+                    + ":v3:rooms:"
+                    + draft["hash"][:16]
+                    + ":"
+                    + str(diagnostics.get("id") or "diagnostics")[:16]
+                ),
+                **update,
+            },
+        )
+        self.store.event(
+            task["id"],
+            "code_room_normalization",
+            {
+                "beforeHash": draft["hash"],
+                "afterHash": normalized["hash"],
+                "commands": update["commands"],
+            },
+        )
+        return normalized
+
     async def review(self, task, image, draft, diagnostics, phase):
         evidence, context = await self.context(task, image, "check")
         images = [
@@ -3471,6 +3560,18 @@ class FloorplanV3(FloorplanV2):
                 draft, diagnostics = await self.reconcile_code_uncertainties(
                     task, root, draft, diagnostics
                 )
+                measured_hash = draft["hash"]
+                draft = await self.normalize_rooms_after_measurement(
+                    task,
+                    root,
+                    draft,
+                    diagnostics,
+                )
+                if draft["hash"] != measured_hash:
+                    diagnostics = await self.client.request(
+                        root + "/" + draft["id"] + "/diagnostics",
+                        {},
+                    )
                 review = None
                 if diagnostics["checks"]["passed"]:
                     review = await self.review(task, image, draft, diagnostics, "preconfirmation")

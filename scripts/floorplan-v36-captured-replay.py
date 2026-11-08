@@ -14,6 +14,7 @@ from actiscape_agent.floorplan_roles import (
 from actiscape_agent.floorplan_v3 import (
     _consolidate_open_room_labels,
     _finalize_measured_update,
+    _room_normalization_update,
     _uncertainty_resolved_by_code,
 )
 
@@ -94,6 +95,21 @@ def main():
     assert any(
         note["code"] == "ROOM_LABEL" and note["objectIds"] == ["r_bath"]
         for note in marker_notes
+    )
+    post_measurement_case = fixture["postMeasurementRoomCase"]
+    normalization = _room_normalization_update(
+        {
+            "revision": 5,
+            "hash": "a" * 64,
+            "data": post_measurement_case["draft"],
+        },
+        "offline-diagnostic",
+    )
+    assert normalization is not None
+    assert any(
+        command["type"] == "targets"
+        and command["roomIds"] == post_measurement_case["expected"]["targetRoomIds"]
+        for command in normalization["commands"]
     )
     review_fixture = json.loads(
         (
@@ -191,6 +207,15 @@ def main():
                     "rooms": marker_rooms,
                     "targetRoomIds": marker_targets,
                     "notes": marker_notes,
+                },
+                "postMeasurementRoomCase": {
+                    "taskId": post_measurement_case["capturedTaskId"],
+                    "commandCount": len(normalization["commands"]),
+                    "targets": next(
+                        command["roomIds"]
+                        for command in normalization["commands"]
+                        if command["type"] == "targets"
+                    ),
                 },
                 "candidateReview": review,
                 "assetChoice": {

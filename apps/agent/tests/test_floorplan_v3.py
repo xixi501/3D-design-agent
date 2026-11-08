@@ -42,6 +42,7 @@ from actiscape_agent.floorplan_v3 import (
     _object_symbol_geometry,
     _parse_structured_content,
     _repair_activity_object_bindings,
+    _room_normalization_update,
     _should_run_initial_review,
     _uncertainty_resolved_by_code,
     _wall_affinity_rotation,
@@ -240,6 +241,36 @@ def test_numeric_marker_yields_to_semantic_room_in_same_region():
     assert [room["id"] for room in output] == ["bath", "study"]
     assert targets == []
     assert any(note["code"] == "ROOM_LABEL" and note["objectIds"] == ["marker"] for note in notes)
+
+
+def test_post_measurement_room_normalization_emits_code_owned_updates():
+    fixture = json.loads(
+        Path("fixtures/s2c-real/ninety-two.v36-room-merge-replay.json").read_text()
+    )
+    case = fixture["postMeasurementRoomCase"]
+    update = _room_normalization_update(
+        {"revision": 5, "hash": "a" * 64, "data": case["draft"]},
+        "diagnostic-record",
+    )
+    assert update is not None
+    assert update["evidenceRefs"] == ["diagnostic-record"]
+    assert any(
+        command["type"] == "targets" and command["roomIds"] == case["expected"]["targetRoomIds"]
+        for command in update["commands"]
+    )
+    assert any(
+        command["type"] == "delete"
+        and command["collection"] == "rooms"
+        and command["id"] == "r_dining"
+        for command in update["commands"]
+    )
+    assert any(
+        command["type"] == "upsert"
+        and command["collection"] == "rooms"
+        and command["object"]["id"] == "r_living"
+        and command["object"]["name"] == "客餐厅"
+        for command in update["commands"]
+    )
 
 
 def test_wall_affinity_rotation_uses_nearest_room_wall():

@@ -254,6 +254,9 @@ assert.equal(capturedConsolidation.roomLabelUncertainty.resolvedByCode, true);
 assert.deepEqual(capturedConsolidation.wallEndpointReplay.wallPatchKeys, [
   "thicknessPx",
 ]);
+assert.deepEqual(capturedConsolidation.postMeasurementRoomCase.targets, [
+  "r_living",
+]);
 const capturedReview = capturedConsolidation.candidateReview;
 assert.equal(capturedReview.passed, true);
 assert.deepEqual(capturedReview.unknownObjectIds, []);
@@ -673,6 +676,11 @@ const output = {
   capturedWallEndpointReplay: {
     taskId: capturedConsolidation.wallEndpointReplay.taskId,
     wallPatchKeys: capturedConsolidation.wallEndpointReplay.wallPatchKeys,
+  },
+  capturedPostMeasurementRoomReplay: {
+    taskId: capturedConsolidation.postMeasurementRoomCase.taskId,
+    commandCount: capturedConsolidation.postMeasurementRoomCase.commandCount,
+    targets: capturedConsolidation.postMeasurementRoomCase.targets,
   },
   note: "Offline candidate replay only; furniture classification, model passes and the real 2-of-2 gate are not claimed.",
 };

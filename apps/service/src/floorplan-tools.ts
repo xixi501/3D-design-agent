@@ -18,6 +18,18 @@ const provenance = JSON.parse(
     "utf8",
   ),
 );
+const adapterCodeHash = createHash("sha256")
+  .update(
+    [
+      "apps/agent/actiscape_agent/floorplan_upstream.py",
+      "apps/agent/actiscape_agent/floorplan_image.py",
+      "apps/agent/actiscape_agent/floorplan_candidates.py",
+      "apps/agent/actiscape_agent/floorplan_candidates_v4.py",
+    ]
+      .map((file) => file + "\0" + fs.readFileSync(path.resolve(file)))
+      .join("\0"),
+  )
+  .digest("hex");
 
 export class FloorplanTools {
   constructor(public store: FloorplanStore) {}
@@ -59,6 +71,7 @@ export class FloorplanTools {
       spec,
       draftHash,
       adapterVersion,
+      adapterCodeHash,
       provenance,
     });
     const dir = this.directory(imageId, id),

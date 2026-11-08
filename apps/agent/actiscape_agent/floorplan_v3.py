@@ -533,6 +533,50 @@ def _object_symbol_geometry(candidate, category_code, rotation):
     }
 
 
+def _wall_affinity_rotation(candidate, category_code, rotation, draft):
+    if category_code not in (
+        "sofa",
+        "armchair",
+        "tvCabinet",
+        "bookshelf",
+        "sideboard",
+        "cabinet",
+        "desk",
+    ):
+        return rotation
+    x, y, width, depth = candidate["bbox"]
+    center_x, center_y = x + width / 2, y + depth / 2
+    if depth > width * 1.4:
+        options = []
+        for wall in draft.get("walls", []):
+            if abs(wall["a"]["x"] - wall["b"]["x"]) > 1:
+                continue
+            low, high = sorted((wall["a"]["y"], wall["b"]["y"]))
+            if not low - 8 <= center_y <= high + 8:
+                continue
+            distance = abs(wall["a"]["x"] - center_x)
+            if distance <= 80:
+                options.append((distance, wall["a"]["x"]))
+        if options:
+            _distance, wall_x = min(options)
+            return 270 if wall_x < center_x else 90
+    elif width > depth * 1.4:
+        options = []
+        for wall in draft.get("walls", []):
+            if abs(wall["a"]["y"] - wall["b"]["y"]) > 1:
+                continue
+            low, high = sorted((wall["a"]["x"], wall["b"]["x"]))
+            if not low - 8 <= center_x <= high + 8:
+                continue
+            distance = abs(wall["a"]["y"] - center_y)
+            if distance <= 80:
+                options.append((distance, wall["a"]["y"]))
+        if options:
+            _distance, wall_y = min(options)
+            return 0 if wall_y < center_y else 180
+    return rotation
+
+
 def _deterministic_measurement_bindings(
     data,
     wall_measurements,
@@ -984,6 +1028,12 @@ def _assemble_activity_symbols(
         if len(hints) == 1:
             category_code = hints[0]
         geometry = _object_symbol_geometry(candidate, category_code, symbol["rot"])
+        geometry["rot"] = _wall_affinity_rotation(
+            candidate,
+            category_code,
+            geometry["rot"],
+            draft["data"],
+        )
         symbols[symbol["id"]] = {
             **{
                 key: symbol[key]

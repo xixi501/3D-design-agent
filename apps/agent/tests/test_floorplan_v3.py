@@ -39,6 +39,7 @@ from actiscape_agent.floorplan_v3 import (
     _parse_structured_content,
     _repair_activity_object_bindings,
     _should_run_initial_review,
+    _wall_affinity_rotation,
     build_structure_skeleton,
 )
 from actiscape_agent.manager import TaskManager
@@ -109,6 +110,19 @@ def test_open_living_dining_and_foyer_labels_merge_by_enclosed_region():
     assert next(room for room in output if room["id"] == "living")["name"] == "客餐厅"
     assert any(room["id"] == "bed" for room in output)
     assert len(notes) == 1
+
+
+def test_wall_affinity_rotation_uses_nearest_room_wall():
+    draft = {
+        "walls": [
+            {"a": {"x": 90, "y": 0}, "b": {"x": 90, "y": 600}},
+            {"a": {"x": 290, "y": 300}, "b": {"x": 290, "y": 600}},
+        ]
+    }
+    sofa = {"bbox": [100, 380, 50, 110]}
+    tv = {"bbox": [260, 380, 24, 100]}
+    assert _wall_affinity_rotation(sofa, "sofa", 0, draft) == 270
+    assert _wall_affinity_rotation(tv, "tvCabinet", 0, draft) == 90
 
 
 def structure_response():

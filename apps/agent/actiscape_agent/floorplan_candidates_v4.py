@@ -841,7 +841,21 @@ def structure_candidates_v4(image: Image.Image, raw: dict):
         candidate["candidateWallId"] = (
             f"cw_{'h' if candidate['orient'] == 'h' else 'v'}_{index:03d}"
         )
-        candidate["sourceIndices"] = []
+        candidate["sourceIndices"] = [
+            segment_index
+            for segment_index, segment in enumerate(raw.get("segments_px") or [])
+            if segment.get("orient") == candidate["orient"]
+            and abs(float(segment.get("line", -999)) - candidate["line"]) <= 8
+            and min(
+                float(segment.get("s1", 0)),
+                candidate["s1"],
+            )
+            >= max(
+                float(segment.get("s0", 0)),
+                candidate["s0"],
+            )
+            - 2
+        ]
         candidate["faces"] = [
             round(candidate["line"] - candidate["t"] / 2, 3),
             round(candidate["line"] + candidate["t"] / 2, 3),

@@ -1213,6 +1213,31 @@ def furniture_object_candidates(
             candidate["categoryHints"].append("sofa")
         if depth >= width * 2.5 and len(repeated) >= 3:
             candidate["categoryHints"].append("bookshelf")
+        if (
+            not candidate["categoryHints"]
+            and candidate["kind"] == "composite"
+            and min(width, depth) >= 35
+            and max(width, depth) >= 80
+            and "green" not in candidate["colorTags"]
+        ):
+            candidate["categoryHints"].append("sofa")
+        if not candidate["categoryHints"] and 30 <= min(width, depth) and max(width, depth) <= 85:
+            candidate["categoryHints"].append("coffeeTable")
+        if (
+            not candidate["categoryHints"]
+            and candidate["kind"] == "atomic"
+            and 18 <= min(width, depth)
+            and max(width, depth) <= 30
+            and "green" not in candidate["colorTags"]
+        ):
+            candidate["categoryHints"].append("sideTable")
+        if (
+            not candidate["categoryHints"]
+            and candidate["kind"] == "composite"
+            and max(width, depth) <= 28
+            and len(candidate["contourCandidateIds"]) >= 2
+        ):
+            candidate["categoryHints"].append("floorLamp")
         candidate["categoryHints"] = list(dict.fromkeys(candidate["categoryHints"]))
     for candidate in objects:
         candidate["containsObjectCandidateIds"] = []

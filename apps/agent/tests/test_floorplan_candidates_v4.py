@@ -239,6 +239,18 @@ def test_v36_source_mask_candidates_compile_geometrically_and_score_walls_openin
     assert len(candidate["candidateWalls"]) == 18
     assert len(candidate["openingCandidates"]) == 12
     assert len(candidate["dimensionCandidates"]) == 1
+    west = next(
+        wall
+        for wall in candidate["candidateWalls"]
+        if wall["orient"] == "v" and abs(wall["line"] - 91.5) <= 2
+    )
+    east = next(
+        wall
+        for wall in candidate["candidateWalls"]
+        if wall["orient"] == "v" and abs(wall["line"] - 625) <= 2
+    )
+    assert west["sourceIndices"]
+    assert east["sourceIndices"]
     assert not any(
         wall["role"] in ("top", "bottom", "left", "right") and wall["s0"] < 50 and wall["s1"] > 650
         for wall in candidate["candidateWalls"]
@@ -267,6 +279,7 @@ def test_v36_source_mask_candidates_compile_geometrically_and_score_walls_openin
         if object_candidate["selectable"]
     ]
     assert len(selectable) == 11
+    assert all(len(object_candidate["categoryHints"]) == 1 for object_candidate in selectable)
     assert len(graph["activityGroupCandidates"]) == 1
     group = graph["activityGroupCandidates"][0]
     assert len(group["satelliteObjectCandidateIds"]) == 4
@@ -277,6 +290,14 @@ def test_v36_source_mask_candidates_compile_geometrically_and_score_walls_openin
     )
     assert table["bbox"][2] >= 70 and table["bbox"][3] >= 40
     assert any("tvCabinet" in object_candidate["categoryHints"] for object_candidate in selectable)
+    assert any(
+        "coffeeTable" in object_candidate["categoryHints"] for object_candidate in selectable
+    )
+    assert any("sideTable" in object_candidate["categoryHints"] for object_candidate in selectable)
+    assert (
+        sum("floorLamp" in object_candidate["categoryHints"] for object_candidate in selectable)
+        == 2
+    )
     assert not any(
         any(tag.get("tag") == "fixed_entry" for tag in object_candidate["contextTags"])
         for object_candidate in selectable

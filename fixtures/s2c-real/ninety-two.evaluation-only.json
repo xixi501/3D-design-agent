@@ -1,0 +1,607 @@
+{
+  "image": {
+    "id": "fp-d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+    "sha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+    "width": 736,
+    "height": 673
+  },
+  "name": "Evaluation only: independent 92-plan source reference",
+  "anchors": [
+    {
+      "a": {
+        "x": 86,
+        "y": 35
+      },
+      "b": {
+        "x": 632,
+        "y": 35
+      },
+      "distance": {
+        "value": 9700,
+        "unit": "mm"
+      },
+      "basis": "exterior",
+      "evidence": "Top overall chain reads 9700 mm between exterior dimension ticks."
+    }
+  ],
+  "walls": [
+    {
+      "id": "north_entry",
+      "a": {
+        "x": 181.515,
+        "y": 76.619
+      },
+      "b": {
+        "x": 364.119,
+        "y": 76.619
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "north_right",
+      "a": {
+        "x": 364.119,
+        "y": 166.515
+      },
+      "b": {
+        "x": 625.381,
+        "y": 166.515
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "east",
+      "a": {
+        "x": 625.381,
+        "y": 166.515
+      },
+      "b": {
+        "x": 625.381,
+        "y": 537.34
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "south",
+      "a": {
+        "x": 625.381,
+        "y": 537.34
+      },
+      "b": {
+        "x": 91.619,
+        "y": 537.34
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "west",
+      "a": {
+        "x": 91.619,
+        "y": 537.34
+      },
+      "b": {
+        "x": 91.619,
+        "y": 194.608
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "notch_s",
+      "a": {
+        "x": 91.619,
+        "y": 194.608
+      },
+      "b": {
+        "x": 159.041,
+        "y": 194.608
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "notch_w",
+      "a": {
+        "x": 159.041,
+        "y": 194.608
+      },
+      "b": {
+        "x": 159.041,
+        "y": 160.897
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "notch_n",
+      "a": {
+        "x": 159.041,
+        "y": 160.897
+      },
+      "b": {
+        "x": 181.515,
+        "y": 160.897
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "entry_w",
+      "a": {
+        "x": 181.515,
+        "y": 160.897
+      },
+      "b": {
+        "x": 181.515,
+        "y": 76.619
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "kitchen_w",
+      "a": {
+        "x": 262.985,
+        "y": 76.619
+      },
+      "b": {
+        "x": 262.985,
+        "y": 281.696
+      },
+      "thicknessPx": 5.619
+    },
+    {
+      "id": "kitchen_e",
+      "a": {
+        "x": 364.119,
+        "y": 76.619
+      },
+      "b": {
+        "x": 364.119,
+        "y": 281.696
+      },
+      "thicknessPx": 5.619
+    },
+    {
+      "id": "kitchen_s",
+      "a": {
+        "x": 262.985,
+        "y": 281.696
+      },
+      "b": {
+        "x": 364.119,
+        "y": 281.696
+      },
+      "thicknessPx": 5.619
+    },
+    {
+      "id": "bath_study",
+      "a": {
+        "x": 476.49,
+        "y": 166.515
+      },
+      "b": {
+        "x": 476.49,
+        "y": 281.696
+      },
+      "thicknessPx": 5.619
+    },
+    {
+      "id": "bath_s",
+      "a": {
+        "x": 364.119,
+        "y": 281.696
+      },
+      "b": {
+        "x": 476.49,
+        "y": 281.696
+      },
+      "thicknessPx": 5.619
+    },
+    {
+      "id": "study_s",
+      "a": {
+        "x": 476.49,
+        "y": 281.696
+      },
+      "b": {
+        "x": 546.722,
+        "y": 281.696
+      },
+      "thicknessPx": 5.619
+    },
+    {
+      "id": "closet_w",
+      "a": {
+        "x": 546.722,
+        "y": 281.696
+      },
+      "b": {
+        "x": 546.722,
+        "y": 343.5
+      },
+      "thicknessPx": 5.619
+    },
+    {
+      "id": "study_master",
+      "a": {
+        "x": 546.722,
+        "y": 315.407
+      },
+      "b": {
+        "x": 625.381,
+        "y": 315.407
+      },
+      "thicknessPx": 5.619
+    },
+    {
+      "id": "master_n",
+      "a": {
+        "x": 451.206,
+        "y": 343.5
+      },
+      "b": {
+        "x": 546.722,
+        "y": 343.5
+      },
+      "thicknessPx": 5.619
+    },
+    {
+      "id": "bed_master",
+      "a": {
+        "x": 451.206,
+        "y": 343.5
+      },
+      "b": {
+        "x": 451.206,
+        "y": 537.34
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "bed_w",
+      "a": {
+        "x": 288.268,
+        "y": 343.5
+      },
+      "b": {
+        "x": 288.268,
+        "y": 537.34
+      },
+      "thicknessPx": 11.237
+    },
+    {
+      "id": "bed_n",
+      "a": {
+        "x": 288.268,
+        "y": 343.5
+      },
+      "b": {
+        "x": 451.206,
+        "y": 343.5
+      },
+      "thicknessPx": 5.619
+    }
+  ],
+  "openings": [
+    {
+      "id": "entry",
+      "wallId": "north_entry",
+      "type": "door",
+      "offset": 40.735,
+      "width": 60,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "kitchen_entry",
+      "wallId": "kitchen_w",
+      "type": "sliding",
+      "offset": 117.99,
+      "width": 89.897,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "kitchen_platform_window",
+      "wallId": "kitchen_e",
+      "type": "window",
+      "offset": 50.567,
+      "width": 44.948,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "bath_window",
+      "wallId": "north_right",
+      "type": "window",
+      "offset": 85.881,
+      "width": 44,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "study_window",
+      "wallId": "north_right",
+      "type": "window",
+      "offset": 178.381,
+      "width": 67,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "bath_entry",
+      "wallId": "bath_s",
+      "type": "door",
+      "offset": 28.093,
+      "width": 44.948,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "study_entry",
+      "wallId": "study_s",
+      "type": "door",
+      "offset": 30.902,
+      "width": 47.758,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "master_entry",
+      "wallId": "master_n",
+      "type": "door",
+      "offset": 34.27,
+      "width": 50.567,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "bed_entry",
+      "wallId": "bed_n",
+      "type": "door",
+      "offset": 36.521,
+      "width": 50.567,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "living_window",
+      "wallId": "south",
+      "type": "window",
+      "offset": 432.381,
+      "width": 116,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "bed_window",
+      "wallId": "south",
+      "type": "window",
+      "offset": 253.381,
+      "width": 90,
+      "side": 1,
+      "hinge": 0
+    },
+    {
+      "id": "master_window",
+      "wallId": "south",
+      "type": "window",
+      "offset": 81.881,
+      "width": 107,
+      "side": 1,
+      "hinge": 0
+    }
+  ],
+  "rooms": [
+    {
+      "id": "living",
+      "name": "客餐厅",
+      "at": {
+        "x": 180,
+        "y": 420
+      },
+      "functionalArea": "living"
+    },
+    {
+      "id": "kitchen",
+      "name": "厨房",
+      "at": {
+        "x": 310,
+        "y": 160
+      },
+      "functionalArea": "kitchen"
+    },
+    {
+      "id": "bath",
+      "name": "次卫",
+      "at": {
+        "x": 420,
+        "y": 230
+      },
+      "functionalArea": "bathroom"
+    },
+    {
+      "id": "study",
+      "name": "书房",
+      "at": {
+        "x": 550,
+        "y": 230
+      },
+      "functionalArea": "other"
+    },
+    {
+      "id": "bed",
+      "name": "次卧01",
+      "at": {
+        "x": 370,
+        "y": 450
+      },
+      "functionalArea": "bedroom"
+    },
+    {
+      "id": "master",
+      "name": "主卧",
+      "at": {
+        "x": 540,
+        "y": 440
+      },
+      "functionalArea": "bedroom"
+    }
+  ],
+  "symbols": [
+    {
+      "id": "dining-table",
+      "roomId": "living",
+      "category": "diningTable",
+      "categoryCode": "diningTable",
+      "sourceLabel": "餐桌",
+      "x": 136.567,
+      "y": 284.505,
+      "w": 78.66,
+      "d": 47.758,
+      "rot": 0
+    },
+    {
+      "id": "chair-north-left",
+      "roomId": "living",
+      "category": "chair",
+      "categoryCode": "chair",
+      "sourceLabel": "餐椅",
+      "x": 116.902,
+      "y": 253.603,
+      "w": 24.16,
+      "d": 22.474,
+      "rot": 180
+    },
+    {
+      "id": "chair-north-right",
+      "roomId": "living",
+      "category": "chair",
+      "categoryCode": "chair",
+      "sourceLabel": "餐椅",
+      "x": 153.423,
+      "y": 253.603,
+      "w": 24.16,
+      "d": 22.474,
+      "rot": 180
+    },
+    {
+      "id": "chair-south-left",
+      "roomId": "living",
+      "category": "chair",
+      "categoryCode": "chair",
+      "sourceLabel": "餐椅",
+      "x": 116.902,
+      "y": 318.216,
+      "w": 24.16,
+      "d": 22.474,
+      "rot": 0
+    },
+    {
+      "id": "chair-south-right",
+      "roomId": "living",
+      "category": "chair",
+      "categoryCode": "chair",
+      "sourceLabel": "餐椅",
+      "x": 153.423,
+      "y": 318.216,
+      "w": 24.16,
+      "d": 22.474,
+      "rot": 0
+    },
+    {
+      "id": "sofa",
+      "roomId": "living",
+      "category": "sofa",
+      "categoryCode": "sofa",
+      "sourceLabel": "三人沙发",
+      "x": 123.925,
+      "y": 444.634,
+      "w": 123.608,
+      "d": 53.376,
+      "rot": 270
+    },
+    {
+      "id": "coffee-table",
+      "roomId": "living",
+      "category": "coffeeTable",
+      "categoryCode": "coffeeTable",
+      "sourceLabel": "茶几",
+      "x": 187.134,
+      "y": 436.206,
+      "w": 39.33,
+      "d": 58.995,
+      "rot": 0
+    },
+    {
+      "id": "side-table",
+      "roomId": "living",
+      "category": "sideTable",
+      "categoryCode": "sideTable",
+      "sourceLabel": "边几",
+      "x": 175.897,
+      "y": 368.784,
+      "w": 25.284,
+      "d": 25.284,
+      "rot": 0
+    },
+    {
+      "id": "tv-console",
+      "roomId": "living",
+      "category": "tvCabinet",
+      "categoryCode": "tvCabinet",
+      "sourceLabel": "电视柜",
+      "x": 270.851,
+      "y": 439.015,
+      "w": 95.515,
+      "d": 22.474,
+      "rot": 90
+    },
+    {
+      "id": "lamp-north",
+      "roomId": "living",
+      "category": "floorLamp",
+      "categoryCode": "floorLamp",
+      "sourceLabel": "落地灯",
+      "x": 116.059,
+      "y": 364.289,
+      "w": 22.474,
+      "d": 22.474,
+      "rot": 0
+    },
+    {
+      "id": "lamp-south-base",
+      "roomId": "living",
+      "category": "floorLamp",
+      "categoryCode": "floorLamp",
+      "sourceLabel": "钓鱼灯底座",
+      "x": 116.059,
+      "y": 518.799,
+      "w": 22.474,
+      "d": 22.474,
+      "rot": 0
+    },
+    {
+      "id": "shoe-low",
+      "roomId": "living",
+      "category": "cabinet",
+      "categoryCode": "cabinet",
+      "sourceLabel": "玄关低鞋柜",
+      "x": 130.948,
+      "y": 211.464,
+      "w": 67.423,
+      "d": 22.474,
+      "rot": 0
+    },
+    {
+      "id": "shoe-tall",
+      "roomId": "living",
+      "category": "cabinet",
+      "categoryCode": "cabinet",
+      "sourceLabel": "玄关鞋柜",
+      "x": 175.897,
+      "y": 194.608,
+      "w": 56.186,
+      "d": 22.474,
+      "rot": 270
+    }
+  ],
+  "targetRoomIds": ["living"],
+  "uncertainties": []
+}

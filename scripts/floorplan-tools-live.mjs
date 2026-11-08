@@ -13,18 +13,31 @@ import {
 
 const completeV3 = process.argv.includes("--v3-acceptance");
 const completeV2 = completeV3 || process.argv.includes("--v2-acceptance");
-const manifestFile = path.resolve(
-  "fixtures/s2c-real/one-bedroom-system-probe.json",
-);
-const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
-const evaluation = JSON.parse(
-  fs.readFileSync(
-    completeV2
+const option = (key, fallback) => {
+  const index = process.argv.indexOf("--" + key);
+  return index >= 0 ? process.argv[index + 1] : fallback;
+};
+const evaluationFlag = option("evaluation", "");
+const evaluationFile = path.resolve(
+  evaluationFlag ||
+    (completeV2
       ? "fixtures/s2c-real/one-bedroom.v2-evaluation.json"
-      : "fixtures/s2c-real/one-bedroom.evaluation-manifest.json",
-    "utf8",
-  ),
+      : "fixtures/s2c-real/one-bedroom.evaluation-manifest.json"),
 );
+const evaluation = JSON.parse(fs.readFileSync(evaluationFile, "utf8"));
+const manifest = evaluationFlag
+  ? {
+      sha256: evaluation.sourceImageSha256,
+      userRequest:
+        option("request", "") ||
+        "请识别这张单层户型图，保留整层结构并复现客餐厅原图家具布局，先提供草稿供我确认。",
+    }
+  : JSON.parse(
+      fs.readFileSync(
+        "fixtures/s2c-real/one-bedroom-system-probe.json",
+        "utf8",
+      ),
+    );
 const referenceBytes = fs.readFileSync(
   path.join("fixtures/s2c-real", evaluation.referenceFile),
 );
@@ -36,7 +49,7 @@ const reference = JSON.parse(referenceBytes);
 const inputFile = process.argv[2];
 if (!inputFile)
   throw Error(
-    "Usage: npm run test:floorplan:tools:live -- /absolute/path/to/original.png [1|2] [--v2-acceptance|--v3-acceptance]",
+    "Usage: npm run test:floorplan:tools:live -- /absolute/path/to/original.png [1|2] [--v2-acceptance|--v3-acceptance] [--evaluation /absolute/path/to/evaluation-manifest.json] [--request text]",
   );
 const repeats = Number(process.argv[3] || 2);
 assert.ok(Number.isInteger(repeats) && repeats >= 1 && repeats <= 2);
@@ -89,6 +102,7 @@ assert.equal(
 const context = {
   manifest,
   evaluation,
+  evaluationFile,
   codeCommit,
   serviceVersions: health.versions,
   referenceSentToAgent: false,
@@ -101,7 +115,7 @@ const form = new FormData();
 form.append(
   "file",
   new Blob([bytes], { type: "image/png" }),
-  "public-one-bedroom-original.png",
+  path.basename(inputFile),
 );
 const uploaded = await fetch(base + "/api/floorplan-images", {
   method: "POST",

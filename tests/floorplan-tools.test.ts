@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { createApp } from "../apps/service/src/app.js";
 import { blankPlan, clone } from "../packages/scene-core/src/index.js";
 
@@ -247,4 +248,35 @@ test("first recognition is scored independently of compilation and the frozen ev
   assert.equal(score.walls.precision, 1);
   assert.equal(score.openings.recall, 1);
   assert.equal(score.furniture.recall, 7 / 13);
+});
+
+test("second frozen image reference is hash-bound, compiles and scores itself", async () => {
+  const { compileFloorplan } =
+    await import("../packages/scene-core/src/floorplan.js");
+  const { scoreFloorplan } =
+    await import("../packages/scene-core/src/floorplan-metrics.js");
+  const referenceBytes = fs.readFileSync(
+      "fixtures/s2c-real/ninety-two.evaluation-only.json",
+    ),
+    reference = JSON.parse(referenceBytes.toString("utf8")),
+    manifest = JSON.parse(
+      fs.readFileSync(
+        "fixtures/s2c-real/ninety-two.evaluation-manifest.json",
+        "utf8",
+      ),
+    );
+  assert.equal(
+    createHash("sha256").update(referenceBytes).digest("hex"),
+    manifest.referenceSha256,
+  );
+  assert.equal(reference.image.sha256, manifest.sourceImageSha256);
+  const compiled = compileFloorplan(reference, "evaluation");
+  assert.equal(compiled.rooms.length, 6);
+  assert.equal(compiled.state.plan.openings.length, 12);
+  assert.equal(compiled.symbols.length, 13);
+  assert.deepEqual(
+    compiled.rooms.map((room: any) => room.name).sort(),
+    ["主卧", "书房", "厨房", "客餐厅", "次卫", "次卧01"].sort(),
+  );
+  assert.equal(scoreFloorplan(reference, reference, reference, 0).passed, true);
 });

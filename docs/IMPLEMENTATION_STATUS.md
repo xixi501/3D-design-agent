@@ -106,7 +106,7 @@ The first general-scene batch adds versioned input, evidence, intent, scene-prog
 
 A data-driven scene registry now owns room status, Skill mapping, materials, default furniture, object categories and catalogue candidates. The rectangular text path reads active room metadata from the registry, and the TypeScript compiler no longer accepts only the original two room-purpose strings. Existing `purpose` data remains readable. Reserved rooms are explicitly rejected as unsupported.
 
-This foundation does not migrate the floorplan recognition flow, reconstruct whole-home furniture, activate reserved rooms or claim photo input. Those remain later gates in [Scene Architecture](SCENE_ARCHITECTURE.md).
+This foundation does not migrate the floorplan recognition flow, reconstruct whole-home furniture, activate reserved rooms or claim photo input. Those remain later gates in [Scene Architecture](SCENE_ARCHITECTURE.md). Executed results are in [scene foundation evidence](evidence/scene-foundation-v1-20261109.json).
 
 ## Remaining scope
 

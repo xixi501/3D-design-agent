@@ -1,0 +1,59 @@
+{
+  "purpose": "Generic scene contracts, draft persistence and first registry-driven room migration",
+  "generatedAt": "2026-11-09T02:05:05+08:00",
+  "implementationCommit": "51c581f492f49133296d1837750592ad12958610",
+  "command": "npm run test:floorplan:offline",
+  "passed": true,
+  "checks": {
+    "python": {
+      "passed": 129,
+      "failed": 0
+    },
+    "node": {
+      "passed": 41,
+      "failed": 0
+    },
+    "buildAndTypecheck": true,
+    "originalBrowserFlows": {
+      "passed": 16,
+      "failed": 0
+    },
+    "catalogueItems": 266,
+    "skillPoolL3": true,
+    "v35Replay": true,
+    "v36Replay": true,
+    "controlledV3Browser": true
+  },
+  "contracts": {
+    "inputBundle": "actiscape.input-bundle.v1",
+    "evidenceGraph": "actiscape.evidence-graph.v1",
+    "intentSpec": "actiscape.intent-spec.v1",
+    "sceneProgram": "actiscape.scene-program.v1",
+    "sceneDraft": "actiscape.scene-draft.v1",
+    "sceneRegistry": "actiscape.scene-registry.v1"
+  },
+  "verified": [
+    "Text can only create intent constraints, not visual evidence.",
+    "Object photos cannot write evidence facts or direct scene objects.",
+    "Scene program types accept angled walls and multiple levels under a permissive test policy.",
+    "Current capability policy rejects angled walls and multiple levels.",
+    "Generic scene drafts persist revisions, ids, hashes, replay and reload.",
+    "Shared budgets cannot regress across patches.",
+    "A new room and furniture category can be added through registry data without editing core enums.",
+    "Reserved rooms are rejected from text generation."
+  ],
+  "notClaimed": [
+    "Whole-home floorplan reconstruction",
+    "Reserved room generation",
+    "Reference-photo or object-photo adapters",
+    "Asset-generation provider integration",
+    "AI-first workbench redesign"
+  ],
+  "artifacts": {
+    "test-results/skill-pool-v1-l3.json": "0b9f0e6557f81cc95ffb4b4a179902f99f68e9b51b0a6fe23018404a91a615fd",
+    "test-results/floorplan-v3-tools/report.json": "ab83b634cdf749616763531bfc4c711a565256ca85235229ba36c4ecdec16304",
+    "test-results/browser/report.json": "b06de46d538cc5d3ca3508efdff9b99c25f18dae628cdb4c55cfb36dc5260bea",
+    "test-results/baseline/report.json": "135ec3803ca7c79e9c270b1da5787d996a6a7907e72dded428423eb6f9a5e3a6",
+    "test-results/baseline/extended-report.json": "2d0eae7ef9d480793cdac61f738abe42e684cfdf7605e78caa00cda468b94537"
+  }
+}

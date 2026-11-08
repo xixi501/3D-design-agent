@@ -36,9 +36,11 @@ from actiscape_agent.floorplan_v3 import (
     _deterministic_measurement_bindings,
     _dimension_value,
     _finalize_measured_update,
+    _object_symbol_geometry,
     _parse_structured_content,
     _repair_activity_object_bindings,
     _should_run_initial_review,
+    _uncertainty_resolved_by_code,
     _wall_affinity_rotation,
     build_structure_skeleton,
 )
@@ -112,6 +114,40 @@ def test_open_living_dining_and_foyer_labels_merge_by_enclosed_region():
     assert len(notes) == 1
 
 
+def test_single_open_dining_label_is_canonicalized_to_living_dining():
+    walls = [
+        {"a": {"x": 10, "y": 10}, "b": {"x": 390, "y": 10}, "thicknessPx": 8},
+        {"a": {"x": 390, "y": 10}, "b": {"x": 390, "y": 290}, "thicknessPx": 8},
+        {"a": {"x": 390, "y": 290}, "b": {"x": 10, "y": 290}, "thicknessPx": 8},
+        {"a": {"x": 10, "y": 290}, "b": {"x": 10, "y": 10}, "thicknessPx": 8},
+    ]
+    rooms = [
+        {
+            "id": "dining",
+            "name": "餐厅",
+            "functionalArea": "dining",
+            "at": {"x": 80, "y": 120},
+        }
+    ]
+    output, targets, notes = _consolidate_open_room_labels(
+        walls,
+        rooms,
+        ["dining"],
+        400,
+        300,
+    )
+    assert output == [
+        {
+            "id": "dining",
+            "name": "客餐厅",
+            "functionalArea": "living",
+            "at": {"x": 80, "y": 120},
+        }
+    ]
+    assert targets == ["dining"]
+    assert len(notes) == 1
+
+
 def test_wall_affinity_rotation_uses_nearest_room_wall():
     draft = {
         "walls": [
@@ -121,8 +157,36 @@ def test_wall_affinity_rotation_uses_nearest_room_wall():
     }
     sofa = {"bbox": [100, 380, 50, 110]}
     tv = {"bbox": [260, 380, 24, 100]}
-    assert _wall_affinity_rotation(sofa, "sofa", 0, draft) == 270
-    assert _wall_affinity_rotation(tv, "tvCabinet", 0, draft) == 90
+    sofa_rotation = _wall_affinity_rotation(sofa, "sofa", 0, draft)
+    tv_rotation = _wall_affinity_rotation(tv, "tvCabinet", 0, draft)
+    assert sofa_rotation == 270
+    assert tv_rotation == 90
+    assert _object_symbol_geometry(sofa, "sofa", sofa_rotation)["w"] == 110
+    assert _object_symbol_geometry(tv, "tvCabinet", tv_rotation)["d"] == 24
+
+
+def test_existing_wall_with_unmeasured_candidate_is_advisory_not_blocking():
+    data = {
+        "walls": [{"id": "bed_north"}],
+        "rooms": [],
+        "targetRoomIds": [],
+        "features": [],
+        "dimensions": [],
+        "anchors": [],
+        "openings": [],
+    }
+    uncertainty = {
+        "id": "u_bed_north_measure",
+        "code": "WALL_GEOMETRY",
+        "objectIds": ["bed_north"],
+        "message": "fit-bound 返回 n=0、center=null，但候选墙存在",
+    }
+    assert _uncertainty_resolved_by_code(
+        uncertainty,
+        data,
+        {"issues": []},
+        {},
+    )
 
 
 def structure_response():

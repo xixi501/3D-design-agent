@@ -260,6 +260,14 @@ def _uncertainty_resolved_by_code(uncertainty, data, checks, skeleton):
         "FURNITURE_AMBIGUITY",
     ):
         return True
+    if code == "WALL_GEOMETRY":
+        wall_ids = {wall.get("id") for wall in data.get("walls") or []}
+        object_ids = set(uncertainty.get("objectIds") or [])
+        return (
+            bool(object_ids)
+            and object_ids <= wall_ids
+            and any(term in text for term in ("n=0", "单样本", "缺乏可信测量证据", "center=null"))
+        )
     return code == "OTHER" and any(
         term in text for term in ("sill", "head", "窗台", "装饰", "decoration")
     )
@@ -1027,12 +1035,16 @@ def _assemble_activity_symbols(
         hints = candidate.get("categoryHints") or []
         if len(hints) == 1:
             category_code = hints[0]
-        geometry = _object_symbol_geometry(candidate, category_code, symbol["rot"])
-        geometry["rot"] = _wall_affinity_rotation(
+        desired_rotation = _wall_affinity_rotation(
             candidate,
             category_code,
-            geometry["rot"],
+            symbol["rot"],
             draft["data"],
+        )
+        geometry = _object_symbol_geometry(
+            candidate,
+            category_code,
+            desired_rotation,
         )
         symbols[symbol["id"]] = {
             **{
@@ -1589,7 +1601,31 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
     notes = []
     for members in grouped.values():
         if len(members) == 1:
-            output.extend(members)
+            room = members[0]
+            if (
+                room["id"] in targets
+                and room.get("name") in allowed_names
+                and room.get("functionalArea") in allowed_areas
+                and room.get("name") != "客餐厅"
+            ):
+                canonical = {
+                    **room,
+                    "name": "客餐厅",
+                    "functionalArea": "living",
+                }
+                output.append(canonical)
+                notes.append(
+                    {
+                        "id": f"u_canonical_{room['id']}",
+                        "message": "固定代码把开放客餐厅的唯一目标标签规范为客餐厅。",
+                        "blocking": False,
+                        "code": "ROOM_SCOPE_OPEN_KITCHEN",
+                        "objectIds": [room["id"]],
+                        "evidenceRefs": [],
+                    }
+                )
+            else:
+                output.append(room)
             continue
         if not (
             all(member.get("name") in allowed_names for member in members)
@@ -1787,7 +1823,12 @@ def _assemble_structure_v3(skeleton, recognition, evidence_index):
                 "wallId": owner,
                 "type": opening["type"],
                 "offset": round((start + end) / 2 - geometry["start"], 3),
-                "width": round(end - start + 1, 3),
+                "width": round(
+                    float(candidate["width"])
+                    if candidate.get("width") is not None
+                    else end - start + 1,
+                    3,
+                ),
                 **{
                     key: opening[key]
                     for key in ("sill", "head", "side", "hinge")

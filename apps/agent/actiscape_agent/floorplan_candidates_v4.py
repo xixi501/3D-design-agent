@@ -884,30 +884,6 @@ def structure_candidates_v4(image: Image.Image, raw: dict):
         filtered,
         list(raw.get("gaps_px") or []),
     )
-    active_ids = {id(candidate) for candidate in filtered}
-    for closure in closures:
-        if id(closure["wall"]) not in active_ids:
-            continue
-        if id(closure["targetWall"]) not in active_ids:
-            continue
-        openings.append(
-            {
-                "candidateWallId": closure["wall"]["candidateWallId"],
-                "wallId": closure["wall"]["candidateWallId"],
-                "orient": closure["wall"]["orient"],
-                "line": closure["wall"]["line"],
-                "start": round(closure["start"], 3),
-                "end": round(closure["end"], 3),
-                "center": round(
-                    (closure["start"] + closure["end"]) / 2,
-                    3,
-                ),
-                "width": round(closure["end"] - closure["start"], 3),
-                "typeHint": "hole",
-                "confidence": 0.62,
-                "source": "endpoint-closure",
-            }
-        )
     openings.sort(
         key=lambda item: (
             item["orient"],
@@ -950,6 +926,7 @@ def structure_candidates_v4(image: Image.Image, raw: dict):
             "rawSegments": len(segments),
             "smallPocketsDropped": pocketDrops,
             "shortLeafWallsDropped": leafDrops,
+            "endpointClosures": len(closures),
             "wallMaskPixels": int((mask > 0).sum()),
         },
         "_mask": Image.fromarray(mask * 255, mode="L"),

@@ -237,7 +237,7 @@ def test_v36_source_mask_candidates_compile_geometrically_and_score_walls_openin
     assert candidate["structureSkeletonVersion"] == 4
     assert "fallback" not in candidate["candidateSummary"]
     assert len(candidate["candidateWalls"]) == 18
-    assert len(candidate["openingCandidates"]) == 12
+    assert len(candidate["openingCandidates"]) == 11
     assert len(candidate["dimensionCandidates"]) == 1
     west = next(
         wall

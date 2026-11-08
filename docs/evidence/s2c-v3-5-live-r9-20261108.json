@@ -1,0 +1,80 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "6f0930baa7e569d7d7c888ee1e05ad2f2b73565e",
+  "scope": "ninth-independent-single-real-image-run",
+  "task": {
+    "projectId": "0720131d-63ea-4742-a099-79991386da2b",
+    "taskId": "fb241d90-f56c-4387-becf-e8cb57eb6505",
+    "status": "waiting_input",
+    "error": "两阶段识别后仍有阻断问题，正式项目未改变。请查看原图证据及检查结果。",
+    "modelCalls": 14,
+    "activeSeconds": 106.53123331069946,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0,
+    "repairs": 3
+  },
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "openings": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "furniture": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "symbolCount": 13,
+      "chairCount": 6
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "finalScoring": {
+    "passed": true,
+    "rawPassed": true,
+    "finalPassed": true,
+    "layoutObjectsPassed": 13,
+    "roomPrecision": 1.0,
+    "roomRecall": 1.0,
+    "roomNamesPassed": true,
+    "dimensionResidualsMm": [0, 0, 0, 0]
+  },
+  "blocker": {
+    "stage": "uncertainty-arbitration",
+    "uncertaintyId": "u_room_label",
+    "message": "The model marked the visible open-kitchen/living-room scope as blocking even though fixed topology identifies one valid living target room and the user request keeps kitchen structure-only.",
+    "compilationPassed": false,
+    "confirmationSimulated": false,
+    "formalProjectRevision": 0
+  },
+  "postFailureOfflineFix": {
+    "commit": "c33a67b",
+    "change": "Treat open-kitchen/living-room scope uncertainty as advisory when the target room exists with living/dining use and deterministic checks have no other blocker.",
+    "recordedDraftReplay": "The exact failed draft now yields review passed=true with only advisory issues.",
+    "realRunAfterFixStarted": false
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r9-20261108-report.json",
+      "sha256": "cb01141dabb86e5dae64b03cb1762a7c73ae3cbf5f1fb2af42aeb1794fddff17"
+    },
+    "scoring": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r9-20261108-scoring.json",
+      "sha256": "0e04f1c92973df2cad202b93d6314e44eadc1409aa27a22fa2b1800d666128a3"
+    },
+    "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T08-37-26-234Z"
+  }
+}

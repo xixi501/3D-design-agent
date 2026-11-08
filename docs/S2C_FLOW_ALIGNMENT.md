@@ -261,3 +261,9 @@ V3-5 保留 Qwen 作为唯一家具语义模型，但不再让模型直接组合
 最后一个独立 proof 仍失败，但已经不在识别层。资产 Agent 因“四人沙发”和“书架”措辞选择了 `fourSofa` 与 `bookshelf`；既有匹配 proof 要求 `sofa/modularSofa` 和 `cabTall`。绿植目录声明约 478×496 mm，但程序网格实际只有 298×298 mm。几何 proof 因此失败，工作流不能标记 image fidelity 通过。
 
 `88eb7e2` 对同类等价资产按确认平面宽深和低权重高度选最近配方，用户显式 `catalogKey` 保持不变；同一真实选择回放从 `fourSofa/bookshelf` 归一为 `sofa/cabTall`。程序化绿植增加声明占地 bounds 校准，同一真实绿植实例导回浏览器后实际 bounds 为 477.34×466.37×1492.58 mm，geometry proof 通过。Python 96/96、Node 36/36、类型检查、构建、受控 V3、完整浏览器和 266 件目录 WebGL 回归通过。本批没有第二次实图运行。证据见 [V3-5 第八次真实运行](evidence/s2c-v3-5-live-r8-20261108.json)。
+
+### V3-5 资产修复后的第九次真实运行
+
+`6f0930b` 作为新的独立单次任务再次得到完整通过的独立评分：墙体、7 个门窗、13 件家具、活动组、房名、拓扑和四条尺寸全部通过，零人工校正。确认前仍停在唯一 `u_room_label` 阻断，它要求确认 Living Room 与开放厨房是否属于同一区域；固定拓扑已识别出一个合法 living 目标房间，用户也明确要求厨房仅保留结构，这不是未消解的几何错误。
+
+`c33a67b` 增加该场景的代码裁决：目标房间存在且 functionalArea 为 living/dining、其余确定性检查无阻断时，开放厨房/客餐厅范围不确定项降为 advisory；目标房间缺失或结构性检查失败时仍保持阻断。同一真实失败草稿的仲裁回放从 `passed=false` 变为 `passed=true`，唯一说明成为 advisory。Python 97/97、受控 V3 浏览器通过；本次 14 次请求、106.53 秒、正式项目 revision 0，没有运行第二次。证据见 [V3-5 第九次真实运行](evidence/s2c-v3-5-live-r9-20261108.json)。

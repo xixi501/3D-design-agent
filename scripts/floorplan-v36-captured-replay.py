@@ -60,6 +60,23 @@ def main():
         "r_entry",
         "r_corridor",
     }
+    duplicate_case = fixture["duplicateRoomCase"]
+    duplicate_draft = duplicate_case["draft"]
+    duplicate_rooms, duplicate_targets, duplicate_notes = _consolidate_open_room_labels(
+        duplicate_draft["walls"],
+        duplicate_draft["rooms"],
+        duplicate_draft["targetRoomIds"],
+        duplicate_draft["image"]["width"],
+        duplicate_draft["image"]["height"],
+    )
+    assert [
+        {"id": room["id"], "name": room["name"]} for room in duplicate_rooms
+    ] == duplicate_case["expected"]["rooms"]
+    assert duplicate_targets == duplicate_case["expected"]["targetRoomIds"]
+    assert any(
+        note["code"] == "ROOM_LABEL" and note["objectIds"] == ["rm_bath_main"]
+        for note in duplicate_notes
+    )
     review_fixture = json.loads(
         (
             ROOT / "fixtures/s2c-real/ninety-two.v36-review-identity-replay.json"
@@ -127,6 +144,12 @@ def main():
                     "rooms": numeric_rooms,
                     "targetRoomIds": numeric_targets,
                     "notes": numeric_notes,
+                },
+                "duplicateRoomCase": {
+                    "taskId": duplicate_case["capturedTaskId"],
+                    "rooms": duplicate_rooms,
+                    "targetRoomIds": duplicate_targets,
+                    "notes": duplicate_notes,
                 },
                 "candidateReview": review,
                 "assetChoice": {

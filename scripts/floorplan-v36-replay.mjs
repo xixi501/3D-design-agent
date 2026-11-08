@@ -417,6 +417,54 @@ assert.equal(numericScore.rawPassed, true);
 assert.equal(numericScore.finalPassed, true);
 assert.equal(numericScore.confirmed.structure.passed, true);
 
+const duplicateCapture = capturedFixture.duplicateRoomCase;
+assert.equal(
+  duplicateCapture.sourceImageSha256,
+  secondManifest.sourceImageSha256,
+  "Duplicate-room captured failure source image changed",
+);
+const duplicateConsolidation = capturedConsolidation.duplicateRoomCase;
+assert.equal(duplicateConsolidation.taskId, duplicateCapture.capturedTaskId);
+const duplicateDraft = structuredClone(duplicateCapture.draft);
+duplicateDraft.rooms = duplicateConsolidation.rooms;
+duplicateDraft.targetRoomIds = duplicateConsolidation.targetRoomIds;
+const duplicateCompiled = compileFloorplan(
+  duplicateDraft,
+  "v36-captured-duplicate-room-label",
+);
+assert.equal(
+  duplicateCompiled.state.plan.walls.length,
+  duplicateCapture.expected.compiledWalls,
+);
+assert.equal(
+  duplicateCompiled.state.plan.openings.length,
+  duplicateCapture.expected.compiledOpenings,
+);
+assert.deepEqual(
+  duplicateCompiled.rooms
+    .map((room) => ({
+      id: room.id.split(":").at(-1),
+      name: room.name,
+    }))
+    .sort((left, right) => left.id.localeCompare(right.id)),
+  [...duplicateCapture.expected.rooms].sort((left, right) =>
+    left.id.localeCompare(right.id),
+  ),
+);
+assert.equal(
+  duplicateCompiled.symbols.length,
+  duplicateCapture.expected.symbols,
+);
+const duplicateScore = scoreFloorplan(
+  { ...duplicateCapture.recognition, image: secondReference.image },
+  duplicateDraft,
+  secondReference,
+  0,
+  secondManifest.aliases,
+);
+assert.equal(duplicateScore.passed, true, JSON.stringify(duplicateScore));
+assert.equal(duplicateScore.confirmed.structure.passed, true);
+
 const furnitureCandidates = toolRequest(ninetyTwoImage, "contours", {
   spec: secondDraft,
 });
@@ -555,6 +603,15 @@ const output = {
   capturedRoomLabelUncertaintyReplay: {
     taskId: capturedConsolidation.roomLabelUncertainty.taskId,
     resolvedByCode: capturedConsolidation.roomLabelUncertainty.resolvedByCode,
+  },
+  capturedDuplicateRoomLabelReplay: {
+    taskId: duplicateCapture.capturedTaskId,
+    capturedRooms: duplicateCapture.draft.rooms.length,
+    consolidatedRooms: duplicateConsolidation.rooms.length,
+    compiledWalls: duplicateCompiled.state.plan.walls.length,
+    compiledOpenings: duplicateCompiled.state.plan.openings.length,
+    symbols: duplicateCompiled.symbols.length,
+    scoringPassed: duplicateScore.passed,
   },
   note: "Offline candidate replay only; furniture classification, model passes and the real 2-of-2 gate are not claimed.",
 };

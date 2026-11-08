@@ -1661,7 +1661,32 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
                 "evidenceRefs": [],
             }
         )
-    return output, targets, notes
+    valid_identities = set()
+    for room in output:
+        x = round(float(room["at"]["x"]))
+        y = round(float(room["at"]["y"]))
+        if 0 <= x < width and 0 <= y < height and 0 < int(labels[y, x]) < count:
+            valid_identities.add((room.get("name"), room.get("functionalArea")))
+    cleaned = []
+    for room in output:
+        x = round(float(room["at"]["x"]))
+        y = round(float(room["at"]["y"]))
+        placed = 0 <= x < width and 0 <= y < height and 0 < int(labels[y, x]) < count
+        identity = (room.get("name"), room.get("functionalArea"))
+        if not placed and identity in valid_identities:
+            notes.append(
+                {
+                    "id": f"u_duplicate_{room['id']}",
+                    "message": "固定代码移除了压在墙线或区域外的重复房间标签；同名称、同功能区的有效标签已保留。",
+                    "blocking": False,
+                    "code": "ROOM_LABEL",
+                    "objectIds": [room["id"]],
+                    "evidenceRefs": [],
+                }
+            )
+            continue
+        cleaned.append(room)
+    return cleaned, targets, notes
 
 
 def _assemble_structure_v3(skeleton, recognition, evidence_index):

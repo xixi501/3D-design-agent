@@ -160,6 +160,48 @@ def test_single_open_dining_label_is_canonicalized_to_living_dining():
     assert len(notes) == 1
 
 
+def test_duplicate_room_label_on_wall_is_removed_when_valid_twin_exists():
+    walls = [
+        {"a": {"x": 10, "y": 10}, "b": {"x": 390, "y": 10}, "thicknessPx": 8},
+        {"a": {"x": 390, "y": 10}, "b": {"x": 390, "y": 290}, "thicknessPx": 8},
+        {"a": {"x": 390, "y": 290}, "b": {"x": 10, "y": 290}, "thicknessPx": 8},
+        {"a": {"x": 10, "y": 290}, "b": {"x": 10, "y": 10}, "thicknessPx": 8},
+        {"a": {"x": 200, "y": 10}, "b": {"x": 200, "y": 290}, "thicknessPx": 8},
+    ]
+    rooms = [
+        {
+            "id": "bath_valid",
+            "name": "次卫",
+            "functionalArea": "bathroom",
+            "at": {"x": 100, "y": 120},
+        },
+        {
+            "id": "bath_duplicate",
+            "name": "次卫",
+            "functionalArea": "bathroom",
+            "at": {"x": 200, "y": 120},
+        },
+        {
+            "id": "living",
+            "name": "客餐厅",
+            "functionalArea": "living",
+            "at": {"x": 300, "y": 120},
+        },
+    ]
+    output, targets, notes = _consolidate_open_room_labels(
+        walls,
+        rooms,
+        ["living"],
+        400,
+        300,
+    )
+    assert [room["id"] for room in output] == ["bath_valid", "living"]
+    assert targets == ["living"]
+    assert any(
+        note["code"] == "ROOM_LABEL" and note["objectIds"] == ["bath_duplicate"] for note in notes
+    )
+
+
 def test_wall_affinity_rotation_uses_nearest_room_wall():
     draft = {
         "walls": [

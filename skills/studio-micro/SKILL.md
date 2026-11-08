@@ -2,11 +2,10 @@
 name: studio-micro
 description: 在 20–40㎡ 的开间/一居里，把睡眠、会客、用餐、工作四件事排进同一间屋：先定"哪件家具不能折叠"的优先顺序，再用书架、帘、地台做软隔断，靠折叠与可移动家具留出 ≥700 的连续走道。当用户给出开间/一居的面积或户型、要求"一间当几间用"、或想分区又不想砌墙时使用；不适用于需要拆改墙体、分间出租或整栋/别墅的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-CIR-01,J-CIR-02,J-CUR-01,J-LIGHT-01,J-PROP-03,J-STA-01,J-VER-01,J-VER-02"
 ---
@@ -80,36 +79,37 @@ metadata:
 
 **第 7 步 · 提交与检查**
 
-1. 先提交床 + 衣柜（固定端），`scene.apply_edits` 带 `base_version`，`op_id` 唯一；
-2. `check.run` 看通道与门；
+1. 先提交床 + 衣柜（固定端），`candidate.propose` 带 `base_version`，`op_id` 唯一；
+2. `candidate.preflight` 看通道与门；
 3. 再提交会客组、工作/餐桌、软隔断，分 2–3 批；
 4. 最多 3 轮修复 [J-VER-02]；3 轮后仍不过的写进"未解决清单"，不要用"看起来可以"收尾；
 5. 只改本次涉及的对象，户型与无关家具不动 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取床/柜/沙发/折叠桌的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间、已有对象 | 待成员1 |
-| `scene.apply_edits` | 分批提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 通道、门扇、窗帘带、重叠、挂墙 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目的差异：原流程是"写户型描述 → 生成网页 → 脚本自查"，本技能是"读场景 → 分批提交 → 读检查报告"；判断依据从脚本注释变成可追溯的修改记录与判据 ID。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：输出文字坐标表（x/y/mm + 家具尺寸 + 朝向），由主控转成场景；
-- 没有 `check.run`：按第 6 步阈值人工核算，并在交付里注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `STU-dev-01`：4.0×7.0m 开间（轴线 28㎡，净约 25.8㎡）。北墙入户门、东墙窗；床靠南、衣柜贴西、双人沙发与茶几在中段、1200×800 桌同时承担工作与用餐、书架垂直做软隔断。期望 `check.run` 全通过（700 通道连续、门扇与窗帘带净空、无重叠）。
+- **正向** `STU-dev-01`：4.0×7.0m 开间（轴线 28㎡，净约 25.8㎡）。北墙入户门、东墙窗；床靠南、衣柜贴西、双人沙发与茶几在中段、1200×800 桌同时承担工作与用餐、书架垂直做软隔断。期望 `candidate.preflight` 全通过（700 通道连续、门扇与窗帘带净空、无重叠）。
 - **边界** `STU-dev-02`：把 1.8m 床推到入户门内侧，想在南侧挤出 450 的床头柜位。期望报 `CIR-02`（门口落脚带被床压死，门到主区不通；同一位置也压到门扇扫掠，会同时出现 `DOOR-02`）。技能应拒绝并把床退回"床头不顶门"的位置。
 
-两个案例在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1/L2 结果回填 `manifest.validation`。
+两个案例在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1/L2 结果回填 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。判据来自 `house-plan-designer@b94183f9` 的 `reference/furnishing.md`（通道 700、窗帘 150）与人体工程学通行值；`J-STA-01` 的"兼起居的卧室 ≥12㎡"引自 GB 50096 常被引用的下限，**须按现行版本与地方标准复核**。
 - 许可：MIT（上游同源）。外部参考：interior-design-expert 的 space-planning 数据（circulation 900/700/450）。
-- 未验证：真实工具执行（待成员1）、折叠家具的真实收纳尺寸（catalog 无折叠件 key，按等效尺寸替代）、真实用户对"隔而不断"的观感评价（需人评）。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`、折叠家具的真实收纳尺寸（catalog 无折叠件 key，按等效尺寸替代）、真实用户对"隔而不断"的观感评价（需人评）。

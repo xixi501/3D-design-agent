@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-"""skill_lint.py — 技能包结构与规范检查（L1）。
+"""skill_lint.py — Skill 池结构检查（默认 v1 schema）。
 
-检查项见 skills/_framework/VERIFY.md 第 1 节。
 用法：
-  python tools/skill_lint.py
-  python tools/skill_lint.py --json reports/lint.json
+  python tools/skill_lint.py                 # 等价 --schema v1
+  python tools/skill_lint.py --schema v1 --json reports/lint.v1.json
+
+通过标准：30/30，0 error。
 """
 from __future__ import annotations
 
@@ -14,26 +15,84 @@ import os
 import re
 import sys
 
-# GBK 控制台下直接 print emoji 会 UnicodeEncodeError；统一把 stdout 切到 UTF-8。
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SKILLS = os.path.join(ROOT, "skills")
-FRAMEWORK = os.path.join(SKILLS, "_framework")
+FW = os.path.join(SKILLS, "_framework")
+CATALOG = os.path.join(HERE, "data", "catalog-sizes.json")
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 JUDGE_RE = re.compile(r"\bJ-[A-Z]{2,6}-\d{2}\b")
-TOOL_RE = re.compile(r"`([a-z][a-z_]*\.[a-z_]+)`")
 REQUIRED_SECTIONS = ["什么时候用", "怎么做", "依赖什么", "怎么验证", "版本与来源"]
-FORBIDDEN = ["analyze.py", "build.py", "check.mjs", "qa.mjs", "wallaudit", "furnoverlay",
-             "cadvec.py", "cadsplit.py", "npm run", "spec.json"]
-STATUS_LEVEL = {
-    "pending_adaptation": {"structure"},
-    "pending_validation": {"dry_run"},
-    "released": {"dry_run", "real_tool"},
+FORBIDDEN_TOOLS = ["scene.get_snapshot", "scene.apply_edits", "scene.diff", "check.run", "view.capture",
+                   "assets.submit", "assets.status", "assets.get", "skills.list", "skills.get", "session.echo"]
+FORBIDDEN_CAPS = {"scene.write", "project.commit"}
+
+KIND = {
+    "living-dining-small": "layout", "living-dining-open": "layout", "master-bedroom": "layout",
+    "kids-room": "layout", "guest-bedroom": "layout", "home-office": "layout",
+    "office-workstation": "layout", "kitchen-line-l-u": "layout", "dining-island": "layout",
+    "bathroom-standard": "layout", "entry-storage": "layout", "balcony-laundry": "layout",
+    "studio-micro": "layout", "villa-ground-floor": "layout", "gaming-room": "layout",
+    "home-gym": "layout", "media-room": "layout", "nursery": "layout",
+    "tatami-multipurpose": "layout", "tea-room": "layout", "utility-storage": "layout",
+    "social-reading-zone": "edit",
+    "aging-friendly": "modifier", "pet-friendly": "modifier", "rental-makeover": "modifier",
+    "style-coherence": "modifier", "lighting-color": "modifier",
+    "floorplan-intake": "intake",
+    "layout-check-repair": "repair",
+    "photo-object-import": "asset",
 }
+ACTIVE = {"living-dining-small", "living-dining-open", "social-reading-zone", "style-coherence",
+          "lighting-color", "floorplan-intake", "layout-check-repair"}
+
+TYPE_MAP = {"object": dict, "array": list, "string": str, "number": (int, float), "integer": int, "boolean": bool}
+
+
+def validate(inst, schema, path="$"):
+    errs = []
+    t = schema.get("type")
+    if t and not isinstance(inst, TYPE_MAP[t]) or (t in ("number", "integer") and isinstance(inst, bool)):
+        return [f"{path}: 期望 {t}，实际 {type(inst).__name__}"]
+    if "const" in schema and inst != schema["const"]:
+        errs.append(f"{path}: 必须等于 {schema['const']!r}")
+    if "enum" in schema and inst not in schema["enum"]:
+        errs.append(f"{path}: {inst!r} 不在枚举 {schema['enum']}")
+    if t == "object":
+        for req in schema.get("required", []):
+            if req not in inst:
+                errs.append(f"{path}: 缺字段 {req}")
+        props = schema.get("properties", {})
+        for k, v in inst.items():
+            if k in props:
+                errs += validate(v, props[k], f"{path}.{k}")
+            elif schema.get("additionalProperties") is False:
+                errs.append(f"{path}: 不允许的字段 {k}")
+    if t == "array":
+        if "minItems" in schema and len(inst) < schema["minItems"]:
+            errs.append(f"{path}: 元素太少（{len(inst)} < {schema['minItems']}）")
+        if "maxItems" in schema and len(inst) > schema["maxItems"]:
+            errs.append(f"{path}: 元素太多（{len(inst)} > {schema['maxItems']}）")
+        item_schema = schema.get("items")
+        if item_schema:
+            for i, v in enumerate(inst):
+                errs += validate(v, item_schema, f"{path}[{i}]")
+    if t in ("string", "number"):
+        if "minimum" in schema and inst < schema["minimum"]:
+            errs.append(f"{path}: {inst} < {schema['minimum']}")
+        if "maximum" in schema and inst > schema["maximum"]:
+            errs.append(f"{path}: {inst} > {schema['maximum']}")
+    if t == "string":
+        if "minLength" in schema and len(inst) < schema["minLength"]:
+            errs.append(f"{path}: 太短")
+        if "maxLength" in schema and len(inst) > schema["maxLength"]:
+            errs.append(f"{path}: 太长（{len(inst)} > {schema['maxLength']}）")
+        if "pattern" in schema and not re.search(schema["pattern"], inst):
+            errs.append(f"{path}: 不匹配 {schema['pattern']}")
+    return errs
 
 
 def parse_frontmatter(text: str):
@@ -42,14 +101,12 @@ def parse_frontmatter(text: str):
     end = text.find("\n---", 3)
     if end < 0:
         return None, text
-    raw = text[3:end].strip("\n")
-    body = text[end + 4:]
+    raw, body = text[3:end].strip("\n"), text[end + 4:]
     data, cur = {}, None
     for line in raw.splitlines():
         if not line.strip() or line.strip().startswith("#"):
             continue
-        indent = len(line) - len(line.lstrip())
-        if indent == 0 and ":" in line:
+        if not line.startswith(" ") and ":" in line:
             k, v = line.split(":", 1)
             k, v = k.strip(), v.strip()
             if v == "":
@@ -58,188 +115,170 @@ def parse_frontmatter(text: str):
             else:
                 data[k] = v.strip('"').strip("'")
                 cur = None
-        elif indent > 0 and cur:
+        elif cur and ":" in line:
             k, v = line.strip().split(":", 1)
             data[cur][k.strip()] = v.strip().strip('"').strip("'")
     return data, body
 
 
-def load_judgements():
-    p = os.path.join(FRAMEWORK, "JUDGEMENTS.md")
-    return set(JUDGE_RE.findall(open(p, encoding="utf-8").read()))
-
-
-def load_tools():
-    p = os.path.join(FRAMEWORK, "TOOLS.md")
-    text = open(p, encoding="utf-8").read()
-    names = set(TOOL_RE.findall(text))
-    return {n for n in names if "schema" not in n}
-
-
-def lint_skill(sid: str, judgements: set, tools: set) -> list:
-    errs, warns = [], []
-    sdir = os.path.join(SKILLS, sid)
-
-    def err(msg):
-        errs.append(f"{sid}: {msg}")
-
-    def warn(msg):
-        warns.append(f"{sid}: {msg}")
-
-    skill_md = os.path.join(sdir, "SKILL.md")
-    if not os.path.isfile(skill_md):
-        err("缺 SKILL.md")
-        return errs, warns
-    text = open(skill_md, encoding="utf-8").read()
-    fm, body = parse_frontmatter(text)
-    if fm is None:
-        err("SKILL.md 缺 YAML frontmatter")
-        return errs, warns
-
-    # 1-2 frontmatter
-    name = fm.get("name", "")
-    if not name:
-        err("frontmatter 缺 name")
-    elif not NAME_RE.match(name) or len(name) > 64:
-        err(f"name 不合规：{name}")
-    elif name != sid:
-        err(f"name({name}) 与目录名({sid}) 不一致")
-    desc = fm.get("description", "")
-    if not desc:
-        err("frontmatter 缺 description")
-    elif len(desc) > 1024:
-        err(f"description 过长（{len(desc)} > 1024）")
-
-    # 3-4 manifest
-    mpath = os.path.join(sdir, "manifest.json")
-    man = {}
-    if not os.path.isfile(mpath):
-        err("缺 manifest.json")
-    else:
-        try:
-            man = json.load(open(mpath, encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            err(f"manifest.json 不是合法 JSON：{exc}")
-    if man:
-        for key in ("schema_version", "id", "name", "version", "status", "level", "applies_when", "depends", "cases"):
-            if key not in man:
-                err(f"manifest 缺字段 {key}")
-        if man.get("id") != sid:
-            err(f"manifest.id({man.get('id')}) 与目录名不一致")
-        if man.get("version") and not re.match(r"^\d+\.\d+\.\d+$", str(man["version"])):
-            err(f"version 不是 x.y.z：{man.get('version')}")
-        st, lv = man.get("status"), man.get("level")
-        if st not in STATUS_LEVEL:
-            err(f"status 非法：{st}")
-        elif lv not in STATUS_LEVEL[st]:
-            err(f"status={st} 与 level={lv} 不自洽（应为 {sorted(STATUS_LEVEL[st])}）")
-        prov = man.get("provenance") or {}
-        if not prov.get("license"):
-            err("manifest.provenance.license 缺失")
-
-    # 5-6 判据与工具引用
-    deps = (man.get("depends") or {})
-    for j in deps.get("judgements", []):
-        if j not in judgements:
-            err(f"manifest 引用了不存在的判据 {j}")
-    for t in deps.get("tools", []):
-        n = t.get("name") if isinstance(t, dict) else t
-        if n not in tools:
-            err(f"manifest 引用了不存在的工具 {n}")
-
-    # 7 正文判据引用
-    for j in sorted(set(JUDGE_RE.findall(body))):
-        if j not in judgements:
-            err(f"正文引用了不存在的判据 {j}")
-
-    # 8 禁用词
-    for w in FORBIDDEN:
-        if w in body:
-            err(f"正文出现旧工具链词 `{w}`")
-
-    # 9 章节
-    for sec in REQUIRED_SECTIONS:
-        if f"## {sec}" not in body:
-            err(f"缺章节 `## {sec}`")
-
-    # 10 案例
-    cases = man.get("cases") or []
-    if len(cases) < 2:
-        warn("manifest.cases 少于 2 个（建议至少 1 正向 + 1 边界）")
-    kinds = [c.get("kind") for c in cases]
-    if "positive" not in kinds:
-        err("缺正向案例")
-    if not any(k in ("boundary", "failure") for k in kinds):
-        err("缺边界/失败案例")
-    for c in cases:
-        cid = c.get("id", "")
-        cdir = os.path.join(sdir, "examples", cid)
-        for fn in ("case.md", "ops.json", "expected.md"):
-            if not os.path.isfile(os.path.join(cdir, fn)):
-                err(f"案例 {cid} 缺 {fn}")
-        op = os.path.join(cdir, "ops.json")
-        if os.path.isfile(op):
+def case_kinds(sdir: str):
+    ex = os.path.join(sdir, "examples")
+    out = []
+    if not os.path.isdir(ex):
+        return out
+    for c in sorted(os.listdir(ex)):
+        p = os.path.join(ex, c, "ops.json")
+        if os.path.isfile(p):
             try:
-                data = json.load(open(op, encoding="utf-8"))
-            except json.JSONDecodeError as exc:
-                err(f"案例 {cid} ops.json 非法：{exc}")
-                continue
-            for key in ("case_id", "scene", "edits", "expect"):
-                if key not in data:
-                    err(f"案例 {cid} ops.json 缺 {key}")
-            if data.get("case_id") != cid:
-                err(f"案例 {cid} 的 ops.json case_id 不一致（{data.get('case_id')}）")
-            if not isinstance(data.get("edits"), list):
-                err(f"案例 {cid} edits 不是数组")
-            sc = data.get("scene") or {}
-            for key in ("walls", "openings", "rooms", "objects"):
-                if key not in sc:
-                    err(f"案例 {cid} scene 缺 {key}")
-            exp = data.get("expect") or {}
-            if not isinstance(exp.get("pass"), bool):
-                err(f"案例 {cid} expect.pass 不是布尔")
-            if c.get("kind") in ("boundary", "failure") and not (exp.get("must_trigger") or []):
-                err(f"边界案例 {cid} 未声明 must_trigger")
-
-    # 11 状态与案例互证
-    if man.get("status") == "pending_validation" and not man.get("validation", {}).get("record"):
-        warn("pending_validation 但 validation.record 为空（跑完 dry-run 后回填）")
-
-    return errs, warns
+                out.append(json.load(open(p, encoding="utf-8")).get("kind", "?"))
+            except json.JSONDecodeError:
+                out.append("bad-json")
+    return out
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--json", default=os.path.join("reports", "lint.json"))
+    ap.add_argument("--schema", default="v1", choices=["v1"])
+    ap.add_argument("--json", default=os.path.join("reports", "lint.v1.json"))
     args = ap.parse_args()
 
-    judgements, tools = load_judgements(), load_tools()
+    skill_schema = json.load(open(os.path.join(FW, "skill.schema.json"), encoding="utf-8"))
+    judge_doc = json.load(open(os.path.join(FW, "judgements.v1.json"), encoding="utf-8"))
+    judge_ids = {j["id"] for j in judge_doc["judgements"]}
+    catalog = set(json.load(open(CATALOG, encoding="utf-8")))
+
     ids = [d for d in sorted(os.listdir(SKILLS))
            if os.path.isdir(os.path.join(SKILLS, d)) and not d.startswith("_")]
-    all_err, all_warn, per = [], [], {}
+    all_err, per = [], {}
     for sid in ids:
-        e, w = lint_skill(sid, judgements, tools)
-        per[sid] = {"errors": e, "warnings": w}
-        all_err += e
-        all_warn += w
+        errs, warns = [], []
+        sdir = os.path.join(SKILLS, sid)
+        skill_md = os.path.join(sdir, "SKILL.md")
+        man_path = os.path.join(sdir, "manifest.json")
+        if not os.path.isfile(skill_md):
+            errs.append("缺 SKILL.md")
+        if not os.path.isfile(man_path):
+            errs.append("缺 manifest.json")
+        if errs:
+            per[sid] = {"errors": errs, "warnings": warns}
+            all_err += [f"{sid}: {e}" for e in errs]
+            continue
 
-    print(f"技能 {len(ids)} 个；判据 {len(judgements)} 条；工具 {len(tools)} 个")
+        text = open(skill_md, encoding="utf-8").read()
+        fm, body = parse_frontmatter(text)
+        if fm is None:
+            errs.append("SKILL.md 缺 YAML frontmatter")
+            fm, body = {}, text
+
+        if fm.get("name") != sid:
+            errs.append(f"frontmatter.name({fm.get('name')}) 与目录不一致")
+        fm_ver = fm.get("version") or (fm.get("metadata") or {}).get("version")
+        if fm_ver != "0.2.0":
+            errs.append(f"frontmatter.version 应为 0.2.0，实际 {fm_ver}")
+
+        try:
+            man = json.load(open(man_path, encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errs.append(f"manifest 不是合法 JSON：{exc}")
+            man = {}
+
+        if man:
+            errs += [f"schema: {e}" for e in validate(man, skill_schema)]
+            if man.get("id") != sid:
+                errs.append(f"manifest.id({man.get('id')}) 与目录不一致")
+            if man.get("version") != "0.2.0":
+                errs.append(f"manifest.version 应为 0.2.0，实际 {man.get('version')}")
+            if man.get("status") != "conformant":
+                errs.append(f"status 应为 conformant（真实核心未验收前不得标 verified），实际 {man.get('status')}")
+            want_act = "active" if sid in ACTIVE else "reserved"
+            if man.get("activation") != want_act:
+                errs.append(f"activation 应为 {want_act}，实际 {man.get('activation')}")
+            if KIND.get(sid) and man.get("kind") != KIND[sid]:
+                errs.append(f"kind 应为 {KIND[sid]}，实际 {man.get('kind')}")
+
+            caps = set(man.get("capabilities", []))
+            if caps & FORBIDDEN_CAPS:
+                errs.append(f"capabilities 含禁止项：{sorted(caps & FORBIDDEN_CAPS)}")
+            need = {"layout": "candidate.propose", "edit": "candidate.propose", "repair": "candidate.propose",
+                    "asset": "asset.job", "intake": "floorplan.analyze", "modifier": "candidate.review"}[man.get("kind", "layout")]
+            if need not in caps:
+                errs.append(f"{man.get('kind')} 缺少必需 capability {need}")
+            if man.get("kind") == "modifier" and "candidate.propose" in caps:
+                errs.append("modifier 不得拥有 candidate.propose（不得独立产生第二轮修改）")
+
+            judged = set(man.get("judgements", []))
+            missing = sorted(judged - judge_ids)
+            if missing:
+                errs.append(f"引用了判据库里没有的 ID：{missing}")
+            body_refs = set(JUDGE_RE.findall(body))
+            if body_refs != judged:
+                errs.append(f"正文判据 {sorted(body_refs)} 与 manifest.judgements {sorted(judged)} 不一致")
+            unknown_refs = sorted(body_refs - judge_ids)
+            if unknown_refs:
+                errs.append(f"正文引用了不存在的判据：{unknown_refs}")
+
+        for sec in REQUIRED_SECTIONS:
+            if f"## {sec}" not in body:
+                errs.append(f"缺章节 `## {sec}`")
+        for w in FORBIDDEN_TOOLS:
+            if w in body:
+                errs.append(f"正文仍引用旧工具名 `{w}`")
+        if "\\" in body:
+            errs.append("正文含反斜杠路径（统一用 /）")
+        if "mock/" in body or "deploy/" in body:
+            errs.append("正文引用了未随仓库提交的目录")
+
+        if KIND.get(sid) == "modifier" and "不独立产生第二轮修改" not in body:
+            errs.append("modifier 正文缺少“不独立产生第二轮修改”声明")
+        if KIND.get(sid) == "repair" and "三轮" not in body:
+            errs.append("repair 正文缺少“复用三轮预算”说明")
+
+        kinds = case_kinds(sdir)
+        if "positive" not in kinds:
+            errs.append("缺正向案例")
+        if "boundary" not in kinds:
+            errs.append("缺边界案例")
+
+        # 案例 key 校验
+        ex = os.path.join(sdir, "examples")
+        if os.path.isdir(ex):
+            for c in sorted(os.listdir(ex)):
+                p = os.path.join(ex, c, "ops.json")
+                if not os.path.isfile(p):
+                    continue
+                try:
+                    case = json.load(open(p, encoding="utf-8"))
+                except json.JSONDecodeError as exc:
+                    errs.append(f"{c}: ops.json 非法：{exc}")
+                    continue
+                objs = list(case.get("scene", {}).get("objects", []))
+                objs += [e.get("object", {}) for e in case.get("edits", []) if e.get("op") == "add"]
+                for o in objs:
+                    k = o.get("key")
+                    if k and k not in catalog:
+                        errs.append(f"{c}: 未知 catalog key `{k}`")
+
+        per[sid] = {"errors": errs, "warnings": warns, "kind": KIND.get(sid),
+                    "activation": "active" if sid in ACTIVE else "reserved"}
+        all_err += [f"{sid}: {e}" for e in errs]
+
+    n_active = sum(1 for s in ids if s in ACTIVE)
+    print(f"schema={args.schema}  技能 {len(ids)}  判据 {len(judge_ids)}  active {n_active}  reserved {len(ids)-n_active}")
     for sid in ids:
-        e, w = per[sid]["errors"], per[sid]["warnings"]
-        mark = "✅" if not e else "❌"
-        print(f"  {mark} {sid:<28} errors={len(e)} warnings={len(w)}")
+        e = per.get(sid, {}).get("errors", [])
+        mark = "OK " if not e else "ERR"
+        print(f"  [{mark}] {sid:<26} {KIND.get(sid, '?'):<8} {'active' if sid in ACTIVE else 'reserved':<8} errors={len(e)}")
         for m in e:
-            print(f"      ERROR {m.split(': ', 1)[-1]}")
-        for m in w:
-            print(f"      warn  {m.split(': ', 1)[-1]}")
-    print(f"\n合计：errors={len(all_err)} warnings={len(all_warn)}")
+            print(f"        - {m}")
+    print(f"\n合计 errors={len(all_err)}")
 
-    out = os.path.join(ROOT, args.json)
-    os.makedirs(os.path.dirname(out), exist_ok=True)
-    json.dump({"skills": len(ids), "judgements": len(judgements), "tools": len(tools),
-               "errors": all_err, "warnings": all_warn, "per_skill": per},
-              open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-    print(f"报告：{out}")
+    out = {"schemaVersion": "actiscape.skill.v1", "schema": args.schema, "skills": len(ids),
+           "judgements": len(judge_ids), "active": n_active, "reserved": len(ids) - n_active,
+           "errors": all_err, "perSkill": per}
+    path = os.path.join(ROOT, args.json)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump(out, open(path, "w", encoding="utf-8", newline="\n"), ensure_ascii=False, indent=2)
+    print(f"报告：{path}")
     return 0 if not all_err else 1
 
 

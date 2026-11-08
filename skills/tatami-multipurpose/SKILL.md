@@ -2,13 +2,12 @@
 name: tatami-multipurpose
 description: 在 5–12㎡ 的榻榻米/多功能房里，决定地台占多大、做上翻还是侧抽、地台如何让开门扇与窗，并排出升降桌与软隔断的通行。当用户要"做个榻榻米、下面收纳、来客人能睡"，或要把小房间兼作书房/储物/客房时使用；不适用于需要拆改墙体、加建阁楼、或地台要压在管道井/检修口上的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-09,J-CUR-01,J-DOOR-01,J-DOOR-02,J-STA-01,J-VER-01,J-VER-02"
+  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-09,J-CIR-11,J-CUR-01,J-DOOR-01,J-DOOR-02,J-STA-01,J-VER-01,J-VER-02"
 ---
 
 # 榻榻米 / 多功能房
@@ -77,7 +76,7 @@ metadata:
 房间名叫"次卧/卧室"时按单人 5㎡、双人 9㎡ 核对；同时标"兼起居"的按 12㎡ 核对 [J-STA-01]。低于下限时不要靠"地台当床"硬凑，先报面积不足。
 
 **第 9 步 · 提交与检查**
-1. 先提交地台，`check.run` 只看门扇区与窗帘区——地台放错位置，后面全白做；
+1. 先提交地台，`candidate.preflight` 只看门扇区与窗帘区——地台放错位置，后面全白做；
 2. 再提交矮桌与坐垫（`on` 指向地台，超出台面就是支撑错误）；
 3. 最后提交衣柜与屏风，检查通道是否被切；
 4. 最多 3 轮修复 [J-VER-02]；3 轮后仍不通过的项写进"未解决清单"，逐条给原因与替代方案；
@@ -96,28 +95,29 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取 `tatami` / 矮桌 / 坐垫 / 衣柜的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间净尺寸、门窗开启方向 | 待成员1 |
-| `scene.apply_edits` | 提交增删改；台面物件带 `on` 指向地台 | 待成员1 |
-| `check.run` | 门扇、窗帘、重叠、支撑面、通行 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程里"榻榻米多高、哪里上翻"只写在文字方案里，没人核过门扇和窗帘；本技能把地台当家具处理，让 `check.run` 能直接判它压没压门、挡没挡窗帘。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：给出地台四角坐标与台面物件坐标（mm，`at` 为中心），交主控转场景；
-- 没有 `check.run`：人工核算门扇扫掠区与窗内侧 150 条带，并在交付里注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `TAT-dev-01`：2.8 × 3.4m 多功能房（内净约 2.6 × 3.2m，8.3㎡）。地台 2000 × 2000 贴西北角、矮台（400）贴窗、门口留落尘区、东墙衣柜、南侧屏风留绕行口。期望 `check.run` 全通过。
+- **正向** `TAT-dev-01`：2.8 × 3.4m 多功能房（内净约 2.6 × 3.2m，8.3㎡）。地台 2000 × 2000 贴西北角、矮台（400）贴窗、门口留落尘区、东墙衣柜、南侧屏风留绕行口。期望 `candidate.preflight` 全通过。
 - **边界** `TAT-dev-02`：用户要求"地台做到门口，进门就上台阶"。地台压进 900 门扇开启区。期望报 `DOOR-02`（门扇开启），技能应拒绝并改为"门口留落尘区、地台从门扇区之后起"。
 
-两个案例在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-08）：首版。判据取自本池判据库：门扇开启 [J-DOOR-02]、窗帘活动区 [J-CUR-01]、端头绕行 [J-CIR-09]、主通道与门口连通 [J-CIR-01/J-CIR-02]、面积下限 [J-STA-01]；`J-STA-01` 引自 GB 50096 常被引用的下限，**须按现行版本与地方标准复核**。
 - 许可：MIT，与上游 `house-plan-designer@b94183f9/reference/furnishing.md` 同源；地台与家具尺寸沿用上游 `catalog-sizes.json`（`tatami` 2000 × 2000 × 400）。
-- 未验证：真实工具执行（待成员1）；"上下台阶留踏步"已入判据库 [J-CIR-11]（半自动，mock 引擎不检查），"上翻盖掀开净空"仍只是做法描述、无对应判据，属人工验收项；地台防潮、龙骨与楼板荷载不在本技能范围。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；"上下台阶留踏步"已入判据库 [J-CIR-11]（半自动，dry-run 引擎不检查），"上翻盖掀开净空"仍只是做法描述、无对应判据，属人工验收项；地台防潮、龙骨与楼板荷载不在本技能范围。

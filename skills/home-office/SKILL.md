@@ -2,13 +2,12 @@
 name: home-office
 description: 布置书房或居家办公位：书桌对窗但离窗墙留出窗帘与暖气的位置，屏幕侧光不背光，椅后留出起身与推椅的净空，视频背景保持干净，并分随手、存档、背景三处收纳。当用户要在一间 5–15㎡ 的房间里放书桌、说"每天开会/要对着窗/别把走廊拍进去"时使用；不适用于多人开放式工位或需要弱电布线的整层办公。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run / view.capture；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-CIR-01,J-CIR-05,J-CUR-01,J-OVER-01,J-DOOR-02,J-ASSET-02,J-LIGHT-02,J-LIGHT-03,J-STY-03,J-VER-01,J-VER-02"
+  judgement_refs: "J-ASSET-02,J-CIR-01,J-CIR-05,J-CUR-01,J-DOOR-02,J-LIGHT-02,J-LIGHT-03,J-OVER-01,J-STY-03,J-VER-01,J-VER-02"
 ---
 
 # 书房 / 居家办公：采光、久坐与画面
@@ -34,7 +33,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 定桌位：对窗但要退一步**
-`scene.get_snapshot` 取墙与洞口。桌子放在有自然光的一侧，但**不贴窗墙**：
+`scene.read` 取墙与洞口。桌子放在有自然光的一侧，但**不贴窗墙**：
 桌前沿到窗墙内皮留 300 以上，把窗帘落地的位置和暖气散热的位置让出来。
 这比 [J-CUR-01] 的窗内侧带更宽——判据只保证窗帘不被落地家具顶住，300 还要额外给暖气与擦窗留手。
 
@@ -76,35 +75,36 @@ metadata:
 **第 8 步 · 提交与检查**
 先提"书桌 + 椅"，检查；再提"收纳三件"，检查；最后提"灯与软装"。
 每轮只改被点到的对象 [J-VER-01]；自动修复最多 3 轮，仍不过的如实写进未解决清单 [J-VER-02]；
-最后用 `view.capture` 出一帧"坐在椅子上往外看"和"镜头里的人"两个视角，作为背景是否干净的证据。
+最后用 `candidate.render` 出一帧"坐在椅子上往外看"和"镜头里的人"两个视角，作为背景是否干净的证据。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取书桌/办公椅/书架/文件柜/矮柜/台灯的 key 与尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间朝向 | 待成员1 |
-| `scene.apply_edits` | 提交增删改与 `on` 支撑关系，带版本与幂等 | 待成员1 |
-| `check.run` | 遮挡、重叠、支撑、门扇 | 可 mock |
-| `view.capture` | 出平面与两个视角，验证背景与眩光 | 待成员1 |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：给文字坐标方案（桌/椅/柜的中心点、朝向、净值）+ 桌面布置图；
-- 没有 `check.run`：按第 3、5 步逐条手算，并注明"未经工具检查"；
-- 没有 `view.capture`：让用户用手机从坐姿拍一张，人工判断背景与眩光。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
 - **正向** `HOF-dev-01`：3000 × 3600 书房（内净约 9.5㎡），书桌离窗墙内皮 350、椅子背后 950、
   东墙书架、西墙文件柜、南墙矮柜做视频背景、台灯压在桌面内、窗帘不碰桌。
-  期望 `check.run` 全通过，且背景一侧不出现门与走道。
+  期望 `candidate.preflight` 全通过，且背景一侧不出现门与走道。
 - **边界** `HOF-dev-02`：把 650 深的打印机搁在 1200 × 600 的桌角上，`on` 写对了但包围盒超出桌面 125。
   期望报 `ASSET-02`，技能应判定"这不是摆法问题是空间问题"，给出落地、换尺寸、明确拒绝三条出路。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。桌离窗 300、屏幕侧光、背景干净三条是本项目设计书 §3.2 的布置判断；
   桌前使用区与通道沿用 interior-design-expert 的 anthropometric 数据与 [J-CIR-05]/[J-CIR-01]；
   照度与色温按 IES 的读写档与晚间暖档 [J-LIGHT-02]/[J-LIGHT-03]，须按实际灯具复核。

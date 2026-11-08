@@ -1,50 +1,60 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "utility-storage",
   "name": "家政间 / 储藏间",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "2–6㎡ 家政间：洗烘/清洁工具/囤货三区分行，400 浅柜或 600 标准柜按净宽选，洗烘前 700、长柜一端留 600 绕行，洞洞板挂实墙，门后只挂薄具，扫地机基站留 500 进出与同侧电源。",
-  "applies_when": {
-    "scene_types": ["家政间", "储藏间", "洗衣房", "设备间旁小间"],
-    "area_m2": [2, 6],
-    "inputs": ["含墙体与门窗的场景或户型图", "洗烘并排还是叠放（可选）", "给排水与地漏位置（可选）", "门型（平开/推拉/折叠）"],
-    "preconditions": ["场景已有墙体与门窗", "门的开启方式已知", "给排水与电源位置已标注或可实勘"]
-  },
-  "not_applicable": [
-    "阳台洗衣 + 晾晒（转 balcony-laundry）",
-    "需要新增地漏、改排水立管或加套管",
-    "1–2㎡ 壁柜/门后凹位（按单件收纳处理，不走三区逻辑）",
-    "整间改厨房或卫浴"
-  ],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "generate_rectangular",
+      "generate_from_text"
     ],
-    "judgements": [
-      "J-BAL-01", "J-CIR-01", "J-CIR-06", "J-CIR-09", "J-DOOR-01", "J-DOOR-02",
-      "J-OVER-01", "J-VER-01", "J-VER-02", "J-WALL-01"
+    "roomKinds": [
+      "utility"
     ],
-    "assets": []
-  },
-  "cases": [
-    {"id": "UTL-dev-01", "kind": "positive", "expect": "check.run 全通过：门扇弧内无家具、洗烘前 700 空置、高柜南端留 1200 端头、洞洞板贴实墙"},
-    {"id": "UTL-dev-02", "kind": "boundary", "expect": "check.run 报 DOOR-02：把高柜挪到门后，压住门扇扫掠区"}
-  ],
-  "provenance": {
-    "based_on": [
-      "house-plan-designer@b94183f9/reference/furnishing.md",
-      "house-plan-designer@b94183f9/reference/spec-format.md"
+    "areaM2": [
+      2,
+      6
     ],
-    "license": "MIT",
-    "external_refs": [
-      "interior-design-expert (laundry clearance / anthropometrics)",
-      "柜深 400/600、洞洞板板底 400、扫地机基站 500/100，行业经验，判据库暂无专项 ID"
+    "projectState": "empty",
+    "requiredInputs": [
+      "dimensions"
     ]
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "notApplicable": [],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review"
+  ],
+  "judgements": [
+    "J-BAL-01",
+    "J-CIR-01",
+    "J-CIR-06",
+    "J-CIR-09",
+    "J-DOOR-01",
+    "J-DOOR-02",
+    "J-OVER-01",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WALL-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

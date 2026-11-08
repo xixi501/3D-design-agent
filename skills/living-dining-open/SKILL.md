@@ -2,13 +2,12 @@
 name: living-dining-open
 description: 在 30–60㎡ 的 LDK 一体大空间里，用"三段分区 + 一条环线"排出会客、用餐、西厨（或工作角），并用地毯与灯位在开放平面上划区，保证从入户门到每一区都有通长通道、分区不把大厅切成两半。当用户要布置 LDK / 客餐厨一体 / 大横厅，或提出"要分区但不要隔断"时使用；不适用于 30㎡ 以下的小客餐厅，也不适用于需要砌墙隔断的改造。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run / view.capture；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-CIR-01,J-CIR-02,J-PROP-01,J-PROP-02,J-PROP-03,J-LAY-01,J-LIGHT-01,J-COL-01,J-STY-01,J-STY-03,J-CUR-01,J-DOOR-01,J-WIN-01,J-STA-01,J-STA-03,J-VER-01,J-VER-02"
+  judgement_refs: "J-CIR-01,J-CIR-02,J-COL-01,J-CUR-01,J-DOOR-01,J-LAY-01,J-LIGHT-01,J-PROP-01,J-PROP-02,J-PROP-03,J-STA-01,J-STA-03,J-STY-01,J-STY-03,J-VER-01,J-VER-02,J-WIN-01"
 ---
 
 # LDK 一体大空间的分区与动线
@@ -35,7 +34,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 量三段**
-`scene.get_snapshot` 取墙与洞口，沿长边把平面切成三段候选带：入口带（靠门）、中段、采光带（靠窗或阳台）。
+`scene.read` 取墙与洞口，沿长边把平面切成三段候选带：入口带（靠门）、中段、采光带（靠窗或阳台）。
 记下每段的净宽净深，以及每面墙的连续长度与洞口位置；连续实墙不够一段时，第三块改成工作角而不是西厨。
 
 **第 2 步 · 先画环线，再放家具**
@@ -71,45 +70,42 @@ metadata:
 - 留白用可数的办法：所有落地家具的投影加起来不超过地面三成，剩下的地方必须是连续可走的整块。
 
 **第 7 步 · 分批提交与检查**
-1. 先提"分区半岛 + 会客组"，`scene.apply_edits` 带 `base_version`，`op_id` 唯一；
-2. `check.run` 看通行与遮挡，再提"用餐组"，再检查；
+1. 先提"分区半岛 + 会客组"，`candidate.propose` 带 `base_version`，`op_id` 唯一；
+2. `candidate.preflight` 看通行与遮挡，再提"用餐组"，再检查；
 3. 最后提"西厨组 + 地毯 + 灯位"，第三次检查；
 4. 每轮只改被检查点到的对象，无关对象与户型不动 [J-VER-01]；
 5. 自动修复最多 3 轮，3 轮后仍不通过的写进"未解决清单"交给用户，不用"看着差不多"收尾 [J-VER-02]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取家具 key 与默认尺寸（沙发/茶几/长桌/椅/地毯/台面/冰箱） | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间、已有对象与分区 | 待成员1 |
-| `scene.apply_edits` | 提交增删改与功能分组，带版本与幂等 | 待成员1 |
-| `check.run` | 通行、遮挡、重叠、挂墙、面积 | 可 mock |
-| `scene.diff` | 证明"只改了指定对象" | 待成员1 |
-| `view.capture` | 出平面图与一张透视作为验收证据 | 待成员1 |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与上游流程的差异：原流程是"写户型描述 → 生成网页 → 脚本自查"，本技能是"读场景 → 先定环线 →
-分批提交 → 读检查报告"，布置判断的载体从脚本注释变成可追溯的修改记录。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：输出文字坐标方案（x/y/mm、朝向、尺寸）+ 分区示意，交主控转成场景；
-- 没有 `check.run`：按第 6 步的阈值人工核算，并在交付里注明"未经工具检查"；
-- 没有 `view.capture`：用平面草图 + 一段"从门口看进去"的文字走位描述替代。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
 - **正向** `LDO-dev-01`：6000 × 8400 的方厅（内净约 47.6㎡），西厨（台面 + 冰箱）、用餐（长桌四椅）、
-  会客（沙发 + 茶几 + 电视矮柜半岛 + 地毯 + 落地灯）三段。期望 `check.run` 全通过：
+  会客（沙发 + 茶几 + 电视矮柜半岛 + 地毯 + 落地灯）三段。期望 `candidate.preflight` 全通过：
   半岛两端通道 2100 / 1500，矮柜东端到东墙 2200，窗内侧带无高柜，门扇区空闲。
 - **边界** `LDO-dev-02`：同尺寸房间，把"分区"做成一条中岛 + 台面 + 餐边柜从西墙连到东墙的柜带。
   期望报 `CIR-02`（从门口只能到达 17% 的通行区域），技能应拒绝这种做法并给出"半岛两端留通道"的替代。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑。L1 结构结果由 `tools/skill_lint.py` 出，
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑。L1 结构结果由 `tools/skill_lint.py` 出，
 L2 几何结果由 `tools/dry_run.py` 出，逐条记录在 `manifest.validation`（当前仍为空：只做过本地 dry-run，
 未接真工具，故状态保持 `pending_adaptation`）。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。三段分区、环线优先、地毯与灯位划区、三成留白四条判断来自本项目设计书
   §3.2 与 `living-dining-small` 的尺度外推；通道、窗帘、推拉门、高柜挡窗的阈值沿用
   `house-plan-designer@b94183f9` 的 `reference/furnishing.md`；`J-STA-01` 类面积下限引自 GB 50096，

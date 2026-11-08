@@ -1,36 +1,59 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "rental-makeover",
   "name": "出租房轻改造",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "modifier",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "3.2×4.6m 出租单间：不拆改、可逆、可复原；0/500/2000 元三档预算，先摆位再换软装，灯光分层 + 60/30/10 配色 + 一个视觉焦点，退租能全部搬走。",
-  "applies_when": {
-    "scene_types": ["卧室", "起居卧室", "单间", "一居"],
-    "area_m2": [8, 25],
-    "inputs": ["含墙体与门窗的场景或户型图", "预算档位", "房东限制（可否打孔/改硬装）"],
-    "preconditions": ["场景已有墙体与门窗", "已知哪些家具属于房东、不可搬走"]
-  },
-  "not_applicable": ["自有房可拆改或定制柜", "需要改水电点位/加装设备", "预算充足且只关心布局（转对应空间技能）"],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "edit_existing"
     ],
-    "judgements": ["J-COL-01", "J-CUR-01", "J-LIGHT-01", "J-STA-03", "J-STY-01", "J-STY-03", "J-VER-01", "J-VER-02", "J-WIN-01"],
-    "assets": []
+    "roomKinds": [
+      "studio",
+      "bedroom"
+    ],
+    "areaM2": [
+      10,
+      40
+    ],
+    "projectState": "existing",
+    "requiredInputs": [
+      "existing_scene"
+    ]
   },
-  "cases": [
-    {"id": "RNT-dev-01", "kind": "positive", "expect": "check.run 全通过：700 通道、窗帘带净空、无重叠"},
-    {"id": "RNT-dev-02", "kind": "boundary", "expect": "check.run 报 WIN-01 与 CUR-01（高柜立在窗下）"}
+  "notApplicable": [
+    "structural_change",
+    "water_electrical"
   ],
-  "provenance": {
-    "based_on": ["house-plan-designer@b94183f9/reference/furnishing.md", "house-plan-designer@b94183f9/reference/workflow-check.md"],
-    "license": "MIT",
-    "external_refs": ["interior-design-expert (lighting/color heuristics)"]
+  "capabilities": [
+    "scene.read",
+    "candidate.review"
+  ],
+  "judgements": [
+    "J-COL-01",
+    "J-CUR-01",
+    "J-LIGHT-01",
+    "J-STA-03",
+    "J-STY-01",
+    "J-STY-03",
+    "J-VER-01",
+    "J-VER-02",
+    "J-WIN-01"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

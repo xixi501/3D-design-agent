@@ -67,10 +67,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--skill", action="append", default=[])
+    ap.add_argument("--catalog", default=None, help="固定尺寸表路径（默认 tools/data/catalog-sizes.json）")
     ap.add_argument("--report", default=os.path.join("reports", "dry_run.json"))
     args = ap.parse_args()
 
-    catalog = load_catalog()
+    catalog = load_catalog(args.catalog) if args.catalog else load_catalog()
     ids = args.skill or ([d for d in sorted(os.listdir(SKILLS_DIR))
                           if os.path.isdir(os.path.join(SKILLS_DIR, d)) and not d.startswith("_")] if args.all else [])
     if not ids:
@@ -107,7 +108,7 @@ def main():
                         "all_ok": n_ok == n_cases and n_cases > 0}
     os.makedirs(os.path.dirname(os.path.join(ROOT, args.report)) or ".", exist_ok=True)
     out = os.path.join(ROOT, args.report)
-    with open(out, "w", encoding="utf-8") as f:
+    with open(out, "w", encoding="utf-8", newline="\n") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
 
     md = [f"# dry-run 报告（{report['generated_at']}）", "",
@@ -121,7 +122,7 @@ def main():
             got = ", ".join(c["issues"]) or "—"
             md.append(f"| {s['id']} | {c['case_id']} | {c['kind']} | {'pass' if c['pass'] else 'fail'} | {got} | {'✅' if c['evaluation']['ok'] else '❌'} |")
     md_path = out.replace(".json", ".md")
-    with open(md_path, "w", encoding="utf-8") as f:
+    with open(md_path, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(md) + "\n")
 
     print("\n".join(md))

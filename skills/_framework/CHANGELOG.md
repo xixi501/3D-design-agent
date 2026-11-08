@@ -1,5 +1,14 @@
 # 框架变更记录
 
+## v1.0（2026-11-09）· actiscape.skill.v1
+
+- **格式**：manifest 迁移到严格 v1（`schemaVersion / kind / activation / appliesTo / capabilities / judgements / composition / license / validation`）；删除 `depends`、`cases`、`provenance` 等旧字段；技能版本升 `0.2.0`。
+- **能力模型**：技能只声明语义 capability，**禁止 `scene.write` / `project.commit`**；正文不再出现 `scene.get_snapshot` / `scene.apply_edits` / `check.run` / `view.capture` 等主系统工具名。
+- **判据**：新增 `judgements.v1.json`（69 条，结构化 ID/分组/文本/阈值/来源/可检查性/版本）与两个 JSON Schema；manifest 只引用 ID。
+- **分类**：`kind` 固定为 `intake/layout/edit/floorplan/modifier/repair/asset`；首批 `active` 7 个，其余 `reserved`；全部 `status: conformant`、`validation.realCore: false`。
+- **修复**：① 固定尺寸表提交到 `tools/data/`，`mockscene` 不再依赖未提交目录；② 未知 catalog key（`pendant`/`wallLamp`）改为真实 key，并新增 `validate_catalog.py`；③ `group` 案例改为 `source.activityGroups` 元数据；④ 删除无提交支撑的 HTTP/部署/smoke 声明；⑤ 文档路径统一 `/`、文件统一 LF。
+- **新增工具**：`tools/validate_catalog.py`；`skill_lint.py --schema v1`、`make_index.py --schema v1`。
+
 ## v0.3（2026-11-08）
 
 - **判据库**：新增 `J-VIEW-02`（观看距离 = 屏幕对角线 × 1.2–1.6，半自动）、`J-CIR-11`（地台高差 > 150 须留踏步/缓坡，半自动）、`J-CIR-12`（<6㎡ 辅房 600 净宽门槛 + 门弧净空）、`J-GYM-01/02`（器械安全操作区、镜面墙）、`J-GAM-01`（桌面进深与视距）、`J-NUR-01/02`（尿布台、家电直吹）、`J-UTL-01`（扫地机基站）。

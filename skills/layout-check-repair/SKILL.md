@@ -1,12 +1,11 @@
 ---
 name: layout-check-repair
-description: 已有布置的场景跑"检查 → 定位 → 有限修复 → 如实报告"：先 check.run 拿 issue 列表，按严重度与影响对象数排序，一次只修一类，每轮重跑，3 轮预算用完就停，修不动的写进未解决清单并说明原因。当用户说"帮我看看这套布置哪里不对、能不能自动修"，或内层 harness 在执行完一次设计后自检时使用；不适用于从零布置、拆改户型，或要求"改到通过为止"的任务。
+description: 已有布置的场景跑"检查 → 定位 → 有限修复 → 如实报告"：先 candidate.preflight 拿 issue 列表，按严重度与影响对象数排序，一次只修一类，每轮重跑，3 轮预算用完就停，修不动的写进未解决清单并说明原因。当用户说"帮我看看这套布置哪里不对、能不能自动修"，或内层 harness 在执行完一次设计后自检时使用；不适用于从零布置、拆改户型，或要求"改到通过为止"的任务。
 license: MIT
-compatibility: 需要 check.run / scene.get_snapshot / scene.apply_edits / scene.diff / view.capture；工具未落地时按"依赖什么"一节的降级路径执行（人工按判据逐条核对）。
+compatibility: 需要 candidate.preflight / scene.read / candidate.propose / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（人工按判据逐条核对）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-CIR-01,J-CIR-02,J-CUR-01,J-DOOR-01,J-DOOR-02,J-OVER-01,J-VER-01,J-VER-02,J-WIN-01"
 ---
@@ -32,8 +31,10 @@ metadata:
 
 ## 怎么做
 
+修复复用主系统现有三轮预算，不新增轮次。
+
 **第 1 步 · 先检查，再动手**
-`scene.get_snapshot` 取当前版本，直接 `check.run`。**不要先改再检查，也不要先看效果图**——
+`scene.read` 取当前版本，直接 `candidate.preflight`。**不要先改再检查，也不要先看效果图**——
 效果图不告诉你"门前没有落脚点"，检查报告会。
 
 **第 2 步 · 排序（决定先修哪一条）**
@@ -42,7 +43,7 @@ metadata:
 3. 再按"是否挡门/挡通道"优先（门被挡 = 整个房间的功能失效）；
 4. 排序结果写进交付，让用户看得见"为什么先修这条"。
 
-排序示例（同一次 `check.run` 报了 4 条）：
+排序示例（同一次 `candidate.preflight` 报了 4 条）：
 `DOOR-02`（2 个对象，挡门）→ `OVER-01`（2 个对象）→ `WIN-01`（1 个对象）→ `CIR-02`（整室比值，warn）——
 先修"门"，因为门不通，后面所有判断都没有意义。
 
@@ -54,8 +55,8 @@ metadata:
 **第 4 步 · 一次只修一类**
 "同类" = 同一个 `code`。一轮里只处理一个 code 的所有 issue：
 1. 规划最小改动（能移就不删，能删就不换）[J-VER-01]；
-2. 一次 `scene.apply_edits`，带 `base_version` 与唯一 `op_id`；
-3. 立刻重跑 `check.run`，对比"这一类是否清零、有没有带出新的 error"。
+2. 一次 `candidate.propose`，带 `base_version` 与唯一 `op_id`；
+3. 立刻重跑 `candidate.preflight`，对比"这一类是否清零、有没有带出新的 error"。
 
 | 码 | 判据 | 典型情形 | 有限修复动作 |
 |---|---|---|---|
@@ -95,32 +96,30 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `check.run` | 拿 issue 列表；每轮复跑对比 | 可 mock |
-| `scene.get_snapshot` | 取当前版本与对象坐标 | 待成员1 |
-| `scene.apply_edits` | 提交修复动作，带版本与幂等 | 待成员1 |
-| `scene.diff` | 证明只改了该改的对象 [J-VER-01] | 待成员1 |
-| `view.capture` | 修复前后各出一张平面图作证据 | 待成员1 |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程是"脚本自查 → 人工看图 → 再生成"，没有预算概念；本技能把修复写成**有轮次上限、有排序规则、有未解决清单**的流程，判断可追溯。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前候选与问题清单 |
+| `candidate.preflight` | 复跑预检，确认修复效果 |
+| `candidate.propose` | 提交修复候选 |
+| `candidate.review` | 记录未解决项与原因 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `check.run`：按判据表人工逐条核对（门扇、窗帘区、窗前 400、重叠、通行），在报告里注明"人工核对"；
-- 没有 `scene.*`：只输出 issue 清单与建议动作，不执行修改；
-- 没有 `view.capture`：用坐标表代替截图作证据。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `LCR-dev-01`：3.8 × 5.4m 起居室，初始状态里沙发横在门口、茶几正对门洞。第 1 轮清门（`DOOR-02` 清零），第 2 轮复位茶几并补地毯，第 3 轮前 `check.run` 已全通过。期望 `pass = true`。
+- **正向** `LCR-dev-01`：3.8 × 5.4m 起居室，初始状态里沙发横在门口、茶几正对门洞。第 1 轮清门（`DOOR-02` 清零），第 2 轮复位茶几并补地毯，第 3 轮前 `candidate.preflight` 已全通过。期望 `pass = true`。
 - **边界** `LCR-dev-02`：3.6 × 4.2m 书房，初始状态有"门口堆着桌子椅子"与"窗下 2400 高柜"两类问题。3 轮里只够修门与入口通行，窗下高柜（`WIN-01`）未处理，预算用尽。期望 `pass = false` 且 `must_trigger = WIN-01`——**这就是"如实报告未解决"的形态**。
 - **反向校验**：把 `LCR-dev-02` 的期望改成 `pass = true` 应该失败。如果它能"通过"，说明流程里混进了"改规则凑结果"的做法。
 
-两个案例在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。检查→修复的两层结构来自项目设计书 §4.4（内层 harness）与 §3.3（版本一致性）；轮次上限与未解决清单按判据库口径引用 [J-VER-02]；门扇、推拉门、窗帘区、窗前柜、重叠沿用上游 `reference/workflow-check.md` 的检查项。
 - 许可：MIT（与上游同源）。外部参考：interior-design-expert 的 clearance 数据（用于判断"修不动"的边界）。
-- 未验证：真实工具执行（待成员1）、真实场景中"修不动"判定的准确性（需案例积累）、多轮修复后的版本合并冲突（需成员1 的 `scene.apply_edits` 落地）。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`、真实场景中"修不动"判定的准确性（需案例积累）、多轮修复后的版本合并冲突（需成员1 的 `candidate.propose` 落地）。
 - 修改记录：无（首版）。

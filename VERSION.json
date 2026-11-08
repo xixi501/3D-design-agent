@@ -1,192 +1,210 @@
 {
-  "snapshot": "2026-11-08",
-  "skills": 30,
-  "cases": 60,
-  "judgements": 69,
-  "skill_list": [
+  "snapshot": "2026-11-09",
+  "schemaVersion": "actiscape.skill.v1",
+  "counts": {
+    "skills": 30,
+    "active": 7,
+    "reserved": 23,
+    "cases": 60,
+    "judgements": 69
+  },
+  "kinds": {
+    "asset": 1,
+    "edit": 1,
+    "intake": 1,
+    "layout": 21,
+    "modifier": 5,
+    "repair": 1
+  },
+  "skills": [
     {
       "id": "aging-friendly",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "modifier",
+      "activation": "reserved"
     },
     {
       "id": "balcony-laundry",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "bathroom-standard",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "dining-island",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "entry-storage",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "floorplan-intake",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "intake",
+      "activation": "active"
     },
     {
       "id": "gaming-room",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "guest-bedroom",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "home-gym",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "home-office",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "kids-room",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "kitchen-line-l-u",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "layout-check-repair",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "repair",
+      "activation": "active"
     },
     {
       "id": "lighting-color",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "modifier",
+      "activation": "active"
     },
     {
       "id": "living-dining-open",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "active"
     },
     {
       "id": "living-dining-small",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "active"
     },
     {
       "id": "master-bedroom",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "media-room",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "nursery",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "office-workstation",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "pet-friendly",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "modifier",
+      "activation": "reserved"
     },
     {
       "id": "photo-object-import",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "asset",
+      "activation": "reserved"
     },
     {
       "id": "rental-makeover",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "modifier",
+      "activation": "reserved"
     },
     {
       "id": "social-reading-zone",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "edit",
+      "activation": "active"
     },
     {
       "id": "studio-micro",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "style-coherence",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "modifier",
+      "activation": "active"
     },
     {
       "id": "tatami-multipurpose",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "tea-room",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "utility-storage",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     },
     {
       "id": "villa-ground-floor",
-      "version": "0.1.0",
-      "status": "pending_adaptation",
-      "cases": 2
+      "version": "0.2.0",
+      "kind": "layout",
+      "activation": "reserved"
     }
   ],
   "hashes": {
-    "skills": "46b9d240fb45c459",
-    "index": "c0d1bfd651b177b2"
+    "judgements": "c4ffe61148e9384b",
+    "index": "f5fc81bcf0ade485",
+    "catalog": "d299f37787ae1a23"
+  },
+  "validation": {
+    "realCore": false,
+    "note": "L3 由主系统接入真实场景/检查器后完成，池内全部 status=conformant"
   }
 }

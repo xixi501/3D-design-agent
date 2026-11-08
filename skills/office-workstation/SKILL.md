@@ -2,13 +2,12 @@
 name: office-workstation
 description: 在 30–60㎡ 的小型办公或居家工作室里，先把平面分成"工位区 / 会议区 / 打印收纳区 / 入口通道"四块，再按 1200×600 起、1400×700 舒适的工位尺寸排布，保证 900 主通道、会议室门不被挡、高柜不挡窗，并给出插座与网口的位置建议。当用户要布置小型办公室、共享工位、工作室，或说"给团队排 4–8 个位子、留一间会议室"时使用；不适用于需要水电点位设计、拆改墙体或整层办公区规划的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-05,J-DOOR-01,J-DOOR-02,J-LIGHT-02,J-OVER-01,J-PROP-01,J-STY-01,J-STA-03,J-VER-01,J-VER-02,J-WIN-01"
+  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-05,J-DOOR-01,J-DOOR-02,J-LIGHT-02,J-OVER-01,J-PROP-01,J-STA-03,J-STY-01,J-VER-01,J-VER-02,J-WIN-01"
 ---
 
 # 小型办公工位与会议室
@@ -34,7 +33,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 先分四块，再摆家具**
-`scene.get_snapshot` 取墙与洞口，按顺序切四块：入口与主通道 → 工位区 → 会议区 → 打印收纳区。
+`scene.read` 取墙与洞口，按顺序切四块：入口与主通道 → 工位区 → 会议区 → 打印收纳区。
 
 | 块 | 位置偏好 | 面积参考 | 不能做什么 |
 |---|---|---|---|
@@ -89,8 +88,8 @@ metadata:
 - 落地家具互不重叠，桌椅、边几靠沙发、地毯属例外 [J-OVER-01]；高柜不进窗前 400 [J-WIN-01]。
 
 **第 7 步 · 提交与检查（分批，不一次改完）**
-1. 先提交"工位排 + 会议桌"，`scene.apply_edits` 带 `base_version`、`op_id` 唯一；
-2. `check.run` 看通行与遮挡；
+1. 先提交"工位排 + 会议桌"，`candidate.propose` 带 `base_version`、`op_id` 唯一；
+2. `candidate.preflight` 看通行与遮挡；
 3. 再提交打印区、收纳与挂墙件，再检查；
 4. 最多 3 轮修复 [J-VER-02]；3 轮后仍不通过的写进"未解决清单"，不假装成功；
 5. 只改本次涉及的家具与位置，墙、门窗、无关家具保持原样 [J-VER-01]；
@@ -98,32 +97,32 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取工位桌、会议桌、培训椅、白板、打印机的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间、已有对象 | 待成员1 |
-| `scene.apply_edits` | 分批提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 通行、门扇、窗净空、重叠、挂墙 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程是"写描述 → 生成网页 → 脚本自查"，本技能是"读场景 → 分四块 → 逐批提交 → 读检查报告"；家具 key 与尺寸沿用上游，但判断的载体从脚本注释变成可追溯的修改记录。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：用文字给出坐标方案（mm，x 向右、y 向下，`at` 为家具中心，`rot` 0 = 背朝北），交主控转成场景；
-- 没有 `check.run`：按第 6 步逐条人工核算，并在交付里注明"未经工具检查"；
-- 没有 `catalog.search`：用上游尺寸表取值，并在交付里注明"尺寸未从库中确认"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `OFW-dev-01`：7.2 × 6.0m（43㎡）工作室，北墙 4200 窗、西墙 1000 入户门；4 组 1400 × 700 工位背窗成排，西南角玻璃隔断围出 10㎡ 会议区（2400 × 1100 会议桌 + 6 椅），东南角打印区 + 通高储物柜。期望 `check.run` 全通过。
+- **正向** `OFW-dev-01`：7.2 × 6.0m（43㎡）工作室，北墙 4200 窗、西墙 1000 入户门；4 组 1400 × 700 工位背窗成排，西南角玻璃隔断围出 10㎡ 会议区（2400 × 1100 会议桌 + 6 椅），东南角打印区 + 通高储物柜。期望 `candidate.preflight` 全通过。
 - **边界** `OFW-dev-02`：为了多塞一个人，把第 5 张桌子与椅子塞到会议室门口，压住 900 平开门的扫掠区。期望报 `DOOR-02` 与 `CIR-02`；技能应指出"会议室门被工位挡住"，并给出"减一张工位"或"会议门改到侧墙"两个替代，而不是硬挪。
 
-- **反向校验**：把 `OFW-dev-01` 的任一通道压到 850，`check.run` 应报 `CIR-02`；不报说明引擎与判据口径不一致，要改引擎不能改期望。
+- **反向校验**：把 `OFW-dev-01` 的任一通道压到 850，`candidate.preflight` 应报 `CIR-02`；不报说明引擎与判据口径不一致，要改引擎不能改期望。
 
-两个案例在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。判据来自 `house-plan-designer@b94183f9` 的 `reference/furnishing.md`（通道、门扇扫掠、推拉门 400、高柜挡窗）与 IES 照度值（会议桌面 300–500 lux）；工位 1200 × 600 / 1400 × 700、桌前 900 × 900 取自人体工程学通行值，按判据库口径引用 [J-CIR-05]。
 - 许可：MIT（与上游同源）。外部参考：interior-design-expert 的 space-planning 与 lighting 数据。
-- 未验证：真实工具执行（待成员1）、真实办公用户的"好用"评价（需人评）、插座网口位置的实际施工可行性（需电气专业复核）。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`、真实办公用户的"好用"评价（需人评）、插座网口位置的实际施工可行性（需电气专业复核）。
 - 修改记录：无（首版）。

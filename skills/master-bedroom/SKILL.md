@@ -2,13 +2,12 @@
 name: master-bedroom
 description: 为主卧定"床头墙 + 床侧通道 + 衣柜前净空"的骨架，再在衣柜、梳妆、电视三者之间做明确取舍，并处理窗帘与窗下净空。当用户要布置 10–20㎡ 主卧、给出大床与衣柜尺寸，或纠结"要衣柜还是要梳妆台/电视"时使用；不适用于儿童房、老人房（防跌倒要求不同）或需要改门洞与水电点位的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run / view.capture；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-CIR-04,J-CIR-06,J-CIR-08,J-CUR-01,J-PROP-01,J-STA-01,J-LIGHT-02,J-DOOR-02,J-OVER-01,J-ASSET-02,J-VER-01,J-VER-02"
+  judgement_refs: "J-ASSET-02,J-CIR-04,J-CIR-06,J-CIR-08,J-CUR-01,J-DOOR-02,J-LIGHT-02,J-OVER-01,J-PROP-01,J-STA-01,J-VER-01,J-VER-02"
 ---
 
 # 主卧：睡眠区、收纳与梳妆取舍
@@ -33,7 +32,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 选床头墙**
-`scene.get_snapshot` 取墙与洞口，按三条筛床头墙：
+`scene.read` 取墙与洞口，按三条筛床头墙：
 1. 连续实墙、长度够"床宽 + 两侧床头柜 + 余量"；
 2. 不正对卧室门（进门先看到床尾或衣柜侧面，而不是床头正面）；
 3. 床头墙尽量不要是窗墙——床头压在窗下会让窗帘、窗台、暖气三件事同时失效。
@@ -83,30 +82,32 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取床/床头柜/衣柜/床尾凳/斗柜的 key 与尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间面积 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 门扇、遮挡、重叠、支撑、面积 | 可 mock |
-| `view.capture` | 出平面与一张床视角图 | 待成员1 |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：给文字坐标方案（床/柜的中心点、朝向、外沿到墙面内皮的净值）+ 一张手绘平面描述；
-- 没有 `check.run`：按第 3、6 步逐条手算，并在交付里注明"未经工具检查"。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
 - **正向** `MBR-dev-01`：3600 × 4200 主卧（内净约 13.6㎡），床头贴北墙（无洞口、不正对门），
   两侧床头柜、床尾凳、南墙西段 2000 衣柜、东窗落地窗帘、床头挂画与台灯。
-  期望 `check.run` 全通过：门扇区让开衣柜、窗内侧带无高柜、台灯压在柜面内。
+  期望 `candidate.preflight` 全通过：门扇区让开衣柜、窗内侧带无高柜、台灯压在柜面内。
 - **边界** `MBR-dev-02`：把衣柜放到"进门右手边"，柜体越进门洞西沿，压掉 600 深的门扇扫掠区。
   期望报 `DOOR-02`，技能应拒绝并给出"西移 / 减宽 / 换推拉门"三条替代。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。床头墙三条筛选、柜前净空先于柜长、梳妆/电视三选一来自本项目设计书 §3.2
   与主卧尺度的通行经验；床侧通道、柜门、床尾净距沿用 interior-design-expert 与 NKBA 的通行值；
   `J-STA-01` 引自 GB 50096 常用下限，**须按现行版本复核**。

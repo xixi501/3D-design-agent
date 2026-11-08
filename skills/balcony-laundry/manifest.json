@@ -1,36 +1,56 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "balcony-laundry",
   "name": "生活阳台与家政",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "1.2–6㎡ 生活阳台：先定排水再定机器，决定叠放或并排，留洗衣机前操作面、定晾衣杆高度与长度、处理地漏，并与通客厅的推拉门/窗帘避让。",
-  "applies_when": {
-    "scene_types": ["生活阳台", "家政阳台", "洗衣房", "阳台"],
-    "area_m2": [1.2, 6],
-    "inputs": ["含墙体、窗与推拉门的阳台场景或实测尺寸", "排水地漏与立管位置", "洗衣机/烘干机型号（可选）"],
-    "preconditions": ["场景已有墙体与门窗", "排水与地漏位置已知", "阳台净高已知（叠放要看）"]
-  },
-  "not_applicable": ["需要改排水立管、楼板开洞或加装地漏", "封阳台、改窗、结构加固", "纯景观阳台（不洗衣）", "需要增加阳台热水点位", "需要做阳光房"],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "generate_rectangular",
+      "generate_from_text"
     ],
-    "judgements": ["J-BAL-01", "J-CIR-01", "J-DOOR-01", "J-CUR-01", "J-VER-01", "J-VER-02"],
-    "assets": []
+    "roomKinds": [
+      "balcony"
+    ],
+    "areaM2": [
+      1.2,
+      6
+    ],
+    "projectState": "empty",
+    "requiredInputs": [
+      "dimensions"
+    ]
   },
-  "cases": [
-    {"id": "BAL-dev-01", "kind": "positive", "expect": "check.run 全通过：推拉门前 400 无家具、窗内侧 150 无高家具、无重叠"},
-    {"id": "BAL-dev-02", "kind": "boundary", "expect": "check.run 报 DOOR-01（洗衣机堵住推拉门）"}
+  "notApplicable": [],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review"
   ],
-  "provenance": {
-    "based_on": ["skills/_framework/JUDGEMENTS.md#F-玄关阳台入户", "skills/_framework/JUDGEMENTS.md#B-遮挡与冲突"],
-    "license": "MIT",
-    "external_refs": ["washer/dryer standard dimensions", "balcony drainage practice"]
+  "judgements": [
+    "J-BAL-01",
+    "J-CIR-01",
+    "J-CUR-01",
+    "J-DOOR-01",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

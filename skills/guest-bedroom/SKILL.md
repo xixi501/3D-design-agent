@@ -2,11 +2,10 @@
 name: guest-bedroom
 description: 在 6–14㎡ 的次卧/客房里，先判断这间房是"临时住 + 收纳"还是"长期住"，再在床靠墙与床居中两种摆法之间取舍，安排衣柜、书桌与折叠书桌，并让开门扇、窗帘与 700 通行。当用户要布置次卧、客房、客房兼书房，或说"这间平时没人住、来人要能睡"时使用；不适用于主卧、儿童房、需要拆改墙体或改门窗的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-04,J-CIR-06,J-CUR-01,J-DOOR-02,J-PROP-01,J-STA-01,J-VER-01,J-VER-02"
 ---
@@ -43,7 +42,7 @@ metadata:
 用途不同，后面每一步的取舍顺序都不同：临时住优先"柜子多、床能收"；长期住优先"柜门能开、桌能坐、床两侧能下人"。
 
 **第 2 步 · 量墙、定床头墙**
-`scene.get_snapshot` 取墙与洞口，按"连续、无洞口"筛出可用墙段。床头选**最长的一段实墙，且避开窗**：床高通常高于 600，落在窗内侧 150 的窗帘活动区里就违反 [J-CUR-01]。窗前宁放矮几、矮柜，不放床头。
+`scene.read` 取墙与洞口，按"连续、无洞口"筛出可用墙段。床头选**最长的一段实墙，且避开窗**：床高通常高于 600，落在窗内侧 150 的窗帘活动区里就违反 [J-CUR-01]。窗前宁放矮几、矮柜，不放床头。
 
 **第 3 步 · 床的两种摆法（第二个核心判断）**
 
@@ -77,7 +76,7 @@ metadata:
 
 **第 8 步 · 提交与检查（不要一次改完再检查）**
 1. 先提交"床 + 床头柜"，带 `base_version`、`op_id` 唯一；
-2. `check.run` 看门扇、窗帘、重叠；
+2. `candidate.preflight` 看门扇、窗帘、重叠；
 3. 再提交衣柜，检查柜门开启与床尾通道；最后提交书桌/折叠桌；
 4. 最多 3 轮修复 [J-VER-02]；3 轮后仍不通过的项写进"未解决清单"，逐条给原因与替代方案；
 5. 只改本次涉及的对象，户型与无关家具不动 [J-VER-01]。
@@ -95,28 +94,29 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取床/衣柜/书桌/床头柜的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间净尺寸、已有对象 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 门扇、窗帘、重叠、通行、面积下限 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程把"次卧怎么摆"写在户型描述的注释里，无法复核；本技能把判断拆成"用途 → 摆法 → 争夺顺序"三步，每一步都能落到 `check.run` 的码上。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：用文字给出坐标方案（mm，x 向右 y 向下，`at` 为家具中心）+ 一段平面描述，交主控转成场景；
-- 没有 `check.run`：按第 3、4、6 步的判据人工核算，并在交付里注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `GBR-dev-01`：3.0 × 3.6m 次卧（内净约 9.5㎡）。床头靠实墙避开窗、床侧留 700 以上通道、衣柜放南墙、书桌靠东墙、门扇区让开。期望 `check.run` 全通过。
+- **正向** `GBR-dev-01`：3.0 × 3.6m 次卧（内净约 9.5㎡）。床头靠实墙避开窗、床侧留 700 以上通道、衣柜放南墙、书桌靠东墙、门扇区让开。期望 `candidate.preflight` 全通过。
 - **边界** `GBR-dev-02`：把 1.0m 衣柜塞进门后"那块空着的地方"。期望报 `DOOR-02`（门扇开启区）与 `CIR-02`（门口被堵）；技能应拒绝该位置，改为衣柜放南墙、门后只留挂钩。
 
-两个案例在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-08）：首版。判据取自本池判据库：床侧通道 [J-CIR-04]、柜门开启 [J-CIR-06]、窗帘活动区 [J-CUR-01]、门扇开启 [J-DOOR-02]、家具与墙面比例 [J-PROP-01]、房间面积下限 [J-STA-01]；`J-STA-01` 引自 GB 50096 常被引用的下限，**须按现行版本与地方标准复核**。
 - 许可：MIT，与上游 `house-plan-designer@b94183f9/reference/furnishing.md` 同源；家具尺寸沿用上游 `catalog-sizes.json`。
-- 未验证：真实工具执行（待成员1）；"靠墙 vs 居中"的用户偏好排序只有经验依据，需人评；折叠床展开态不在 mock 引擎覆盖范围内，需人工核算。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；"靠墙 vs 居中"的用户偏好排序只有经验依据，需人评；折叠床展开态不在 mock 引擎覆盖范围内，需人工核算。

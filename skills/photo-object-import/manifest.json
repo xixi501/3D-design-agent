@@ -1,39 +1,58 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "photo-object-import",
   "name": "照片物品入场景与局部摆放",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "asset",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "单件照片 → 异步资产作业 → 外观与尺寸确认 → 落到点选或语言指定的支撑面 → 检查与留证。",
-  "applies_when": {
-    "scene_types": ["任意已存在的室内场景"],
-    "area_m2": [0, 1000],
-    "inputs": ["单件物品照片", "尺寸线索（可缺，缺则必须问）", "落点或目标对象"],
-    "preconditions": ["场景已存在", "资产服务可用（否则走降级路径）"]
-  },
-  "not_applicable": ["多件物品合影", "透明/强反光/极细长物品", "需要精确测绘还原", "场景尚不存在"],
-  "depends": {
-    "tools": [
-      {"name": "assets.submit", "min_version": "0.1"},
-      {"name": "assets.status", "min_version": "0.1"},
-      {"name": "assets.get", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"},
-      {"name": "view.capture", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "asset_import",
+      "edit_existing"
     ],
-    "judgements": ["J-ASSET-01", "J-ASSET-02", "J-CIR-01", "J-OVER-01", "J-VER-01", "J-VER-02"],
-    "assets": ["photo_to_glb"]
+    "roomKinds": [
+      "any"
+    ],
+    "areaM2": [
+      0.2,
+      5
+    ],
+    "projectState": "existing",
+    "requiredInputs": [
+      "photo",
+      "existing_scene"
+    ]
   },
-  "cases": [
-    {"id": "POI-dev-01", "kind": "positive", "expect": "花瓶落在茶几上，check.run 通过"},
-    {"id": "POI-dev-02", "kind": "boundary", "expect": "底盘超出茶几，check.run 报 ASSET-02"}
+  "notApplicable": [
+    "precise_measurement"
   ],
-  "provenance": {
-    "based_on": ["ICT项目设计书@v1.1 §4.1", "house-plan-designer@b94183f9/assets/template.html（GLB 导入对象身份思路）"],
-    "license": "MIT",
-    "external_refs": []
+  "capabilities": [
+    "asset.job",
+    "scene.read",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review"
+  ],
+  "judgements": [
+    "J-ASSET-01",
+    "J-ASSET-02",
+    "J-CIR-01",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": []
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

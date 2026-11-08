@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "schema": "v1",
+  "skills": 30,
+  "judgements": 69,
+  "active": 7,
+  "reserved": 23,
+  "errors": [],
+  "perSkill": {
+    "aging-friendly": {
+      "errors": [],
+      "warnings": [],
+      "kind": "modifier",
+      "activation": "reserved"
+    },
+    "balcony-laundry": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "bathroom-standard": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "dining-island": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "entry-storage": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "floorplan-intake": {
+      "errors": [],
+      "warnings": [],
+      "kind": "intake",
+      "activation": "active"
+    },
+    "gaming-room": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "guest-bedroom": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "home-gym": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "home-office": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "kids-room": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "kitchen-line-l-u": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "layout-check-repair": {
+      "errors": [],
+      "warnings": [],
+      "kind": "repair",
+      "activation": "active"
+    },
+    "lighting-color": {
+      "errors": [],
+      "warnings": [],
+      "kind": "modifier",
+      "activation": "active"
+    },
+    "living-dining-open": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "active"
+    },
+    "living-dining-small": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "active"
+    },
+    "master-bedroom": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "media-room": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "nursery": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "office-workstation": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "pet-friendly": {
+      "errors": [],
+      "warnings": [],
+      "kind": "modifier",
+      "activation": "reserved"
+    },
+    "photo-object-import": {
+      "errors": [],
+      "warnings": [],
+      "kind": "asset",
+      "activation": "reserved"
+    },
+    "rental-makeover": {
+      "errors": [],
+      "warnings": [],
+      "kind": "modifier",
+      "activation": "reserved"
+    },
+    "social-reading-zone": {
+      "errors": [],
+      "warnings": [],
+      "kind": "edit",
+      "activation": "active"
+    },
+    "studio-micro": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "style-coherence": {
+      "errors": [],
+      "warnings": [],
+      "kind": "modifier",
+      "activation": "active"
+    },
+    "tatami-multipurpose": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "tea-room": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "utility-storage": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    },
+    "villa-ground-floor": {
+      "errors": [],
+      "warnings": [],
+      "kind": "layout",
+      "activation": "reserved"
+    }
+  }
+}

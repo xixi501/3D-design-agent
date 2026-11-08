@@ -2,11 +2,10 @@
 name: floorplan-intake
 description: 在动手布置前，把户型图或一句文字需求整理成"可布置的场景 + 待确认清单 + 假设表"：尺寸缺什么、按什么补、哪些是推断。当用户发来户型图/截图、或只说"三室两厅、想要北欧风"时先走本技能；不适用于信息已经完整、直接进入具体房间布置的场合。
 license: MIT
-compatibility: 需要 scene.get_snapshot / scene.apply_edits / check.run / view.capture；图纸解析与尺寸标注识别归主系统，本技能只负责"信息补齐与确认"，不重跑识图。
+compatibility: 需要 scene.read / candidate.propose / candidate.preflight / candidate.render；图纸解析与尺寸标注识别归主系统，本技能只负责"信息补齐与确认"，不重跑识图。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
   judgement_refs: "J-STA-01,J-STA-02,J-STA-03,J-VER-01"
 ---
@@ -60,24 +59,25 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `scene.get_snapshot` | 读取已生成场景的墙、洞口、房间 | 待成员1 |
-| `scene.apply_edits` | 补房间名、补缺失对象、修正标注 | 待成员1 |
-| `check.run` | 面积下限、门窗完整性 | 可 mock |
-| `view.capture` | 平面图/近景给用户核对 | 待成员1 |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与上游 Skill 的差异：上游把"读图—写户型描述—生成"合成一个大流程，识图脚本与格式规范都在流程里；本技能**不碰识图实现**，只负责"信息完整性、假设透明、确认闭环"，识图与建模归主系统。
+| capability | 用途 |
+|---|---|
+| `floorplan.analyze` | 识别户型图的结构、房间与符号 |
+| `floorplan.measure` | 读尺寸链、核对比例 |
+| `scene.read` | 读取已生成场景以核对要素 |
 
-未适配时的降级路径：没有 `scene.*` 时，输出一张"要素表 + 假设表 + 待确认清单"给用户与主控，人工转成场景。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `FIN-dev-01`：3.0 × 3.8m 主卧（11.4㎡），1.5m 床 + 1.0m 衣柜 + 一个床头柜，通道满足 700。期望 `check.run` 通过。
+- **正向** `FIN-dev-01`：3.0 × 3.8m 主卧（11.4㎡），1.5m 床 + 1.0m 衣柜 + 一个床头柜，通道满足 700。期望 `candidate.preflight` 通过。
 - **边界** `FIN-dev-02`：同样 3.0 × 3.4m（10.2㎡）的房间，用户坚持 1.8m 床 + 2.0m 衣柜。期望报 `CIR-02`（无 ≥700 通行区）——技能应在进场阶段就提示"这个组合放不下"，而不是硬塞后说"已尽力"。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。判据取自上游 `reference/spec-format.md`（坐标、门窗类型、房间面积）与 GB 50096 常用下限（须按现行版本复核）。
 - 许可：MIT。上游仅借鉴"先问清再动手"的清单做法。
 - 未验证：真实户型图解析质量、真实尺寸链矛盾检测（都依赖主系统识图）。

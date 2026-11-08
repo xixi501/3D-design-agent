@@ -2,13 +2,12 @@
 name: kids-room
 description: 为 6–15㎡ 儿童房排出"睡眠 / 学习 / 活动"三组家具，用可替换的分组保证从婴儿期到学龄期都能改，同时守住书桌使用区、窗前高柜、门扇与高柜安全。当用户要布置儿童房、说"孩子还小但想一步到位"，或问"上下床和书桌怎么摆"时使用；不适用于需要定制榻榻米、拆改墙体或涉及承重结构的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"一节的降级路径执行（分组清单 + 文字坐标 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"一节的降级路径执行（分组清单 + 文字坐标 + 人工量尺）。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-CIR-01,J-CIR-05,J-CUR-01,J-WIN-01,J-DOOR-02,J-OVER-01,J-PROP-01,J-STA-01,J-LIGHT-02,J-VER-01,J-VER-02"
+  judgement_refs: "J-CIR-01,J-CIR-05,J-CUR-01,J-DOOR-02,J-LIGHT-02,J-OVER-01,J-PROP-01,J-STA-01,J-VER-01,J-VER-02,J-WIN-01"
 ---
 
 # 儿童房：成长性、安全与学习区
@@ -34,7 +33,7 @@ metadata:
 ## 怎么做
 
 **第 1 步 · 先分成三组，再谈坐标**
-`scene.get_snapshot` 取墙与洞口，把家具按功能分成三组，并写进 `group` 编辑：
+`scene.read` 取墙与洞口，把家具按功能分成三组，并写进 `group` 编辑：
 `睡眠组`（床/衣柜）、`学习组`（书桌/椅/台灯）、`活动组`（玩具柜/地垫）。
 分组的目的是**可替换**：换年龄只换组内件，组与组之间的位置关系（哪面墙、离门多远）一次定好。
 
@@ -79,31 +78,32 @@ metadata:
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取婴儿床/单人床/上下床/书桌/玩具柜/地垫的 key 与尺寸 | 可 mock |
-| `scene.get_snapshot` | 读墙、洞口、房间面积 | 待成员1 |
-| `scene.apply_edits` | 提交分组与增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 遮挡、重叠、门扇、面积 | 可 mock |
-| `view.capture` | 出平面图作为家长沟通材料 | 待成员1 |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `group`：在交付里贴一张三组清单表，并说明"换年龄只换哪几件"；
-- 没有 `check.run`：按第 3–6 步逐条手算净空，并注明"未经工具检查"；
-- 安全项（上墙固定、倒圆、插座保护）本来就只能人工确认，不因为工具有没有都要写进交付清单。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
 - **正向** `KID-dev-01`：3000 × 3600 儿童房（内净约 9.5㎡），学龄期布局：单人床靠南墙、衣柜在西墙北段、
   书桌在北墙东段（窗在左前方形成侧光）、椅子压进桌下、玩具柜贴东墙、地垫在中央。
-  期望 `check.run` 全通过：桌背后 900 空地、窗带无高柜、门扇区空闲、床东侧通长 1600。
+  期望 `candidate.preflight` 全通过：桌背后 900 空地、窗带无高柜、门扇区空闲、床东侧通长 1600。
 - **边界** `KID-dev-02`：家长要在床尾"挤"第二张 1 米书桌，书桌压进床 600×850。
   期望报 `OVER-01`，技能应承认放不下，并给出窄桌、上下床、过渡方案三条替代。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。成长性三段与三组分法来自本项目设计书 §3.2 的场景族划分；
   桌前使用区、床侧通道、门扇扫掠沿用 interior-design-expert 的 anthropometric 数据；
   `J-STA-01` 面积下限引自 GB 50096，**须按现行版本复核**；儿童安全项（柜体固定、倒圆、插座保护）

@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://actiscape.dev/schema/judgements.v1.json",
+  "title": "actiscape.judgements.v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "version",
+    "judgements"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "actiscape.judgements.v1"
+    },
+    "version": {
+      "type": "string"
+    },
+    "judgements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "group",
+          "text",
+          "threshold",
+          "source",
+          "checkability",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^J-[A-Z]{2,6}-\\d{2}$"
+          },
+          "group": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "threshold": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "checkability": {
+            "enum": [
+              "自动",
+              "半自动",
+              "人工"
+            ]
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

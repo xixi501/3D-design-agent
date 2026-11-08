@@ -2,13 +2,12 @@
 name: entry-storage
 description: 在 1.5–6㎡ 的玄关里排"开门→落尘→换鞋→挂衣→镜"的入户动线，按人数估鞋柜容量、控换鞋凳前净空、给强弱电箱留检修口，并决定地方不够时先保什么。当用户要"玄关怎么设计""鞋柜放不下""进门太乱"时使用；不适用于需要拆改墙体或改门洞、以及要做整墙定制柜体结构设计的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.get_snapshot / scene.apply_edits / check.run；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
 metadata:
-  version: "0.1.0"
-  status: pending_adaptation
-  level: structure
+  version: "0.2.0"
+  status: "conformant"
   owner: member3
-  judgement_refs: "J-ENT-01,J-ENT-02,J-CIR-01,J-CUR-01,J-VER-01,J-VER-02"
+  judgement_refs: "J-CIR-01,J-CUR-01,J-ENT-01,J-ENT-02,J-VER-01,J-VER-02"
 ---
 
 # 玄关与入户收纳
@@ -80,36 +79,37 @@ metadata:
 面积 < 2㎡ 时：鞋柜做 350 深通高柜 + 中段留空做换鞋位（柜内抽拉凳），镜贴在柜门上，挂衣用柜侧挂钩。宁可"一段通高柜"也不要"三件小家具"。
 
 **第 8 步 · 分批提交与检查**
-1. 先提交鞋柜与换鞋凳，`scene.apply_edits` 带 `base_version`、`op_id` 唯一；
-2. `check.run` 看门扇扫掠、窗帘活动区、重叠；
+1. 先提交鞋柜与换鞋凳，`candidate.propose` 带 `base_version`、`op_id` 唯一；
+2. `candidate.preflight` 看门扇扫掠、窗帘活动区、重叠；
 3. 再提交镜、挂衣、地垫，再检查；
 4. 最多 3 轮修复 [J-VER-02]；放不下时按第 7 步的顺序砍，不要缩门扇净宽；
 5. 只改本次涉及的家具，户型与无关家具不动 [J-VER-01]。
 
 ## 依赖什么
 
-| 工具 | 用途 | 状态 |
-|---|---|---|
-| `catalog.search` | 取鞋柜、换鞋凳、镜、挂衣杆的 key 与默认尺寸 | 可 mock |
-| `scene.get_snapshot` | 读入户门朝向、门扇开启方向、墙面与电箱位置 | 待成员1 |
-| `scene.apply_edits` | 提交增删改，带版本与幂等 | 待成员1 |
-| `check.run` | 门扇扫掠、窗帘活动区、重叠 | 可 mock |
+本技能只使用以下语义能力（不含任何写场景权限）：
 
-与原项目 Skill 的差异：原流程偏向"出一张玄关效果图"，本技能把**容量估算与保住顺序**写成可复核的步骤——先算要放多少双鞋，再决定柜子多长；先保门扇与换鞋位，再谈好看。
+| capability | 用途 |
+|---|---|
+| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
 
-未适配时的降级路径（状态仍为 `pending_adaptation`）：
-- 没有 `scene.*`：输出"柜体坐标 + 门扇开启区 + 容量估算表"的文字方案，交主控转场景；
-- 没有 `check.run`：按第 2、3 步的判据人工核算，交付里注明"未经工具检查"。
+**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证
 
-- **正向** `ENT-dev-01`：1.8 × 2.6m 玄关（4.68㎡，< 6㎡）。鞋柜 1200 × 350 贴东墙（柜前净宽 1250），换鞋凳 900 × 350 贴北墙（凳前 1250），穿衣镜贴西墙，落尘垫 900 × 600 落在门扇内侧。期望 `check.run` 全通过：门扇 900 × 900 扫掠区无家具、门口有落脚点、无重叠。
+- **正向** `ENT-dev-01`：1.8 × 2.6m 玄关（4.68㎡，< 6㎡）。鞋柜 1200 × 350 贴东墙（柜前净宽 1250），换鞋凳 900 × 350 贴北墙（凳前 1250），穿衣镜贴西墙，落尘垫 900 × 600 落在门扇内侧。期望 `candidate.preflight` 全通过：门扇 900 × 900 扫掠区无家具、门口有落脚点、无重叠。
 - **边界** `ENT-dev-02`：同一个玄关，把鞋柜横在门扇扫掠区里（"进门顺手放鞋"）。期望报 `DOOR-02`——门打不开，技能要拒绝并把柜子退回东墙，同时给出"窄玄关先保通"的替代。
 
-两个案例都在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
+两个案例都在 `examples/` 下，`ops.json` 可被 `tools/dry_run.py` 复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 
 ## 版本与来源
 
+- v0.2.0（2026-11-09）：迁移到 `actiscape.skill.v1`；正文改用 capability 语义，不再引用主系统内部工具名；专业判断与案例内容不变，历史条目保留。
 - v0.1.0（2026-11-07）：首版。判据取自 `skills/_framework/JUDGEMENTS.md`（F 组玄关、A 组通行、B 组遮挡）；容量估算（每人 8–12 双、1m 柜约 20–24 双）与"保住顺序"是本技能补的操作经验，不新增阈值。
 - 许可：MIT（上游同源）。外部参考：interior-design-expert 的入户净空数据、常见鞋类尺寸区间。
-- 未验证：真实工具执行（待成员1）；强弱电箱与容量估算没有几何检查器，案例里只验证了柜体位置与门扇扫掠，容量需人工按第 2 步复核。
+- 未验证：真实核心（realCore）未接入，L3 由主系统完成后升级为 `verified`；强弱电箱与容量估算没有几何检查器，案例里只验证了柜体位置与门扇扫掠，容量需人工按第 2 步复核。

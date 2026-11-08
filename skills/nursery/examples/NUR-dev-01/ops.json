@@ -5,35 +5,236 @@
     "units": "mm",
     "min_passage": 700,
     "walls": [
-      {"id": "wN", "a": [0, 0], "b": [3000, 0], "t": 200, "bearing": true},
-      {"id": "wE", "a": [3000, 0], "b": [3000, 3600], "t": 200, "bearing": true},
-      {"id": "wS", "a": [0, 3600], "b": [3000, 3600], "t": 200, "bearing": true},
-      {"id": "wW", "a": [0, 0], "b": [0, 3600], "t": 200, "bearing": true}
+      {
+        "id": "wN",
+        "a": [
+          0,
+          0
+        ],
+        "b": [
+          3000,
+          0
+        ],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wE",
+        "a": [
+          3000,
+          0
+        ],
+        "b": [
+          3000,
+          3600
+        ],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wS",
+        "a": [
+          0,
+          3600
+        ],
+        "b": [
+          3000,
+          3600
+        ],
+        "t": 200,
+        "bearing": true
+      },
+      {
+        "id": "wW",
+        "a": [
+          0,
+          0
+        ],
+        "b": [
+          0,
+          3600
+        ],
+        "t": 200,
+        "bearing": true
+      }
     ],
     "openings": [
-      {"id": "win1", "wall": "wE", "type": "window", "from": 300, "to": 1200, "sill": 900, "head": 2400},
-      {"id": "d1", "wall": "wS", "type": "door", "from": 200, "to": 1100, "hinge": "from", "into": [650, 3200]}
+      {
+        "id": "win1",
+        "wall": "wE",
+        "type": "window",
+        "from": 300,
+        "to": 1200,
+        "sill": 900,
+        "head": 2400
+      },
+      {
+        "id": "d1",
+        "wall": "wS",
+        "type": "door",
+        "from": 200,
+        "to": 1100,
+        "hinge": "from",
+        "into": [
+          650,
+          3200
+        ]
+      }
     ],
     "rooms": [
-      {"id": "r1", "name": "婴儿房", "polygon": [[0, 0], [3000, 0], [3000, 3600], [0, 3600]]}
+      {
+        "id": "r1",
+        "name": "婴儿房",
+        "polygon": [
+          [
+            0,
+            0
+          ],
+          [
+            3000,
+            0
+          ],
+          [
+            3000,
+            3600
+          ],
+          [
+            0,
+            3600
+          ]
+        ]
+      }
     ],
-    "objects": []
+    "objects": [],
+    "source": {
+      "activityGroups": [
+        {
+          "name": "睡眠组",
+          "ids": [
+            "o_crib"
+          ]
+        },
+        {
+          "name": "喂奶组",
+          "ids": [
+            "o_chair",
+            "o_lamp"
+          ]
+        },
+        {
+          "name": "换洗组",
+          "ids": [
+            "o_dresser",
+            "o_cur"
+          ]
+        },
+        {
+          "name": "收纳组",
+          "ids": [
+            "o_toy"
+          ]
+        }
+      ]
+    }
   },
   "edits": [
-    {"op": "add", "object": {"id": "o_crib", "key": "crib", "at": [1600, 700], "rot": 0, "w": 1250, "d": 700}},
-    {"op": "add", "object": {"id": "o_chair", "key": "armchair", "at": [525, 2000], "rot": 270, "w": 850, "d": 850}},
-    {"op": "add", "object": {"id": "o_dresser", "key": "dresser", "at": [2675, 1900], "rot": 270, "w": 1000, "d": 450}},
-    {"op": "add", "object": {"id": "o_toy", "key": "toyCabinet", "at": [1800, 3325], "rot": 180, "w": 900, "d": 350}},
-    {"op": "add", "object": {"id": "o_lamp", "key": "floorLamp", "at": [2650, 3050], "rot": 0, "w": 400, "d": 400}},
-    {"op": "add", "object": {"id": "o_cur", "key": "curtain", "at": [2920, 750], "rot": 90, "w": 1200, "d": 160}},
-    {"op": "group", "name": "睡眠组", "ids": ["o_crib"]},
-    {"op": "group", "name": "喂奶组", "ids": ["o_chair", "o_lamp"]},
-    {"op": "group", "name": "换洗组", "ids": ["o_dresser", "o_cur"]},
-    {"op": "group", "name": "收纳组", "ids": ["o_toy"]}
+    {
+      "op": "add",
+      "object": {
+        "id": "o_crib",
+        "key": "crib",
+        "at": [
+          1600,
+          700
+        ],
+        "rot": 0,
+        "w": 1250,
+        "d": 700
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_chair",
+        "key": "armchair",
+        "at": [
+          525,
+          2000
+        ],
+        "rot": 270,
+        "w": 850,
+        "d": 850
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_dresser",
+        "key": "dresser",
+        "at": [
+          2675,
+          1900
+        ],
+        "rot": 270,
+        "w": 1000,
+        "d": 450
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_toy",
+        "key": "toyCabinet",
+        "at": [
+          1800,
+          3325
+        ],
+        "rot": 180,
+        "w": 900,
+        "d": 350
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_lamp",
+        "key": "floorLamp",
+        "at": [
+          2650,
+          3050
+        ],
+        "rot": 0,
+        "w": 400,
+        "d": 400
+      }
+    },
+    {
+      "op": "add",
+      "object": {
+        "id": "o_cur",
+        "key": "curtain",
+        "at": [
+          2920,
+          750
+        ],
+        "rot": 90,
+        "w": 1200,
+        "d": 160
+      }
+    }
   ],
   "expect": {
     "pass": true,
     "must_trigger": [],
-    "must_not_trigger": ["CIR-02", "CUR-01", "DOOR-01", "DOOR-02", "WIN-01", "OVER-01", "WALL-01", "ASSET-02"]
+    "must_not_trigger": [
+      "CIR-02",
+      "CUR-01",
+      "DOOR-01",
+      "DOOR-02",
+      "WIN-01",
+      "OVER-01",
+      "WALL-01",
+      "ASSET-02"
+    ]
   }
 }

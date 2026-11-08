@@ -1,36 +1,64 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "studio-micro",
   "name": "开间/一居多功能合一",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "20–40㎡ 开间：按「睡眠 > 收纳 > 会客 > 用餐/工作」排优先级，用书架/帘/地台做软隔断，留 700 连续通道，床不堵门与主区。",
-  "applies_when": {
-    "scene_types": ["开间", "一居", "起居卧室", "单身公寓"],
-    "area_m2": [20, 40],
-    "inputs": ["含墙体与门窗的场景或户型图", "常住人口（可选）", "必须保留的大件（可选）"],
-    "preconditions": ["场景已有墙体与门窗", "墙体与洞口尺寸可信（缺失时先补）"]
-  },
-  "not_applicable": ["需要拆改墙体或加隔墙", "面积 > 40㎡ 或 LDK 一体化（转 living-dining-open）", "只做软装不动布局的出租房（转 rental-makeover）", "整栋/别墅"],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "generate_rectangular",
+      "generate_from_text"
     ],
-    "judgements": ["J-CIR-01", "J-CIR-02", "J-CUR-01", "J-LIGHT-01", "J-PROP-03", "J-STA-01", "J-VER-01", "J-VER-02"],
-    "assets": []
+    "roomKinds": [
+      "studio"
+    ],
+    "areaM2": [
+      20,
+      40
+    ],
+    "projectState": "empty",
+    "requiredInputs": [
+      "dimensions"
+    ]
   },
-  "cases": [
-    {"id": "STU-dev-01", "kind": "positive", "expect": "check.run 全通过：700 通道连续、门扇与窗帘带净空、无重叠"},
-    {"id": "STU-dev-02", "kind": "boundary", "expect": "check.run 报 CIR-02（床堵门口落脚带）"}
+  "notApplicable": [
+    "structural_change",
+    "multi_floor"
   ],
-  "provenance": {
-    "based_on": ["house-plan-designer@b94183f9/reference/furnishing.md", "house-plan-designer@b94183f9/reference/spec-format.md"],
-    "license": "MIT",
-    "external_refs": ["interior-design-expert (space-planning: circulation 900/700/450)"]
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review"
+  ],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-02",
+    "J-CUR-01",
+    "J-LIGHT-01",
+    "J-PROP-03",
+    "J-STA-01",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": [
+      "living-dining-small",
+      "living-dining-open"
+    ]
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

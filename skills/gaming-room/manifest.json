@@ -1,51 +1,64 @@
 {
-  "schema_version": "0.1",
+  "schemaVersion": "actiscape.skill.v1",
   "id": "gaming-room",
   "name": "电竞房 / 游戏房",
-  "version": "0.1.0",
-  "status": "pending_adaptation",
-  "level": "structure",
+  "version": "0.2.0",
+  "kind": "layout",
+  "status": "conformant",
+  "activation": "reserved",
   "summary": "6–15㎡ 电竞房：桌面 700 深、双屏视距 60–80cm、屏幕与窗成 90° 侧光，椅子后推 900，主机进风与走线，暗环境三层照明，共用墙隔音。",
-  "applies_when": {
-    "scene_types": ["电竞房", "游戏房", "次卧兼游戏角", "书房兼游戏位"],
-    "area_m2": [6, 15],
-    "inputs": ["含墙体与门窗的场景或户型图", "屏数与屏幕尺寸（可选）", "主机形态（可选）", "与谁共用墙面（可选）"],
-    "preconditions": ["场景已有墙体与门窗", "窗的朝向与开启方式已知", "门的开启方式已知（平开/推拉）"]
-  },
-  "not_applicable": [
-    "以书写、阅读、视频会为主的单人办公位（转 home-office）",
-    "两人以上开黑工位或电竞馆级机位排布",
-    "需要新增插座、地插、网口或整墙灯带布线",
-    "使用面积 < 6㎡（放不下桌前使用区，转 studio-micro）"
-  ],
-  "depends": {
-    "tools": [
-      {"name": "catalog.search", "min_version": "0.1"},
-      {"name": "scene.get_snapshot", "min_version": "0.1"},
-      {"name": "scene.apply_edits", "min_version": "0.1"},
-      {"name": "check.run", "min_version": "0.1"}
+  "appliesTo": {
+    "modes": [
+      "generate_rectangular",
+      "generate_from_text"
     ],
-    "judgements": [
-      "J-ASSET-02", "J-CIR-05", "J-CIR-06", "J-CUR-01", "J-DOOR-02", "J-LIGHT-01",
-      "J-LIGHT-03", "J-LIGHT-05", "J-OVER-01", "J-STY-03", "J-VER-01", "J-VER-02"
+    "roomKinds": [
+      "gaming"
     ],
-    "assets": []
-  },
-  "cases": [
-    {"id": "GAM-dev-01", "kind": "positive", "expect": "check.run 全通过：桌深 700、椅后 2150、柜前 2400、窗帘带 150 无高件"},
-    {"id": "GAM-dev-02", "kind": "boundary", "expect": "check.run 报 CUR-01：桌子顶到东窗下，窗帘落不下来"}
-  ],
-  "provenance": {
-    "based_on": [
-      "house-plan-designer@b94183f9/reference/furnishing.md",
-      "house-plan-designer@b94183f9/reference/spec-format.md"
+    "areaM2": [
+      6,
+      15
     ],
-    "license": "MIT",
-    "external_refs": [
-      "interior-design-expert (desk clearance / anthropometrics)",
-      "IES 照明分层、色温与屏幕眩光参考",
-      "桌深 700/800、视距 60–80cm、主机散热缝 250，行业经验，判据库暂无对应 ID"
+    "projectState": "empty",
+    "requiredInputs": [
+      "dimensions"
     ]
   },
-  "validation": {"record": null, "checked_at": null, "checks": []}
+  "notApplicable": [],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.propose",
+    "candidate.preflight",
+    "candidate.review"
+  ],
+  "judgements": [
+    "J-ASSET-02",
+    "J-CIR-05",
+    "J-CIR-06",
+    "J-CUR-01",
+    "J-DOOR-02",
+    "J-LIGHT-01",
+    "J-LIGHT-03",
+    "J-LIGHT-05",
+    "J-OVER-01",
+    "J-STY-03",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": {
+    "maxPerTask": 1,
+    "conflictsWith": [
+      "home-office"
+    ]
+  },
+  "license": {
+    "spdx": "MIT",
+    "attribution": "repository:ATTRIBUTIONS.md"
+  },
+  "validation": {
+    "structure": true,
+    "dryRun": true,
+    "realCore": false
+  }
 }

@@ -1,0 +1,627 @@
+{
+  "schemaVersion": "actiscape.judgements.v1",
+  "version": "1.0",
+  "judgements": [
+    {
+      "id": "J-CIR-01",
+      "group": "A. 通行与净空",
+      "text": "主通道净宽",
+      "threshold": "≥ 900；小空间最低 700；450 只作应急侧身",
+      "source": "上游/外部",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-02",
+      "group": "A. 通行与净空",
+      "text": "门与主通道连通（不得被家具切断）",
+      "threshold": "从每扇门可走到房间主要区域",
+      "source": "上游",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-03",
+      "group": "A. 通行与净空",
+      "text": "餐椅后推空间",
+      "threshold": "桌边到墙/柜 ≥ 900（有通行需求时）；仅靠墙侧 ≥ 750",
+      "source": "外部",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-04",
+      "group": "A. 通行与净空",
+      "text": "床侧通道",
+      "threshold": "≥ 600（双人床两侧尽量对称）",
+      "source": "外部",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-05",
+      "group": "A. 通行与净空",
+      "text": "书桌使用区",
+      "threshold": "桌前 ≥ 900 × 900",
+      "source": "外部",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-06",
+      "group": "A. 通行与净空",
+      "text": "柜门开启空间",
+      "threshold": "平开门前 ≥ 750；推拉门 ≥ 500",
+      "source": "外部/经验",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-07",
+      "group": "A. 通行与净空",
+      "text": "沙发到茶几",
+      "threshold": "400–500（取 450）",
+      "source": "外部",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-08",
+      "group": "A. 通行与净空",
+      "text": "床尾到对面墙/柜",
+      "threshold": "≥ 600（通行）；≥ 450 仅单人侧身",
+      "source": "经验",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-09",
+      "group": "A. 通行与净空",
+      "text": "端头绕行",
+      "threshold": "长件家具（岛台/长桌/橱柜/沙发）不得两端同时贴死，至少一端留出 ≥ 通道的绕行口",
+      "source": "经验（写技能时补）",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-10",
+      "group": "A. 通行与净空",
+      "text": "会议/长桌两侧净空",
+      "threshold": "长边到墙 ≥ 900；仅单侧走人时另一侧 ≥ 600（餐椅条款 J-CIR-03 不覆盖会议场景）",
+      "source": "经验（写技能时补）",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-11",
+      "group": "A. 通行与净空",
+      "text": "地台踏步",
+      "threshold": "台面高差 > 150 时，通道侧须留一级踏步或缓坡；踏步深度计入通道净宽",
+      "source": "经验（写技能时补）",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CIR-12",
+      "group": "A. 通行与净空",
+      "text": "辅房通行",
+      "threshold": "< 6㎡ 的单人短时辅房（家政/储藏/步入式衣柜）允许 600 净宽；但家具不得落入门弧，且必须留一条 600 连续通道",
+      "source": "经验（写技能时补）",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CUR-01",
+      "group": "B. 遮挡与冲突（上游检查项，全部必须清零）",
+      "text": "窗帘活动区",
+      "threshold": "窗帘前 150mm 内不得有高于 600 的落地家具",
+      "source": "上游",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-CUR-02",
+      "group": "B. 遮挡与冲突（上游检查项，全部必须清零）",
+      "text": "窗墙前家具净距",
+      "threshold": "落地家具前沿距窗墙内皮 ≥ 300（有暖气片时 ≥ 400）",
+      "source": "经验（写技能时补）",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-DOOR-01",
+      "group": "B. 遮挡与冲突（上游检查项，全部必须清零）",
+      "text": "推拉/折叠/隐形门洞前",
+      "threshold": "400mm 内不得放家具",
+      "source": "上游",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-WIN-01",
+      "group": "B. 遮挡与冲突（上游检查项，全部必须清零）",
+      "text": "高柜挡窗",
+      "threshold": "高于窗台的柜/书架/冰箱不得在窗前 400mm 内",
+      "source": "上游",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-WIN-02",
+      "group": "B. 遮挡与冲突（上游检查项，全部必须清零）",
+      "text": "窗帘覆盖",
+      "threshold": "窗帘宽度盖住整个窗洞，两侧各多 100–200",
+      "source": "上游",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-WALL-01",
+      "group": "B. 遮挡与冲突（上游检查项，全部必须清零）",
+      "text": "挂墙/吸顶物件",
+      "threshold": "必须落在实墙，避开洞口与窗帘盒",
+      "source": "上游",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-OVER-01",
+      "group": "B. 遮挡与冲突（上游检查项，全部必须清零）",
+      "text": "家具重叠",
+      "threshold": "落地家具之间、家具与墙之间不得重叠（允许椅推桌下、边几靠沙发）",
+      "source": "上游",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-DOOR-02",
+      "group": "B. 遮挡与冲突（上游检查项，全部必须清零）",
+      "text": "门扇开启",
+      "threshold": "门扇扫掠范围内不得有家具",
+      "source": "上游",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-PROP-01",
+      "group": "C. 分区与比例（\"好看\"的结构性条件）",
+      "text": "家具与墙面比例",
+      "threshold": "主家具（沙发/电视柜/床）长度 ≤ 所在墙面长 × 2/3",
+      "source": "经验",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-PROP-02",
+      "group": "C. 分区与比例（\"好看\"的结构性条件）",
+      "text": "地毯比例",
+      "threshold": "至少覆盖主家具前腿；小于 2000 的地毯不配三人以上沙发",
+      "source": "经验",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-PROP-03",
+      "group": "C. 分区与比例（\"好看\"的结构性条件）",
+      "text": "功能区占比",
+      "threshold": "单一功能区（如沙发组）不超过开间进深的 60%，保留一条贯穿通道",
+      "source": "经验",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-LAY-01",
+      "group": "C. 分区与比例（\"好看\"的结构性条件）",
+      "text": "动线不穿越",
+      "threshold": "主要动线不得从沙发与茶几之间、餐桌与椅之间穿过",
+      "source": "经验",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-KIT-01",
+      "group": "D. 厨房",
+      "text": "操作三角",
+      "threshold": "冰箱-水槽-灶台三边合计 3.6–6.6m，每边 1.2–2.7m",
+      "source": "外部(NKBA)",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-KIT-02",
+      "group": "D. 厨房",
+      "text": "操作通道",
+      "threshold": "单排/双排橱柜前 ≥ 900（双排 ≥ 1000）",
+      "source": "经验",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-KIT-03",
+      "group": "D. 厨房",
+      "text": "备餐台面",
+      "threshold": "水槽与灶台之间 ≥ 600；灶台一侧 ≥ 300",
+      "source": "经验",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-KIT-04",
+      "group": "D. 厨房",
+      "text": "冰箱开门",
+      "threshold": "冰箱门开启侧留 ≥ 900，不与灶台正对",
+      "source": "经验",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-KIT-05",
+      "group": "D. 厨房",
+      "text": "选形",
+      "threshold": "开间 < 1800 一字、1800–2400 双排/L、≥ 2700 可 U；门在长边中间、窗台 < 900 且要吊柜、进深 < 2100 时不成立",
+      "source": "经验（写技能时补）",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-BATH-01",
+      "group": "E. 卫生间",
+      "text": "马桶前/侧",
+      "threshold": "前方 ≥ 500（理想 600）；侧向 ≥ 200（理想 300）",
+      "source": "经验",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-BATH-02",
+      "group": "E. 卫生间",
+      "text": "淋浴区",
+      "threshold": "≥ 900 × 900；浴缸外沿到对面 ≥ 600",
+      "source": "经验",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-BATH-03",
+      "group": "E. 卫生间",
+      "text": "浴室柜前",
+      "threshold": "≥ 700",
+      "source": "经验",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-BATH-04",
+      "group": "E. 卫生间",
+      "text": "热水来源",
+      "threshold": "每个卫生间都有热水（燃气近则共用，远则电热水器）",
+      "source": "上游",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-ENT-01",
+      "group": "F. 玄关、阳台、入户",
+      "text": "入户通道",
+      "threshold": "门扇开启后 ≥ 900 净宽；鞋柜深 350",
+      "source": "经验/上游",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-ENT-02",
+      "group": "F. 玄关、阳台、入户",
+      "text": "换鞋凳前",
+      "threshold": "≥ 600",
+      "source": "经验",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-ENT-03",
+      "group": "F. 玄关、阳台、入户",
+      "text": "检修可达",
+      "threshold": "强弱电箱、水表不得封死在柜体内；柜内须留检修口或可拆背板",
+      "source": "经验（写技能时补）",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-BAL-01",
+      "group": "F. 玄关、阳台、入户",
+      "text": "阳台操作面",
+      "threshold": "洗衣机前 ≥ 700；晾衣杆离地 ≥ 1800",
+      "source": "经验",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-BAL-02",
+      "group": "F. 玄关、阳台、入户",
+      "text": "机位排水",
+      "threshold": "洗衣机接专用地漏/立管接口并带存水弯，不与地面地漏共用",
+      "source": "经验（写技能时补）",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-LIGHT-01",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "照明分层",
+      "threshold": "环境 60–70% / 任务 2–3× 环境 / 重点 3–5× 环境；不允许只有单一顶灯",
+      "source": "外部(IES)",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-LIGHT-02",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "照度参考",
+      "threshold": "客厅一般 150–300 lux；阅读 300–500；厨房台面 300–750；卧室 50–150；卫浴镜前 300–500（垂直）；会议桌 300–500",
+      "source": "外部(IES)",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-LIGHT-03",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "色温",
+      "threshold": "白天 4000–5000K；晚间 2700–3000K；夜间 ≤ 2700K；卧室避免 > 4000K",
+      "source": "外部",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-LIGHT-04",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "均匀度",
+      "threshold": "最大:最小 < 3:1，不留暗角",
+      "source": "外部",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-LIGHT-05",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "屏幕眩光",
+      "threshold": "显示面法线与主采光窗法线夹角 ≥ 90°（窗在侧向 60–120° 最宜）；窗在屏幕背后或正对均不合格",
+      "source": "经验（写技能时补）",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-LIGHT-06",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "灯位对中",
+      "threshold": "餐桌/会议桌吊灯中心与桌面几何中心偏差 ≤ 100；阅读落地灯在座侧后 200–400；镜前灯垂直照面",
+      "source": "经验（写技能时补）",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-VIEW-01",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "视频取景",
+      "threshold": "人身后 120° 锥内不出现门、床、主通道；背景墙有收纳或挂画",
+      "source": "经验（写技能时补）",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-VIEW-02",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "观看距离",
+      "threshold": "屏幕舒适观看距离 = 对角线 × 1.2–1.6（16:9 约等于屏高 × 2.0–2.7）；净深不足时缩屏幕，不缩通道",
+      "source": "经验（写技能时补）",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-COL-01",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "配色比例",
+      "threshold": "主色 60% / 辅色 30% / 点缀 10%",
+      "source": "经验",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-COL-02",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "材质数量",
+      "threshold": "同一空间主材 ≤ 3 种（地面/墙面/柜体）+ 1 种点缀",
+      "source": "经验",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-COL-03",
+      "group": "G. 光与色（\"好看\"的感知条件）",
+      "text": "冷暖呼应",
+      "threshold": "大面冷暖一致，点缀色与主色同色系或补色，不出现三种以上高饱和色",
+      "source": "经验",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-STY-01",
+      "group": "H. 风格",
+      "text": "风格一致",
+      "threshold": "同一空间家具走同一风格（上游 9 种：现代/北欧/新中式/轻奢/日式原木/美式/工业/奶油/侘寂）",
+      "source": "上游",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-STY-02",
+      "group": "H. 风格",
+      "text": "风格与硬装匹配",
+      "threshold": "风格不得与既有硬装（门、地板、墙色）冲突；冲突时以硬装为准，只换软装",
+      "source": "经验",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-STY-03",
+      "group": "H. 风格",
+      "text": "造型克制",
+      "threshold": "一个空间不超过 1 个视觉焦点（造型墙/异形沙发/大吊灯）",
+      "source": "经验",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-STY-04",
+      "group": "H. 风格",
+      "text": "五金一致性",
+      "threshold": "同一空间金属色 ≤ 1 种（如全拉丝镍或全黑钛）；木色 ≤ 1 个色系",
+      "source": "经验（写技能时补）",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-STA-01",
+      "group": "I. 规范下限（引用，须复核）",
+      "text": "房间使用面积下限",
+      "threshold": "双人卧室 ≥ 9㎡；单人卧室 ≥ 5㎡；兼起居的卧室 ≥ 12㎡；起居室 ≥ 10㎡",
+      "source": "规范(GB 50096)",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-STA-02",
+      "group": "I. 规范下限（引用，须复核）",
+      "text": "净高",
+      "threshold": "主要房间净高 ≥ 2400；局部（梁下、吊顶）≥ 2200",
+      "source": "规范/经验",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-STA-03",
+      "group": "I. 规范下限（引用，须复核）",
+      "text": "结构不可动",
+      "threshold": "首版不改承重墙、门窗洞口；标注为 `bearing` 的墙只做标识",
+      "source": "上游+项目约定",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-VER-01",
+      "group": "J. 与系统语义相关的判据（不是设计规则，但技能必须遵守）",
+      "text": "最小改动",
+      "threshold": "只改用户指定的对象；无关对象与户型保持原样",
+      "source": "设计书 §3.3/§4.3",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-VER-02",
+      "group": "J. 与系统语义相关的判据（不是设计规则，但技能必须遵守）",
+      "text": "修复预算",
+      "threshold": "自动修复 ≤ 3 轮；未解决项如实报告，不假装成功",
+      "source": "设计书 §4.4",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-VER-03",
+      "group": "J. 与系统语义相关的判据（不是设计规则，但技能必须遵守）",
+      "text": "未解决清单完整性",
+      "threshold": "`check.run` 返回 `pass=false` 时，必须列全剩余 error、逐条给原因与建议，不得只报\"已尽力\"",
+      "source": "设计书 §4.4 + 本池约定",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-ASSET-01",
+      "group": "J. 与系统语义相关的判据（不是设计规则，但技能必须遵守）",
+      "text": "资产作业",
+      "threshold": "模型未就绪不落位；失败作业不破坏原场景",
+      "source": "设计书 §4.1/§4.4",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-ASSET-02",
+      "group": "J. 与系统语义相关的判据（不是设计规则，但技能必须遵守）",
+      "text": "支撑面",
+      "threshold": "台面物件必须落在支撑物范围内，不超出边缘；尺寸未确认不落位",
+      "source": "设计书 §4.1",
+      "checkability": "自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-SAFE-01",
+      "group": "K. 安全与可逆（v0.2 新增）",
+      "text": "高柜固定",
+      "threshold": "高度 ≥ 600 的柜类须可固定于实墙（`fixed`），外露边倒圆 R ≥ 10；儿童可达插座离地 ≥ 1200 或带保护门",
+      "source": "经验/规范（须复核）",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-SAFE-02",
+      "group": "K. 安全与可逆（v0.2 新增）",
+      "text": "可逆改造",
+      "threshold": "出租/短期改造：承重与门窗不改，打孔点记数并列入复原清单",
+      "source": "项目约定",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-GYM-01",
+      "group": "L. 专项空间（v0.3 新增：健身 / 育儿 / 家政）",
+      "text": "器械安全操作区",
+      "threshold": "跑步机尾端 ≥ 1000、双侧 ≥ 500；单车上下车侧 ≥ 500、其余 ≥ 200；器械安全距与通道净宽是两套口径，不能互相顶替",
+      "source": "经验（写技能时补）",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-GYM-02",
+      "group": "L. 专项空间（v0.3 新增：健身 / 育儿 / 家政）",
+      "text": "镜面墙",
+      "threshold": "镜前空地 ≥ 2500 才能照全身；镜面只挂实墙、不跨窗洞",
+      "source": "经验（写技能时补）",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-GAM-01",
+      "group": "L. 专项空间（v0.3 新增：健身 / 育儿 / 家政）",
+      "text": "桌面与视距",
+      "threshold": "桌深 ≥ 700（双屏）/ ≥ 800（≥32\"）；眼到屏 600–800；椅后 ≥ 900 才能后仰",
+      "source": "经验（写技能时补）",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-NUR-01",
+      "group": "L. 专项空间（v0.3 新增：健身 / 育儿 / 家政）",
+      "text": "尿布台",
+      "threshold": "台面高 700–800；不落窗洞 200 内；前方站位 600 × 900；单手可及范围内放必需品",
+      "source": "经验（写技能时补）",
+      "checkability": "半自动",
+      "version": "1.0"
+    },
+    {
+      "id": "J-NUR-02",
+      "group": "L. 专项空间（v0.3 新增：健身 / 育儿 / 家政）",
+      "text": "家电直吹",
+      "threshold": "婴儿床不落空调内机 / 暖气片正下方与直吹路径上",
+      "source": "经验（写技能时补）",
+      "checkability": "人工",
+      "version": "1.0"
+    },
+    {
+      "id": "J-UTL-01",
+      "group": "L. 专项空间（v0.3 新增：健身 / 育儿 / 家政）",
+      "text": "扫地机基站",
+      "threshold": "基站正前方 ≥ 500、左右 ≥ 100、靠墙放置、电源在同侧",
+      "source": "经验（写技能时补）",
+      "checkability": "半自动",
+      "version": "1.0"
+    }
+  ]
+}

@@ -8,7 +8,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps" / "agent"))
 
 from actiscape_agent.floorplan_roles import normalize_floorplan_asset_choices
-from actiscape_agent.floorplan_v3 import _arbitrate_review
+from actiscape_agent.floorplan_v3 import (
+    _arbitrate_review,
+    _repair_activity_object_bindings,
+)
 
 
 def main():
@@ -47,6 +50,18 @@ def main():
                 issue.get("severity") == "advisory" for issue in review["issues"]
             ),
         }
+    furniture_value = json.loads(json.dumps(replay["r11"]["furnitureValue"]))
+    repairs = _repair_activity_object_bindings(
+        furniture_value,
+        replay["r11"]["activityGroupCandidates"],
+    )
+    assert repairs
+    repaired = {
+        repair["after"]
+        for repair in repairs
+        if repair["reason"] == "activity-satellite"
+    }
+    assert repaired == {"fo_017"}
     print(
         json.dumps(
             {
@@ -54,6 +69,7 @@ def main():
                 "assetKeys": choices,
                 "overrides": overrides,
                 "reviews": reviews,
+                "activityRepairs": repairs,
             },
             ensure_ascii=False,
         )

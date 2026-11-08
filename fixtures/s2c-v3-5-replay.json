@@ -1800,5 +1800,159 @@
         }
       ]
     }
+  },
+  "r11": {
+    "furnitureValue": {
+      "status": "draft",
+      "symbols": [
+        {
+          "id": "s_tvCabinet_000",
+          "roomId": "rm_living",
+          "categoryCode": "tvCabinet",
+          "sourceLabel": "长条柜体带内嵌长线",
+          "objectCandidateId": "fo_000",
+          "rot": 0
+        },
+        {
+          "id": "s_plant_001",
+          "roomId": "rm_living",
+          "categoryCode": "plant",
+          "sourceLabel": "绿色圆形装饰",
+          "objectCandidateId": "fo_001",
+          "rot": 0
+        },
+        {
+          "id": "s_sofa_002",
+          "roomId": "rm_living",
+          "categoryCode": "sofa",
+          "sourceLabel": "三座沙发",
+          "objectCandidateId": "fo_002",
+          "rot": 0
+        },
+        {
+          "id": "s_rug_003",
+          "roomId": "rm_living",
+          "categoryCode": "rug",
+          "sourceLabel": "浅色矩形地毯",
+          "objectCandidateId": "fo_003",
+          "rot": 0
+        },
+        {
+          "id": "s_bookshelf_004",
+          "roomId": "rm_living",
+          "categoryCode": "bookshelf",
+          "sourceLabel": "竖向多层柜体",
+          "objectCandidateId": "fo_004",
+          "rot": 0
+        },
+        {
+          "id": "s_coffeeTable_005",
+          "roomId": "rm_living",
+          "categoryCode": "coffeeTable",
+          "sourceLabel": "矩形茶几",
+          "objectCandidateId": "fo_005",
+          "rot": 0
+        },
+        {
+          "id": "s_diningTable_014",
+          "roomId": "rm_living",
+          "categoryCode": "diningTable",
+          "sourceLabel": "长方形餐桌",
+          "objectCandidateId": "fo_012",
+          "rot": 0
+        },
+        {
+          "id": "s_chair_010",
+          "roomId": "rm_living",
+          "categoryCode": "chair",
+          "sourceLabel": "餐椅",
+          "objectCandidateId": "fo_010",
+          "rot": 0
+        },
+        {
+          "id": "s_chair_011",
+          "roomId": "rm_living",
+          "categoryCode": "chair",
+          "sourceLabel": "餐椅",
+          "objectCandidateId": "fo_011",
+          "rot": 0
+        },
+        {
+          "id": "s_chair_013",
+          "roomId": "rm_living",
+          "categoryCode": "chair",
+          "sourceLabel": "餐椅",
+          "objectCandidateId": "fo_013",
+          "rot": 0
+        },
+        {
+          "id": "s_chair_012",
+          "roomId": "rm_living",
+          "categoryCode": "chair",
+          "sourceLabel": "餐椅",
+          "objectCandidateId": "fo_012",
+          "rot": 0
+        },
+        {
+          "id": "s_chair_014",
+          "roomId": "rm_living",
+          "categoryCode": "chair",
+          "sourceLabel": "餐椅",
+          "objectCandidateId": "fo_014",
+          "rot": 0
+        },
+        {
+          "id": "s_chair_016",
+          "roomId": "rm_living",
+          "categoryCode": "chair",
+          "sourceLabel": "餐椅",
+          "objectCandidateId": "fo_016",
+          "rot": 0
+        }
+      ],
+      "activityGroups": [
+        {
+          "id": "ag_seated_000",
+          "candidateId": "agc_000",
+          "type": "group_seated",
+          "primarySymbolId": "s_diningTable_014",
+          "memberSymbolIds": [
+            "s_diningTable_014",
+            "s_chair_010",
+            "s_chair_011",
+            "s_chair_013",
+            "s_chair_012",
+            "s_chair_014",
+            "s_chair_016"
+          ],
+          "roles": {
+            "s_diningTable_014": "primary",
+            "s_chair_010": "satellite",
+            "s_chair_011": "satellite",
+            "s_chair_013": "satellite",
+            "s_chair_012": "satellite",
+            "s_chair_014": "satellite",
+            "s_chair_016": "satellite"
+          }
+        }
+      ],
+      "excludedObjectCandidates": []
+    },
+    "activityGroupCandidates": [
+      {
+        "activityGroupCandidateId": "agc_000",
+        "kind": "radial_cluster",
+        "primaryObjectCandidateIds": ["fo_012"],
+        "satelliteObjectCandidateIds": [
+          "fo_010",
+          "fo_011",
+          "fo_013",
+          "fo_014",
+          "fo_016",
+          "fo_017"
+        ],
+        "bbox": [467, 365, 116, 76]
+      }
+    ]
   }
 }

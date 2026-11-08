@@ -737,6 +737,73 @@ def _finalize_measured_update(
     ).model_dump(exclude_none=True, by_alias=True)
 
 
+def _repair_activity_object_bindings(value, group_candidates):
+    symbols = {symbol["id"]: symbol for symbol in value.get("symbols", [])}
+    groups = {candidate["activityGroupCandidateId"]: candidate for candidate in group_candidates}
+    repairs = []
+    for selection in value.get("activityGroups", []):
+        candidate = groups.get(selection["candidateId"])
+        if (
+            not candidate
+            or selection.get("type") != "group_seated"
+            or candidate.get("kind") != "radial_cluster"
+        ):
+            continue
+        primary_ids = list(candidate.get("primaryObjectCandidateIds") or [])
+        satellite_ids = list(candidate.get("satelliteObjectCandidateIds") or [])
+        if len(primary_ids) != 1:
+            continue
+        table = symbols.get(selection["primarySymbolId"])
+        if table and table.get("objectCandidateId") != primary_ids[0]:
+            repairs.append(
+                {
+                    "symbolId": table["id"],
+                    "before": table.get("objectCandidateId"),
+                    "after": primary_ids[0],
+                    "reason": "activity-primary",
+                }
+            )
+            table["objectCandidateId"] = primary_ids[0]
+        chairs = [
+            symbols[symbol_id]
+            for symbol_id in selection.get("memberSymbolIds", [])
+            if symbol_id != selection["primarySymbolId"]
+            and symbols.get(symbol_id, {}).get("categoryCode") == "chair"
+        ]
+        if len(chairs) != len(satellite_ids):
+            continue
+        counts = {}
+        for chair in chairs:
+            object_id = chair.get("objectCandidateId")
+            counts[object_id] = counts.get(object_id, 0) + 1
+        valid = {
+            chair.get("objectCandidateId")
+            for chair in chairs
+            if chair.get("objectCandidateId") in satellite_ids
+            and counts.get(chair.get("objectCandidateId")) == 1
+        }
+        invalid = [chair for chair in chairs if chair.get("objectCandidateId") not in valid]
+        missing = [object_id for object_id in satellite_ids if object_id not in valid]
+        if len(invalid) != len(missing):
+            continue
+        for chair, object_id in zip(
+            sorted(invalid, key=lambda item: item["id"]),
+            sorted(missing),
+        ):
+            repairs.append(
+                {
+                    "symbolId": chair["id"],
+                    "before": chair.get("objectCandidateId"),
+                    "after": object_id,
+                    "reason": "activity-satellite",
+                }
+            )
+            chair["objectCandidateId"] = object_id
+    if repairs:
+        value["objectCandidateRepairs"] = repairs
+    return repairs
+
+
 def _assemble_activity_symbols(
     value,
     object_candidates,
@@ -753,6 +820,7 @@ def _assemble_activity_symbols(
     group_candidates_by_id = {
         candidate["activityGroupCandidateId"]: candidate for candidate in group_candidates
     }
+    _repair_activity_object_bindings(value, group_candidates)
     targets = set(draft["data"]["targetRoomIds"])
     validation_errors = []
     seen_objects = {}

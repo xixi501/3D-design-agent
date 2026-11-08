@@ -35,6 +35,7 @@ from actiscape_agent.floorplan_v3 import (
     _deterministic_measurement_bindings,
     _finalize_measured_update,
     _parse_structured_content,
+    _repair_activity_object_bindings,
     _should_run_initial_review,
     build_structure_skeleton,
 )
@@ -1045,6 +1046,57 @@ def test_review_downgrades_opening_uncertainty_when_candidates_all_match():
         issue["object_ids"] == ["u_wall_geometry"] and issue["severity"] == "blocking"
         for issue in blocked["issues"]
     )
+
+
+def test_activity_binding_repair_uses_missing_satellite_without_reusing_table():
+    satellites = ["fo_010", "fo_011", "fo_013", "fo_015", "fo_014", "fo_016"]
+    value = {
+        "symbols": [
+            {
+                "id": "table",
+                "categoryCode": "diningTable",
+                "objectCandidateId": "fo_012",
+            },
+            *[
+                {
+                    "id": f"chair-{index}",
+                    "categoryCode": "chair",
+                    "objectCandidateId": ("fo_012" if index == 3 else satellites[index]),
+                }
+                for index in range(6)
+            ],
+        ],
+        "activityGroups": [
+            {
+                "candidateId": "agc_000",
+                "type": "group_seated",
+                "primarySymbolId": "table",
+                "memberSymbolIds": [
+                    "table",
+                    *[f"chair-{index}" for index in range(6)],
+                ],
+            }
+        ],
+    }
+    group_candidates = [
+        {
+            "activityGroupCandidateId": "agc_000",
+            "kind": "radial_cluster",
+            "primaryObjectCandidateIds": ["fo_012"],
+            "satelliteObjectCandidateIds": satellites,
+        }
+    ]
+    repairs = _repair_activity_object_bindings(value, group_candidates)
+    assert repairs == [
+        {
+            "symbolId": "chair-3",
+            "before": "fo_012",
+            "after": "fo_015",
+            "reason": "activity-satellite",
+        }
+    ]
+    assert value["symbols"][4]["objectCandidateId"] == "fo_015"
+    assert value["objectCandidateRepairs"] == repairs
 
 
 def test_review_downgrades_open_kitchen_scope_when_target_room_is_valid():

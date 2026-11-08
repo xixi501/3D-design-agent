@@ -70,6 +70,7 @@ for (const name of ["r9", "r10"]) {
   assert.equal(pythonReplay.reviews[name].passed, true);
   assert.equal(pythonReplay.reviews[name].blockingIssues, 0);
 }
+assert.ok(pythonReplay.activityRepairs.length > 0);
 
 const choices = new Map(
   Object.entries(pythonReplay.assetKeys).map(([index, key]) => [
@@ -148,6 +149,7 @@ console.log(
       geometryProof: geometry.passed,
       r8Workflow: r8Evidence.completedWorkflow,
       reviews: pythonReplay.reviews,
+      activityRepairs: pythonReplay.activityRepairs,
     },
     null,
     2,

@@ -1,0 +1,686 @@
+{
+  "manifest": {
+    "purpose": "Same-image internal system capability comparison, not complete S2 acceptance",
+    "sourcePage": "https://floorplancreator.io/floor-plan-templates/one-bedroom-apartment",
+    "imageUrl": "https://floorplancreator.io/media/templates/v1/one-bedroom-apartment.png",
+    "sha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+    "width": 1200,
+    "height": 630,
+    "licensing": "Source credited for internal evaluation. No redistribution licence claimed; image is not checked into this repository.",
+    "userRequest": "识别这张户型图的整层结构，保留原图所有房间、墙体和门窗，复现客餐厅已有家具的类别、数量、位置和朝向。厨房与卧室只保留结构，不另外设计或填充家具。请先输出识别草稿和不确定项，不改变原有户型。",
+    "evaluationOnly": {
+      "rooms": [
+        "Living Room",
+        "Bedroom",
+        "Bathroom"
+      ],
+      "relations": "left full-height living/dining, upper-right bedroom, lower-right bathroom",
+      "doors": 3,
+      "windows": 4,
+      "livingCoreFurniture": {
+        "sofa": 1,
+        "coffeeTable": 1,
+        "diningTable": 1,
+        "chair": 6,
+        "tvCabinet": 1
+      },
+      "neverSentToAgent": true
+    }
+  },
+  "evaluation": {
+    "purpose": "Frozen development scoring reference; NEVER supplied to Agent, production service or recognition tools",
+    "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+    "referenceSha256": "2b6e646602f0e96cdb6d5246b1a8ead6551917ce2c5e68e9b8bf3ece3a0c559e",
+    "referenceFile": "one-bedroom.evaluation-only.json",
+    "sourceCommit": "553446095a290541df6187d31cbbd99b13fcf4cb",
+    "coordinateSpace": "EXIF-oriented original image pixels",
+    "annotationMethod": "Independent visual reading of original only; no model draft copied",
+    "limits": "Raster positions approximate; existing metric tolerances apply unchanged. A single exterior anchor determines reference scale; other source dimensions are cross-check evidence, not contradictory exact pixel anchors.",
+    "manualObjectCorrectionLimit": 0,
+    "requiredRuns": 2,
+    "aliases": {
+      "客餐厅": "livingroom",
+      "客厅": "livingroom",
+      "卧室": "bedroom",
+      "卫生间": "bathroom",
+      "浴室": "bathroom",
+      "三人沙发": "sofa",
+      "沙发": "sofa",
+      "茶几": "coffeetable",
+      "餐桌": "diningtable",
+      "餐椅": "chair",
+      "电视柜": "tvcabinet",
+      "书柜": "bookshelf",
+      "置物架": "bookshelf",
+      "盆栽": "plant",
+      "绿植": "plant",
+      "地毯": "rug",
+      "Dining Chair": "chair",
+      "Dining Table": "diningtable",
+      "Coffee Table": "coffeetable",
+      "TV Cabinet": "tvcabinet",
+      "Sofa": "sofa",
+      "Bookshelf": "bookshelf",
+      "Plant": "plant",
+      "Rug": "rug"
+    },
+    "scoringVersion": "s2c-2",
+    "dimensionPolicy": "Measure the solved feature distance, not reference-pixel length times candidate scale. Raster localization thresholds unchanged.",
+    "allowedCatalogueKeys": {
+      "sofa": [
+        "sofa",
+        "modularSofa"
+      ],
+      "coffee": [
+        "coffeeTable"
+      ],
+      "dining": [
+        "diningTable",
+        "diningTable6"
+      ],
+      "tv": [
+        "tvCabinet",
+        "cabTV"
+      ],
+      "books": [
+        "cabTall"
+      ],
+      "plant": [
+        "plant",
+        "bigPlant"
+      ],
+      "rug": [
+        "rug"
+      ],
+      "chair-1": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-2": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-3": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-4": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-5": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-6": [
+        "chair",
+        "armDiningChair"
+      ]
+    }
+  },
+  "codeCommit": "b3690bccd20b982ee0405fef86cbe37893a8727e",
+  "serviceVersions": {
+    "codeCommit": "b3690bccd20b982ee0405fef86cbe37893a8727e",
+    "workingTreeModified": false,
+    "python": "3.13.13",
+    "langgraph": "1.2.20",
+    "langchain": "1.4.9",
+    "deepseekAdapter": "1.1.1",
+    "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+    "model": "deepseek-flash",
+    "modelProvider": "api.deepseek.com",
+    "reasoningEffort": "high",
+    "tools": "scene-candidate-v3",
+    "structuredOutputRecovery": "one-bounded-continuation-1",
+    "modelConfigVersion": "per-role-output-budget-3",
+    "floorplanRecognitionOptions": {
+      "max_tokens": 32768,
+      "timeout": 180,
+      "reasoning_effort": "low",
+      "extra_body": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    },
+    "floorplanReviewOptions": {
+      "max_tokens": 16384,
+      "timeout": 180,
+      "reasoning_effort": "low",
+      "extra_body": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    },
+    "floorplanPromptVersion": "s2c-floorplan-v3-5",
+    "floorplanToolAdapter": "hpd-adapter-5",
+    "floorplanVisionConfigVersion": "vision-furniture-1",
+    "floorplanActivityUnitVersion": "activity-unit-1",
+    "floorplanScoringVersion": "s2c-5",
+    "floorplanVision": {
+      "provider": "local-vllm",
+      "model": "Qwen/Qwen3-VL-32B-Instruct-FP8",
+      "base_url": "http://127.0.0.1:3003/v1",
+      "max_tokens": 8192,
+      "timeout": 180
+    },
+    "floorplanUpdateContract": "discriminated-commands-2",
+    "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+    "pillow": "13.0.0",
+    "opencv": "4.14.0.94",
+    "promptVersion": "s2a-local-edit-2",
+    "generationPromptVersion": "s2b-rectangular-2"
+  },
+  "referenceSentToAgent": false,
+  "manualGeometryOperations": 0,
+  "completeS2Accepted": false,
+  "completeV3": true,
+  "results": [
+    {
+      "repeat": 1,
+      "projectId": "3d7041a1-190e-4aff-8925-f3187ee7776d",
+      "taskId": "d9036d8e-bf0c-474c-9233-78c6b73c1e12",
+      "status": "waiting_input",
+      "error": "两阶段识别、测量与独立审核通过，请确认结构与布局。",
+      "modelCalls": 20,
+      "activeSeconds": 149.1982991695404,
+      "compilationPassed": true,
+      "firstRecognition": {
+        "passed": true,
+        "walls": {
+          "precision": 1,
+          "recall": 1,
+          "allMatched": true
+        },
+        "openings": {
+          "matches": [
+            {
+              "i": 0,
+              "j": 3
+            },
+            {
+              "i": 3,
+              "j": 0
+            },
+            {
+              "i": 5,
+              "j": 1
+            },
+            {
+              "i": 1,
+              "j": 4
+            },
+            {
+              "i": 2,
+              "j": 5
+            },
+            {
+              "i": 6,
+              "j": 2
+            },
+            {
+              "i": 4,
+              "j": 6
+            }
+          ],
+          "precision": 1,
+          "recall": 1
+        },
+        "furniture": {
+          "matches": [
+            {
+              "i": 8,
+              "j": 11
+            },
+            {
+              "i": 4,
+              "j": 4
+            },
+            {
+              "i": 1,
+              "j": 5
+            },
+            {
+              "i": 5,
+              "j": 1
+            },
+            {
+              "i": 10,
+              "j": 9
+            },
+            {
+              "i": 11,
+              "j": 10
+            },
+            {
+              "i": 0,
+              "j": 3
+            },
+            {
+              "i": 3,
+              "j": 6
+            },
+            {
+              "i": 9,
+              "j": 12
+            },
+            {
+              "i": 12,
+              "j": 2
+            },
+            {
+              "i": 6,
+              "j": 7
+            },
+            {
+              "i": 7,
+              "j": 8
+            },
+            {
+              "i": 2,
+              "j": 0
+            }
+          ],
+          "precision": 1,
+          "recall": 1
+        },
+        "activityGroups": {
+          "passed": true,
+          "applicable": true,
+          "issues": []
+        },
+        "thresholdVersion": "s2c-5"
+      },
+      "scoring": {
+        "passed": false,
+        "rawPassed": true,
+        "finalPassed": false,
+        "corrections": 0,
+        "correctionLimit": 0,
+        "raw": {
+          "walls": {
+            "precision": 1,
+            "recall": 1,
+            "allMatched": true
+          },
+          "openings": {
+            "matches": [
+              {
+                "i": 0,
+                "j": 3
+              },
+              {
+                "i": 3,
+                "j": 0
+              },
+              {
+                "i": 5,
+                "j": 1
+              },
+              {
+                "i": 1,
+                "j": 4
+              },
+              {
+                "i": 2,
+                "j": 5
+              },
+              {
+                "i": 6,
+                "j": 2
+              },
+              {
+                "i": 4,
+                "j": 6
+              }
+            ],
+            "precision": 1,
+            "recall": 1
+          },
+          "furniture": {
+            "matches": [
+              {
+                "i": 8,
+                "j": 11
+              },
+              {
+                "i": 4,
+                "j": 4
+              },
+              {
+                "i": 1,
+                "j": 5
+              },
+              {
+                "i": 5,
+                "j": 1
+              },
+              {
+                "i": 10,
+                "j": 9
+              },
+              {
+                "i": 11,
+                "j": 10
+              },
+              {
+                "i": 0,
+                "j": 3
+              },
+              {
+                "i": 3,
+                "j": 6
+              },
+              {
+                "i": 9,
+                "j": 12
+              },
+              {
+                "i": 12,
+                "j": 2
+              },
+              {
+                "i": 6,
+                "j": 7
+              },
+              {
+                "i": 7,
+                "j": 8
+              },
+              {
+                "i": 2,
+                "j": 0
+              }
+            ],
+            "precision": 1,
+            "recall": 1
+          }
+        },
+        "confirmed": {
+          "walls": {
+            "precision": 1,
+            "recall": 1,
+            "allMatched": true
+          },
+          "openings": {
+            "matches": [
+              {
+                "i": 0,
+                "j": 3
+              },
+              {
+                "i": 1,
+                "j": 4
+              },
+              {
+                "i": 3,
+                "j": 0
+              },
+              {
+                "i": 5,
+                "j": 1
+              },
+              {
+                "i": 2,
+                "j": 5
+              },
+              {
+                "i": 6,
+                "j": 2
+              },
+              {
+                "i": 4,
+                "j": 6
+              }
+            ],
+            "precision": 1,
+            "recall": 1
+          },
+          "furniture": {
+            "matches": [
+              {
+                "i": 8,
+                "j": 11
+              },
+              {
+                "i": 4,
+                "j": 4
+              },
+              {
+                "i": 1,
+                "j": 5
+              },
+              {
+                "i": 5,
+                "j": 1
+              },
+              {
+                "i": 10,
+                "j": 9
+              },
+              {
+                "i": 11,
+                "j": 10
+              },
+              {
+                "i": 0,
+                "j": 3
+              },
+              {
+                "i": 3,
+                "j": 6
+              },
+              {
+                "i": 9,
+                "j": 12
+              },
+              {
+                "i": 12,
+                "j": 2
+              },
+              {
+                "i": 6,
+                "j": 7
+              },
+              {
+                "i": 7,
+                "j": 8
+              },
+              {
+                "i": 2,
+                "j": 0
+              }
+            ],
+            "precision": 1,
+            "recall": 1
+          },
+          "layout": [
+            {
+              "actualId": "s_chair_002",
+              "referenceId": "chair-5",
+              "passed": true,
+              "centerError": 19.787255313465064,
+              "rotationError": 0,
+              "widthError": 0,
+              "depthError": 0
+            },
+            {
+              "actualId": "s_bookshelf_000",
+              "referenceId": "books",
+              "passed": false,
+              "centerError": 25.02911817352694,
+              "rotationError": 180,
+              "widthError": 35.39651837524161,
+              "depthError": 35.39651837524178
+            },
+            {
+              "actualId": "s_plant_000",
+              "referenceId": "plant",
+              "passed": true,
+              "centerError": 25.02911817352726,
+              "rotationError": 0,
+              "widthError": 0,
+              "depthError": 17.69825918762092
+            },
+            {
+              "actualId": "s_coffeeTable_000",
+              "referenceId": "coffee",
+              "passed": true,
+              "centerError": 25.02911817352758,
+              "rotationError": 0,
+              "widthError": 35.39651837524184,
+              "depthError": 35.396518375241726
+            },
+            {
+              "actualId": "s_chair_004",
+              "referenceId": "chair-3",
+              "passed": false,
+              "centerError": 27.98340482644167,
+              "rotationError": 180,
+              "widthError": 17.698259187620863,
+              "depthError": 17.698259187620863
+            },
+            {
+              "actualId": "s_chair_005",
+              "referenceId": "chair-4",
+              "passed": false,
+              "centerError": 27.98340482644167,
+              "rotationError": 180,
+              "widthError": 17.698259187620863,
+              "depthError": 17.698259187620863
+            },
+            {
+              "actualId": "s_tvCabinet_000",
+              "referenceId": "tv",
+              "passed": true,
+              "centerError": 31.90599049370917,
+              "rotationError": 0,
+              "widthError": 35.39651837524161,
+              "depthError": 17.698259187620863
+            },
+            {
+              "actualId": "s_rug_000",
+              "referenceId": "rug",
+              "passed": true,
+              "centerError": 31.90599049370917,
+              "rotationError": 0,
+              "widthError": 35.39651837524207,
+              "depthError": 17.698259187620806
+            },
+            {
+              "actualId": "s_chair_003",
+              "referenceId": "chair-6",
+              "passed": true,
+              "centerError": 31.90599049370917,
+              "rotationError": 0,
+              "widthError": 0,
+              "depthError": 0
+            },
+            {
+              "actualId": "s_diningTable_000",
+              "referenceId": "dining",
+              "passed": true,
+              "centerError": 31.90599049370917,
+              "rotationError": 0,
+              "widthError": 0,
+              "depthError": 0
+            },
+            {
+              "actualId": "s_chair_000",
+              "referenceId": "chair-1",
+              "passed": false,
+              "centerError": 37.543677260291695,
+              "rotationError": 180,
+              "widthError": 17.698259187620863,
+              "depthError": 17.698259187620863
+            },
+            {
+              "actualId": "s_chair_001",
+              "referenceId": "chair-2",
+              "passed": false,
+              "centerError": 37.543677260291695,
+              "rotationError": 180,
+              "widthError": 17.698259187620863,
+              "depthError": 17.698259187620863
+            },
+            {
+              "actualId": "s_sofa_000",
+              "referenceId": "sofa",
+              "passed": false,
+              "centerError": 55.96680965288334,
+              "rotationError": 180,
+              "widthError": 106.18955512572575,
+              "depthError": 141.58607350096702
+            }
+          ],
+          "structure": {
+            "passed": false,
+            "roomPrecision": 1,
+            "roomRecall": 1,
+            "names": false,
+            "targets": [
+              "reference:r:living"
+            ],
+            "expectedTargets": [
+              "reference:r:living"
+            ],
+            "adjacency": [
+              "OUTSIDE|reference:r:living",
+              "reference:r:bathroom|reference:r:living",
+              "reference:r:bedroom|reference:r:living"
+            ],
+            "expectedAdjacency": [
+              "OUTSIDE|reference:r:living",
+              "reference:r:bathroom|reference:r:living",
+              "reference:r:bedroom|reference:r:living"
+            ]
+          },
+          "dimensions": [
+            {
+              "evidence": "dim_anchor_0",
+              "error": 0
+            },
+            {
+              "evidence": "dim_anchor_1",
+              "error": 0
+            },
+            {
+              "evidence": "dim_anchor_2",
+              "error": 0
+            },
+            {
+              "evidence": "dim_anchor_3",
+              "error": 0
+            }
+          ],
+          "referenceDimensions": [
+            {
+              "evidence": "Top outer dimension 9.15 m, outer wall faces",
+              "error": 0
+            }
+          ],
+          "dimensionsPassed": true
+        },
+        "thresholdVersion": "s2c-5"
+      },
+      "completeV2": true,
+      "completeV3": true,
+      "toolRoles": [
+        "main:analyze_floorplan",
+        "main:furniture_contours",
+        "system:draft_diagnostics",
+        "design:fit_wall_candidates",
+        "design:measure_dimension_chain"
+      ],
+      "repairs": 3,
+      "formalRevision": 0,
+      "imageFidelityAccepted": false,
+      "workflow": {
+        "passed": false,
+        "confirmationSimulated": false
+      },
+      "manualGeometryOperations": 0
+    }
+  ]
+}

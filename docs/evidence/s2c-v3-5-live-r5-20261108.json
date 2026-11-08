@@ -1,0 +1,99 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "b3690bccd20b982ee0405fef86cbe37893a8727e",
+  "scope": "fifth-independent-single-real-image-run",
+  "task": {
+    "projectId": "3d7041a1-190e-4aff-8925-f3187ee7776d",
+    "taskId": "d9036d8e-bf0c-474c-9233-78c6b73c1e12",
+    "status": "waiting_input",
+    "error": "两阶段识别、测量与独立审核通过，请确认结构与布局。",
+    "modelCalls": 20,
+    "activeSeconds": 149.1982991695404,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0,
+    "repairs": 3
+  },
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "openings": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "furniture": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "symbolCount": 13,
+      "chairCount": 6
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "measurement": {
+    "compilationPassed": true,
+    "sourceReviewPassed": true,
+    "dimensionCount": 4,
+    "dimensionResidualsMm": [0, 0, 0, 0]
+  },
+  "finalScoring": {
+    "passed": false,
+    "rawPassed": true,
+    "finalPassed": false,
+    "layoutObjectsPassed": 7,
+    "layoutObjectsFailed": 6,
+    "roomPrecision": 1.0,
+    "roomRecall": 1.0,
+    "topologyAdjacencyPassed": true,
+    "roomNamesPassed": false,
+    "expectedRoomNames": ["Living Room", "Bedroom", "Bathroom"],
+    "actualRoomNames": [
+      "Living Room / 客餐厅（含开放厨房区）",
+      "Bedroom / 卧室",
+      "Bathroom / 卫生间"
+    ],
+    "orientationFailures": [
+      "sofa",
+      "bookshelf",
+      "chair-1",
+      "chair-2",
+      "chair-3",
+      "chair-4"
+    ]
+  },
+  "rootCause": {
+    "stage": "measurement-model-commands",
+    "message": "The measurement model overwrote frozen room labels and furniture rotations that were correct after structure and furniture assembly.",
+    "evidence": "Structure and furniture passes returned verbatim room labels and rotation zero; later measurement responses patched rooms and symbols before diagnostics.",
+    "deterministicAssemblyWasCorrect": true
+  },
+  "postFailureOfflineFix": {
+    "commit": "59aed64",
+    "change": "Restrict measurement proposals to wall a/b/thicknessPx patches, uncertainty maintenance and height/wallThickness defaults; filter semantic and topology mutations in fixed code.",
+    "recordedResponseReplay": "All four captured measurement responses retained only wall and uncertainty commands; no room, symbol, opening, target or anchor mutations survived.",
+    "realRunAfterFixStarted": false
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r5-20261108-report.json",
+      "sha256": "4def13319628dcb9bf8f1d7af1ca8088e8c297247ddaa89cd851272c410bd3cf"
+    },
+    "scoring": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r5-20261108-scoring.json",
+      "sha256": "39ca7784c2baf2cf5d531d36ca541d25d4e520d42a314a3980d19b30187a5983"
+    },
+    "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T06-48-38-492Z"
+  }
+}

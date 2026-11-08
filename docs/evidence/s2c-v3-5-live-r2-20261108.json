@@ -31,7 +31,8 @@
   ],
   "diagnosis": {
     "primary": "The request schema set minItems and maxItems on symbols, but symbols and activityGroups were still optional properties. Both guided responses legally omitted them.",
-    "postFailureOfflineFix": "Add symbols and activityGroups to the JSON Schema required array, retain exact 13-symbol and one-group bounds, and reject empty output. The fix is offline/controlled only in this batch.",
+    "postFailureOfflineFix": "Add symbols and activityGroups to the JSON Schema required array, retain exact 13-symbol and one-group bounds, and reject empty output. Offline replay then reached 13/13 objects, six chairs and 1.0 category precision/recall.",
+    "requiredFieldOfflinePassed": true,
     "imageCandidatesMatchedOffline": true
   },
   "decision": {
@@ -44,6 +45,14 @@
     "liveReport": {
       "path": "docs/evidence/s2c-v3-5-vision/live-r2-20261108-report.json",
       "sha256": "f3ff63d07e79ebfe4b0e3b0dab0b01970db1a45e3601ae7775acd05cf106e736"
+    },
+    "requiredFieldOfflineResponses": {
+      "path": "docs/evidence/s2c-v3-5-vision/qwen3-vl-v35-required-offline-raw.json",
+      "sha256": "a0ac67a1b25a27ff7ba74abe95cf0478c5c3b8ca0754e6bb8910781f42ccb3ad"
+    },
+    "requiredFieldOfflineReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/qwen3-vl-v35-required-offline-report.json",
+      "sha256": "d3336eb92f5837105460db92e20708873f4d915245f85c611165656361687b4f"
     }
   }
 }

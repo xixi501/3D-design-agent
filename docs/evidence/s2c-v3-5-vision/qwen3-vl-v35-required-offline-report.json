@@ -1,0 +1,502 @@
+{
+  "model": {
+    "provider": "local-vllm",
+    "model": "Qwen/Qwen3-VL-32B-Instruct-FP8",
+    "base_url": "http://127.0.0.1:3003/v1",
+    "timeout": 180,
+    "max_tokens": 8192
+  },
+  "attempts": 2,
+  "usage": [
+    {
+      "prompt_tokens": 7938,
+      "total_tokens": 8642,
+      "completion_tokens": 704,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": null
+    },
+    {
+      "prompt_tokens": 8887,
+      "total_tokens": 10045,
+      "completion_tokens": 1158,
+      "prompt_tokens_details": null,
+      "completion_tokens_details": null
+    }
+  ],
+  "seconds": 52.465,
+  "symbols": [
+    {
+      "id": "s_tvCabinet_000",
+      "roomId": "r_living_dining",
+      "sourceLabel": "长条形电视柜",
+      "categoryCode": "tvCabinet",
+      "category": "tvCabinet",
+      "objectCandidateId": "fo_000",
+      "activityGroupIds": ["ag_auto_001_s_tvCabinet_000"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 519.0,
+      "y": 140.5,
+      "w": 92,
+      "d": 27,
+      "rot": 0,
+      "activityRole": "primary"
+    },
+    {
+      "id": "s_plant_001",
+      "roomId": "r_living_dining",
+      "sourceLabel": "绿色圆形装饰/绿植",
+      "categoryCode": "plant",
+      "category": "plant",
+      "objectCandidateId": "fo_001",
+      "activityGroupIds": ["ag_auto_002_s_plant_001"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 646.5,
+      "y": 143.0,
+      "w": 27,
+      "d": 28,
+      "rot": 0.0,
+      "activityRole": "primary"
+    },
+    {
+      "id": "s_sofa_002",
+      "roomId": "r_living_dining",
+      "sourceLabel": "三座沙发",
+      "categoryCode": "sofa",
+      "category": "sofa",
+      "objectCandidateId": "fo_002",
+      "activityGroupIds": ["ag_auto_003_s_sofa_002"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 519.0,
+      "y": 221.0,
+      "w": 120,
+      "d": 52,
+      "rot": 0,
+      "activityRole": "primary"
+    },
+    {
+      "id": "s_rug_003",
+      "roomId": "r_living_dining",
+      "sourceLabel": "矩形地毯",
+      "categoryCode": "rug",
+      "category": "rug",
+      "objectCandidateId": "fo_003",
+      "activityGroupIds": ["ag_auto_004_s_rug_003"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 519.0,
+      "y": 285.5,
+      "w": 132,
+      "d": 91,
+      "rot": 0,
+      "activityRole": "primary"
+    },
+    {
+      "id": "s_bookshelf_004",
+      "roomId": "r_living_dining",
+      "sourceLabel": "竖向书架",
+      "categoryCode": "bookshelf",
+      "category": "bookshelf",
+      "objectCandidateId": "fo_004",
+      "activityGroupIds": ["ag_auto_005_s_bookshelf_004"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 638.0,
+      "y": 307.0,
+      "w": 70,
+      "d": 22,
+      "rot": 90,
+      "activityRole": "primary"
+    },
+    {
+      "id": "s_coffeeTable_005",
+      "roomId": "r_living_dining",
+      "sourceLabel": "矩形茶几",
+      "categoryCode": "coffeeTable",
+      "category": "coffeeTable",
+      "objectCandidateId": "fo_005",
+      "activityGroupIds": ["ag_auto_006_s_coffeeTable_005"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 519.0,
+      "y": 296.0,
+      "w": 64,
+      "d": 36,
+      "rot": 0,
+      "activityRole": "primary"
+    },
+    {
+      "id": "s_chair_010",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_010",
+      "activityGroupIds": ["ag_seated_000"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 505.5,
+      "y": 371.5,
+      "w": 23,
+      "d": 23,
+      "rot": 180,
+      "activityRole": "satellite"
+    },
+    {
+      "id": "s_chair_011",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_011",
+      "activityGroupIds": ["ag_seated_000"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 544.5,
+      "y": 371.5,
+      "w": 23,
+      "d": 23,
+      "rot": 180,
+      "activityRole": "satellite"
+    },
+    {
+      "id": "s_diningTable_012",
+      "roomId": "r_living_dining",
+      "sourceLabel": "长方形餐桌",
+      "categoryCode": "diningTable",
+      "category": "diningTable",
+      "objectCandidateId": "fo_012",
+      "activityGroupIds": ["ag_seated_000"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 525.0,
+      "y": 403.0,
+      "w": 90,
+      "d": 50,
+      "rot": 0,
+      "activityRole": "primary"
+    },
+    {
+      "id": "s_chair_013",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_013",
+      "activityGroupIds": ["ag_seated_000"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 473.5,
+      "y": 403.0,
+      "w": 22,
+      "d": 22,
+      "rot": 90,
+      "activityRole": "satellite"
+    },
+    {
+      "id": "s_chair_014",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_014",
+      "activityGroupIds": ["ag_seated_000"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 576.5,
+      "y": 403.0,
+      "w": 22,
+      "d": 22,
+      "rot": 270,
+      "activityRole": "satellite"
+    },
+    {
+      "id": "s_chair_016",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_016",
+      "activityGroupIds": ["ag_seated_000"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 505.5,
+      "y": 434.5,
+      "w": 23,
+      "d": 23,
+      "rot": 0,
+      "activityRole": "satellite"
+    },
+    {
+      "id": "s_chair_017",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_017",
+      "activityGroupIds": ["ag_seated_000"],
+      "included": true,
+      "evidenceRefs": ["vision-probe"],
+      "x": 544.5,
+      "y": 434.5,
+      "w": 23,
+      "d": 23,
+      "rot": 0,
+      "activityRole": "satellite"
+    }
+  ],
+  "activityGroups": [
+    {
+      "id": "ag_seated_000",
+      "type": "group_seated",
+      "primarySymbolId": "s_diningTable_012",
+      "memberSymbolIds": [
+        "s_diningTable_012",
+        "s_chair_010",
+        "s_chair_011",
+        "s_chair_013",
+        "s_chair_014",
+        "s_chair_016",
+        "s_chair_017"
+      ],
+      "roles": {
+        "s_diningTable_012": "primary",
+        "s_chair_010": "satellite",
+        "s_chair_011": "satellite",
+        "s_chair_013": "satellite",
+        "s_chair_014": "satellite",
+        "s_chair_016": "satellite",
+        "s_chair_017": "satellite"
+      },
+      "evidenceRefs": ["vision-probe"]
+    },
+    {
+      "id": "ag_auto_001_s_tvCabinet_000",
+      "type": "direct_access",
+      "primarySymbolId": "s_tvCabinet_000",
+      "memberSymbolIds": ["s_tvCabinet_000"],
+      "roles": {
+        "s_tvCabinet_000": "primary"
+      },
+      "evidenceRefs": ["vision-probe"]
+    },
+    {
+      "id": "ag_auto_002_s_plant_001",
+      "type": "standalone",
+      "primarySymbolId": "s_plant_001",
+      "memberSymbolIds": ["s_plant_001"],
+      "roles": {
+        "s_plant_001": "primary"
+      },
+      "evidenceRefs": ["vision-probe"]
+    },
+    {
+      "id": "ag_auto_003_s_sofa_002",
+      "type": "direct_occupancy",
+      "primarySymbolId": "s_sofa_002",
+      "memberSymbolIds": ["s_sofa_002"],
+      "roles": {
+        "s_sofa_002": "primary"
+      },
+      "evidenceRefs": ["vision-probe"]
+    },
+    {
+      "id": "ag_auto_004_s_rug_003",
+      "type": "standalone",
+      "primarySymbolId": "s_rug_003",
+      "memberSymbolIds": ["s_rug_003"],
+      "roles": {
+        "s_rug_003": "primary"
+      },
+      "evidenceRefs": ["vision-probe"]
+    },
+    {
+      "id": "ag_auto_005_s_bookshelf_004",
+      "type": "direct_access",
+      "primarySymbolId": "s_bookshelf_004",
+      "memberSymbolIds": ["s_bookshelf_004"],
+      "roles": {
+        "s_bookshelf_004": "primary"
+      },
+      "evidenceRefs": ["vision-probe"]
+    },
+    {
+      "id": "ag_auto_006_s_coffeeTable_005",
+      "type": "standalone",
+      "primarySymbolId": "s_coffeeTable_005",
+      "memberSymbolIds": ["s_coffeeTable_005"],
+      "roles": {
+        "s_coffeeTable_005": "primary"
+      },
+      "evidenceRefs": ["vision-probe"]
+    }
+  ],
+  "score": {
+    "passed": true,
+    "categoryPrecision": 1.0,
+    "categoryRecall": 1.0,
+    "actualCount": 13,
+    "referenceCount": 13,
+    "chairCount": 6,
+    "layout": [
+      {
+        "actual": 9,
+        "reference": 11,
+        "distance": 1.118033988749895,
+        "actualId": "s_chair_013",
+        "referenceId": "chair-5",
+        "centerErrorMm": 19.78725531346526,
+        "rotationError": 0,
+        "widthErrorMm": 0.0,
+        "depthErrorMm": 0.0,
+        "passed": true
+      },
+      {
+        "actual": 1,
+        "reference": 5,
+        "distance": 1.4142135623730951,
+        "actualId": "s_plant_001",
+        "referenceId": "plant",
+        "centerErrorMm": 25.029118173527703,
+        "rotationError": 0.0,
+        "widthErrorMm": 0.0,
+        "depthErrorMm": 17.69825918762089,
+        "passed": true
+      },
+      {
+        "actual": 4,
+        "reference": 4,
+        "distance": 1.4142135623730951,
+        "actualId": "s_bookshelf_004",
+        "referenceId": "books",
+        "centerErrorMm": 25.029118173527703,
+        "rotationError": 0,
+        "widthErrorMm": 35.39651837524178,
+        "depthErrorMm": 35.39651837524178,
+        "passed": true
+      },
+      {
+        "actual": 5,
+        "reference": 1,
+        "distance": 1.4142135623730951,
+        "actualId": "s_coffeeTable_005",
+        "referenceId": "coffee",
+        "centerErrorMm": 25.029118173527703,
+        "rotationError": 0,
+        "widthErrorMm": 35.39651837524178,
+        "depthErrorMm": 35.39651837524178,
+        "passed": true
+      },
+      {
+        "actual": 11,
+        "reference": 9,
+        "distance": 1.5811388300841898,
+        "actualId": "s_chair_016",
+        "referenceId": "chair-3",
+        "centerErrorMm": 27.98340482644166,
+        "rotationError": 0,
+        "widthErrorMm": 17.69825918762089,
+        "depthErrorMm": 17.69825918762089,
+        "passed": true
+      },
+      {
+        "actual": 12,
+        "reference": 10,
+        "distance": 1.5811388300841898,
+        "actualId": "s_chair_017",
+        "referenceId": "chair-4",
+        "centerErrorMm": 27.98340482644166,
+        "rotationError": 0,
+        "widthErrorMm": 17.69825918762089,
+        "depthErrorMm": 17.69825918762089,
+        "passed": true
+      },
+      {
+        "actual": 0,
+        "reference": 3,
+        "distance": 1.8027756377319946,
+        "actualId": "s_tvCabinet_000",
+        "referenceId": "tv",
+        "centerErrorMm": 31.905990493709385,
+        "rotationError": 0,
+        "widthErrorMm": 35.39651837524178,
+        "depthErrorMm": 17.69825918762089,
+        "passed": true
+      },
+      {
+        "actual": 3,
+        "reference": 6,
+        "distance": 1.8027756377319946,
+        "actualId": "s_rug_003",
+        "referenceId": "rug",
+        "centerErrorMm": 31.905990493709385,
+        "rotationError": 0,
+        "widthErrorMm": 35.39651837524178,
+        "depthErrorMm": 17.69825918762089,
+        "passed": true
+      },
+      {
+        "actual": 8,
+        "reference": 2,
+        "distance": 1.8027756377319946,
+        "actualId": "s_diningTable_012",
+        "referenceId": "dining",
+        "centerErrorMm": 31.905990493709385,
+        "rotationError": 0,
+        "widthErrorMm": 0.0,
+        "depthErrorMm": 0.0,
+        "passed": true
+      },
+      {
+        "actual": 10,
+        "reference": 12,
+        "distance": 1.8027756377319946,
+        "actualId": "s_chair_014",
+        "referenceId": "chair-6",
+        "centerErrorMm": 31.905990493709385,
+        "rotationError": 0,
+        "widthErrorMm": 0.0,
+        "depthErrorMm": 0.0,
+        "passed": true
+      },
+      {
+        "actual": 6,
+        "reference": 7,
+        "distance": 2.1213203435596424,
+        "actualId": "s_chair_010",
+        "referenceId": "chair-1",
+        "centerErrorMm": 37.543677260291545,
+        "rotationError": 0,
+        "widthErrorMm": 17.69825918762089,
+        "depthErrorMm": 17.69825918762089,
+        "passed": true
+      },
+      {
+        "actual": 7,
+        "reference": 8,
+        "distance": 2.1213203435596424,
+        "actualId": "s_chair_011",
+        "referenceId": "chair-2",
+        "centerErrorMm": 37.543677260291545,
+        "rotationError": 0,
+        "widthErrorMm": 17.69825918762089,
+        "depthErrorMm": 17.69825918762089,
+        "passed": true
+      },
+      {
+        "actual": 2,
+        "reference": 0,
+        "distance": 3.1622776601683795,
+        "actualId": "s_sofa_002",
+        "referenceId": "sofa",
+        "centerErrorMm": 55.96680965288332,
+        "rotationError": 0,
+        "widthErrorMm": 106.18955512572535,
+        "depthErrorMm": 141.58607350096713,
+        "passed": true
+      }
+    ]
+  }
+}

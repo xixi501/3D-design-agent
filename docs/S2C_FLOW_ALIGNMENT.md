@@ -218,4 +218,4 @@ V3-5 保留 Qwen 作为唯一家具语义模型，但不再让模型直接组合
 
 用户随后批准以 `81ee0b1` 启动独立新批次，并再次只运行一次真实同图任务。结果仍为 `FURNITURE_MISSING`：Qwen 两次都返回 `status=draft`、空排除数组并完全省略 `symbols`。任务 5 次请求、15.08 秒，正式项目 revision 0。证据见 [V3-5 第二次真实失败](evidence/s2c-v3-5-live-r2-20261108.json)。
 
-第二次失败定位为 JSON Schema 的属性可选性：此前只给 `symbols` 设置了 `minItems/maxItems`，但字段本身仍可省略。离线修复将 `symbols` 和 `activityGroups` 加入 schema 的 `required` 数组，受控测试验证精确成员数量和必需字段均进入 guided JSON。该修复没有在本轮再次实图运行，未计自动验收通过。
+第二次失败定位为 JSON Schema 的属性可选性：此前只给 `symbols` 设置了 `minItems/maxItems`，但字段本身仍可省略。离线修复将 `symbols` 和 `activityGroups` 加入 schema 的 `required` 数组，受控测试验证精确成员数量和必需字段均进入 guided JSON。修复后的本地 vLLM 离线回放得到 13/13 件、六把椅子、类别 P/R 1.0；该修复没有在本轮再次实图运行，未计自动验收通过。

@@ -144,6 +144,7 @@ V3 真实单图结果必须单独记录；受控链路通过不代替真实识�
 - 固定代码按共线、相接及 gap.a/b 关系构建稳定 candidateWalls，如 `cw_0_2`。
 - 结构角色只选择 candidateWallIds；门窗只引用 gap，代码根据两侧段唯一确定所属业务墙。
 - 结构组装失败时最多进行一次有界修复，保存两次响应和固定错误码；重启不重新执行初始结构识别。
+- 测量前由固定代码批量执行墙面拟合和尺寸刻度实测，模型直接引用预计算记录，只有自定义墙或失败项才调用测量工具。
 - 人工修改草稿会撤掉 sourceReview；新增 `recheck-floorplan` 对当前 revision/hash 重新审核，重复 requestId 不重复调用模型。
 
 对应版本为 `s2c-floorplan-v3-2`、`floorplan-reconstruction@0.5.1`，底层工具继续使用 `hpd-adapter-4`。

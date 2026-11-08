@@ -55,7 +55,7 @@ MEASURE = (
     COMMON
     + """\n你是空间设计的测量阶段。输入是两阶段合并后的当前草稿、共享证据和原图叠加。仅返回 MeasuredDraftUpdate，commands 只修改指定对象和字段。
 baseDraftRevision/Hash 必须原样使用。修改已有对象须在 changeReasons 中以 collection/id 附原图依据及 evidenceRefs；已有说明累计保留。
-先测墙面：fit_wall_candidates 使用分析 id 和 segments_px 的0起始 index，为每次取样填写业务墙 id。结果 n=0 或偏离正确候选不能作为成功证据。
+固定代码已预先执行 precomputedWallMeasurements 和 precomputedDimensionMeasurements。优先直接引用这些记录及其 id，不要为已有记录重复调用 fit_wall_candidates 或 measure_dimension_chain。只有新增裁剪墙或预计算明确失败时才调用测量工具。
 features/dimensions 必须引用真实测量和清晰尺寸标注；尺寸为 from->to 正距离，毫米几何由代码解算。不得为通过预检改数字、伪造连接或删除冲突标注。
 不需要调用终止预检工具；代码在本次结构化结果后执行预检并返回问题。"""
 )
@@ -718,6 +718,84 @@ class FloorplanV3(FloorplanV2):
     async def measure(self, task, image, draft, diagnostics, report):
         evidence, context = await self.context(task, image, "design")
         tools = FloorplanToolset(self.base, task, image, "design")
+        generation = self.store.task(task["id"], internal=True)["generation"]
+        raw_structure = generation.get("rawStructure") or {}
+        candidate_by_id = {
+            candidate["candidateWallId"]: candidate
+            for candidate in generation.get("structureSkeleton", {}).get(
+                "candidateWalls", []
+            )
+        }
+        wall_candidates = []
+        for wall in raw_structure.get("walls", []):
+            indices = []
+            for candidate_id in wall.get("candidateWallIds", []):
+                candidate = candidate_by_id.get(candidate_id)
+                if candidate:
+                    indices.extend(candidate["indices"])
+            if indices:
+                wall_candidates.append(
+                    {
+                        "id": wall["id"],
+                        "analysisId": generation["structureSkeleton"]["analysisId"],
+                        "index": min(indices),
+                    }
+                )
+        precomputed_walls = []
+        if wall_candidates:
+            wall_record = await tools.request(
+                "fit-bound", {"walls": wall_candidates}
+            )
+            await tools.result("fit_wall_candidates", wall_record, pictures=False)
+            precomputed_walls.append(
+                {
+                    "recordId": wall_record.get("id"),
+                    "result": wall_record.get("result", []),
+                    **(
+                        {"error": wall_record["error"]}
+                        if wall_record.get("error")
+                        else {}
+                    ),
+                }
+            )
+        precomputed_dimensions = []
+        for index, anchor in enumerate(draft["data"].get("anchors", [])):
+            dx = abs(anchor["a"]["x"] - anchor["b"]["x"])
+            dy = abs(anchor["a"]["y"] - anchor["b"]["y"])
+            if min(dx, dy) > 1:
+                continue
+            coordinate = "x" if dx >= dy else "y"
+            ticks = sorted(
+                [anchor["a"][coordinate], anchor["b"][coordinate]]
+            )
+            unit = anchor["distance"]["unit"]
+            millimetres = anchor["distance"]["value"] * {
+                "mm": 1,
+                "cm": 10,
+                "m": 1000,
+            }[unit]
+            record = await tools.request(
+                "axis",
+                {
+                    "ticks": ticks,
+                    "distances": [millimetres],
+                    "basis": anchor["basis"],
+                    "evidence": anchor["evidence"],
+                },
+            )
+            await tools.result("measure_dimension_chain", record, pictures=False)
+            precomputed_dimensions.append(
+                {
+                    "anchorIndex": index,
+                    "recordId": record.get("id"),
+                    "result": record.get("result", []),
+                    **(
+                        {"error": record["error"]}
+                        if record.get("error")
+                        else {}
+                    ),
+                }
+            )
 
         @tool
         async def fit_wall_candidates(walls: list[dict]) -> list[dict]:
@@ -741,6 +819,8 @@ class FloorplanV3(FloorplanV2):
                 "draft": draft,
                 "report": report,
                 "diagnostics": diagnostics,
+                "precomputedWallMeasurements": precomputed_walls,
+                "precomputedDimensionMeasurements": precomputed_dimensions,
                 "sharedEvidence": await evidence.context(),
                 "skill": self.store.task(task["id"], internal=True)["generation"]["skillSnapshot"],
             },

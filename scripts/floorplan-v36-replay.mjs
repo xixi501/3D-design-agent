@@ -250,6 +250,7 @@ assert.equal(
   JSON.stringify(capturedConsolidation.assetChoice),
 );
 assert.notEqual(capturedConsolidation.assetChoice.sofaKey, "officeSofa");
+assert.equal(capturedConsolidation.roomLabelUncertainty.resolvedByCode, true);
 const capturedReview = capturedConsolidation.candidateReview;
 assert.equal(capturedReview.passed, true);
 assert.deepEqual(capturedReview.unknownObjectIds, []);
@@ -550,6 +551,10 @@ const output = {
     taskId: capturedConsolidation.assetChoice.taskId,
     sofaKey: capturedConsolidation.assetChoice.sofaKey,
     overrides: capturedConsolidation.assetChoice.overrides.length,
+  },
+  capturedRoomLabelUncertaintyReplay: {
+    taskId: capturedConsolidation.roomLabelUncertainty.taskId,
+    resolvedByCode: capturedConsolidation.roomLabelUncertainty.resolvedByCode,
   },
   note: "Offline candidate replay only; furniture classification, model passes and the real 2-of-2 gate are not claimed.",
 };

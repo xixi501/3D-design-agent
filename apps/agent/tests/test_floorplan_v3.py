@@ -201,6 +201,35 @@ def test_existing_wall_with_unmeasured_candidate_is_advisory_not_blocking():
     )
 
 
+def test_existing_non_target_room_label_is_advisory_when_topology_passes():
+    data = {
+        "rooms": [
+            {"id": "living", "name": "客餐厅", "functionalArea": "living"},
+            {"id": "study", "name": "书房", "functionalArea": "other"},
+            {"id": "master", "name": "主卧", "functionalArea": "bedroom"},
+        ],
+        "targetRoomIds": ["living"],
+        "walls": [],
+        "openings": [],
+        "symbols": [{"id": "sofa"}],
+        "anchors": [],
+        "dimensionObservations": [],
+    }
+    uncertainty = {
+        "id": "u_num7",
+        "code": "ROOM_LABEL",
+        "objectIds": ["study", "master"],
+        "message": "书房区域内的数字7是房间编号还是独立小房间",
+        "blocking": True,
+    }
+    assert _uncertainty_resolved_by_code(
+        uncertainty,
+        data,
+        {"issues": []},
+        {},
+    )
+
+
 def structure_response():
     return {
         "status": "draft",

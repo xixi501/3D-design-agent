@@ -11,7 +11,10 @@ from actiscape_agent.floorplan_roles import (
     _arbitrate_candidate_review,
     normalize_floorplan_asset_choices,
 )
-from actiscape_agent.floorplan_v3 import _consolidate_open_room_labels
+from actiscape_agent.floorplan_v3 import (
+    _consolidate_open_room_labels,
+    _uncertainty_resolved_by_code,
+)
 
 
 def main():
@@ -92,6 +95,26 @@ def main():
     )
     assert sofa_choice["key"] in asset_fixture["expected"]["sofaKeyIn"]
     assert sofa_choice["key"] != asset_fixture["expected"]["sofaKeyNot"]
+    room_label_fixture = json.loads(
+        (
+            ROOT / "fixtures/s2c-real/ninety-two.v36-room-label-uncertainty-replay.json"
+        ).read_text()
+    )
+    room_label_resolved = _uncertainty_resolved_by_code(
+        room_label_fixture["uncertainty"],
+        {
+            "rooms": room_label_fixture["rooms"],
+            "targetRoomIds": room_label_fixture["targetRoomIds"],
+            "walls": [],
+            "openings": [],
+            "symbols": [{"id": "sofa"}],
+            "anchors": [],
+            "dimensionObservations": [],
+        },
+        room_label_fixture["checks"],
+        {},
+    )
+    assert room_label_resolved is room_label_fixture["expected"]["resolvedByCode"]
     print(
         json.dumps(
             {
@@ -110,6 +133,10 @@ def main():
                     "taskId": asset_fixture["capturedTaskId"],
                     "sofaKey": sofa_choice["key"],
                     "overrides": asset_overrides,
+                },
+                "roomLabelUncertainty": {
+                    "taskId": room_label_fixture["capturedTaskId"],
+                    "resolvedByCode": room_label_resolved,
                 },
             },
             ensure_ascii=False,

@@ -1,0 +1,95 @@
+{
+  "purpose": "Captured V3-6 non-target room-label uncertainty for deterministic offline replay; never sent to a model or production service",
+  "capturedTaskId": "30399b91-24cd-4236-b7b6-2412e0452238",
+  "sourceImageSha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+  "expected": {
+    "resolvedByCode": true,
+    "blocking": false
+  },
+  "uncertainty": {
+    "id": "u_num7",
+    "message": "『书房』区域内有编号『7』，与『主卧』的5、『次卧01』的6并列，未读清它是书房编号还是另一独立小房间；该点的房间归属与闭合边界需确认。",
+    "blocking": true,
+    "code": "ROOM_LABEL",
+    "objectIds": ["r_study", "r_master"],
+    "evidenceRefs": [
+      "9f7e0ebeaa8272e6bec1e2714b0cf046f09eb0e4219f2ce25ceddfcc4d3dd68e"
+    ]
+  },
+  "rooms": [
+    {
+      "id": "r_liv",
+      "at": {
+        "x": 190,
+        "y": 470
+      },
+      "name": "客餐厅",
+      "functionalArea": "living"
+    },
+    {
+      "id": "r_kitchen",
+      "at": {
+        "x": 290,
+        "y": 190
+      },
+      "name": "厨房",
+      "functionalArea": "kitchen"
+    },
+    {
+      "id": "r_master",
+      "at": {
+        "x": 540,
+        "y": 450
+      },
+      "name": "主卧",
+      "functionalArea": "bedroom"
+    },
+    {
+      "id": "r_second",
+      "at": {
+        "x": 370,
+        "y": 440
+      },
+      "name": "次卧01",
+      "functionalArea": "bedroom"
+    },
+    {
+      "id": "r_study",
+      "at": {
+        "x": 550,
+        "y": 220
+      },
+      "name": "书房",
+      "functionalArea": "other"
+    },
+    {
+      "id": "r_bath",
+      "at": {
+        "x": 420,
+        "y": 220
+      },
+      "name": "次卫",
+      "functionalArea": "bathroom"
+    }
+  ],
+  "targetRoomIds": ["r_liv"],
+  "checks": {
+    "passed": false,
+    "issues": [
+      {
+        "code": "FLOORPLAN_UNCERTAIN",
+        "message": "『书房』区域内有编号『7』，与『主卧』的5、『次卧01』的6并列，未读清它是书房编号还是另一独立小房间；该点的房间归属与闭合边界需确认。",
+        "objectIds": ["u_num7"],
+        "level": "error",
+        "blocking": true
+      }
+    ],
+    "coverage": [
+      "单层正交墙体、共用墙与连接",
+      "所有封闭区域及房间标签",
+      "门窗归属、范围与重叠",
+      "统一比例尺及标注交叉校验"
+    ],
+    "limitations": ["家具匹配、实际模型和截图仍需候选检查"]
+  }
+}

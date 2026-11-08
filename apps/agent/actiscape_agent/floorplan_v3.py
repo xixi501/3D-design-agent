@@ -254,6 +254,10 @@ def _uncertainty_resolved_by_code(uncertainty, data, checks, skeleton):
             and all(targets)
             and any(room.get("functionalArea") in ("living", "dining") for room in targets)
         )
+    if code == "ROOM_LABEL":
+        rooms = {room.get("id") for room in data.get("rooms") or []}
+        object_ids = set(uncertainty.get("objectIds") or [])
+        return bool(object_ids) and object_ids <= rooms
     if code in (
         "DOOR_SWING",
         "WALL_THICKNESS",

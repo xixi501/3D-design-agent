@@ -14,6 +14,7 @@ from actiscape_agent.floorplan_candidates import (
     furniture_object_candidates,
     structure_candidates,
 )
+from actiscape_agent.floorplan_roles import normalize_floorplan_asset_choices
 from actiscape_agent.floorplan_schemas import (
     FloorplanReview,
     FurnitureActivityRecognition,
@@ -1013,6 +1014,85 @@ def test_review_downgrades_opening_uncertainty_when_candidates_all_match():
         issue["object_ids"] == ["u_int_v_split"] and issue["severity"] == "advisory"
         for issue in arbitrated["issues"]
     )
+
+
+def test_floorplan_asset_choice_is_normalized_by_confirmed_footprint():
+    catalogue = {
+        "sofa": {"w": 2200, "d": 950, "h": 820},
+        "fourSofa": {"w": 2800, "d": 1000, "h": 820},
+        "bookshelf": {"w": 900, "d": 350, "h": 2000},
+        "cabTall": {"w": 1200, "d": 400, "h": 2400},
+        "plant": {"w": 500, "d": 500, "h": 1400},
+        "bigPlant": {"w": 800, "d": 800, "h": 1800},
+    }
+    task = {
+        "generation": {
+            "symbolGroups": [["sofa"], ["books"], ["plant"]],
+            "compiledSymbols": [
+                {
+                    "id": "sofa",
+                    "categoryCode": "sofa",
+                    "w": 2124,
+                    "d": 920,
+                },
+                {
+                    "id": "books",
+                    "categoryCode": "bookshelf",
+                    "w": 1239,
+                    "d": 389,
+                },
+                {
+                    "id": "plant",
+                    "categoryCode": "plant",
+                    "w": 478,
+                    "d": 496,
+                },
+            ],
+        }
+    }
+    selection = {
+        "choices": [
+            {"request_index": 0, "key": "fourSofa", "reason": "sofa"},
+            {"request_index": 1, "key": "bookshelf", "reason": "shelf"},
+            {"request_index": 2, "key": "plant", "reason": "plant"},
+        ]
+    }
+    normalized, overrides = normalize_floorplan_asset_choices(selection, task, catalogue)
+    assert [choice["key"] for choice in normalized["choices"]] == [
+        "sofa",
+        "cabTall",
+        "plant",
+    ]
+    assert [(item["before"], item["after"]) for item in overrides] == [
+        ("fourSofa", "sofa"),
+        ("bookshelf", "cabTall"),
+    ]
+
+
+def test_floorplan_asset_normalization_preserves_user_catalog_key():
+    catalogue = {
+        "sofa": {"w": 2200, "d": 950, "h": 820},
+        "fourSofa": {"w": 2800, "d": 1000, "h": 820},
+    }
+    task = {
+        "generation": {
+            "symbolGroups": [["sofa"]],
+            "compiledSymbols": [
+                {
+                    "id": "sofa",
+                    "categoryCode": "sofa",
+                    "catalogKey": "fourSofa",
+                    "w": 2124,
+                    "d": 920,
+                    "h": 820,
+                }
+            ],
+        }
+    }
+    selection = {"choices": [{"request_index": 0, "key": "fourSofa", "reason": "user selected"}]}
+    normalized, overrides = normalize_floorplan_asset_choices(selection, task, catalogue)
+    assert normalized["choices"][0]["key"] == "fourSofa"
+    assert overrides == []
 
 
 def test_vision_parser_and_contour_ownership_reject_duplicate_symbols():

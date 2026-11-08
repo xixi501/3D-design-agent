@@ -25,6 +25,7 @@ import {
   Float32BufferAttribute as vt,
   TorusGeometry as Zs,
   LatheGeometry as of,
+  Box3 as Bx,
   Vector2 as pe,
   PointLight as uo,
   CanvasTexture as gs,
@@ -3009,9 +3010,16 @@ export function Ov(n, e) {
       (N(t, i, 0.012, s, 0, 0, 0, L(a, 1), !1),
         N(t, i - 0.24, 0.002, s - 0.24, 0, 0.012, 0, L(we(a, -0.08), 1), !1));
       break;
-    case "plant":
-      L7(t, n, i, o, s, a);
+    case "plant": {
+      const u = new ht();
+      L7(u, n, i, o, s, a);
+      u.updateMatrixWorld(!0);
+      const h = new Bx().setFromObject(u),
+        p = h.getSize(new H());
+      if (p.x > 0.001 && p.z > 0.001) u.scale.set(i / p.x, 1, s / p.z);
+      t.add(u);
       break;
+    }
     case "toilet": {
       const u = L(a, 0.2);
       if (o < 0.5) {

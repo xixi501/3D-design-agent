@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import statistics
 
 from langchain_core.tools import tool
 
@@ -69,9 +70,81 @@ ASSETS = (
     RULES
     + """你是资产 Agent。调用 search_catalogue_batch 为所有 requests 选择真实目录 key，每项请求只返回一个 choice。
 request_index 逐项完整，不按 count 展开。选符合原图家具类别的基础配方；平面尺寸会由代码使用确认值，不要以目录尺寸改变布局。
+同类存在多个配方时，优先选择与 sourceSymbols 已确认平面宽深最接近的等价基础配方，不根据“几人”“几格”等推断更大规格；书架等高存储可选语义等价的高柜配方。
 无法匹配时明确报错，不用用途不同的家具凑数。lastReport 不为空时复核上次目录选择，结合 sourceSymbols 的确认尺寸选择其他合适配方；不能改变类别、数量或布局。不得补入默认家具清单，不安排坐标。
 """
 )
+FLOORPLAN_ASSET_FAMILIES = {
+    "sofa": ("sofa", "modularSofa", "fourSofa", "loveseat", "officeSofa"),
+    "bookshelf": ("bookshelf", "bookshelfLow", "cabTall"),
+    "plant": ("plant", "bigPlant", "smallPlant"),
+}
+
+
+def normalize_floorplan_asset_choices(selection, task, catalogue):
+    generation = task.get("generation") or {}
+    groups = generation.get("symbolGroups") or []
+    compiled = {symbol["id"]: symbol for symbol in generation.get("compiledSymbols") or []}
+    overrides = []
+    choices = []
+    for choice in selection.get("choices", []):
+        index = choice["request_index"]
+        if index >= len(groups):
+            choices.append(choice)
+            continue
+        symbols = [compiled[symbol_id] for symbol_id in groups[index] if symbol_id in compiled]
+        if not symbols or any(symbol.get("catalogKey") for symbol in symbols):
+            choices.append(choice)
+            continue
+        categories = {symbol.get("categoryCode") for symbol in symbols}
+        if len(categories) != 1:
+            choices.append(choice)
+            continue
+        category = categories.pop()
+        keys = [key for key in FLOORPLAN_ASSET_FAMILIES.get(category, ()) if key in catalogue]
+        if not keys:
+            choices.append(choice)
+            continue
+        target_w = statistics.mean(float(symbol["w"]) for symbol in symbols)
+        target_d = statistics.mean(float(symbol["d"]) for symbol in symbols)
+        heights = [float(symbol["h"]) for symbol in symbols if symbol.get("h") is not None]
+        target_h = statistics.mean(heights) if heights else None
+
+        def footprint_error(key, tw=target_w, td=target_d, th=target_h):
+            item = catalogue[key]
+            score = abs(float(item["w"]) - tw) / max(1.0, tw) + abs(float(item["d"]) - td) / max(
+                1.0, td
+            )
+            if th is not None and item.get("h") is not None:
+                score += 0.05 * abs(float(item["h"]) - th) / max(1.0, th)
+            return score
+
+        key = min(keys, key=footprint_error)
+        if key != choice["key"]:
+            overrides.append(
+                {
+                    "requestIndex": index,
+                    "categoryCode": category,
+                    "before": choice["key"],
+                    "after": key,
+                    "target": {
+                        "w": round(target_w, 3),
+                        "d": round(target_d, 3),
+                        **({"h": round(target_h, 3)} if target_h is not None else {}),
+                    },
+                }
+            )
+            choice = {
+                **choice,
+                "key": key,
+                "reason": (choice["reason"] + f" 固定代码按已确认占地从等价配方中选择 {key}。")[
+                    :500
+                ],
+            }
+        choices.append(choice)
+    return {**selection, "choices": choices}, overrides
+
+
 DESIGN = (
     RULES
     + """你是空间设计 Agent。调用 floorplan_context 阅读冻结结构、符号、Skill 与资产选择，再调用 precheck_floorplan 检查全部符号匹配。
@@ -252,9 +325,18 @@ class FloorplanRoles:
         return DraftCorrections.model_validate(value).model_dump(exclude_none=True)
 
     async def assets(self, task, intent, last_report=None):
-        return await GenerationRoles(self.base, asset_prompt=ASSETS, prompt_version=VERSION).assets(
-            task, intent
-        )
+        selection = await GenerationRoles(
+            self.base, asset_prompt=ASSETS, prompt_version=VERSION
+        ).assets(task, intent)
+        catalogue = (await self.client.request("/catalog"))["items"]
+        selection, overrides = normalize_floorplan_asset_choices(selection, task, catalogue)
+        if overrides:
+            self.store.event(
+                task["id"],
+                "floorplan_asset_key_normalized",
+                {"overrides": overrides},
+            )
+        return selection
 
     async def candidate(self, task, project, scope, proposal, round):
         g = task["generation"]

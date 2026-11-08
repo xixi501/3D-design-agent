@@ -9,8 +9,7 @@
   "summary": "1.5–6㎡ 玄关：按「开门→落尘→换鞋→挂衣→镜」排动线，按人数估鞋柜容量，控换鞋凳前净空与门扇开启区，并给出地方不够时的保住顺序。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "entry"

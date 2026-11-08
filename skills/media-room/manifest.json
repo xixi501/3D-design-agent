@@ -9,8 +9,7 @@
   "summary": "10–25㎡ 影音室：按屏幕对角线 × 1.2–1.6 定观看距离，排沙发侧向通道、音箱位、遮光与设备柜散热。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "media"

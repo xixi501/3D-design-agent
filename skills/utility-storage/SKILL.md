@@ -2,7 +2,7 @@
 name: utility-storage
 description: 布置 2–6㎡ 的家政间或储藏间：把洗烘、清洁工具、囤货分成三区，按柜深与通道宽度排 400 浅柜、600 标准柜，处理洞洞板挂具、通风防潮、门后空间与扫地机基站位置和电源。当用户要在小房间放洗衣机烘干机、囤纸巾清洁剂、或问"家政柜怎么做深、扫拖一体机放哪"时使用；不适用于需要新增地漏/排水立管、拆改墙体或整间改厨房/卫浴的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 设备说明书）。
+compatibility: 依赖主系统提供的语义 capability（见"依赖什么"）；未接入时按降级路径执行，不声称已执行。
 metadata:
   version: "0.2.0"
   status: "conformant"
@@ -102,13 +102,13 @@ metadata:
 
 | capability | 用途 |
 |---|---|
-| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `scene.read` | 读取当前场景/现状 |
 | `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
-| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.propose` | 产出候选（主系统审批后落库） |
 | `candidate.preflight` | 几何与净空预检，返回问题码 |
 | `candidate.review` | 复核候选与需求、判据的一致性 |
 
-**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**边界**：不持有写权限——没有场景写入能力，也没有项目提交能力。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
 **降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证

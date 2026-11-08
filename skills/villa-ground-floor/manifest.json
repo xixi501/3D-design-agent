@@ -9,8 +9,7 @@
   "summary": "8.0×12.0m 首层：公共动线与服务动线分开，楼梯/电梯靠边不占采光面，家政设备间贴服务核，玄关柜按人数算量，客厅与餐厨共享庭院视线。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "villa"

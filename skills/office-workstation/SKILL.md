@@ -2,7 +2,7 @@
 name: office-workstation
 description: 在 30–60㎡ 的小型办公或居家工作室里，先把平面分成"工位区 / 会议区 / 打印收纳区 / 入口通道"四块，再按 1200×600 起、1400×700 舒适的工位尺寸排布，保证 900 主通道、会议室门不被挡、高柜不挡窗，并给出插座与网口的位置建议。当用户要布置小型办公室、共享工位、工作室，或说"给团队排 4–8 个位子、留一间会议室"时使用；不适用于需要水电点位设计、拆改墙体或整层办公区规划的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 依赖主系统提供的语义 capability（见"依赖什么"）；未接入时按降级路径执行，不声称已执行。
 metadata:
   version: "0.2.0"
   status: "conformant"
@@ -101,13 +101,13 @@ metadata:
 
 | capability | 用途 |
 |---|---|
-| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `scene.read` | 读取当前场景/现状 |
 | `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
-| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.propose` | 产出候选（主系统审批后落库） |
 | `candidate.preflight` | 几何与净空预检，返回问题码 |
 | `candidate.review` | 复核候选与需求、判据的一致性 |
 
-**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**边界**：不持有写权限——没有场景写入能力，也没有项目提交能力。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
 **降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证

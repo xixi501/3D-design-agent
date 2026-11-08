@@ -9,8 +9,7 @@
   "summary": "6–14㎡ 次卧：先分临时住/长期住，再取舍床靠墙与床居中，排衣柜与（折叠）书桌，守住门扇、窗帘与 700 通行。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "guest_bedroom"

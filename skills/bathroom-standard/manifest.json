@@ -9,8 +9,7 @@
   "summary": "1.2–6㎡ 单卫：先按排水立管定马桶与淋浴位，再控马桶前后左右、淋浴区尺寸、浴室柜前净空，最后决定门内开/外开与挡水防滑。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "bathroom"

@@ -2,7 +2,7 @@
 name: social-reading-zone
 description: 在已有一组会客家具的客厅里，先把对象声明成"会客组 / 阅读组"，再只对目标组下发编辑，新增或重排一个"单人椅 + 落地灯 + 边几（可加书架）"的阅读角，并守住组内通道、台面支撑与到门洞的连通。当用户说"只动阅读角、沙发那套别动""想加个能坐一下午的角落"时使用；不适用于整间客厅重排、需要换主沙发或拆改墙体的任务。
 license: MIT
-compatibility: 需要 scene.read / candidate.propose / candidate.review / candidate.preflight / catalog.search；工具未落地时按"依赖什么"一节的降级路径执行（分组清单 + 文字坐标 + 人工量尺）。
+compatibility: 依赖主系统提供的语义 capability（见"依赖什么"）；未接入时按降级路径执行，不声称已执行。
 metadata:
   version: "0.2.0"
   status: "conformant"
@@ -84,12 +84,14 @@ metadata:
 
 | capability | 用途 |
 |---|---|
-| `scene.read` | 读取现状与目标区域 |
-| `candidate.propose` | 产出局部修改候选（主系统审批后落库） |
-| `candidate.preflight` | 预检局部修改的净空与遮挡 |
-| `candidate.review` | 复核无关对象是否保持不变 |
+| `scene.read` | 读取当前场景/现状 |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+| `candidate.render` | 输出视角截图，作为验收证据 |
 
-**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**边界**：不持有写权限——没有场景写入能力，也没有项目提交能力。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
 **降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证

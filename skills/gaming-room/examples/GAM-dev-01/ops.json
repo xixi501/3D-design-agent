@@ -110,7 +110,7 @@
       "activityGroups": [
         {
           "name": "游戏位组",
-          "ids": [
+          "memberIds": [
             "o_desk",
             "o_chair",
             "o_lamp"
@@ -118,7 +118,7 @@
         },
         {
           "name": "收纳与遮光",
-          "ids": [
+          "memberIds": [
             "o_cab",
             "o_cur"
           ]

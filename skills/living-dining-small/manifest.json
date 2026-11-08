@@ -9,8 +9,7 @@
   "summary": "8–25㎡ 客餐厅：一个主墙 + 一条贯穿通道，按面积取舍沙发/茶几/餐桌，保证 700 通行与门窗净空。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "living_dining"

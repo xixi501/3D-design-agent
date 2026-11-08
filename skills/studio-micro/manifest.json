@@ -9,8 +9,7 @@
   "summary": "20–40㎡ 开间：按「睡眠 > 收纳 > 会客 > 用餐/工作」排优先级，用书架/帘/地台做软隔断，留 700 连续通道，床不堵门与主区。",
   "appliesTo": {
     "modes": [
-      "generate_rectangular",
-      "generate_from_text"
+      "generate_rectangular"
     ],
     "roomKinds": [
       "studio"

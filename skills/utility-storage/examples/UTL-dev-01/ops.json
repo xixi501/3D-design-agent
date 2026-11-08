@@ -101,20 +101,20 @@
       "activityGroups": [
         {
           "name": "洗烘区",
-          "ids": [
+          "memberIds": [
             "o_washer",
             "o_dryer"
           ]
         },
         {
           "name": "囤货区",
-          "ids": [
+          "memberIds": [
             "o_cab"
           ]
         },
         {
           "name": "清洁工具区",
-          "ids": [
+          "memberIds": [
             "o_sink",
             "o_pegboard",
             "o_robot"

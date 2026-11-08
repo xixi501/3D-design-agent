@@ -122,21 +122,21 @@
       "activityGroups": [
         {
           "name": "睡眠组",
-          "ids": [
+          "memberIds": [
             "o_bed",
             "o_ward"
           ]
         },
         {
           "name": "学习组",
-          "ids": [
+          "memberIds": [
             "o_desk",
             "o_chair"
           ]
         },
         {
           "name": "活动组",
-          "ids": [
+          "memberIds": [
             "o_toy",
             "o_mat"
           ]

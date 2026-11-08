@@ -9,7 +9,8 @@
   "summary": "3.2×4.6m 出租单间：不拆改、可逆、可复原；0/500/2000 元三档预算，先摆位再换软装，灯光分层 + 60/30/10 配色 + 一个视觉焦点，退租能全部搬走。",
   "appliesTo": {
     "modes": [
-      "edit_existing"
+      "generate_rectangular",
+      "edit"
     ],
     "roomKinds": [
       "studio",
@@ -30,6 +31,7 @@
   ],
   "capabilities": [
     "scene.read",
+    "catalog.search",
     "candidate.review"
   ],
   "judgements": [

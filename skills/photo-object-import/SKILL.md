@@ -2,7 +2,7 @@
 name: photo-object-import
 description: 把用户拍的单件物品照片变成场景里的独立家具对象，并落到用户点选或语言指定的支撑面上。当用户上传花盆/花瓶/摆件照片、说"把这个放到茶几上/窗台上"，或要替换场景里某个已有物品时使用；不适用于多件合影、透明反光物、需要精确测绘的场合。
 license: MIT
-compatibility: 需要 asset.job / asset.job / asset.job / scene.read / candidate.propose / candidate.preflight / candidate.render；资产服务未就绪时按第 4 节降级（只出资产规格与落位建议，不落位）。
+compatibility: 依赖主系统提供的语义 capability（见"依赖什么"）；未接入时按降级路径执行，不声称已执行。
 metadata:
   version: "0.2.0"
   status: "conformant"
@@ -70,12 +70,14 @@ metadata:
 | capability | 用途 |
 |---|---|
 | `asset.job` | 提交照片资产作业、查询状态、取产物 |
-| `scene.read` | 读取支撑面与已有对象 |
-| `candidate.propose` | 落位候选（主系统审批后落库） |
-| `candidate.preflight` | 支撑面与越界检查 |
-| `candidate.review` | 复核尺寸来源与外观确认 |
+| `scene.read` | 读取当前场景/现状 |
+| `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
+| `candidate.propose` | 产出候选（主系统审批后落库） |
+| `candidate.preflight` | 几何与净空预检，返回问题码 |
+| `candidate.review` | 复核候选与需求、判据的一致性 |
+| `candidate.render` | 输出视角截图，作为验收证据 |
 
-**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**边界**：不持有写权限——没有场景写入能力，也没有项目提交能力。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
 **降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证

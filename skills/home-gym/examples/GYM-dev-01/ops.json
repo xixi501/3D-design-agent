@@ -110,7 +110,7 @@
       "activityGroups": [
         {
           "name": "器械组",
-          "ids": [
+          "memberIds": [
             "o_treadmill",
             "o_bike",
             "o_floorMat"
@@ -118,13 +118,13 @@
         },
         {
           "name": "空地区",
-          "ids": [
+          "memberIds": [
             "o_yogaMat"
           ]
         },
         {
           "name": "镜面与收纳",
-          "ids": [
+          "memberIds": [
             "o_mirror",
             "o_lockers"
           ]

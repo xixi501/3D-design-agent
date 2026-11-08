@@ -2,7 +2,7 @@
 name: studio-micro
 description: 在 20–40㎡ 的开间/一居里，把睡眠、会客、用餐、工作四件事排进同一间屋：先定"哪件家具不能折叠"的优先顺序，再用书架、帘、地台做软隔断，靠折叠与可移动家具留出 ≥700 的连续走道。当用户给出开间/一居的面积或户型、要求"一间当几间用"、或想分区又不想砌墙时使用；不适用于需要拆改墙体、分间出租或整栋/别墅的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose / candidate.preflight；工具未落地时按"依赖什么"的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 依赖主系统提供的语义 capability（见"依赖什么"）；未接入时按降级路径执行，不声称已执行。
 metadata:
   version: "0.2.0"
   status: "conformant"
@@ -91,13 +91,13 @@ metadata:
 
 | capability | 用途 |
 |---|---|
-| `scene.read` | 读取当前场景（墙体、洞口、房间、已有家具） |
+| `scene.read` | 读取当前场景/现状 |
 | `catalog.search` | 检索家具库，取默认尺寸与挂墙属性 |
-| `candidate.propose` | 产出候选布置（主系统审批后落库） |
+| `candidate.propose` | 产出候选（主系统审批后落库） |
 | `candidate.preflight` | 几何与净空预检，返回问题码 |
 | `candidate.review` | 复核候选与需求、判据的一致性 |
 
-**边界**：不持有写权限（无 `scene.write` / `project.commit`）。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**边界**：不持有写权限——没有场景写入能力，也没有项目提交能力。技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
 **降级路径**：上述 capability 未接入时，输出坐标方案（mm，`at` 为家具中心）+ 验收清单，交主系统转成场景；不得声称已执行。
 
 ## 怎么验证

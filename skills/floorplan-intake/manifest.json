@@ -9,8 +9,8 @@
   "summary": "把户型图或文字需求整理成要素表、假设表与待确认清单；先判断「放不放得下」，再交给具体房间技能。",
   "appliesTo": {
     "modes": [
-      "floorplan_import",
-      "generate_from_text"
+      "generate_rectangular",
+      "reconstruct_floorplan"
     ],
     "roomKinds": [
       "any"
@@ -30,9 +30,8 @@
     "multi_floor"
   ],
   "capabilities": [
-    "floorplan.analyze",
-    "floorplan.measure",
-    "scene.read"
+    "scene.read",
+    "candidate.preflight"
   ],
   "judgements": [
     "J-STA-01",

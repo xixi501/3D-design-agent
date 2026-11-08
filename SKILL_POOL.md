@@ -25,7 +25,8 @@
 ├── VERSION.json               # 本次快照：技能数/判据数/案例数/activation/指纹
 ├── skills/
 │   ├── README.md              # 人读索引（自动生成）
-│   ├── index.v1.json          # 机读索引（选择器读这个）
+│   ├── index.v1.json          # 池索引（actiscape.skill-pool.v1，选择器读这个）
+│   ├── LICENSES/MIT.txt       # 全池共享许可证（不在每个包里复制）
 │   ├── _framework/
 │   │   ├── skill.schema.json      # manifest 的 JSON Schema（actiscape.skill.v1）
 │   │   ├── judgements.schema.json # 判据文件的 JSON Schema
@@ -76,6 +77,27 @@
 `SKILL.md` 保留 Agent Skills 的格式与五节：**什么时候用 / 怎么做 / 依赖什么 / 怎么验证 / 版本与来源**。
 正文只写专业判断与语义 capability，不出现主系统内部工具名。
 
+### 池索引（`skills/index.v1.json`）
+
+```json
+{
+  "schemaVersion": "actiscape.skill-pool.v1",
+  "poolVersion": "2026-11-09",
+  "counts": { "skills": 30, "active": 7, "reserved": 23, "cases": 60, "judgements": 69 },
+  "active": ["..."],
+  "reserved": ["..."],
+  "skills": [
+    { "id": "living-dining-small", "version": "0.2.0", "kind": "layout",
+      "status": "conformant", "activation": "active", "capabilities": ["..."], "judgements": ["..."] }
+  ]
+}
+```
+
+`modes` 只允许四个值：`generate_rectangular`、`edit`、`reconstruct_floorplan`、`asset_import`。
+固定规则：layout 只用 `generate_rectangular`；`social-reading-zone` 用 `edit`；modifier 用
+`generate_rectangular + edit`；`floorplan-intake` 用 `generate_rectangular + reconstruct_floorplan`；
+`layout-check-repair` 用 `edit + generate_rectangular + reconstruct_floorplan`；`photo-object-import` 用 `asset_import`。
+
 ## 4 分类与启用
 
 | kind | 数量 | 技能 |
@@ -90,8 +112,14 @@
 **首批 active（7 个）**：`living-dining-small`、`living-dining-open`、`social-reading-zone`、`style-coherence`、`lighting-color`、`floorplan-intake`、`layout-check-repair`。
 其余 23 个为 `reserved`；`photo-object-import` 等 S3 资产作业完成后再启用。
 
-**能力模型**：技能只能声明 `scene.read / catalog.search / candidate.propose / candidate.preflight / candidate.review / candidate.render / floorplan.analyze / floorplan.measure / asset.job`。
-**没有 `scene.write`、`project.commit`**：技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+**能力模型**：技能只能声明 `scene.read / catalog.search / candidate.propose / candidate.preflight / candidate.review / candidate.render / asset.job`。
+**没有 `scene.write`、`project.commit`、`script.execute`**：技能只产出候选与验收意见，正式场景由主系统审批、落库与回滚。
+
+按 kind 的额外约束：
+- **modifier（5 个）**只提供约束与验收项，不声明 `candidate.propose` / `candidate.preflight`，声明 `scene.read / catalog.search / candidate.review`；
+- **intake**只整理输入、假设与确认项，不声明 `candidate.propose` / `candidate.render` / `floorplan.analyze` / `floorplan.measure`，声明 `scene.read / candidate.preflight`；识图与尺寸识别由主系统执行。
+
+**关于 `wallArt`**：catalog 里没有 `wallLamp`，`aging-friendly` 等 reserved 案例用 `wallArt`（挂墙装饰）表示"墙面装饰/壁灯占位"。它是**挂墙装饰，不是实际壁灯**，当前只用于 reserved 案例的几何与挂墙验证；若启用真实壁灯能力，必须新增 `wallLamp` 目录配方，不能用 `wallArt` 冒充真实壁灯。
 
 ## 5 验证
 

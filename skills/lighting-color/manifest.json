@@ -9,7 +9,8 @@
   "summary": "按环境/任务/重点三层定比例，按房间给照度与色温，再把灯位落到家具上（餐桌吊灯对中、阅读角落地灯、镜前灯垂直照面），配色落到可采购的材质。",
   "appliesTo": {
     "modes": [
-      "edit_existing"
+      "generate_rectangular",
+      "edit"
     ],
     "roomKinds": [
       "any"
@@ -26,19 +27,19 @@
   "notApplicable": [],
   "capabilities": [
     "scene.read",
+    "catalog.search",
     "candidate.review"
   ],
   "judgements": [
     "J-ASSET-02",
-    "J-CIR-07",
     "J-COL-01",
     "J-COL-02",
     "J-CUR-01",
-    "J-DOOR-02",
     "J-LIGHT-01",
     "J-LIGHT-02",
     "J-LIGHT-03",
     "J-LIGHT-04",
+    "J-VER-01",
     "J-VER-02",
     "J-WALL-01"
   ],

@@ -155,7 +155,7 @@
       "activityGroups": [
         {
           "name": "会客组",
-          "ids": [
+          "memberIds": [
             "o_sofa",
             "o_coffee",
             "o_rug",
@@ -164,7 +164,7 @@
         },
         {
           "name": "阅读组",
-          "ids": [
+          "memberIds": [
             "o_read",
             "o_side",
             "o_lamp",

@@ -69,7 +69,8 @@ def main():
         })
 
     index = {
-        "schemaVersion": "actiscape.skill.v1",
+        "schemaVersion": "actiscape.skill-pool.v1",
+        "poolVersion": time.strftime("%Y-%m-%d"),
         "generatedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "counts": {
             "skills": len(items),
@@ -78,13 +79,16 @@ def main():
             "cases": n_cases,
             "judgements": judge_n,
         },
+        "active": [i["id"] for i in items if i["activation"] == "active"],
+        "reserved": [i["id"] for i in items if i["activation"] == "reserved"],
         "skills": items,
     }
     out = os.path.join(SKILLS, "index.v1.json")
     json.dump(index, open(out, "w", encoding="utf-8", newline="\n"), ensure_ascii=False, indent=2)
 
     L = ["# Skill 池索引（v1，自动生成）", "",
-         f"> schema `actiscape.skill.v1`；{index['counts']['skills']} 个技能、"
+         f"> schema `actiscape.skill-pool.v1`（池）/ `actiscape.skill.v1`（包）；"
+         f"{index['counts']['skills']} 个技能、"
          f"{index['counts']['active']} active / {index['counts']['reserved']} reserved、"
          f"{index['counts']['cases']} 个案例、{index['counts']['judgements']} 条判据。",
          "> 重新生成：`python tools/make_index.py --schema v1`。", ""]
@@ -92,7 +96,8 @@ def main():
           "| 列 | 含义 |", "|---|---|",
           "| kind | `layout / edit / modifier / intake / repair / asset` |",
           "| activation | `active` 首批启用；`reserved` 预留，等核心能力就绪 |",
-          "| 案例 | 正向 / 边界数量（每个包至少各 1 个） |", ""]
+          "| 案例 | 正向 / 边界数量（每个包至少各 1 个） |",
+          "| modes | `generate_rectangular / edit / reconstruct_floorplan / asset_import` |", ""]
     for g, ids in GROUPS:
         present = [i for i in ids if i in mans]
         if not present:

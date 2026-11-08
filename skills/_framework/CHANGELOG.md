@@ -1,5 +1,15 @@
 # 框架变更记录
 
+## v1.1（2026-11-09）· 兼容性收口
+
+- **模式枚举**：只保留主系统四个值（`generate_rectangular / edit / reconstruct_floorplan / asset_import`），按 kind 固定组合，lint 强校验。
+- **职责边界**：modifier 不再声明 `candidate.propose` / `candidate.preflight`，正文改为"只注入约束与验收项"；intake 去掉 `floorplan.analyze/measure` 与候选提交，只保留 `scene.read` + `candidate.preflight`。
+- **capability 一致性**：正文用到即必须声明；`social-reading-zone` / `layout-check-repair` / `photo-object-import` 补 `candidate.render`，`living-dining-open` 补 `candidate.render`。
+- **池索引**：`skills/index.v1.json` 改为 `actiscape.skill-pool.v1`（`poolVersion` + `active[]` + `reserved[]` + `skills[]`）。
+- **许可证**：新增 `skills/LICENSES/MIT.txt`（全池共享）。
+- **活动组**：`activityGroups` 字段由 `ids` 改为 `memberIds`；`expected.md` 明确"不提供成组移动权限 / 仅用于识别与证据 / 轮廓与所有权一对一"。
+- **工具**：`skill_lint.py` 增加模式、capability、池索引、许可证、activityGroups 校验；`dry_run.py` / `make_index.py` 排除 `LICENSES` 等非技能目录。
+
 ## v1.0（2026-11-09）· actiscape.skill.v1
 
 - **格式**：manifest 迁移到严格 v1（`schemaVersion / kind / activation / appliesTo / capabilities / judgements / composition / license / validation`）；删除 `depends`、`cases`、`provenance` 等旧字段；技能版本升 `0.2.0`。

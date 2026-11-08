@@ -136,6 +136,12 @@ class FloorplanFlow:
         return recognized
 
     async def ground(self, state, task):
+        if task["generation"].get("workflowVersion") == 3:
+            from .floorplan_v3 import FloorplanV3
+
+            return await FloorplanV3(self.store, self.client, self.roles.base).ground(
+                state, task, self._ground_legacy
+            )
         if task["generation"].get("workflowVersion") == 2:
             from .floorplan_v2 import FloorplanV2
 
@@ -279,7 +285,7 @@ class FloorplanFlow:
         ]
         groups = {}
         for s in symbols:
-            key = s.get("catalogKey") or s["category"]
+            key = s.get("catalogKey") or s.get("categoryCode") or s["category"]
             groups.setdefault(key, []).append(s["id"])
         if len(groups) > 30:
             raise TaskError(

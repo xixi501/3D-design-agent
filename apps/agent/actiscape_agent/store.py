@@ -198,7 +198,7 @@ class TaskStore:
                             {
                                 "imageId": body["imageId"],
                                 "phase": "recognizing",
-                                "workflowVersion": 2,
+                                "workflowVersion": 3,
                             }
                         ),
                         id,

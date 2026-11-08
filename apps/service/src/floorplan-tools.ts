@@ -49,7 +49,7 @@ export class FloorplanTools {
     parameters: any,
     spec?: any,
     draftHash?: string,
-    adapterVersion = "hpd-adapter-3",
+    adapterVersion = "hpd-adapter-4",
   ) {
     const image = this.store.verifyImage(imageId);
     const id = digest({
@@ -106,6 +106,7 @@ export class FloorplanTools {
       imageHash: image.sha256,
       ...(draftHash ? { draftHash } : {}),
       ...metadata,
+      adapterVersion,
       files: descriptors,
     };
     this.write(recordFile, Buffer.from(JSON.stringify(record)));
@@ -389,7 +390,7 @@ export class FloorplanTools {
         };
       }),
       furniture: preview.symbols.map((s: any) => ({
-        key: s.catalogKey || s.category,
+        key: s.catalogKey || s.categoryCode || s.category,
         id: s.objectId,
         at: [s.x, s.y],
         w: s.w,
@@ -470,7 +471,11 @@ export function floorplanToolRoutes(
       const { image, tool } = req.params as any;
       const { adapterVersion = "hpd-adapter-3", ...parameters } = (req.body ||
         {}) as any;
-      if (!["hpd-adapter-2", "hpd-adapter-3"].includes(adapterVersion))
+      if (
+        !["hpd-adapter-2", "hpd-adapter-3", "hpd-adapter-4"].includes(
+          adapterVersion,
+        )
+      )
         throw new SceneError("INVALID_REQUEST", "不支持的工具适配版本");
       return tool === "fit-bound"
         ? tools.fitBound(image, parameters)

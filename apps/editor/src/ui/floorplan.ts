@@ -1,7 +1,14 @@
 import { api, post } from "../api.js";
 import { clone } from "../../../../packages/scene-core/src/index.js";
-import type { FloorplanData } from "../../../../packages/scene-core/src/floorplan.js";
+import {
+  imageCategoryCodes,
+  type FloorplanData,
+} from "../../../../packages/scene-core/src/floorplan.js";
 import type { Point } from "../../../../packages/scene-core/src/index.js";
+const imageCategoryOptions = imageCategoryCodes.map((value) => ({
+  value,
+  text: value,
+}));
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) {
   const n = document.createElement(tag);
   if (text !== undefined) n.textContent = text;
@@ -514,7 +521,14 @@ export class FloorplanPanel {
       field("y", "标签 Y（px）", item.at.y);
     }
     if (col === "symbols") {
-      field("category", "家具类别", item.category, "text");
+      field(
+        "categoryCode",
+        "家具类别",
+        item.categoryCode || item.category,
+        "text",
+        imageCategoryOptions,
+      );
+      field("sourceLabel", "原图名称", item.sourceLabel || "", "text");
       field(
         "roomId",
         "所属房间",
@@ -574,6 +588,11 @@ export class FloorplanPanel {
           next.at[key] = value;
         else if (key === "catalogKey" && !value) delete next.catalogKey;
         else next[key] = value;
+      }
+      if (col === "symbols") {
+        if (next.categoryCode) next.category = next.categoryCode;
+        if (!next.sourceLabel?.trim())
+          next.sourceLabel = next.category || next.categoryCode;
       }
       void this.change([{ type: "upsert", collection: col, object: next }]);
     };
@@ -681,6 +700,8 @@ export class FloorplanPanel {
         id,
         roomId: d.targetRoomIds[0] || d.rooms[0].id,
         category: "待确认家具",
+        categoryCode: "other",
+        sourceLabel: "待确认家具",
         x: Math.round(d.image.width / 2),
         y: Math.round(d.image.height / 2),
         w: 80,
@@ -941,7 +962,7 @@ export class FloorplanPanel {
         c.stroke();
         c.restore();
         c.fillStyle = "#7a278f";
-        c.fillText(f.category, f.x, f.y);
+        c.fillText(f.sourceLabel || f.categoryCode || f.category, f.x, f.y);
       }
     if (this.calibration?.length) {
       c.fillStyle = "#009ea5";

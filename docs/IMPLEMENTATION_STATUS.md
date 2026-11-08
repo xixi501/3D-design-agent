@@ -48,6 +48,8 @@ The first formal batch passed 2/4; two asset request/instance indexing failures 
 
 ## S2-C floorplan inputs
 
+V3 bounded recognition is implemented: fixed analysis builds a candidate skeleton, separate structure and furniture passes submit typed results, and deterministic code merges only evidenced walls, openings, rooms and target furniture. Controlled V1/V2/V3 browsers pass; V3 live single-image and complete S2 remain pending. See [V3 flow alignment](S2C_FLOW_ALIGNMENT.md).
+
 Latest alignment batch `bad45a3`: two real same-image runs remain **0/2** (6 / 10 model calls). The early checker exhausted structured output; the second run reached design measurement but hit an invalid delete command and then the crop limit. No confirmation or formal writes. A separate offline-only fix `e76cb56` adds discriminated command schemas and crop-limit evidence reuse; it has not been retested with the real model. Node 33 / Python 52, full original regression, legacy/v2 controlled browsers and a stopped 272-file backup with independent recovery passed. See [flow alignment report](S2C_FLOW_ALIGNMENT.md). The second image and complete S2 matrix did not start under the agreed stop condition.
 
 The orthogonal image draft compiler, durable image storage, overlay correction and explicit confirmation workflow are implemented. Four-role reconstruction retains confirmed positions and per-symbol sizes; catalogue decisions are separate from recognition. Controlled browser/WebGL, transaction and restart tests pass. The two real user floorplans and their quality matrix remain pending, so complete S2 is not accepted. See [S2-C status](S2C_STATUS.md) and [runbook](S2C_RUNBOOK.md).

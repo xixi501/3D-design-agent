@@ -102,6 +102,18 @@ Agent 终止预检工具增加可选 `change_reasons`：以 `anchors:0`、`symbo
 
 当前提示词 8、适配器 2、Skill 0.3.0 的两次真实单图仍失败，没有可交付三维结果。零对象人工校正门槛及复现、评分、全部失败见 [单图实测](S2C_SINGLE_IMAGE.md)。
 
+## V3 受控两阶段识别
+
+新户型图任务带 `workflowVersion=3` 和 `recognitionVersion=3`。草稿新增 `categoryCode` 与 `sourceLabel`；V3 符号的 `category` 保留为 `categoryCode` 兼容值。旧草稿继续接受自由文本 `category`。
+
+`categoryCode` 固定为 `sofa`、`armchair`、`chair`、`coffeeTable`、`sideTable`、`diningTable`、`tvCabinet`、`bookshelf`、`sideboard`、`cabinet`、`desk`、`plant`、`rug`、`floorLamp`、`decor`、`other`。评分版本为 `s2c-3`，阈值不变。
+
+现有 HTTP 路径不变。V3 审核仍提交到 `POST /api/projects/:id/floorplan-drafts/:draft/review`，但问题对象增加固定 `code`。真实单图使用：
+
+```bash
+npm run test:floorplan:tools:live -- /absolute/path/to/original.png 2 --v3-acceptance
+```
+
 ## 第二版户型图测量
 
 第二版数据、measurement-updates、diagnostics、review、fit-bound 的参数与兼容说明见 [流程对齐接口](S2C_FLOW_ALIGNMENT.md)。新增测量结果不直接写正式项目；最终提交继续使用冻结候选与版本/去重机制。

@@ -140,7 +140,7 @@ function symbols(
       y: s.y * scale,
       w: s.w * scale,
       d: s.d * scale,
-      category: norm(s.category, aliases),
+      category: norm(s.categoryCode || s.category, aliases),
     }));
 }
 function topology(
@@ -263,7 +263,7 @@ export function scoreFloorplanRecognition(
     walls,
     openings,
     furniture,
-    thresholdVersion: "s2c-1",
+    thresholdVersion: raw.recognitionVersion === 3 ? "s2c-3" : "s2c-1",
   };
 }
 
@@ -444,7 +444,8 @@ export function scoreFloorplan(
       referenceDimensions,
       dimensionsPassed,
     },
-    thresholdVersion: measurement ? "s2c-2" : "s2c-1",
+    thresholdVersion:
+      raw.recognitionVersion === 3 ? "s2c-3" : measurement ? "s2c-2" : "s2c-1",
   };
 }
 

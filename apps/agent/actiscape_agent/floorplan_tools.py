@@ -40,10 +40,14 @@ class FloorplanToolset:
         self.submission = None
 
     async def request(self, mode, parameters):
+        workflow_version = self.store.task(self.task["id"], internal=True)["generation"].get(
+            "workflowVersion"
+        )
         adapter = (
-            "hpd-adapter-3"
-            if self.store.task(self.task["id"], internal=True)["generation"].get("workflowVersion")
-            == 2
+            "hpd-adapter-4"
+            if workflow_version == 3
+            else "hpd-adapter-3"
+            if workflow_version == 2
             else "hpd-adapter-2"
         )
         key = fingerprint(
@@ -80,7 +84,7 @@ class FloorplanToolset:
                 {"role": self.role, "tool": name, "record": record}
             )
             if (
-                generation.get("workflowVersion") == 2
+                generation.get("workflowVersion") in (2, 3)
                 and record.get("id")
                 and not record.get("error")
             ):

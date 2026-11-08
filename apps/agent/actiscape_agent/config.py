@@ -18,6 +18,15 @@ FLOORPLAN_RECOGNITION_OPTIONS = {
     "extra_body": {"thinking": {"type": "disabled"}},
 }
 
+# The review role is an evidence checklist, not an open-ended planner. Do not
+# let a hidden reasoning turn consume the entire output allowance.
+FLOORPLAN_REVIEW_OPTIONS = {
+    "max_tokens": 16384,
+    "timeout": 180,
+    "reasoning_effort": "low",
+    "extra_body": {"thinking": {"type": "disabled"}},
+}
+
 
 def state_directory() -> Path:
     base = Path(os.environ.get("ACTISCAPE_DATA_DIR", str(ROOT / "data")))

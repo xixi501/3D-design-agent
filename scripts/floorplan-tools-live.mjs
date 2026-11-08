@@ -11,7 +11,8 @@ import {
   catalogueMappingProof,
 } from "../packages/scene-core/src/floorplan-metrics.ts";
 
-const completeV2 = process.argv.includes("--v2-acceptance");
+const completeV3 = process.argv.includes("--v3-acceptance");
+const completeV2 = completeV3 || process.argv.includes("--v2-acceptance");
 const manifestFile = path.resolve(
   "fixtures/s2c-real/one-bedroom-system-probe.json",
 );
@@ -35,7 +36,7 @@ const reference = JSON.parse(referenceBytes);
 const inputFile = process.argv[2];
 if (!inputFile)
   throw Error(
-    "Usage: npm run test:floorplan:tools:live -- /absolute/path/to/original.png [1|2]",
+    "Usage: npm run test:floorplan:tools:live -- /absolute/path/to/original.png [1|2] [--v2-acceptance|--v3-acceptance]",
   );
 const repeats = Number(process.argv[3] || 2);
 assert.ok(Number.isInteger(repeats) && repeats >= 1 && repeats <= 2);
@@ -93,6 +94,7 @@ const context = {
   referenceSentToAgent: false,
   manualGeometryOperations: 0,
   completeS2Accepted: false,
+  completeV3,
 };
 save("manifest.json", context);
 const form = new FormData();
@@ -129,6 +131,13 @@ for (let repeat = 1; repeat <= repeats; repeat++) {
     `/agent/conversations/${conversation.id}/tasks`,
     request,
   );
+  if (completeV3) {
+    assert.equal(
+      task.generation?.workflowVersion,
+      3,
+      "V3 live acceptance must run workflowVersion=3",
+    );
+  }
   save(`${repeat}-accepted.json`, {
     projectId: before.id,
     taskId: task.id,
@@ -355,6 +364,7 @@ for (let repeat = 1; repeat <= repeats; repeat++) {
     firstRecognition,
     scoring,
     completeV2,
+    completeV3,
     toolRoles: [
       ...new Set(
         (task.generation?.upstreamTools || []).map(

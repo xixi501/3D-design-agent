@@ -2,8 +2,8 @@
 Never imported by production entrypoints and never counted as live-model/image acceptance.
 """
 
-import json
 import copy
+import json
 import os
 from pathlib import Path
 
@@ -15,6 +15,16 @@ from actiscape_agent.roles import Roles
 V2 = json.loads(Path("fixtures/s2c-v2-synthetic.floorplan.json").read_text())
 DATA = json.loads(Path("fixtures/s2c-synthetic.floorplan.json").read_text())
 KEYS = {
+    "三人沙发": "sofa",
+    "sofa": "sofa",
+    "茶几": "coffeeTable",
+    "coffeeTable": "coffeeTable",
+    "单人沙发": "armchair",
+    "armchair": "armchair",
+    "落地灯": "floorLamp",
+    "floorLamp": "floorLamp",
+}
+CATEGORY_CODES = {
     "三人沙发": "sofa",
     "茶几": "coffeeTable",
     "单人沙发": "armchair",
@@ -37,6 +47,105 @@ class ControlledRoles(Roles):
             },
         )
         available = {tool.name: tool for tool in tools}
+        if schema.__name__ == "StructureRecognition":
+            skeleton = payload["structureSkeleton"]
+            analysis_id = skeleton["analysisId"]
+            walls = []
+            wall_ranges = {}
+            for wall in V2["walls"]:
+                orientation = "v" if abs(wall["a"]["x"] - wall["b"]["x"]) <= 1 else "h"
+                line = wall["a"]["x"] if orientation == "v" else wall["a"]["y"]
+                along = "y" if orientation == "v" else "x"
+                start = min(wall["a"][along], wall["b"][along])
+                end = max(wall["a"][along], wall["b"][along])
+                candidates = [
+                    item
+                    for item in skeleton["segments"]
+                    if item["orient"] == orientation
+                    and abs(item["line"] - line) <= 2
+                    and min(item["s1"], end) >= max(item["s0"], start) - 2
+                ]
+                assert candidates, wall["id"]
+                walls.append(
+                    {
+                        "id": wall["id"],
+                        "segments": [
+                            {"analysisId": analysis_id, "index": item["index"]}
+                            for item in candidates
+                        ],
+                    }
+                )
+                wall_ranges[wall["id"]] = {
+                    "orientation": orientation,
+                    "line": line,
+                    "start": min(item["s0"] for item in candidates),
+                    "origin": wall["a"][along],
+                    "direction": 1 if wall["b"][along] >= wall["a"][along] else -1,
+                }
+            openings = []
+            for opening in V2["openings"]:
+                wall = wall_ranges[opening["wallId"]]
+                expected = wall["origin"] + opening["offset"] * wall["direction"]
+                candidates = [
+                    item
+                    for item in skeleton["gaps"]
+                    if item["orient"] == wall["orientation"]
+                    and abs(item["line"] - wall["line"]) <= 2
+                ]
+                assert candidates, opening["id"]
+                gap = min(
+                    candidates,
+                    key=lambda item: abs((item["s0"] + item["s1"]) / 2 - expected),
+                )
+                openings.append(
+                    {
+                        "id": opening["id"],
+                        "wallId": opening["wallId"],
+                        "analysisId": analysis_id,
+                        "index": gap["index"],
+                        "type": opening["type"],
+                        "evidenceRefs": [analysis_id],
+                    }
+                )
+            return {
+                "status": "draft",
+                "name": V2["name"],
+                **({"height": V2["height"]} if V2.get("height") is not None else {}),
+                **(
+                    {"wallThickness": V2["wallThickness"]}
+                    if V2.get("wallThickness") is not None
+                    else {}
+                ),
+                "anchors": V2["anchors"],
+                "walls": walls,
+                "openings": openings,
+                "rooms": V2["rooms"],
+                "targetRoomIds": V2["targetRoomIds"],
+                "uncertainties": V2["uncertainties"],
+            }
+        if schema.__name__ == "FurnitureRecognition":
+            targets = set(payload["structure"]["targetRoomIds"])
+            symbols = []
+            for symbol in V2["symbols"]:
+                if symbol["roomId"] not in targets:
+                    continue
+                code = CATEGORY_CODES[symbol["category"]]
+                symbols.append(
+                    {
+                        **{k: v for k, v in symbol.items() if k != "category"},
+                        "categoryCode": code,
+                        "sourceLabel": symbol["category"],
+                        "included": True,
+                        "evidenceRefs": ["image:" + payload["image"]["sha256"]],
+                    }
+                )
+            return {"status": "draft", "question": "", "symbols": symbols}
+        if schema.__name__ == "FloorplanReview":
+            return {
+                "passed": True,
+                "summary": "controlled V3 source review",
+                "issues": [],
+            }
         if schema.__name__ == "RecognitionV2":
             await available["floorplan_context"].ainvoke({})
             await available["analyze_floorplan"].ainvoke({})
@@ -144,6 +253,9 @@ class ControlledRoles(Roles):
             await available["search_catalogue_batch"].ainvoke(
                 {"queries": [r["query"] for r in payload["requests"]]}
             )
+            assert all(r["query"] in KEYS for r in payload["requests"]), payload[
+                "requests"
+            ]
             return {
                 "choices": [
                     {

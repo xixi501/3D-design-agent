@@ -9,9 +9,14 @@ import { createHash } from "node:crypto";
 import { geometryProof } from "./floorplan-geometry.mjs";
 import { createApp } from "../apps/service/src/app.ts";
 import { launch } from "../reference/upstream/scripts/browser.mjs";
-const v2 = process.argv.includes("--v2");
+const v3 = process.argv.includes("--v3");
+const v2 = process.argv.includes("--v2") || v3;
 const out = path.resolve(
-    v2 ? "test-results/floorplan-v2-tools" : "test-results/floorplan-tools",
+    v3
+      ? "test-results/floorplan-v3-tools"
+      : v2
+        ? "test-results/floorplan-v2-tools"
+        : "test-results/floorplan-tools",
   ),
   directory = fs.mkdtempSync(path.join(os.tmpdir(), "s2c-browser-"));
 fs.mkdirSync(out, { recursive: true });
@@ -54,7 +59,7 @@ async function start(dataDir) {
         ACTISCAPE_AGENT_DATA_DIR: path.join(dataDir, "agent"),
         ACTISCAPE_SCENE_URL: base,
         AGENT_PORT: String(agentPort),
-        ACTISCAPE_TEST_WORKFLOW: v2 ? "2" : "1",
+        ACTISCAPE_TEST_WORKFLOW: v3 ? "3" : v2 ? "2" : "1",
       },
       stdio: ["ignore", "ignore", "pipe"],
     },
@@ -239,7 +244,24 @@ try {
       root + "/floorplan-drafts/" + waiting.generation.draftId,
     );
     assert.equal(draft.data.measurementVersion, 2);
+    if (v3) {
+      assert.equal(draft.data.recognitionVersion, 3);
+      assert.ok(
+        draft.data.symbols.every(
+          (symbol) => symbol.categoryCode && symbol.sourceLabel,
+        ),
+      );
+      assert.equal(
+        task.generation?.workflowVersion,
+        3,
+        "V3 browser acceptance must run workflowVersion=3",
+      );
+    }
     assert.equal(draft.corrections, 0);
+    assert.ok(
+      draft.sourceReview,
+      `Missing source review: ${JSON.stringify(waiting)}`,
+    );
     assert.equal(draft.sourceReview.hash, draft.hash);
     assert.ok(draft.sourceReview.review.passed);
     const preview = await api(
@@ -261,7 +283,7 @@ try {
         !document.querySelector("[data-testid=confirm-floorplan]")?.disabled,
     );
     steps.push(
-      "v2 feature constraints, zero user corrections, current source review, diagnostic evidence and reopen",
+      `${v3 ? "v3 two-pass recognition" : "v2 feature constraints"}, zero user corrections, current source review, diagnostic evidence and reopen`,
     );
   }
   await page.click("[data-testid=confirm-floorplan]");

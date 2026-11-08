@@ -60,7 +60,28 @@ export interface ImageRoom {
   id: string;
   at: Point;
   name: string;
+  functionalArea?:
+    "living" | "dining" | "kitchen" | "bedroom" | "bathroom" | "other";
 }
+export const imageCategoryCodes = [
+  "sofa",
+  "armchair",
+  "chair",
+  "coffeeTable",
+  "sideTable",
+  "diningTable",
+  "tvCabinet",
+  "bookshelf",
+  "sideboard",
+  "cabinet",
+  "desk",
+  "plant",
+  "rug",
+  "floorLamp",
+  "decor",
+  "other",
+] as const;
+export type ImageCategoryCode = (typeof imageCategoryCodes)[number];
 export interface ImageSymbol {
   functionalArea?: "living" | "dining" | "kitchen" | "other";
   included?: boolean;
@@ -69,6 +90,8 @@ export interface ImageSymbol {
   id: string;
   roomId: string;
   category: string;
+  categoryCode?: ImageCategoryCode;
+  sourceLabel?: string;
   x: number;
   y: number;
   w: number;
@@ -77,6 +100,7 @@ export interface ImageSymbol {
   catalogKey?: string;
 }
 export interface FloorplanData {
+  recognitionVersion?: 3;
   measurementVersion?: 1 | 2;
   features?: MeasurementFeature[];
   dimensions?: MeasurementDimension[];
@@ -145,6 +169,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     [
       "image",
       "name",
+      "recognitionVersion",
       "height",
       "wallThickness",
       "anchors",
@@ -161,6 +186,8 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     "draft",
   );
   object(data.image, ["id", "sha256", "width", "height"], "image");
+  if (data.recognitionVersion !== undefined && data.recognitionVersion !== 3)
+    invalid("不支持的识别版本", "recognitionVersion");
   text(data.image.id, "image.id");
   if (!/^[a-f0-9]{64}$/.test(data.image.sha256))
     invalid("图片校验值无效", "image.sha256");
@@ -273,9 +300,16 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       invalid("门铰方向无效", o.id + ".hinge");
   }
   for (const r of data.rooms) {
-    object(r, ["id", "at", "name"], "rooms." + r.id);
+    object(r, ["id", "at", "name", "functionalArea"], "rooms." + r.id);
     point(r.at, r.id + ".at");
     text(r.name, r.id + ".name", 100);
+    if (
+      r.functionalArea !== undefined &&
+      !["living", "dining", "kitchen", "bedroom", "bathroom", "other"].includes(
+        r.functionalArea,
+      )
+    )
+      invalid("未知房间功能区", r.id + ".functionalArea");
   }
   for (const f of data.symbols) {
     object(
@@ -284,6 +318,8 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
         "id",
         "roomId",
         "category",
+        "categoryCode",
+        "sourceLabel",
         "x",
         "y",
         "w",
@@ -299,6 +335,21 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     );
     if (!rooms.has(f.roomId)) invalid("家具符号缺少房间引用", f.id + ".roomId");
     text(f.category, f.id + ".category", 100);
+    if (
+      f.categoryCode !== undefined &&
+      !imageCategoryCodes.includes(f.categoryCode)
+    )
+      invalid("未知家具类别代码", f.id + ".categoryCode");
+    if (f.sourceLabel !== undefined)
+      text(f.sourceLabel, f.id + ".sourceLabel", 100);
+    if (
+      data.recognitionVersion === 3 &&
+      (!f.categoryCode || !f.sourceLabel || f.category !== f.categoryCode)
+    )
+      invalid(
+        "V3 家具符号需要 categoryCode、sourceLabel 和一致的 category",
+        f.id,
+      );
     point({ x: f.x, y: f.y }, f.id);
     number(f.w, f.id + ".w", 0.1, data.image.width);
     number(f.d, f.id + ".d", 0.1, data.image.height);

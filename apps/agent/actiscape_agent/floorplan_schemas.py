@@ -5,6 +5,25 @@ from pydantic import ConfigDict, Field, FiniteFloat
 from .generation_schemas import Dimension
 from .schemas import StrictModel
 
+CategoryCode = Literal[
+    "sofa",
+    "armchair",
+    "chair",
+    "coffeeTable",
+    "sideTable",
+    "diningTable",
+    "tvCabinet",
+    "bookshelf",
+    "sideboard",
+    "cabinet",
+    "desk",
+    "plant",
+    "rug",
+    "floorLamp",
+    "decor",
+    "other",
+]
+
 
 class PixelPoint(StrictModel):
     x: FiniteFloat = Field(ge=0)
@@ -42,6 +61,9 @@ class ImageRoom(StrictModel):
     id: str
     at: PixelPoint
     name: str
+    functionalArea: (
+        Literal["living", "dining", "kitchen", "bedroom", "bathroom", "other"] | None
+    ) = None
 
 
 class ImageSymbol(StrictModel):
@@ -52,6 +74,8 @@ class ImageSymbol(StrictModel):
     id: str
     roomId: str
     category: str
+    categoryCode: CategoryCode | None = None
+    sourceLabel: str | None = None
     x: FiniteFloat = Field(ge=0)
     y: FiniteFloat = Field(ge=0)
     w: FiniteFloat = Field(gt=0)
@@ -82,6 +106,97 @@ class FloorplanRecognition(StrictModel):
     symbols: list[ImageSymbol] = Field(default_factory=list, max_length=100)
     targetRoomIds: list[str] = Field(default_factory=list, max_length=60)
     uncertainties: list[Uncertainty] = Field(default_factory=list, max_length=100)
+
+
+class StructureSegmentRef(StrictModel):
+    analysisId: str
+    index: int = Field(ge=0)
+
+
+class StructureCustomSegment(StrictModel):
+    cropId: str
+    kind: Literal["H", "V"]
+    c: FiniteFloat
+    p0: FiniteFloat
+    p1: FiniteFloat
+
+
+class StructureWall(StrictModel):
+    id: str
+    segments: list[StructureSegmentRef] = Field(default_factory=list, max_length=20)
+    customSegments: list[StructureCustomSegment] = Field(default_factory=list, max_length=5)
+    thicknessPx: FiniteFloat | None = Field(default=None, gt=0)
+
+
+class StructureGapRef(StrictModel):
+    id: str
+    wallId: str
+    analysisId: str
+    index: int = Field(ge=0)
+    type: Literal["door", "window", "hole", "sliding"]
+    sill: FiniteFloat | None = None
+    head: FiniteFloat | None = None
+    side: Literal[-1, 1] | None = None
+    hinge: Literal[0, 1] | None = None
+    evidenceRefs: list[str] = Field(default_factory=list, max_length=10)
+
+
+class StructureRecognition(StrictModel):
+    status: Literal["draft", "unsupported"]
+    question: str = ""
+    name: str = Field(default="户型图复现", max_length=100)
+    height: FiniteFloat | None = Field(default=None, ge=100, le=20000)
+    wallThickness: FiniteFloat | None = Field(default=None, ge=20, le=1000)
+    anchors: list[ScaleAnchor] = Field(default_factory=list, max_length=20)
+    walls: list[StructureWall] = Field(default_factory=list, max_length=150)
+    openings: list[StructureGapRef] = Field(default_factory=list, max_length=100)
+    rooms: list[ImageRoom] = Field(default_factory=list, max_length=60)
+    targetRoomIds: list[str] = Field(default_factory=list, max_length=60)
+    uncertainties: list[Uncertainty] = Field(default_factory=list, max_length=100)
+
+
+class FurnitureSymbol(StrictModel):
+    id: str
+    roomId: str
+    categoryCode: CategoryCode
+    sourceLabel: str = Field(min_length=1, max_length=100)
+    functionalArea: Literal["living", "dining", "kitchen", "other"] | None = None
+    included: bool | None = None
+    exclusionReason: str | None = None
+    evidenceRefs: list[str] = Field(min_length=1, max_length=20)
+    x: FiniteFloat = Field(ge=0)
+    y: FiniteFloat = Field(ge=0)
+    w: FiniteFloat = Field(gt=0)
+    d: FiniteFloat = Field(gt=0)
+    rot: FiniteFloat = Field(ge=-360, le=360)
+
+
+class FurnitureRecognition(StrictModel):
+    status: Literal["draft", "unsupported"]
+    question: str = ""
+    symbols: list[FurnitureSymbol] = Field(default_factory=list, max_length=100)
+
+
+class FloorplanReviewIssue(StrictModel):
+    code: Literal[
+        "WALL_MISMATCH",
+        "OPENING_MISMATCH",
+        "ROOM_MISMATCH",
+        "DIMENSION_MISMATCH",
+        "FURNITURE_MISSING",
+        "FURNITURE_EXTRA",
+        "FURNITURE_POSITION",
+        "EVIDENCE_MISSING",
+        "OTHER",
+    ]
+    object_ids: list[str] = Field(max_length=20)
+    description: str = Field(max_length=300)
+
+
+class FloorplanReview(StrictModel):
+    passed: bool
+    summary: str = Field(max_length=800)
+    issues: list[FloorplanReviewIssue] = Field(max_length=20)
 
 
 def floorplan_recognition_schema(width: int, height: int):
@@ -141,6 +256,10 @@ class RecognitionV2(FloorplanRecognition):
     measurementVersion: Literal[2] = 2
     features: list[MeasurementFeature] = Field(default_factory=list, max_length=500)
     dimensions: list[MeasurementDimension] = Field(default_factory=list, max_length=100)
+
+
+class RecognitionV3(RecognitionV2):
+    recognitionVersion: Literal[3] = 3
 
 
 DraftCollection = Literal[

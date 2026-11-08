@@ -5,7 +5,12 @@ from functools import lru_cache
 from importlib.metadata import version
 from urllib.parse import urlparse
 
-from .config import FLOORPLAN_RECOGNITION_OPTIONS, ROOT, model_settings
+from .config import (
+    FLOORPLAN_RECOGNITION_OPTIONS,
+    FLOORPLAN_REVIEW_OPTIONS,
+    ROOT,
+    model_settings,
+)
 
 
 @lru_cache(maxsize=1)
@@ -51,8 +56,9 @@ def runtime_versions():
         "structuredOutputRecovery": "one-bounded-continuation-1",
         "modelConfigVersion": "per-role-output-budget-3",
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
-        "floorplanPromptVersion": "s2c-floorplan-v2-1",
-        "floorplanToolAdapter": "hpd-adapter-3",
+        "floorplanReviewOptions": FLOORPLAN_REVIEW_OPTIONS,
+        "floorplanPromptVersion": "s2c-floorplan-v3-1",
+        "floorplanToolAdapter": "hpd-adapter-4",
         "floorplanUpdateContract": "discriminated-commands-2",
         "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
         "pillow": version("Pillow"),

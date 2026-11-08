@@ -1,0 +1,73 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "30b1f06cd73365029f0d6cba4719d8eb8a36fa08",
+  "scope": "single-frozen-image-formal-2-of-2",
+  "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+  "passed": true,
+  "runs": [
+    {
+      "projectId": "d021f49a-83d0-49da-9110-0028169ede84",
+      "taskId": "7fa4b404-dd60-41b9-9202-8e2b867c6e23",
+      "status": "completed",
+      "modelCalls": 19,
+      "activeSeconds": 164.01258659362793,
+      "repairs": 0,
+      "manualCorrections": 0,
+      "compilationPassed": true,
+      "firstRecognitionPassed": true,
+      "finalScoringPassed": true,
+      "workflowPassed": true,
+      "formalProjectRevision": 4,
+      "imageFidelityAccepted": true
+    },
+    {
+      "projectId": "e3d1a050-61ef-4d31-a4dc-3b47180fd295",
+      "taskId": "e455a193-a959-4b62-b221-e56d0658c6ca",
+      "status": "completed",
+      "modelCalls": 17,
+      "activeSeconds": 159.07019686698914,
+      "repairs": 0,
+      "manualCorrections": 0,
+      "compilationPassed": true,
+      "firstRecognitionPassed": true,
+      "finalScoringPassed": true,
+      "workflowPassed": true,
+      "formalProjectRevision": 4,
+      "imageFidelityAccepted": true
+    }
+  ],
+  "confirmedWorkflow": {
+    "recognition": true,
+    "measurement": true,
+    "sourceReview": true,
+    "confirmation": true,
+    "realCatalogueAssets": true,
+    "webglEvidence": true,
+    "oneAtomicCommit": true,
+    "undoToBlank": true,
+    "redoSucceeded": true,
+    "localConversationEdit": true
+  },
+  "artifacts": {
+    "run1": {
+      "report": "docs/evidence/s2c-v3-5-vision/single-image-2of2-run1-20261108-report.json",
+      "reportSha256": "ca9d8f81853cace112301baee76fbdb2c3c8ed2a624e9db1152ce0cf2e27a3e6",
+      "scoring": "docs/evidence/s2c-v3-5-vision/single-image-2of2-run1-20261108-scoring.json",
+      "scoringSha256": "2654cb566979b9be683ed80003fe519aae883e8936674e85658444f38d22588a",
+      "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T09-41-01-882Z"
+    },
+    "run2": {
+      "report": "docs/evidence/s2c-v3-5-vision/single-image-2of2-run2-20261108-report.json",
+      "reportSha256": "0c1b55155817971a9675f4d2f92642468cd81d2f4c66b2f1c4a8f04bb91e3370",
+      "scoring": "docs/evidence/s2c-v3-5-vision/single-image-2of2-run2-20261108-scoring.json",
+      "scoringSha256": "3cc509aca6827c2af7e3c67f3a518f757497965f9fb5c4d6f89dd013a13cb136",
+      "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T09-44-06-683Z"
+    }
+  },
+  "decision": {
+    "singleImageGatePassed": true,
+    "completeS2Passed": false,
+    "secondImageStarted": false,
+    "nextGate": "second frozen image twice"
+  }
+}

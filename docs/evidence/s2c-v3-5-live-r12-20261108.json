@@ -1,0 +1,75 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "cddddd32400aa7c6dae2392159637c6ea0b4fe29",
+  "scope": "twelfth-independent-single-real-image-run",
+  "task": {
+    "projectId": "226c39a5-b6dc-4908-9c4c-11660e4a3d50",
+    "taskId": "e8fe5e52-7a39-409e-a346-b7e040a68f88",
+    "status": "failed",
+    "errorCode": "BUDGET_EXHAUSTED",
+    "error": "任务达到模型请求或时间上限",
+    "modelCalls": 24,
+    "activeSeconds": 200.3239722251892,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0,
+    "repairs": 2
+  },
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "openings": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "furniture": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "symbolCount": 13,
+      "chairCount": 6
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    }
+  },
+  "finalScoring": {
+    "passed": true,
+    "rawPassed": true,
+    "finalPassed": true,
+    "layoutObjectsPassed": 13,
+    "roomNamesPassed": true,
+    "dimensionsPassed": true
+  },
+  "blocker": {
+    "stage": "shared-budget-after-confirmation",
+    "message": "The first measurement round marked uncatalogued 7.00 m and 3.50 m local labels as blocking DIMENSION_LOCAL. Two additional measurement rounds and format recoveries consumed the post-confirmation asset/check budget.",
+    "confirmationSimulated": true,
+    "formalProjectRevision": 0
+  },
+  "postFailureOfflineFix": {
+    "commit": "30b1f06",
+    "change": "Resolve DIMENSION_LOCAL as advisory once all fixed anchor dimensions are bound, avoiding redundant measurement rounds without increasing the 24-call budget.",
+    "realRunAfterFixStarted": false
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r12-20261108-report.json",
+      "sha256": "8a985afacade73b318d4c0e70a407ee341a31c32cd02b0a767b7545eb4dc01f6"
+    },
+    "scoring": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r12-20261108-scoring.json",
+      "sha256": "7e8322fabc86470b1591e0aa9a749c80b038ebb00b5e6d428904b5d7f2bc815a"
+    },
+    "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T09-36-37-847Z"
+  }
+}

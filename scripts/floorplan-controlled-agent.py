@@ -300,7 +300,7 @@ class ControlledRoles(Roles):
                 "features": [],
                 "dimensions": [],
             }
-        if schema.__name__ == "MeasuredDraftUpdate":
+        if schema.__name__ in ("MeasuredDraftUpdate", "MeasuredDraftProposal"):
             draft = payload["draft"]
             data = copy.deepcopy(draft["data"])
             analyses = [

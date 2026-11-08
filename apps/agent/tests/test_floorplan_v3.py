@@ -19,6 +19,8 @@ from actiscape_agent.floorplan_schemas import (
     FurnitureActivityRecognition,
     FurnitureContourRecognition,
     FurnitureRecognition,
+    MeasuredDraftProposal,
+    MeasuredDraftUpdate,
     RecognitionV3,
 )
 from actiscape_agent.floorplan_tools import FloorplanToolset
@@ -28,6 +30,8 @@ from actiscape_agent.floorplan_v3 import (
     _assemble_activity_symbols,
     _assemble_contour_symbols,
     _assemble_structure,
+    _deterministic_measurement_bindings,
+    _finalize_measured_update,
     _parse_structured_content,
     build_structure_skeleton,
 )
@@ -242,6 +246,209 @@ def test_skeleton_and_structure_assembly_use_real_candidates_only():
     }
     assert value["symbols"] == []
     RecognitionV3.model_validate(value)
+
+
+def test_measurement_bindings_use_opposite_wall_faces():
+    data = {
+        "walls": [
+            {"id": "top", "a": {"x": 10, "y": 10}, "b": {"x": 110, "y": 10}},
+            {"id": "left", "a": {"x": 10, "y": 10}, "b": {"x": 10, "y": 110}},
+            {"id": "bottom", "a": {"x": 10, "y": 110}, "b": {"x": 110, "y": 110}},
+            {"id": "right", "a": {"x": 110, "y": 10}, "b": {"x": 110, "y": 110}},
+        ],
+        "anchors": [
+            {
+                "a": {"x": 6, "y": 6},
+                "b": {"x": 114, "y": 6},
+                "distance": {"value": 104, "unit": "mm"},
+                "basis": "exterior",
+                "evidence": "horizontal",
+            },
+            {
+                "a": {"x": 12, "y": 6},
+                "b": {"x": 108, "y": 6},
+                "distance": {"value": 96, "unit": "mm"},
+                "basis": "interior",
+                "evidence": "horizontal interior",
+            },
+            {
+                "a": {"x": 6, "y": 6},
+                "b": {"x": 6, "y": 114},
+                "distance": {"value": 104, "unit": "mm"},
+                "basis": "exterior",
+                "evidence": "vertical",
+            },
+            {
+                "a": {"x": 12, "y": 6},
+                "b": {"x": 12, "y": 108},
+                "distance": {"value": 96, "unit": "mm"},
+                "basis": "interior",
+                "evidence": "vertical interior",
+            },
+        ],
+    }
+    measurements = [
+        {
+            "id": wall["id"],
+            "center": 10 if wall["id"] in ("top", "left") else 110,
+            "faces": [8, 12] if wall["id"] in ("top", "left") else [108, 112],
+        }
+        for wall in data["walls"]
+    ]
+    features, dimensions = _deterministic_measurement_bindings(
+        data,
+        measurements,
+        "wall-record",
+        {0: "dim-record", 1: "dim-record", 2: "dim-record", 3: "dim-record"},
+    )
+    assert len(features) == 8
+    assert len(dimensions) == 4
+    assert len({feature["id"] for feature in features}) == len(features)
+    assert len({dimension["id"] for dimension in dimensions}) == len(dimensions)
+    exterior = dimensions[0]
+    low, high = (
+        next(feature for feature in features if feature["id"] == exterior["from"]),
+        next(feature for feature in features if feature["id"] == exterior["to"]),
+    )
+    assert (low["objectId"], low["side"]) == ("left", "min")
+    assert (high["objectId"], high["side"]) == ("right", "max")
+    interior = dimensions[1]
+    low, high = (
+        next(feature for feature in features if feature["id"] == interior["from"]),
+        next(feature for feature in features if feature["id"] == interior["to"]),
+    )
+    assert (low["objectId"], low["side"]) == ("left", "max")
+    assert (high["objectId"], high["side"]) == ("right", "min")
+    vertical = dimensions[2]
+    low, high = (
+        next(feature for feature in features if feature["id"] == vertical["from"]),
+        next(feature for feature in features if feature["id"] == vertical["to"]),
+    )
+    assert (low["objectId"], low["side"]) == ("top", "min")
+    assert (high["objectId"], high["side"]) == ("bottom", "max")
+    interior_vertical = dimensions[3]
+    low, high = (
+        next(feature for feature in features if feature["id"] == interior_vertical["from"]),
+        next(feature for feature in features if feature["id"] == interior_vertical["to"]),
+    )
+    assert (low["objectId"], low["side"]) == ("top", "max")
+    assert (high["objectId"], high["side"]) == ("bottom", "min")
+    assert all(feature["evidenceRefs"] for feature in features)
+    assert all(dimension["evidenceRefs"] for dimension in dimensions)
+
+
+def test_measurement_proposal_cannot_submit_code_owned_collections():
+    with pytest.raises(ValidationError):
+        MeasuredDraftProposal.model_validate(
+            {
+                "baseDraftRevision": 0,
+                "baseDraftHash": "a" * 64,
+                "commands": [
+                    {
+                        "type": "upsert",
+                        "collection": "features",
+                        "object": {
+                            "id": "feature",
+                            "objectId": "wall",
+                            "kind": "wall_face",
+                            "axis": "x",
+                            "side": "min",
+                            "evidenceRefs": ["record"],
+                        },
+                    }
+                ],
+                "changeReasons": [],
+                "evidenceRefs": [],
+                "summary": "invalid model-owned measurement",
+            }
+        )
+
+
+def test_finalized_measurement_overrides_revision_and_appends_code_bindings():
+    draft = {"revision": 4, "hash": "d" * 64}
+    features = [
+        {
+            "id": "feat_low",
+            "objectId": "left",
+            "kind": "wall_face",
+            "axis": "x",
+            "side": "min",
+            "evidenceRefs": ["wall-record"],
+        },
+        {
+            "id": "feat_high",
+            "objectId": "right",
+            "kind": "wall_face",
+            "axis": "x",
+            "side": "max",
+            "evidenceRefs": ["wall-record"],
+        },
+    ]
+    dimensions = [
+        {
+            "id": "dim_anchor_0",
+            "anchorIndex": 0,
+            "from": "feat_low",
+            "to": "feat_high",
+            "distance": {"value": 100, "unit": "mm"},
+            "basis": "exterior",
+            "evidenceRefs": ["dim-record"],
+        }
+    ]
+    value = {
+        "baseDraftRevision": 0,
+        "baseDraftHash": "0" * 64,
+        "commands": [
+            {"type": "patch", "collection": "walls", "id": "left", "patch": {}},
+            {
+                "type": "upsert",
+                "collection": "features",
+                "object": {"id": "model-owned"},
+            },
+            {
+                "type": "patch",
+                "collection": "dimensions",
+                "id": "model-owned",
+                "patch": {},
+            },
+            {
+                "type": "upsert",
+                "collection": "dimensionObservations",
+                "object": {"id": "model-owned"},
+            },
+        ],
+        "changeReasons": [
+            {
+                "collection": "walls",
+                "id": "left",
+                "reason": "measured wall center",
+                "evidenceRefs": ["wall-record"],
+            },
+            {
+                "collection": "features",
+                "id": "model-owned",
+                "reason": "must be discarded",
+                "evidenceRefs": ["wall-record"],
+            },
+        ],
+        "evidenceRefs": ["wall-record"],
+        "summary": "measured",
+    }
+    result = _finalize_measured_update(value, draft, features, dimensions)
+    assert result["baseDraftRevision"] == 4
+    assert result["baseDraftHash"] == "d" * 64
+    assert [command["collection"] for command in result["commands"]] == [
+        "walls",
+        "features",
+        "features",
+        "dimensions",
+    ]
+    assert not any(
+        command["collection"] in ("dimensionObservations",) or command.get("id") == "model-owned"
+        for command in result["commands"]
+    )
+    assert result["evidenceRefs"] == ["wall-record", "dim-record"]
+    MeasuredDraftUpdate.model_validate(result)
 
 
 def test_prompt_version_keeps_frozen_floorplan_task_version(tmp_path):
@@ -470,7 +677,34 @@ def test_v33_assembly_generates_anchor_and_dimension_observations_from_ids():
                 "ticks": [0, 400],
                 "suggestedWallRole": "top",
                 "suggestedBasis": "exterior",
-            }
+            },
+            {
+                "candidateId": "dim_top_1",
+                "axis": "h",
+                "side": "top",
+                "at": 0,
+                "ticks": [0, 400],
+                "suggestedWallRole": "top",
+                "suggestedBasis": "interior",
+            },
+            {
+                "candidateId": "dim_left_0",
+                "axis": "v",
+                "side": "left",
+                "at": 0,
+                "ticks": [10, 290],
+                "suggestedWallRole": "left",
+                "suggestedBasis": "exterior",
+            },
+            {
+                "candidateId": "dim_left_1",
+                "axis": "v",
+                "side": "left",
+                "at": 0,
+                "ticks": [10, 290],
+                "suggestedWallRole": "left",
+                "suggestedBasis": "interior",
+            },
         ],
     }
     recognition = {
@@ -483,14 +717,20 @@ def test_v33_assembly_generates_anchor_and_dimension_observations_from_ids():
         "openings": [{"id": "window", "candidateId": "op_0", "type": "window"}],
         "rooms": [{"id": "living", "at": {"x": 200, "y": 150}, "name": "Living"}],
         "targetRoomIds": ["living"],
-        "dimensionReads": [{"candidateId": "dim_top_0", "label": "4000 mm"}],
+        "dimensionReads": [
+            {"candidateId": "dim_top_0", "label": "4000 mm"},
+            {"candidateId": "dim_top_1", "label": "3800 mm"},
+            {"candidateId": "dim_left_0", "label": "2800 mm"},
+            {"candidateId": "dim_left_1", "label": "2600 mm"},
+        ],
         "uncertainties": [],
     }
     value = _assemble_structure(skeleton, recognition, {})
-    assert len(value["anchors"]) == 1
+    assert len(value["anchors"]) == 4
     assert value["anchors"][0]["distance"] == {"value": 4000, "unit": "mm"}
-    assert len(value["dimensionObservations"]) == 1
+    assert len(value["dimensionObservations"]) == 4
     assert value["dimensionObservations"][0]["scaleReference"] is True
+    assert sum(observation["scaleReference"] for observation in value["dimensionObservations"]) == 1
     RecognitionV3.model_validate(value)
 
 

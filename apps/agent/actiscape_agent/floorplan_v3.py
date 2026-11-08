@@ -22,6 +22,7 @@ from .floorplan_schemas import (
     FurnitureActivityRecognition,
     FurnitureContourRecognition,
     FurnitureRecognition,
+    MeasuredDraftProposal,
     MeasuredDraftUpdate,
     RecognitionV3,
     StructureRecognition,
@@ -100,10 +101,10 @@ categoryCode 只使用固定枚举，sourceLabel 只写原图名称或简短视�
 )
 MEASURE = (
     COMMON
-    + """\n你是空间设计的测量阶段。输入是两阶段合并后的当前草稿、共享证据和原图叠加。仅返回 MeasuredDraftUpdate，commands 只修改指定对象和字段。
-baseDraftRevision/Hash 必须原样使用。修改已有对象须在 changeReasons 中以 collection/id 附原图依据及 evidenceRefs；已有说明累计保留。
+    + """\n你是空间设计的测量阶段。输入是两阶段合并后的当前草稿、共享证据和原图叠加。仅返回 MeasuredDraftProposal，commands 只修改指定对象和字段。
+baseDraftRevision/Hash 使用当前草稿值；固定代码会在提交前强制绑定当前 revision/hash。修改已有对象须在 changeReasons 中以 collection/id 附原图依据及 evidenceRefs；已有说明累计保留。
 固定代码已预先执行 precomputedWallMeasurements 和 precomputedDimensionMeasurements。优先直接引用这些记录及其 id，不要为已有记录重复调用 fit_wall_candidates 或 measure_dimension_chain。只有新增裁剪墙或预计算明确失败时才调用测量工具。
-features/dimensions 必须引用真实测量和清晰尺寸标注；尺寸为 from->to 正距离，毫米几何由代码解算。不得为通过预检改数字、伪造连接或删除冲突标注。
+precomputedMeasurementBindings 已由固定代码把尺寸锚点绑定到墙面特征。不得返回或修改 features、dimensions、dimensionObservations；这些集合由代码确定性生成。不得为通过预检改数字、伪造连接或删除冲突标注。
 不需要调用终止预检工具；代码在本次结构化结果后执行预检并返回问题。"""
 )
 CHECK = (
@@ -426,6 +427,165 @@ def _object_symbol_geometry(candidate, category_code, rotation):
         "d": round(depth, 3),
         "rot": rotation,
     }
+
+
+def _deterministic_measurement_bindings(
+    data,
+    wall_measurements,
+    wall_record_id,
+    dimension_records,
+):
+    walls = {wall["id"]: wall for wall in data.get("walls", [])}
+    measurements = {
+        measurement["id"]: measurement
+        for measurement in wall_measurements
+        if measurement.get("id") in walls
+    }
+    features = []
+    dimensions = []
+    for index, anchor in enumerate(data.get("anchors", [])):
+        first, second = anchor["a"], anchor["b"]
+        dx = abs(first["x"] - second["x"])
+        dy = abs(first["y"] - second["y"])
+        if min(dx, dy) > 1:
+            continue
+        axis = "x" if dx >= dy else "y"
+        points = sorted((first, second), key=lambda point: point[axis])
+        orientation = "v" if axis == "x" else "h"
+        options = []
+        for wall_id, wall in walls.items():
+            wall_orientation = "v" if abs(wall["a"]["x"] - wall["b"]["x"]) <= 1 else "h"
+            if wall_orientation != orientation:
+                continue
+            measurement = measurements.get(wall_id)
+            if not measurement:
+                continue
+            faces = measurement.get("faces") or []
+            if len(faces) != 2:
+                continue
+            options.append((wall_id, measurement, sorted(float(face) for face in faces)))
+        if len(options) < 2:
+            continue
+        selected = []
+        for endpoint_index, point in enumerate(points):
+            side = (
+                None
+                if anchor["basis"] == "centerline"
+                else "min"
+                if (endpoint_index == 0) == (anchor["basis"] == "exterior")
+                else "max"
+            )
+            ranked = []
+            for wall_id, measurement, faces in options:
+                position = (
+                    float(measurement["center"])
+                    if side is None
+                    else faces[0]
+                    if side == "min"
+                    else faces[1]
+                )
+                ranked.append((abs(position - float(point[axis])), wall_id, side))
+            _, wall_id, side = min(ranked)
+            selected.append(
+                {
+                    "id": f"feat_anchor_{index}_{'low' if endpoint_index == 0 else 'high'}",
+                    "objectId": wall_id,
+                    "kind": "wall_center" if side is None else "wall_face",
+                    "axis": axis,
+                    **({"side": side} if side is not None else {}),
+                    "evidenceRefs": [wall_record_id],
+                }
+            )
+        if len({feature["objectId"] for feature in selected}) != 2:
+            continue
+        dimension_record = dimension_records.get(index)
+        evidence_refs = [wall_record_id]
+        if dimension_record:
+            evidence_refs.append(dimension_record)
+            for feature in selected:
+                feature["evidenceRefs"].append(dimension_record)
+        features.extend(selected)
+        dimensions.append(
+            {
+                "id": f"dim_anchor_{index}",
+                "anchorIndex": index,
+                "from": selected[0]["id"],
+                "to": selected[1]["id"],
+                "distance": anchor["distance"],
+                "basis": anchor["basis"],
+                "evidenceRefs": evidence_refs,
+            }
+        )
+    return features, dimensions
+
+
+def _finalize_measured_update(
+    value,
+    draft,
+    measurement_features,
+    measurement_dimensions,
+):
+    commands = [
+        command
+        for command in value.get("commands", [])
+        if isinstance(command, dict)
+        and command.get("collection") not in ("features", "dimensions", "dimensionObservations")
+    ]
+    commands.extend(
+        {
+            "type": "upsert",
+            "collection": "features",
+            "object": feature,
+        }
+        for feature in measurement_features
+    )
+    commands.extend(
+        {
+            "type": "upsert",
+            "collection": "dimensions",
+            "object": dimension,
+        }
+        for dimension in measurement_dimensions
+    )
+    reasons = [
+        reason
+        for reason in value.get("changeReasons", [])
+        if isinstance(reason, dict)
+        and reason.get("collection") not in ("features", "dimensions", "dimensionObservations")
+    ]
+    reasons.extend(
+        {
+            "collection": "features",
+            "id": feature["id"],
+            "reason": "固定代码根据墙面实测与尺寸锚点生成",
+            "evidenceRefs": feature["evidenceRefs"],
+        }
+        for feature in measurement_features
+    )
+    reasons.extend(
+        {
+            "collection": "dimensions",
+            "id": dimension["id"],
+            "reason": "固定代码将尺寸观测绑定到两侧墙面特征",
+            "evidenceRefs": dimension["evidenceRefs"],
+        }
+        for dimension in measurement_dimensions
+    )
+    evidence_refs = list(
+        dict.fromkeys(ref for ref in value.get("evidenceRefs", []) if isinstance(ref, str) and ref)
+    )
+    for row in [*measurement_features, *measurement_dimensions]:
+        evidence_refs.extend(ref for ref in row["evidenceRefs"] if ref)
+    return MeasuredDraftUpdate.model_validate(
+        {
+            **value,
+            "baseDraftRevision": draft["revision"],
+            "baseDraftHash": draft["hash"],
+            "commands": commands,
+            "changeReasons": reasons,
+            "evidenceRefs": list(dict.fromkeys(evidence_refs)),
+        }
+    ).model_dump(exclude_none=True, by_alias=True)
 
 
 def _assemble_activity_symbols(
@@ -1326,7 +1486,10 @@ def _assemble_structure_v3(skeleton, recognition, evidence_index):
             default=observations[0],
         )
         primary["scaleReference"] = True
-        anchors = [{key: primary[key] for key in ("a", "b", "distance", "basis", "evidence")}]
+        anchors = [
+            {key: observation[key] for key in ("a", "b", "distance", "basis", "evidence")}
+            for observation in observations
+        ]
     elif recognition.get("anchors"):
         anchors = recognition["anchors"]
     if dimension_by_id and len(used_dimensions) != len(dimension_by_id):
@@ -2374,6 +2537,7 @@ class FloorplanV3(FloorplanV2):
                     }
                 )
         precomputed_walls = []
+        wall_record = None
         if wall_candidates:
             wall_record = await tools.request("fit-bound", {"walls": wall_candidates})
             await tools.result("fit_wall_candidates", wall_record, pictures=False)
@@ -2419,6 +2583,28 @@ class FloorplanV3(FloorplanV2):
                     **({"error": record["error"]} if record.get("error") else {}),
                 }
             )
+        measurement_features, measurement_dimensions = _deterministic_measurement_bindings(
+            draft["data"],
+            (wall_record or {}).get("result", []),
+            (wall_record or {}).get("id", ""),
+            {
+                record["anchorIndex"]: record.get("id")
+                for record in precomputed_dimensions
+                if record.get("recordId")
+            },
+        )
+        if len(measurement_dimensions) != len(draft["data"].get("anchors", [])):
+            raise TaskError(
+                "MEASUREMENT_BINDING_FAILED",
+                "固定代码无法把全部已读尺寸绑定到实测墙面",
+                details={
+                    "objectIds": [
+                        anchor.get("evidence", f"anchor:{index}")
+                        for index, anchor in enumerate(draft["data"].get("anchors", []))
+                        if index >= len(measurement_dimensions)
+                    ]
+                },
+            )
 
         @tool
         async def fit_wall_candidates(walls: list[dict]) -> list[dict]:
@@ -2435,7 +2621,7 @@ class FloorplanV3(FloorplanV2):
         value = await self.base.invoke(
             "design",
             MEASURE,
-            MeasuredDraftUpdate,
+            MeasuredDraftProposal,
             [context, evidence.crop_tool(), fit_wall_candidates, axis],
             {
                 "userRequest": task["input"],
@@ -2444,6 +2630,10 @@ class FloorplanV3(FloorplanV2):
                 "diagnostics": diagnostics,
                 "precomputedWallMeasurements": precomputed_walls,
                 "precomputedDimensionMeasurements": precomputed_dimensions,
+                "precomputedMeasurementBindings": {
+                    "features": measurement_features,
+                    "dimensions": measurement_dimensions,
+                },
                 "sharedEvidence": await evidence.context(),
                 "skill": self.store.task(task["id"], internal=True)["generation"]["skillSnapshot"],
             },
@@ -2453,8 +2643,11 @@ class FloorplanV3(FloorplanV2):
             bounded_schema=True,
             model_options=FLOORPLAN_RECOGNITION_OPTIONS,
         )
-        return MeasuredDraftUpdate.model_validate(value).model_dump(
-            exclude_none=True, by_alias=True
+        return _finalize_measured_update(
+            value,
+            draft,
+            measurement_features,
+            measurement_dimensions,
         )
 
     async def review(self, task, image, draft, diagnostics, phase):

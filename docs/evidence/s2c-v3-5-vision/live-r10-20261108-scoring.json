@@ -1,0 +1,486 @@
+{
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1,
+      "recall": 1,
+      "allMatched": true
+    },
+    "openings": {
+      "matches": [
+        {
+          "i": 0,
+          "j": 3
+        },
+        {
+          "i": 3,
+          "j": 0
+        },
+        {
+          "i": 5,
+          "j": 1
+        },
+        {
+          "i": 1,
+          "j": 4
+        },
+        {
+          "i": 2,
+          "j": 5
+        },
+        {
+          "i": 6,
+          "j": 2
+        },
+        {
+          "i": 4,
+          "j": 6
+        }
+      ],
+      "precision": 1,
+      "recall": 1
+    },
+    "furniture": {
+      "matches": [
+        {
+          "i": 9,
+          "j": 11
+        },
+        {
+          "i": 4,
+          "j": 4
+        },
+        {
+          "i": 1,
+          "j": 5
+        },
+        {
+          "i": 5,
+          "j": 1
+        },
+        {
+          "i": 11,
+          "j": 9
+        },
+        {
+          "i": 12,
+          "j": 10
+        },
+        {
+          "i": 0,
+          "j": 3
+        },
+        {
+          "i": 3,
+          "j": 6
+        },
+        {
+          "i": 8,
+          "j": 2
+        },
+        {
+          "i": 10,
+          "j": 12
+        },
+        {
+          "i": 6,
+          "j": 7
+        },
+        {
+          "i": 7,
+          "j": 8
+        },
+        {
+          "i": 2,
+          "j": 0
+        }
+      ],
+      "precision": 1,
+      "recall": 1
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "scoring": {
+    "passed": true,
+    "rawPassed": true,
+    "finalPassed": true,
+    "corrections": 0,
+    "correctionLimit": 0,
+    "raw": {
+      "walls": {
+        "precision": 1,
+        "recall": 1,
+        "allMatched": true
+      },
+      "openings": {
+        "matches": [
+          {
+            "i": 0,
+            "j": 3
+          },
+          {
+            "i": 3,
+            "j": 0
+          },
+          {
+            "i": 5,
+            "j": 1
+          },
+          {
+            "i": 1,
+            "j": 4
+          },
+          {
+            "i": 2,
+            "j": 5
+          },
+          {
+            "i": 6,
+            "j": 2
+          },
+          {
+            "i": 4,
+            "j": 6
+          }
+        ],
+        "precision": 1,
+        "recall": 1
+      },
+      "furniture": {
+        "matches": [
+          {
+            "i": 9,
+            "j": 11
+          },
+          {
+            "i": 4,
+            "j": 4
+          },
+          {
+            "i": 1,
+            "j": 5
+          },
+          {
+            "i": 5,
+            "j": 1
+          },
+          {
+            "i": 11,
+            "j": 9
+          },
+          {
+            "i": 12,
+            "j": 10
+          },
+          {
+            "i": 0,
+            "j": 3
+          },
+          {
+            "i": 3,
+            "j": 6
+          },
+          {
+            "i": 8,
+            "j": 2
+          },
+          {
+            "i": 10,
+            "j": 12
+          },
+          {
+            "i": 6,
+            "j": 7
+          },
+          {
+            "i": 7,
+            "j": 8
+          },
+          {
+            "i": 2,
+            "j": 0
+          }
+        ],
+        "precision": 1,
+        "recall": 1
+      }
+    },
+    "confirmed": {
+      "walls": {
+        "precision": 1,
+        "recall": 1,
+        "allMatched": true
+      },
+      "openings": {
+        "matches": [
+          {
+            "i": 0,
+            "j": 3
+          },
+          {
+            "i": 1,
+            "j": 4
+          },
+          {
+            "i": 3,
+            "j": 0
+          },
+          {
+            "i": 5,
+            "j": 1
+          },
+          {
+            "i": 2,
+            "j": 5
+          },
+          {
+            "i": 6,
+            "j": 2
+          },
+          {
+            "i": 4,
+            "j": 6
+          }
+        ],
+        "precision": 1,
+        "recall": 1
+      },
+      "furniture": {
+        "matches": [
+          {
+            "i": 9,
+            "j": 11
+          },
+          {
+            "i": 4,
+            "j": 4
+          },
+          {
+            "i": 1,
+            "j": 5
+          },
+          {
+            "i": 5,
+            "j": 1
+          },
+          {
+            "i": 11,
+            "j": 9
+          },
+          {
+            "i": 12,
+            "j": 10
+          },
+          {
+            "i": 0,
+            "j": 3
+          },
+          {
+            "i": 3,
+            "j": 6
+          },
+          {
+            "i": 8,
+            "j": 2
+          },
+          {
+            "i": 10,
+            "j": 12
+          },
+          {
+            "i": 6,
+            "j": 7
+          },
+          {
+            "i": 7,
+            "j": 8
+          },
+          {
+            "i": 2,
+            "j": 0
+          }
+        ],
+        "precision": 1,
+        "recall": 1
+      },
+      "layout": [
+        {
+          "actualId": "s_chair_013",
+          "referenceId": "chair-5",
+          "passed": true,
+          "centerError": 19.787255313465064,
+          "rotationError": 0,
+          "widthError": 0,
+          "depthError": 0
+        },
+        {
+          "actualId": "s_bookshelf_004",
+          "referenceId": "books",
+          "passed": true,
+          "centerError": 25.02911817352694,
+          "rotationError": 0,
+          "widthError": 35.39651837524161,
+          "depthError": 35.39651837524178
+        },
+        {
+          "actualId": "s_plant_001",
+          "referenceId": "plant",
+          "passed": true,
+          "centerError": 25.02911817352726,
+          "rotationError": 0,
+          "widthError": 0,
+          "depthError": 17.69825918762092
+        },
+        {
+          "actualId": "s_coffeeTable_005",
+          "referenceId": "coffee",
+          "passed": true,
+          "centerError": 25.02911817352758,
+          "rotationError": 0,
+          "widthError": 35.39651837524184,
+          "depthError": 35.396518375241726
+        },
+        {
+          "actualId": "s_chair_016",
+          "referenceId": "chair-3",
+          "passed": true,
+          "centerError": 27.98340482644167,
+          "rotationError": 0,
+          "widthError": 17.698259187620863,
+          "depthError": 17.698259187620863
+        },
+        {
+          "actualId": "s_chair_017",
+          "referenceId": "chair-4",
+          "passed": true,
+          "centerError": 27.98340482644167,
+          "rotationError": 0,
+          "widthError": 17.698259187620863,
+          "depthError": 17.698259187620863
+        },
+        {
+          "actualId": "s_tvCabinet_000",
+          "referenceId": "tv",
+          "passed": true,
+          "centerError": 31.90599049370917,
+          "rotationError": 0,
+          "widthError": 35.39651837524161,
+          "depthError": 17.698259187620863
+        },
+        {
+          "actualId": "s_rug_003",
+          "referenceId": "rug",
+          "passed": true,
+          "centerError": 31.90599049370917,
+          "rotationError": 0,
+          "widthError": 35.39651837524207,
+          "depthError": 17.698259187620806
+        },
+        {
+          "actualId": "s_diningTable_012",
+          "referenceId": "dining",
+          "passed": true,
+          "centerError": 31.90599049370917,
+          "rotationError": 0,
+          "widthError": 0,
+          "depthError": 0
+        },
+        {
+          "actualId": "s_chair_014",
+          "referenceId": "chair-6",
+          "passed": true,
+          "centerError": 31.90599049370917,
+          "rotationError": 0,
+          "widthError": 0,
+          "depthError": 0
+        },
+        {
+          "actualId": "s_chair_010",
+          "referenceId": "chair-1",
+          "passed": true,
+          "centerError": 37.543677260291695,
+          "rotationError": 0,
+          "widthError": 17.698259187620863,
+          "depthError": 17.698259187620863
+        },
+        {
+          "actualId": "s_chair_011",
+          "referenceId": "chair-2",
+          "passed": true,
+          "centerError": 37.543677260291695,
+          "rotationError": 0,
+          "widthError": 17.698259187620863,
+          "depthError": 17.698259187620863
+        },
+        {
+          "actualId": "s_sofa_002",
+          "referenceId": "sofa",
+          "passed": true,
+          "centerError": 55.96680965288334,
+          "rotationError": 0,
+          "widthError": 106.18955512572575,
+          "depthError": 141.58607350096702
+        }
+      ],
+      "structure": {
+        "passed": true,
+        "roomPrecision": 1,
+        "roomRecall": 1,
+        "names": true,
+        "targets": [
+          "reference:r:living"
+        ],
+        "expectedTargets": [
+          "reference:r:living"
+        ],
+        "adjacency": [
+          "OUTSIDE|reference:r:living",
+          "reference:r:bathroom|reference:r:living",
+          "reference:r:bedroom|reference:r:living"
+        ],
+        "expectedAdjacency": [
+          "OUTSIDE|reference:r:living",
+          "reference:r:bathroom|reference:r:living",
+          "reference:r:bedroom|reference:r:living"
+        ]
+      },
+      "dimensions": [
+        {
+          "evidence": "dim_anchor_0",
+          "error": 0
+        },
+        {
+          "evidence": "dim_anchor_1",
+          "error": 0
+        },
+        {
+          "evidence": "dim_anchor_2",
+          "error": 0
+        },
+        {
+          "evidence": "dim_anchor_3",
+          "error": 0
+        }
+      ],
+      "referenceDimensions": [
+        {
+          "evidence": "Top outer dimension 9.15 m, outer wall faces",
+          "error": 0
+        }
+      ],
+      "dimensionsPassed": true
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "zeroObjectCorrections": true,
+  "completeFourRoleWorkflow": false,
+  "workflow": {
+    "passed": false,
+    "confirmationSimulated": false
+  }
+}

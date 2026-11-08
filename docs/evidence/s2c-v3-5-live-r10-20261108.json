@@ -1,0 +1,79 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "eb8626fc84ce23b2e72a755654c8ee3c7588a703",
+  "scope": "tenth-independent-single-real-image-run",
+  "task": {
+    "projectId": "284280aa-e322-49d7-b6a3-abb721640344",
+    "taskId": "ee155e26-f909-4df4-85f8-119c92140b74",
+    "status": "waiting_input",
+    "error": "两阶段识别后仍有阻断问题，正式项目未改变。请查看原图证据及检查结果。",
+    "modelCalls": 16,
+    "activeSeconds": 113.60852718353271,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0,
+    "repairs": 3
+  },
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "openings": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "furniture": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "symbolCount": 13,
+      "chairCount": 6
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "finalScoring": {
+    "passed": true,
+    "rawPassed": true,
+    "finalPassed": true,
+    "layoutObjectsPassed": 13,
+    "roomPrecision": 1.0,
+    "roomRecall": 1.0,
+    "roomNamesPassed": true,
+    "dimensionResidualsMm": [0, 0, 0, 0]
+  },
+  "blocker": {
+    "stage": "preview-before-code-uncertainty-reconciliation",
+    "uncertaintyIds": ["u_entry_door", "u_bottom_dashed"],
+    "message": "Opening-type notes remained blocking in the draft, so the preview gate stopped before review even though all fixed opening candidates matched the draft.",
+    "compilationPassed": false,
+    "confirmationSimulated": false
+  },
+  "postFailureOfflineFix": {
+    "commit": "296d0d6",
+    "change": "Add structured uncertainty codes and a fixed-code reconciliation pass that downgrades code-resolved uncertainty rows before preview and review.",
+    "recordedDraftReplay": "The exact r10 draft now yields zero blocking review issues and two advisory issues.",
+    "realRunAfterFixStarted": false
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r10-20261108-report.json",
+      "sha256": "d1432c4e979b2c62f59f78d2e3b3efe93fd00fbf7bc9c17dec891cf27266f354"
+    },
+    "scoring": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r10-20261108-scoring.json",
+      "sha256": "720a2cdad0b2e4b9c18896da194297724a2cb77e5204f25e36f7fb6f8bbc194a"
+    },
+    "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T09-22-49-845Z"
+  }
+}

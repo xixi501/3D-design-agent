@@ -1,7 +1,7 @@
 {
   "version": "s2c-floorplan-v3-5",
   "businessCommit": "f9c4be63748fb4987bd93d3b74810139d83460b4",
-  "scope": "consolidated-no-model-replay-of-captured-r8-and-r9-gates",
+  "scope": "consolidated-no-model-replay-of-captured-r8-through-r11-gates",
   "passed": true,
   "modelCalls": 0,
   "assetChoices": {
@@ -24,10 +24,21 @@
     "r9FinalScoring": true,
     "r9ReviewPassed": true,
     "r9BlockingIssues": 0,
-    "r9AdvisoryIssues": 1
+    "r9AdvisoryIssues": 1,
+    "r10FinalScoring": true,
+    "r10ReviewPassed": true,
+    "r10BlockingIssues": 0,
+    "r10AdvisoryIssues": 2,
+    "r11ActivityBindingRepair": true
+  },
+  "r11ActivityRepair": {
+    "symbolId": "s_chair_012",
+    "before": "fo_012",
+    "after": "fo_017",
+    "reason": "activity-satellite"
   },
   "fixture": {
     "path": "fixtures/s2c-v3-5-replay.json",
-    "sha256": "931a64e97ca65debc40a71b13bf40060630b02f39e37b01722a7fb13435e2d6f"
+    "sha256": "e7ccf7f3b0fd4fae011928938fb8e05931e99eb80293f481a0d8b1e03c99aac1"
   }
 }

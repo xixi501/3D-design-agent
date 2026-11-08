@@ -1,0 +1,52 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "296d0d61935355626f8ad38e19beb73afdf64749",
+  "scope": "eleventh-independent-single-real-image-run",
+  "task": {
+    "projectId": "71d80b44-221e-49ed-a5b6-ee6439d285ce",
+    "taskId": "71afd86f-137c-4f7b-8b05-1302b97292a0",
+    "status": "failed",
+    "errorCode": "OBJECT_CANDIDATE_REUSED",
+    "error": "fo_012 同时用于 s_diningTable_014 和 s_chair_012",
+    "modelCalls": 5,
+    "activeSeconds": 84.64219689369202,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0,
+    "repairs": 0
+  },
+  "blocker": {
+    "stage": "furniture-activity-binding",
+    "message": "Qwen selected the verified dining-table primary object as one chair and omitted the sixth satellite chair candidate on both the initial call and the bounded repair.",
+    "initialResponseRepeated": true,
+    "compilationPassed": false,
+    "draftCreated": false
+  },
+  "postFailureOfflineFix": {
+    "commit": "ca82633",
+    "change": "When a high-confidence group_seated candidate has one primary and a complete satellite set, fixed code fills invalid or reused chair symbol bindings from the missing satellite IDs without another model call.",
+    "recordedResponseReplay": {
+      "symbolId": "s_chair_012",
+      "before": "fo_012",
+      "after": "fo_017",
+      "reason": "activity-satellite"
+    },
+    "realRunAfterFixStarted": false
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r11-20261108-report.json",
+      "sha256": "87f155b10ae60dd21527ac4c73f2940c7f438111bbdc8682b1564ac6666615a3"
+    },
+    "scoring": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r11-20261108-scoring.json",
+      "sha256": "c61c5f5c342e1ae8d20373c5b776f92be9e1fff6b6af4056115a72847f6edb7f"
+    },
+    "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T09-28-34-338Z"
+  }
+}

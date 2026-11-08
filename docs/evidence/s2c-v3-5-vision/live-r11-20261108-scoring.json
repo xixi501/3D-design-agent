@@ -1,0 +1,12 @@
+{
+  "scoring": {
+    "passed": false,
+    "reason": "No complete draft"
+  },
+  "zeroObjectCorrections": true,
+  "completeFourRoleWorkflow": false,
+  "workflow": {
+    "passed": false,
+    "confirmationSimulated": false
+  }
+}

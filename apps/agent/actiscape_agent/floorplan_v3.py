@@ -358,6 +358,12 @@ def _arbitrate_review(review, draft, diagnostics, skeleton):
     }
 
 
+def _should_run_initial_review(generation, diagnostics):
+    return not generation.get("initialReview") and bool(
+        (diagnostics.get("checks") or {}).get("passed")
+    )
+
+
 def _parse_structured_content(content: str):
     text = content.strip()
     if text.startswith("```"):
@@ -2960,17 +2966,25 @@ class FloorplanV3(FloorplanV2):
             "draft_diagnostics", diagnostics, pictures=False
         )
         generation = self.store.task(task_id, internal=True)["generation"]
-        if not generation.get("initialReview"):
+        if _should_run_initial_review(generation, diagnostics):
             initial = await self.review(task, image, draft, diagnostics, "initial")
             self.patch(
                 task_id,
                 initialReview={"draftHash": draft["hash"], "review": initial},
             )
+        elif not generation.get("initialReview"):
+            self.store.event(
+                task_id,
+                "initial_review_skipped",
+                {
+                    "draftHash": draft["hash"],
+                    "reason": "deterministic checks require measurement repair",
+                },
+            )
+        saved_review = self.store.task(task_id, internal=True)["generation"].get("initialReview")
         report = {
             "checks": diagnostics["checks"],
-            "sourceReview": self.store.task(task_id, internal=True)["generation"]["initialReview"][
-                "review"
-            ],
+            "sourceReview": saved_review["review"] if saved_review else None,
         }
 
         while True:

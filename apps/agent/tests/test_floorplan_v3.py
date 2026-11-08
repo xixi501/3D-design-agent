@@ -34,6 +34,7 @@ from actiscape_agent.floorplan_v3 import (
     _deterministic_measurement_bindings,
     _finalize_measured_update,
     _parse_structured_content,
+    _should_run_initial_review,
     build_structure_skeleton,
 )
 from actiscape_agent.manager import TaskManager
@@ -948,6 +949,16 @@ def test_review_keeps_uncertainty_blocking_without_code_resolution():
         issue["object_ids"] == ["u_dim_basis"] and issue["severity"] == "blocking"
         for issue in arbitrated["issues"]
     )
+
+
+def test_initial_review_runs_only_after_deterministic_checks_pass():
+    generation = {}
+    failed = {"checks": {"passed": False, "issues": []}}
+    passed = {"checks": {"passed": True, "issues": []}}
+    assert _should_run_initial_review(generation, failed) is False
+    assert _should_run_initial_review(generation, passed) is True
+    generation["initialReview"] = {"draftHash": "a" * 64}
+    assert _should_run_initial_review(generation, passed) is False
 
 
 def test_review_downgrades_opening_uncertainty_when_candidates_all_match():

@@ -281,7 +281,7 @@ class ControlledRoles(Roles):
                     }
                 )
             return {"status": "draft", "question": "", "symbols": symbols}
-        if schema.__name__ == "FloorplanReview":
+        if schema.__name__ == "FloorplanReview" and "candidate" not in payload:
             return {
                 "passed": True,
                 "summary": "controlled V3 source review",

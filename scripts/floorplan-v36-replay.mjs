@@ -244,6 +244,45 @@ const capturedConsolidation = JSON.parse(
   pythonReplay.stdout.trim().split("\n").at(-1),
 );
 assert.equal(capturedConsolidation.passed, true);
+const capturedReview = capturedConsolidation.candidateReview;
+assert.equal(capturedReview.passed, true);
+assert.deepEqual(capturedReview.unknownObjectIds, []);
+assert.equal(
+  capturedReview.issues.filter((issue) => issue.severity === "blocking").length,
+  0,
+);
+assert.ok(
+  ["OPENING_MISMATCH", "WALL_MISMATCH", "FURNITURE_POSITION"].every((code) =>
+    capturedReview.issues.some((issue) => issue.code === code),
+  ),
+);
+const reviewReplay = JSON.parse(
+  fs.readFileSync(
+    path.join(
+      root,
+      "fixtures/s2c-real/ninety-two.v36-review-identity-replay.json",
+    ),
+    "utf8",
+  ),
+);
+const reviewPlan = reviewReplay.candidate.state.plan;
+const reviewWalls = new Map(reviewPlan.walls.map((wall) => [wall.id, wall]));
+const reviewNodes = new Map(reviewPlan.nodes.map((node) => [node.id, node]));
+const openingOverflow = reviewPlan.openings
+  .map((opening) => {
+    const wall = reviewWalls.get(opening.wall);
+    const a = reviewNodes.get(wall?.a);
+    const b = reviewNodes.get(wall?.b);
+    if (!a || !b) return Infinity;
+    const length = Math.hypot(b.x - a.x, b.y - a.y);
+    return Math.max(
+      0,
+      -(opening.pos - opening.width / 2),
+      opening.pos + opening.width / 2 - length,
+    );
+  })
+  .reduce((maximum, overflow) => Math.max(maximum, overflow), 0);
+assert.ok(openingOverflow <= 0.01, JSON.stringify({ openingOverflow }));
 const capturedDraft = structuredClone(capturedFixture.draft);
 capturedDraft.rooms = capturedConsolidation.rooms;
 capturedDraft.targetRoomIds = capturedConsolidation.targetRoomIds;
@@ -422,6 +461,16 @@ const output = {
     compiledOpenings: capturedCompiled.state.plan.openings.length,
     symbols: capturedCompiled.symbols.length,
     scoringPassed: capturedScore.passed,
+  },
+  capturedReviewReplay: {
+    taskId: reviewReplay.capturedTaskId,
+    normalizedIssues: capturedReview.issues.length,
+    blockingIssues: capturedReview.issues.filter(
+      (issue) => issue.severity === "blocking",
+    ).length,
+    unknownObjectIds: capturedReview.unknownObjectIds.length,
+    openingOverflow,
+    passed: capturedReview.passed,
   },
   note: "Offline candidate replay only; furniture classification, model passes and the real 2-of-2 gate are not claimed.",
 };

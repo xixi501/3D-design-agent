@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import statistics
+from collections import defaultdict
 
 from langchain_core.tools import tool
 
@@ -8,13 +9,13 @@ from .config import FLOORPLAN_RECOGNITION_OPTIONS
 from .floorplan_schemas import (
     DraftCorrections,
     FloorplanRecognition,
+    FloorplanReview,
     ReconstructionProposal,
     floorplan_recognition_schema,
 )
 from .floorplan_tools import FloorplanToolset
 from .generation_roles import GenerationRoles
 from .roles import objects_summary
-from .schemas import Review
 from .store import TaskError, fingerprint
 
 VERSION = "s2c-floorplan-8"
@@ -159,9 +160,154 @@ CHECK = (
 原版对账是启发式证据，可能有误报；逐项解释或阻断，不能仅凭 issueCount=0 宣布房型正确，也不能忽略漏建的墙和漏放的家具。
 前两张是原图与识别叠加，后两张是候选 top/oblique；检查视图墙体透明并隐藏吊顶。家具外观允许目录近似，但类别、数量、位置、占地与朝向应忠实于已确认草稿。
 默认高度和材质已披露，不当作擅自改变平面布局。不得要求布置未选卧室、厨房等区域。
+object_ids 必须逐字复制 candidate 中的真实场景 ID，不能用 frozenDraft 的墙、门窗、房间或符号 ID。洞口区间是 pos-width/2 到 pos+width/2，不能把 pos+width 当成终点。
 passed=true 必须确定性检查通过、图片完整、原图关键要求可确认且 issues=[]。任何无法验证的关键项均应不通过。问题使用真实业务对象 id。
 """
 )
+
+
+GEOMETRY_REVIEW_CODES = {
+    "WALL_MISMATCH",
+    "OPENING_MISMATCH",
+    "ROOM_MISMATCH",
+    "DIMENSION_MISMATCH",
+}
+
+
+def _review_identity_alias(plan):
+    aliases = defaultdict(set)
+    valid = set()
+    collections = (
+        "nodes",
+        "walls",
+        "openings",
+        "furniture",
+        "structs",
+        "rooms",
+        "measures",
+        "elec",
+        "voids",
+        "comments",
+    )
+    for collection in collections:
+        for item in plan.get(collection) or []:
+            identity = item.get("id")
+            if identity:
+                valid.add(identity)
+                aliases[identity].add(identity)
+    source = plan.get("source") or {}
+    for source_id, scene_id in (source.get("symbolObjects") or {}).items():
+        if scene_id in valid:
+            aliases[source_id].add(scene_id)
+    inputs = (source.get("measurement") or {}).get("inputs") or {}
+    wall_ids = [item["id"] for item in plan.get("walls") or [] if item.get("id")]
+    opening_ids = [item["id"] for item in plan.get("openings") or [] if item.get("id")]
+    room_ids = [item["id"] for item in plan.get("rooms") or [] if item.get("id")]
+    for wall in inputs.get("walls") or []:
+        source_id = wall.get("id")
+        if not source_id:
+            continue
+        marker = f":w:{source_id}:"
+        aliases[source_id].update(scene_id for scene_id in wall_ids if marker in scene_id)
+    for opening in inputs.get("openings") or []:
+        source_id = opening.get("id")
+        if source_id:
+            aliases[source_id].update(
+                scene_id for scene_id in opening_ids if scene_id.endswith(f":o:{source_id}")
+            )
+    for room in source.get("rooms") or []:
+        source_id = room.get("id")
+        if source_id:
+            aliases[source_id].update(
+                scene_id for scene_id in room_ids if scene_id.endswith(f":r:{source_id}")
+            )
+    return valid, aliases
+
+
+def _legacy_review_code(issue):
+    if issue.get("code"):
+        return issue["code"]
+    text = (issue.get("description") or "").lower()
+    if "wallaudit" in text or "共墙" in text or "连续墙" in text:
+        return "WALL_MISMATCH"
+    if any(term in text for term in ("洞口", "门窗", "窗洞", "门洞", "opening")):
+        return "OPENING_MISMATCH"
+    if "餐桌" in text and any(term in text for term in ("位置", "移动", "北移", "偏移")):
+        return "FURNITURE_POSITION"
+    if "缺少" in text or "漏放" in text or "漏建" in text:
+        return "FURNITURE_MISSING"
+    if "多余" in text or "额外" in text:
+        return "FURNITURE_EXTRA"
+    if "证据" in text:
+        return "EVIDENCE_MISSING"
+    return "OTHER"
+
+
+def _arbitrate_candidate_review(review, plan, checks, source_review=None):
+    """Normalize source/scene identities and let passing code checks settle geometry conflicts."""
+    valid, aliases = _review_identity_alias(plan)
+    issues = []
+    conflicts = []
+    unknown_ids = []
+    code_passed = bool((checks or {}).get("passed"))
+    source_review = (source_review or {}).get("review") or (source_review or {})
+    confirmed_layout = bool(source_review.get("passed"))
+    for issue in review.get("issues") or []:
+        mapped = []
+        for identity in issue.get("object_ids") or []:
+            matches = aliases.get(identity)
+            if matches:
+                mapped.extend(matches)
+            else:
+                unknown_ids.append(identity)
+        normalized = {
+            "code": _legacy_review_code(issue),
+            "source": issue.get("source") or "model",
+            "severity": issue.get("severity") or "blocking",
+            "object_ids": list(dict.fromkeys(mapped))[:20],
+            "description": (issue.get("description") or "模型审核问题")[:300],
+            "evidenceRefs": list(issue.get("evidenceRefs") or [])[:20],
+            "bbox": issue.get("bbox"),
+        }
+        deterministic_conflict = code_passed and (
+            normalized["code"] in GEOMETRY_REVIEW_CODES
+            or normalized["code"] == "REVIEW_CONFLICT"
+            or (normalized["code"] == "FURNITURE_POSITION" and confirmed_layout)
+        )
+        if deterministic_conflict:
+            normalized["severity"] = "advisory"
+            conflicts.append(
+                {
+                    "code": "REVIEW_CONFLICT",
+                    "source": "model",
+                    "severity": "advisory",
+                    "object_ids": normalized["object_ids"],
+                    "description": (
+                        "确定性候选与冻结草稿未复现该模型意见：" + normalized["description"]
+                    )[:300],
+                    "evidenceRefs": normalized["evidenceRefs"],
+                    "bbox": normalized["bbox"],
+                }
+            )
+        issues.append(normalized)
+    issues.extend(conflicts)
+    blocking = [issue for issue in issues if issue["severity"] == "blocking"]
+    passed = code_passed and not blocking
+    if not code_passed:
+        summary = "确定性候选检查未通过；模型审核不能放行。"
+    elif blocking:
+        summary = "确定性检查通过，但模型提出无法由固定候选消解的语义问题。"
+    elif conflicts:
+        summary = "确定性检查通过；模型关于冻结结构的冲突意见已记录为 advisory。"
+    else:
+        summary = "确定性检查通过，模型未提出阻断问题。"
+    return {
+        "passed": passed,
+        "summary": summary[:800],
+        "issues": issues[:20],
+        "unknownObjectIds": list(dict.fromkeys(unknown_ids))[:20],
+        "validObjectIds": sorted(valid),
+    }
 
 
 class FloorplanRoles:
@@ -455,7 +601,7 @@ class FloorplanRoles:
         review = await self.base.invoke(
             "check",
             CHECK,
-            Review,
+            FloorplanReview,
             [
                 candidate_checks,
                 *FloorplanToolset(self.base, task, {"id": image_id}, "check").inspection(d["id"]),
@@ -488,9 +634,32 @@ class FloorplanRoles:
                 "summary": "缺少针对当前草稿的原图对账，不能通过审核",
                 "issues": [
                     {
+                        "code": "EVIDENCE_MISSING",
+                        "source": "code",
+                        "severity": "blocking",
                         "object_ids": [],
                         "description": "检查 Agent 未读取当前冻结草稿的墙体对账与家具叠图",
+                        "evidenceRefs": [],
+                        "bbox": None,
                     }
                 ],
             }
-        return review
+        arbitrated = _arbitrate_candidate_review(
+            FloorplanReview.model_validate(review).model_dump(),
+            candidate["state"]["plan"],
+            candidate["checks"],
+            d.get("sourceReview"),
+        )
+        self.store.event(
+            task["id"],
+            "floorplan_candidate_review",
+            {
+                "candidateId": candidate["id"],
+                "candidateHash": candidate["hash"],
+                "passed": arbitrated["passed"],
+                "summary": arbitrated["summary"],
+                "issues": arbitrated["issues"],
+                "unknownObjectIds": arbitrated["unknownObjectIds"],
+            },
+        )
+        return arbitrated

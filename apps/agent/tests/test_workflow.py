@@ -134,6 +134,23 @@ class FakeRoles:
         return {"passed": True, "summary": "controlled check", "issues": []}
 
 
+class AdvisoryRoles(FakeRoles):
+    async def inspect(self, *args):
+        return {
+            "passed": True,
+            "summary": "code arbitrated model advisory",
+            "issues": [
+                {
+                    "code": "REVIEW_CONFLICT",
+                    "source": "model",
+                    "severity": "advisory",
+                    "object_ids": [CHAIR],
+                    "description": "model concern contradicted by deterministic checks",
+                }
+            ],
+        }
+
+
 async def start_task(manager):
     await manager.start()
     c = manager.store.create_conversation("p")
@@ -163,6 +180,22 @@ async def test_lost_commit_response_is_reconciled_without_duplicate(tmp_path):
         assert result["status"] == "completed", result
         assert client.project["revision"] == 1 and len(client.ledger) == 1
         assert any(e["kind"] == "commit_reconciled" for e in manager.store.events(task["id"]))
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_advisory_review_issues_do_not_enter_passed_candidate_review(tmp_path):
+    client = FakeScene()
+    manager = TaskManager(tmp_path, client, AdvisoryRoles)
+    try:
+        task = await start_task(manager)
+        result = await finished(manager, task["id"])
+        assert result["status"] == "completed", result
+        candidate = next(iter(client.candidates.values()))
+        assert candidate["review"]["passed"] is True
+        assert candidate["review"]["issues"] == []
+        assert candidate["review"]["objectIds"] == []
     finally:
         await manager.close()
 

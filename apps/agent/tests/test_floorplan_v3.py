@@ -14,7 +14,10 @@ from actiscape_agent.floorplan_candidates import (
     furniture_object_candidates,
     structure_candidates,
 )
-from actiscape_agent.floorplan_roles import normalize_floorplan_asset_choices
+from actiscape_agent.floorplan_roles import (
+    _arbitrate_candidate_review,
+    normalize_floorplan_asset_choices,
+)
 from actiscape_agent.floorplan_schemas import (
     FloorplanReview,
     FurnitureActivityRecognition,
@@ -1003,6 +1006,79 @@ def test_v33_furniture_contours_and_review_arbitration():
     assert any(
         issue["code"] == "REVIEW_CONFLICT" and issue["severity"] == "advisory"
         for issue in arbitrated["issues"]
+    )
+
+
+def test_captured_candidate_review_normalizes_ids_and_false_geometry_claims():
+    fixture = json.loads(
+        Path("fixtures/s2c-real/ninety-two.v36-review-identity-replay.json").read_text()
+    )
+    plan = fixture["candidate"]["state"]["plan"]
+    result = _arbitrate_candidate_review(
+        fixture["review"],
+        plan,
+        fixture["candidate"]["checks"],
+        fixture["sourceReview"],
+    )
+    assert result["passed"] is True
+    assert result["unknownObjectIds"] == []
+    assert not [issue for issue in result["issues"] if issue["severity"] == "blocking"]
+    valid_ids = {
+        item["id"]
+        for collection in (
+            "nodes",
+            "walls",
+            "openings",
+            "furniture",
+            "structs",
+            "rooms",
+            "measures",
+            "elec",
+            "voids",
+            "comments",
+        )
+        for item in plan.get(collection, [])
+    }
+    assert all(
+        object_id in valid_ids for issue in result["issues"] for object_id in issue["object_ids"]
+    )
+    assert {
+        "OPENING_MISMATCH",
+        "WALL_MISMATCH",
+        "FURNITURE_POSITION",
+        "REVIEW_CONFLICT",
+    }.issubset({issue["code"] for issue in result["issues"]})
+    assert fixture["expected"]["allObjectIdsValid"] is True
+    assert fixture["expected"]["openingOverflow"] == 0
+
+
+def test_candidate_review_keeps_semantic_object_problems_blocking():
+    fixture = json.loads(
+        Path("fixtures/s2c-real/ninety-two.v36-review-identity-replay.json").read_text()
+    )
+    semantic = {
+        "passed": False,
+        "summary": "目标沙发缺失",
+        "issues": [
+            {
+                "code": "FURNITURE_MISSING",
+                "object_ids": ["s_fo_017"],
+                "description": "目标沙发在候选家具中没有出现",
+            }
+        ],
+    }
+    result = _arbitrate_candidate_review(
+        semantic,
+        fixture["candidate"]["state"]["plan"],
+        fixture["candidate"]["checks"],
+        fixture["sourceReview"],
+    )
+    assert result["passed"] is False
+    assert any(
+        issue["code"] == "FURNITURE_MISSING"
+        and issue["severity"] == "blocking"
+        and issue["object_ids"]
+        for issue in result["issues"]
     )
 
 

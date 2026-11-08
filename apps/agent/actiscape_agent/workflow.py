@@ -441,18 +441,19 @@ class Workflow:
         valid_ids = {
             o["id"] for k in COLLECTIONS for o in state["candidate"]["state"]["plan"].get(k, [])
         } | set(state["candidate"]["diff"]["deleted"])
-        reported = [id for issue in review["issues"] for id in issue["object_ids"]]
+        blocking_issues = [
+            issue for issue in review["issues"] if issue.get("severity", "blocking") == "blocking"
+        ]
+        reported = [id for issue in blocking_issues for id in issue["object_ids"]]
         if any(id not in valid_ids for id in reported):
             raise TaskError("INVALID_REVIEW", "检查角色返回未知对象身份，候选没有提交")
-        passed = (
-            review["passed"] and not review["issues"] and state["candidate"]["checks"]["passed"]
-        )
+        passed = review["passed"] and not blocking_issues and state["candidate"]["checks"]["passed"]
         body = {
             "passed": passed,
             "source": "agent",
             "summary": review["summary"],
             "objectIds": list(dict.fromkeys(reported)),
-            "issues": [i["description"] for i in review["issues"]],
+            "issues": [i["description"] for i in blocking_issues],
             "evidenceHashes": [e["sha256"] for e in state["evidence"]],
         }
         await self.client.request(

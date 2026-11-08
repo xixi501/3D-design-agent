@@ -1,0 +1,2186 @@
+{
+  "purpose": "Captured V3-6 final-review identity and false opening-overflow failure; offline replay only, never sent to a model or production service",
+  "capturedTaskId": "40980242-1762-41de-813d-ac7da3d1f285",
+  "projectId": "3c6ddc65-bd79-41c4-ac45-e4d3e62de915",
+  "candidateId": "b6733694-8519-40f6-baf8-4c0d2ba50587",
+  "capturedAt": "2026-11-08T13-05-02-446Z",
+  "sourceImageSha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+  "referenceSentToModel": false,
+  "modelCalls": 23,
+  "activeSeconds": 228.46473026275606,
+  "capturedFailure": {
+    "status": "failed",
+    "error": "检查角色返回未知对象身份，候选没有提交",
+    "formalRevision": 0
+  },
+  "expected": {
+    "passed": true,
+    "blockingIssues": 0,
+    "allObjectIdsValid": true,
+    "openingOverflow": 0,
+    "reviewCodeSet": ["OPENING_MISMATCH", "WALL_MISMATCH", "FURNITURE_POSITION"]
+  },
+  "draft": {
+    "name": "92户型平面布置图结构草稿",
+    "anchors": [
+      {
+        "a": {
+          "x": 85.5,
+          "y": 15
+        },
+        "b": {
+          "x": 631.5,
+          "y": 15
+        },
+        "distance": {
+          "value": 9700,
+          "unit": "mm"
+        },
+        "basis": "exterior",
+        "evidence": "dimension candidate dim_top_0 ticks 85.5..631.5: 9700"
+      }
+    ],
+    "walls": [
+      {
+        "id": "w_h0",
+        "a": {
+          "x": 181.5,
+          "y": 76.5
+        },
+        "b": {
+          "x": 364.5,
+          "y": 76.5
+        },
+        "thicknessPx": 12
+      },
+      {
+        "id": "w_h1",
+        "a": {
+          "x": 159,
+          "y": 160.5
+        },
+        "b": {
+          "x": 181.5,
+          "y": 160.5
+        },
+        "thicknessPx": 12
+      },
+      {
+        "id": "w_h2",
+        "a": {
+          "x": 364.5,
+          "y": 166.5
+        },
+        "b": {
+          "x": 625,
+          "y": 166.5
+        },
+        "thicknessPx": 12
+      },
+      {
+        "id": "w_h3",
+        "a": {
+          "x": 91.5,
+          "y": 194.5
+        },
+        "b": {
+          "x": 159,
+          "y": 194.5
+        },
+        "thicknessPx": 12
+      },
+      {
+        "id": "w_h4",
+        "a": {
+          "x": 263,
+          "y": 280.5
+        },
+        "b": {
+          "x": 544,
+          "y": 280.5
+        },
+        "thicknessPx": 7
+      },
+      {
+        "id": "w_h5",
+        "a": {
+          "x": 544,
+          "y": 315
+        },
+        "b": {
+          "x": 625,
+          "y": 315
+        },
+        "thicknessPx": 7
+      },
+      {
+        "id": "w_h6",
+        "a": {
+          "x": 288,
+          "y": 349
+        },
+        "b": {
+          "x": 544,
+          "y": 349
+        },
+        "thicknessPx": 7
+      },
+      {
+        "id": "w_h7",
+        "a": {
+          "x": 91.5,
+          "y": 536.5
+        },
+        "b": {
+          "x": 625,
+          "y": 536.5
+        },
+        "thicknessPx": 12
+      },
+      {
+        "id": "w_v8",
+        "a": {
+          "x": 91.5,
+          "y": 194.5
+        },
+        "b": {
+          "x": 91.5,
+          "y": 536.5
+        },
+        "thicknessPx": 12
+      },
+      {
+        "id": "w_v9",
+        "a": {
+          "x": 159,
+          "y": 160.5
+        },
+        "b": {
+          "x": 159,
+          "y": 194.5
+        },
+        "thicknessPx": 13
+      },
+      {
+        "id": "w_v10",
+        "a": {
+          "x": 181.5,
+          "y": 76.5
+        },
+        "b": {
+          "x": 181.5,
+          "y": 160.5
+        },
+        "thicknessPx": 12
+      },
+      {
+        "id": "w_v11",
+        "a": {
+          "x": 263,
+          "y": 76.5
+        },
+        "b": {
+          "x": 263,
+          "y": 280.5
+        },
+        "thicknessPx": 7
+      },
+      {
+        "id": "w_v12",
+        "a": {
+          "x": 288,
+          "y": 349
+        },
+        "b": {
+          "x": 288,
+          "y": 536.5
+        },
+        "thicknessPx": 13
+      },
+      {
+        "id": "w_v13",
+        "a": {
+          "x": 364.5,
+          "y": 76.5
+        },
+        "b": {
+          "x": 364.5,
+          "y": 280.5
+        },
+        "thicknessPx": 12
+      },
+      {
+        "id": "w_v14",
+        "a": {
+          "x": 451,
+          "y": 349
+        },
+        "b": {
+          "x": 451,
+          "y": 536.5
+        },
+        "thicknessPx": 13
+      },
+      {
+        "id": "w_v15",
+        "a": {
+          "x": 476,
+          "y": 166.5
+        },
+        "b": {
+          "x": 476,
+          "y": 280.5
+        },
+        "thicknessPx": 7
+      },
+      {
+        "id": "w_v16",
+        "a": {
+          "x": 544,
+          "y": 280.5
+        },
+        "b": {
+          "x": 544,
+          "y": 349
+        },
+        "thicknessPx": 7
+      },
+      {
+        "id": "w_v17",
+        "a": {
+          "x": 625,
+          "y": 166.5
+        },
+        "b": {
+          "x": 625,
+          "y": 536.5
+        },
+        "thicknessPx": 13
+      }
+    ],
+    "openings": [
+      {
+        "id": "o0",
+        "wallId": "w_h0",
+        "type": "door",
+        "offset": 44.5,
+        "width": 58
+      },
+      {
+        "id": "o1",
+        "wallId": "w_h2",
+        "type": "window",
+        "offset": 85.5,
+        "width": 48
+      },
+      {
+        "id": "o2",
+        "wallId": "w_h2",
+        "type": "window",
+        "offset": 176,
+        "width": 67
+      },
+      {
+        "id": "o3",
+        "wallId": "w_h4",
+        "type": "door",
+        "offset": 129,
+        "width": 42
+      },
+      {
+        "id": "o4",
+        "wallId": "w_h4",
+        "type": "door",
+        "offset": 249,
+        "width": 46
+      },
+      {
+        "id": "o5",
+        "wallId": "w_h6",
+        "type": "door",
+        "offset": 38,
+        "width": 48
+      },
+      {
+        "id": "o6",
+        "wallId": "w_h6",
+        "type": "door",
+        "offset": 200.5,
+        "width": 49
+      },
+      {
+        "id": "o7",
+        "wallId": "w_h7",
+        "type": "window",
+        "offset": 101.5,
+        "width": 116
+      },
+      {
+        "id": "o8",
+        "wallId": "w_h7",
+        "type": "window",
+        "offset": 259.5,
+        "width": 126
+      },
+      {
+        "id": "o9",
+        "wallId": "w_h7",
+        "type": "window",
+        "offset": 429.5,
+        "width": 140
+      },
+      {
+        "id": "o10",
+        "wallId": "w_v11",
+        "type": "sliding",
+        "offset": 112.5,
+        "width": 74
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r_living",
+        "at": {
+          "x": 150,
+          "y": 450
+        },
+        "name": "客餐厅",
+        "functionalArea": "living"
+      },
+      {
+        "id": "r_kitchen",
+        "at": {
+          "x": 300,
+          "y": 240
+        },
+        "name": "厨房",
+        "functionalArea": "kitchen"
+      },
+      {
+        "id": "r_bath",
+        "at": {
+          "x": 400,
+          "y": 250
+        },
+        "name": "次卫",
+        "functionalArea": "bathroom"
+      },
+      {
+        "id": "r_study",
+        "at": {
+          "x": 540,
+          "y": 230
+        },
+        "name": "书房",
+        "functionalArea": "bedroom"
+      },
+      {
+        "id": "r_bed2",
+        "at": {
+          "x": 380,
+          "y": 450
+        },
+        "name": "次卧01",
+        "functionalArea": "bedroom"
+      },
+      {
+        "id": "r_bed1",
+        "at": {
+          "x": 540,
+          "y": 450
+        },
+        "name": "主卧",
+        "functionalArea": "bedroom"
+      }
+    ],
+    "symbols": [
+      {
+        "id": "s_fo_009",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_009",
+        "activityGroupIds": ["ag_000"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 119.5,
+        "y": 256.5,
+        "w": 25,
+        "d": 25,
+        "rot": 180,
+        "activityRole": "satellite"
+      },
+      {
+        "id": "s_fo_010",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_010",
+        "activityGroupIds": ["ag_000"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 156,
+        "y": 256.5,
+        "w": 26,
+        "d": 26,
+        "rot": 180,
+        "activityRole": "satellite"
+      },
+      {
+        "id": "s_fo_011",
+        "roomId": "r_living",
+        "sourceLabel": "餐桌",
+        "categoryCode": "diningTable",
+        "category": "diningTable",
+        "objectCandidateId": "fo_011",
+        "activityGroupIds": ["ag_000"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 142.5,
+        "y": 286.5,
+        "w": 83,
+        "d": 47,
+        "rot": 0,
+        "activityRole": "primary"
+      },
+      {
+        "id": "s_fo_012",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_012",
+        "activityGroupIds": ["ag_000"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 119.5,
+        "y": 316,
+        "w": 25,
+        "d": 25,
+        "rot": 0,
+        "activityRole": "satellite"
+      },
+      {
+        "id": "s_fo_013",
+        "roomId": "r_living",
+        "sourceLabel": "餐椅",
+        "categoryCode": "chair",
+        "category": "chair",
+        "objectCandidateId": "fo_013",
+        "activityGroupIds": ["ag_000"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 156,
+        "y": 316,
+        "w": 26,
+        "d": 26,
+        "rot": 0,
+        "activityRole": "satellite"
+      },
+      {
+        "id": "s_fo_014",
+        "roomId": "r_living",
+        "sourceLabel": "落地灯",
+        "categoryCode": "floorLamp",
+        "category": "floorLamp",
+        "objectCandidateId": "fo_014",
+        "activityGroupIds": ["ag_auto_001_s_fo_014"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 120.5,
+        "y": 364.5,
+        "w": 25,
+        "d": 25,
+        "rot": 0,
+        "activityRole": "primary"
+      },
+      {
+        "id": "s_fo_015",
+        "roomId": "r_living",
+        "sourceLabel": "边桌",
+        "categoryCode": "sideTable",
+        "category": "sideTable",
+        "objectCandidateId": "fo_015",
+        "activityGroupIds": ["ag_auto_002_s_fo_015"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 179,
+        "y": 369.5,
+        "w": 24,
+        "d": 23,
+        "rot": 0,
+        "activityRole": "primary"
+      },
+      {
+        "id": "s_fo_016",
+        "roomId": "r_living",
+        "sourceLabel": "电视柜",
+        "categoryCode": "tvCabinet",
+        "category": "tvCabinet",
+        "objectCandidateId": "fo_016",
+        "activityGroupIds": ["ag_auto_003_s_fo_016"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 269,
+        "y": 437.5,
+        "w": 99,
+        "d": 22,
+        "rot": 90,
+        "activityRole": "primary"
+      },
+      {
+        "id": "s_fo_017",
+        "roomId": "r_living",
+        "sourceLabel": "沙发",
+        "categoryCode": "sofa",
+        "category": "sofa",
+        "objectCandidateId": "fo_017",
+        "activityGroupIds": ["ag_auto_004_s_fo_017"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 129,
+        "y": 443.5,
+        "w": 109,
+        "d": 48,
+        "rot": 270,
+        "activityRole": "primary"
+      },
+      {
+        "id": "s_fo_018",
+        "roomId": "r_living",
+        "sourceLabel": "茶几",
+        "categoryCode": "coffeeTable",
+        "category": "coffeeTable",
+        "objectCandidateId": "fo_018",
+        "activityGroupIds": ["ag_auto_005_s_fo_018"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 185.5,
+        "y": 437,
+        "w": 37,
+        "d": 56,
+        "rot": 0,
+        "activityRole": "primary"
+      },
+      {
+        "id": "s_fo_020",
+        "roomId": "r_living",
+        "sourceLabel": "落地灯",
+        "categoryCode": "floorLamp",
+        "category": "floorLamp",
+        "objectCandidateId": "fo_020",
+        "activityGroupIds": ["ag_auto_006_s_fo_020"],
+        "included": true,
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ],
+        "x": 120,
+        "y": 519,
+        "w": 20,
+        "d": 20,
+        "rot": 0,
+        "activityRole": "primary"
+      }
+    ],
+    "activityGroups": [
+      {
+        "id": "ag_000",
+        "type": "group_seated",
+        "primarySymbolId": "s_fo_011",
+        "memberSymbolIds": [
+          "s_fo_011",
+          "s_fo_009",
+          "s_fo_010",
+          "s_fo_012",
+          "s_fo_013"
+        ],
+        "roles": {
+          "s_fo_009": "satellite",
+          "s_fo_010": "satellite",
+          "s_fo_011": "primary",
+          "s_fo_012": "satellite",
+          "s_fo_013": "satellite"
+        },
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ]
+      },
+      {
+        "id": "ag_auto_001_s_fo_014",
+        "type": "standalone",
+        "primarySymbolId": "s_fo_014",
+        "memberSymbolIds": ["s_fo_014"],
+        "roles": {
+          "s_fo_014": "primary"
+        },
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ]
+      },
+      {
+        "id": "ag_auto_002_s_fo_015",
+        "type": "standalone",
+        "primarySymbolId": "s_fo_015",
+        "memberSymbolIds": ["s_fo_015"],
+        "roles": {
+          "s_fo_015": "primary"
+        },
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ]
+      },
+      {
+        "id": "ag_auto_003_s_fo_016",
+        "type": "direct_access",
+        "primarySymbolId": "s_fo_016",
+        "memberSymbolIds": ["s_fo_016"],
+        "roles": {
+          "s_fo_016": "primary"
+        },
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ]
+      },
+      {
+        "id": "ag_auto_004_s_fo_017",
+        "type": "direct_occupancy",
+        "primarySymbolId": "s_fo_017",
+        "memberSymbolIds": ["s_fo_017"],
+        "roles": {
+          "s_fo_017": "primary"
+        },
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ]
+      },
+      {
+        "id": "ag_auto_005_s_fo_018",
+        "type": "standalone",
+        "primarySymbolId": "s_fo_018",
+        "memberSymbolIds": ["s_fo_018"],
+        "roles": {
+          "s_fo_018": "primary"
+        },
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ]
+      },
+      {
+        "id": "ag_auto_006_s_fo_020",
+        "type": "standalone",
+        "primarySymbolId": "s_fo_020",
+        "memberSymbolIds": ["s_fo_020"],
+        "roles": {
+          "s_fo_020": "primary"
+        },
+        "evidenceRefs": [
+          "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+        ]
+      }
+    ],
+    "targetRoomIds": ["r_living"],
+    "uncertainties": [
+      {
+        "id": "u_room_merge",
+        "message": "玄关、厨房与餐厅/客厅之间无实墙分隔，仅以尺寸标注和门洞虚线示意；餐厅、客厅、玄关、厨房连通为一个区域，需确认是否按餐厅(含客厅)与玄关、厨房分列标签并共用该连通区域点。",
+        "blocking": false,
+        "code": "ROOM_SCOPE_OPEN_KITCHEN",
+        "objectIds": [
+          "r_dining_living",
+          "r_living",
+          "r_entry_kitchen",
+          "r_kitchen"
+        ],
+        "evidenceRefs": [
+          "be01c6e1a89135a07f9ba0fcefae610b486112d1298e236563ffc010cd0a06a1"
+        ]
+      },
+      {
+        "id": "u_dim_binding",
+        "message": "顶部标注 9700 两端为外墙面；左侧 8800 与分段 460/3300/1100/1600/2100/200 等尺寸是否绑定外尺寸或净尺寸需确认，当前只读入 9700。",
+        "blocking": false,
+        "code": "DIMENSION_BINDING",
+        "objectIds": ["dim_top_0"],
+        "evidenceRefs": [
+          "b6dff23c39e53ac3305558a54e785aa038ac4a6bf0fd818f2ce879b5a76b154a"
+        ]
+      },
+      {
+        "id": "u_thickness",
+        "message": "墙厚无毫米标注，墙体毫米厚度留空。",
+        "blocking": false,
+        "code": "WALL_THICKNESS",
+        "objectIds": ["w_h0", "w_h7", "w_v8", "w_v17"],
+        "evidenceRefs": [
+          "b6dff23c39e53ac3305558a54e785aa038ac4a6bf0fd818f2ce879b5a76b154a"
+        ]
+      },
+      {
+        "id": "u_opening_type",
+        "message": "厨房与玄关间 op_010 为推拉门示意；主卧与书房之间 op_006 及次卫门 op_003 的门型由代码裁决。",
+        "blocking": false,
+        "code": "OPENING_TYPE",
+        "objectIds": ["o10", "o3", "o6"],
+        "evidenceRefs": [
+          "be01c6e1a89135a07f9ba0fcefae610b486112d1298e236563ffc010cd0a06a1"
+        ]
+      },
+      {
+        "id": "u_merge_r_living",
+        "message": "固定代码把同一连通区域的客厅、餐厅、玄关和过道标签合并为客餐厅目标区域。",
+        "blocking": false,
+        "code": "ROOM_SCOPE_OPEN_KITCHEN",
+        "objectIds": ["r_entry_kitchen", "r_dining_living", "r_living"],
+        "evidenceRefs": []
+      },
+      {
+        "id": "u_measure_w_h6",
+        "message": "w_h6（y=349）预计算墙面测量 n=0；对 x270-560,y330-370 原图裁剪复核可见走道南侧确有连续墙体带：x288-302 为与 w_v12 相接的门垛，x302-350 为门洞 o5，x350-446 为次卧01 北墙（线宽 5-6px 偏细，受家具线稿干扰），x459-464 为门垛，x464-513 为门洞 o6，x513-544 为与 w_v16 相接的门垛，中线 y≈349-351、厚约 6-7px。按原图保留 a/b=(288,349)-(544,349) 与 thicknessPx=7，墙体几何维持不变，仅确认其存在与走向，仍无法取得更精确的中线像素拟合。",
+        "blocking": false,
+        "code": "WALL_GEOMETRY",
+        "objectIds": ["w_h6", "o5", "o6"],
+        "evidenceRefs": [
+          "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b",
+          "0d52775488b11e2622f8fb82fbb896717b891193a8d9f8fce2eb174c2b061fad",
+          "b6dff23c39e53ac3305558a54e785aa038ac4a6bf0fd818f2ce879b5a76b154a"
+        ]
+      },
+      {
+        "id": "u_measure_v13_v16",
+        "message": "预计算测量给出 w_v13 中线 364.5、厚 8-12px，w_v16 中线 544、厚 7-13px。本阶段把 w_h0/w_h2 端点对齐 w_v13 中心 364.5 并保留 thicknessPx=12，把 w_h4/w_h5/w_h6 东端对齐 w_v16 中心 544 并保留 thicknessPx=7；原图厨房东侧墙带与门垛是否合并仍待确认。",
+        "blocking": false,
+        "code": "WALL_THICKNESS",
+        "objectIds": ["w_v13", "w_v16"],
+        "evidenceRefs": [
+          "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+        ]
+      }
+    ],
+    "measurementVersion": 2,
+    "features": [
+      {
+        "id": "feat_anchor_0_low",
+        "objectId": "w_v8",
+        "kind": "wall_face",
+        "axis": "x",
+        "side": "min",
+        "evidenceRefs": [
+          "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+        ]
+      },
+      {
+        "id": "feat_anchor_0_high",
+        "objectId": "w_v17",
+        "kind": "wall_face",
+        "axis": "x",
+        "side": "max",
+        "evidenceRefs": [
+          "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+        ]
+      }
+    ],
+    "dimensions": [
+      {
+        "id": "dim_anchor_0",
+        "anchorIndex": 0,
+        "from": "feat_anchor_0_low",
+        "to": "feat_anchor_0_high",
+        "distance": {
+          "value": 9700,
+          "unit": "mm"
+        },
+        "basis": "exterior",
+        "evidenceRefs": [
+          "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+        ]
+      }
+    ],
+    "recognitionVersion": 3,
+    "dimensionObservations": [
+      {
+        "a": {
+          "x": 85.5,
+          "y": 15
+        },
+        "b": {
+          "x": 631.5,
+          "y": 15
+        },
+        "distance": {
+          "value": 9700,
+          "unit": "mm"
+        },
+        "basis": "exterior",
+        "evidence": "dimension candidate dim_top_0 ticks 85.5..631.5: 9700",
+        "id": "dim_obs_dim_top_0",
+        "sourceCandidateId": "dim_top_0",
+        "label": "9700",
+        "scaleReference": true
+      }
+    ],
+    "image": {
+      "id": "fp-d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+      "sha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+      "width": 736,
+      "height": 673
+    }
+  },
+  "sourceReview": {
+    "hash": "3e2d1bc7b0bb6ba60de6fdf9edf2c2639ba6e64dc2eea2a34b6ffd93e17c1e97",
+    "review": {
+      "passed": true,
+      "summary": "确定性检查通过；未能复现的模型审核意见已记录为 advisory。",
+      "issues": [
+        {
+          "code": "OPENING_MISMATCH",
+          "source": "model",
+          "severity": "advisory",
+          "object_ids": ["o0", "w_h0"],
+          "description": "o0 位于 w_h0 上 x≈197-255（offset44.5、宽58，向西端偏斜），而固定候选 op_000 与墙体断口为 x197-255 中心 226，但原图入户门弧位于 x192-253 的西北角墙段，草稿门洞相对 a=(181.5,76.5) 的位置使其左边缘贴 w_v10，需按 op_000 的 start/end 重算 offset。",
+          "evidenceRefs": [
+            "b6dff23c39e53ac3305558a54e785aa038ac4a6bf0fd818f2ce879b5a76b154a",
+            "532517c227141ccd54aa6ff273676e20b51a8f0af54e2e70f4e63a7bdd42699c"
+          ],
+          "bbox": [181, 70, 262, 90]
+        },
+        {
+          "code": "EVIDENCE_MISSING",
+          "source": "model",
+          "severity": "advisory",
+          "object_ids": ["o5", "o6", "w_h6"],
+          "description": "w_h6 的 fit 测量为 center=null、n=0，草稿仍以 y=349 承载 o5（次卧01 门）与 o6（主卧门），门洞归属缺少可复核的墙体测量证据，仅靠裁剪文字说明不足以证明墙上门洞位置。",
+          "evidenceRefs": [
+            "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b",
+            "0d52775488b11e2622f8fb82fbb896717b891193a8d9f8fce2eb174c2b061fad",
+            "b6dff23c39e53ac3305558a54e785aa038ac4a6bf0fd818f2ce879b5a76b154a"
+          ],
+          "bbox": [288, 340, 544, 358]
+        },
+        {
+          "code": "EVIDENCE_MISSING",
+          "source": "model",
+          "severity": "advisory",
+          "object_ids": ["dim_anchor_0"],
+          "description": "顶部 9700 标注只覆盖外墙外皮跨度，左侧 8800 及 460/3300/1100/1600/2100/200 分段标注未绑定任何几何特征，比例尺只做了单维度校验，缺第二方向交叉核对。",
+          "evidenceRefs": [
+            "b6dff23c39e53ac3305558a54e785aa038ac4a6bf0fd818f2ce879b5a76b154a",
+            "69e31904ac75a66fa0b52ab4052c0ea4010d6198d3e16691ea2d1d358a125796"
+          ],
+          "bbox": [20, 60, 70, 570]
+        },
+        {
+          "code": "FURNITURE_EXTRA",
+          "source": "model",
+          "severity": "advisory",
+          "object_ids": ["s_fo_016"],
+          "description": "s_fo_016 电视柜以 rot=90、w=99、d=22 记录，回投后在客厅东侧形成竖向矮柜，但原图该细长线稿（fc_026，x244-280、y388-487）与次卧01 门洞 o5 及走道墙体相距约 8px，其归属需确认是客厅电视柜还是走道家具轮廓。",
+          "evidenceRefs": [
+            "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+          ],
+          "bbox": [244, 388, 280, 487]
+        },
+        {
+          "code": "EVIDENCE_MISSING",
+          "source": "model",
+          "severity": "advisory",
+          "object_ids": ["s_fo_014", "s_fo_015", "s_fo_020"],
+          "description": "落地灯 s_fo_014/s_fo_020 与边桌 s_fo_015 均未标注朝向来源，原图为圆形/矩形符号，rot=0 属推断值；需在确认前声明为不可判定朝向而非实测。",
+          "evidenceRefs": [
+            "a2e4caf6150ab0357dc1afec23337c8698f0a814345349c7ceaf319abdea83e5"
+          ],
+          "bbox": [100, 350, 200, 530]
+        },
+        {
+          "code": "REVIEW_CONFLICT",
+          "source": "model",
+          "severity": "advisory",
+          "object_ids": [
+            "dim_anchor_0",
+            "o0",
+            "o5",
+            "o6",
+            "s_fo_014",
+            "s_fo_015",
+            "s_fo_016",
+            "s_fo_020",
+            "w_h0",
+            "w_h6"
+          ],
+          "description": "模型审核提出的问题未被固定候选或代码检查复现",
+          "evidenceRefs": [],
+          "bbox": null
+        }
+      ]
+    },
+    "evidenceRefs": [
+      "9c23f8c7b471ad06ed8ce1cd09747a3be0a5a06c95c185447edee627135e2f0e"
+    ]
+  },
+  "candidate": {
+    "checks": {
+      "passed": true,
+      "issues": [],
+      "coverage": [
+        "单层正交墙体、共用墙与连接",
+        "所有封闭区域及房间标签",
+        "门窗归属、范围与重叠",
+        "统一比例尺及标注交叉校验",
+        "已确认原图布局逐项一致",
+        "限定目标客餐厅",
+        "授权对象与结构逐字段保护",
+        "需求数量",
+        "封闭房间占地包含（20 mm 容差）",
+        "有效高度与原版参数化轮廓 SAT",
+        "基准问题对照"
+      ],
+      "limitations": [
+        "GLB 使用矩形占地，不是精确网格碰撞",
+        "未验证支撑面、通道可达性、照明或法规"
+      ]
+    },
+    "state": {
+      "plan": {
+        "version": 2,
+        "name": "92户型平面布置图结构草稿",
+        "height": 2800,
+        "phase": "original",
+        "nodes": [
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:1",
+            "x": 1598.901,
+            "y": 0
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:2",
+            "x": 3046.795,
+            "y": 0
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:3",
+            "x": 4850,
+            "y": 0
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:4",
+            "x": 1199.176,
+            "y": 1492.308
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:5",
+            "x": 1598.901,
+            "y": 1492.308
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:6",
+            "x": 4850,
+            "y": 1598.901
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:7",
+            "x": 6830.861,
+            "y": 1598.901
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:8",
+            "x": 9477.93,
+            "y": 1598.901
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:9",
+            "x": 0,
+            "y": 2096.337
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:10",
+            "x": 1199.176,
+            "y": 2096.337
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:11",
+            "x": 3046.795,
+            "y": 3624.176
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:12",
+            "x": 4850,
+            "y": 3624.176
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:13",
+            "x": 6830.861,
+            "y": 3624.176
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:14",
+            "x": 8038.919,
+            "y": 3624.176
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:15",
+            "x": 8038.919,
+            "y": 4237.088
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:16",
+            "x": 9477.93,
+            "y": 4237.088
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:17",
+            "x": 3490.934,
+            "y": 4841.117
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:18",
+            "x": 6386.722,
+            "y": 4841.117
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:19",
+            "x": 8038.919,
+            "y": 4841.117
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:20",
+            "x": 0,
+            "y": 8172.161
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:21",
+            "x": 3490.934,
+            "y": 8172.161
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:22",
+            "x": 6386.722,
+            "y": 8172.161
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:n:23",
+            "x": 9477.93,
+            "y": 8172.161
+          }
+        ],
+        "walls": [
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h0:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:1",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:2",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h0:2",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:2",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:3",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h1:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:4",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:5",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h2:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:6",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:7",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h2:2",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:7",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:8",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h3:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:9",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:10",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h4:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:11",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:12",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h4:2",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:12",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:13",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h4:3",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:13",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:14",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h5:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:15",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:16",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h6:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:17",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:18",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h6:2",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:18",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:19",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:20",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:21",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:2",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:21",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:22",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:3",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:22",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:23",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v8:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:9",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:20",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v9:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:4",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:10",
+            "t": 230.952
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v10:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:1",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:5",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v11:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:2",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:11",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v12:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:17",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:21",
+            "t": 230.952
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v13:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:3",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:6",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v13:2",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:6",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:12",
+            "t": 213.187
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v14:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:18",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:22",
+            "t": 230.952
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v15:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:7",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:13",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v16:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:14",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:15",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v16:2",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:15",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:19",
+            "t": 124.359
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v17:1",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:8",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:16",
+            "t": 230.952
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v17:2",
+            "a": "40980242-1762-41de-813d-ac7da3d1f285:n:16",
+            "b": "40980242-1762-41de-813d-ac7da3d1f285:n:23",
+            "t": 230.952
+          }
+        ],
+        "openings": [
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o0",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h0:1",
+            "type": "door",
+            "pos": 790.568,
+            "width": 1030.403,
+            "sill": 0,
+            "head": 2100,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o1",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h2:1",
+            "type": "window",
+            "pos": 1518.956,
+            "width": 852.747,
+            "sill": 900,
+            "head": 2400,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o2",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h2:2",
+            "type": "window",
+            "pos": 1145.879,
+            "width": 1190.293,
+            "sill": 900,
+            "head": 2400,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o3",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h4:2",
+            "type": "door",
+            "pos": 488.553,
+            "width": 746.154,
+            "sill": 0,
+            "head": 2100,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o4",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h4:3",
+            "type": "door",
+            "pos": 639.56,
+            "width": 817.216,
+            "sill": 0,
+            "head": 2100,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o5",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h6:1",
+            "type": "door",
+            "pos": 675.092,
+            "width": 852.747,
+            "sill": 0,
+            "head": 2100,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o6",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h6:2",
+            "type": "door",
+            "pos": 666.208,
+            "width": 870.513,
+            "sill": 0,
+            "head": 2100,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o7",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:1",
+            "type": "window",
+            "pos": 1803.205,
+            "width": 2060.806,
+            "sill": 900,
+            "head": 2400,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o8",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:2",
+            "type": "window",
+            "pos": 1119.231,
+            "width": 2238.462,
+            "sill": 900,
+            "head": 2400,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o9",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:3",
+            "type": "window",
+            "pos": 1243.589,
+            "width": 2487.179,
+            "sill": 900,
+            "head": 2400,
+            "hinge": 0,
+            "side": 1
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:o:o10",
+            "wall": "40980242-1762-41de-813d-ac7da3d1f285:w:w_v11:1",
+            "type": "sliding",
+            "pos": 1998.626,
+            "width": 1314.652,
+            "sill": 0,
+            "head": 2100,
+            "hinge": 0,
+            "side": 1
+          }
+        ],
+        "furniture": [
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_009",
+            "key": "chair",
+            "type": "chair",
+            "name": "餐椅",
+            "w": 444.139,
+            "d": 444.139,
+            "h": 880,
+            "color": "#5d636e",
+            "x": 497.436,
+            "y": 3197.802,
+            "rot": 180
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_010",
+            "key": "chair",
+            "type": "chair",
+            "name": "餐椅",
+            "w": 461.905,
+            "d": 461.905,
+            "h": 880,
+            "color": "#5d636e",
+            "x": 1145.879,
+            "y": 3197.802,
+            "rot": 180
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_011",
+            "key": "diningTable",
+            "type": "diningTable",
+            "name": "餐桌",
+            "w": 1474.542,
+            "d": 834.982,
+            "h": 750,
+            "color": "#b98c5f",
+            "x": 906.044,
+            "y": 3730.769,
+            "rot": 0
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_012",
+            "key": "chair",
+            "type": "chair",
+            "name": "餐椅",
+            "w": 444.139,
+            "d": 444.139,
+            "h": 880,
+            "color": "#5d636e",
+            "x": 497.436,
+            "y": 4254.853,
+            "rot": 0
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_013",
+            "key": "chair",
+            "type": "chair",
+            "name": "餐椅",
+            "w": 461.905,
+            "d": 461.905,
+            "h": 880,
+            "color": "#5d636e",
+            "x": 1145.879,
+            "y": 4254.853,
+            "rot": 0
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_014",
+            "key": "floorLamp",
+            "type": "floorLamp",
+            "name": "落地灯（可点亮）",
+            "w": 444.139,
+            "d": 444.139,
+            "h": 1650,
+            "color": "#e8dcc6",
+            "x": 515.201,
+            "y": 5116.484,
+            "rot": 0
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_015",
+            "key": "sideTable",
+            "type": "sideTable",
+            "name": "边几",
+            "w": 426.374,
+            "d": 408.608,
+            "h": 550,
+            "color": "#9c7652",
+            "x": 1554.487,
+            "y": 5205.311,
+            "rot": 0
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_016",
+            "key": "tvCabinet",
+            "type": "tvCabinet",
+            "name": "电视柜（电视可开关）",
+            "w": 1758.791,
+            "d": 390.842,
+            "h": 450,
+            "color": "#e6e0d6",
+            "x": 3153.388,
+            "y": 6413.37,
+            "rot": 90
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_017",
+            "key": "officeSofa",
+            "type": "sofa",
+            "name": "办公接待沙发",
+            "w": 1936.447,
+            "d": 852.747,
+            "h": 780,
+            "color": "#4a5059",
+            "x": 666.209,
+            "y": 6519.963,
+            "rot": 270
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_018",
+            "key": "coffeeTable",
+            "type": "coffeeTable",
+            "name": "茶几",
+            "w": 657.326,
+            "d": 994.872,
+            "h": 400,
+            "color": "#a47a55",
+            "x": 1669.963,
+            "y": 6404.487,
+            "rot": 0
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_020",
+            "key": "floorLamp",
+            "type": "floorLamp",
+            "name": "落地灯（可点亮）",
+            "w": 355.311,
+            "d": 355.311,
+            "h": 1650,
+            "color": "#e8dcc6",
+            "x": 506.319,
+            "y": 7861.264,
+            "rot": 0
+          }
+        ],
+        "structs": [],
+        "beams": [],
+        "rooms": [
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:r:r_living",
+            "x": 1039.286,
+            "y": 6635.44,
+            "name": "客餐厅",
+            "mat": "oak",
+            "ceil": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:r:r_kitchen",
+            "x": 3704.121,
+            "y": 2904.67,
+            "name": "厨房",
+            "mat": "oak",
+            "ceil": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:r:r_bath",
+            "x": 5480.678,
+            "y": 3082.326,
+            "name": "次卫",
+            "mat": "oak",
+            "ceil": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:r:r_study",
+            "x": 7967.857,
+            "y": 2727.015,
+            "name": "书房",
+            "mat": "oak",
+            "ceil": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:r:r_bed2",
+            "x": 5125.366,
+            "y": 6635.44,
+            "name": "次卧01",
+            "mat": "oak",
+            "ceil": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "40980242-1762-41de-813d-ac7da3d1f285:r:r_bed1",
+            "x": 7967.857,
+            "y": 6635.44,
+            "name": "主卧",
+            "mat": "oak",
+            "ceil": {
+              "type": "none"
+            }
+          }
+        ],
+        "measures": [],
+        "elec": [],
+        "prices": {},
+        "voids": [],
+        "comments": [],
+        "source": {
+          "kind": "floorplan",
+          "imageId": "fp-d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+          "imageHash": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+          "imageWidth": 736,
+          "imageHeight": 673,
+          "mmPerPixel": 17.765567765567766,
+          "measurementVersion": 2,
+          "measurement": {
+            "kernelVersion": "axis-constraints-1",
+            "dimensions": [
+              {
+                "id": "dim_anchor_0",
+                "from": "feat_anchor_0_low",
+                "to": "feat_anchor_0_high",
+                "expectedMm": 9700,
+                "actualMm": 9699.999999999998,
+                "evidenceRefs": [
+                  "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+                ],
+                "residualMm": -1.8189894035458565e-12
+              }
+            ],
+            "features": [
+              {
+                "id": "feat_anchor_0_low",
+                "objectId": "w_v8",
+                "axis": "x",
+                "actualMm": -106.59340659340565,
+                "observedMm": -106.5934065934066,
+                "adjustmentMm": 9.452510458950496e-13,
+                "evidenceRefs": [
+                  "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+                ]
+              },
+              {
+                "id": "feat_anchor_0_high",
+                "objectId": "w_v17",
+                "axis": "x",
+                "actualMm": 9593.406593406593,
+                "observedMm": 9593.406593406595,
+                "adjustmentMm": -7.105427357601002e-13,
+                "evidenceRefs": [
+                  "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+                ]
+              }
+            ],
+            "inputs": {
+              "anchors": [
+                {
+                  "a": {
+                    "x": 85.5,
+                    "y": 15
+                  },
+                  "b": {
+                    "x": 631.5,
+                    "y": 15
+                  },
+                  "distance": {
+                    "value": 9700,
+                    "unit": "mm"
+                  },
+                  "basis": "exterior",
+                  "evidence": "dimension candidate dim_top_0 ticks 85.5..631.5: 9700"
+                }
+              ],
+              "dimensionObservations": [
+                {
+                  "a": {
+                    "x": 85.5,
+                    "y": 15
+                  },
+                  "b": {
+                    "x": 631.5,
+                    "y": 15
+                  },
+                  "distance": {
+                    "value": 9700,
+                    "unit": "mm"
+                  },
+                  "basis": "exterior",
+                  "evidence": "dimension candidate dim_top_0 ticks 85.5..631.5: 9700",
+                  "id": "dim_obs_dim_top_0",
+                  "sourceCandidateId": "dim_top_0",
+                  "label": "9700",
+                  "scaleReference": true
+                }
+              ],
+              "features": [
+                {
+                  "id": "feat_anchor_0_low",
+                  "objectId": "w_v8",
+                  "kind": "wall_face",
+                  "axis": "x",
+                  "side": "min",
+                  "evidenceRefs": [
+                    "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+                  ]
+                },
+                {
+                  "id": "feat_anchor_0_high",
+                  "objectId": "w_v17",
+                  "kind": "wall_face",
+                  "axis": "x",
+                  "side": "max",
+                  "evidenceRefs": [
+                    "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+                  ]
+                }
+              ],
+              "dimensions": [
+                {
+                  "id": "dim_anchor_0",
+                  "anchorIndex": 0,
+                  "from": "feat_anchor_0_low",
+                  "to": "feat_anchor_0_high",
+                  "distance": {
+                    "value": 9700,
+                    "unit": "mm"
+                  },
+                  "basis": "exterior",
+                  "evidenceRefs": [
+                    "4a9be88eac51480adfec70605b0b7c45a1362c2e5dd25daaccf2dc8d795fd50b"
+                  ]
+                }
+              ],
+              "walls": [
+                {
+                  "id": "w_h0",
+                  "a": {
+                    "x": 181.5,
+                    "y": 76.5
+                  },
+                  "b": {
+                    "x": 364.5,
+                    "y": 76.5
+                  },
+                  "thicknessPx": 12
+                },
+                {
+                  "id": "w_h1",
+                  "a": {
+                    "x": 159,
+                    "y": 160.5
+                  },
+                  "b": {
+                    "x": 181.5,
+                    "y": 160.5
+                  },
+                  "thicknessPx": 12
+                },
+                {
+                  "id": "w_h2",
+                  "a": {
+                    "x": 364.5,
+                    "y": 166.5
+                  },
+                  "b": {
+                    "x": 625,
+                    "y": 166.5
+                  },
+                  "thicknessPx": 12
+                },
+                {
+                  "id": "w_h3",
+                  "a": {
+                    "x": 91.5,
+                    "y": 194.5
+                  },
+                  "b": {
+                    "x": 159,
+                    "y": 194.5
+                  },
+                  "thicknessPx": 12
+                },
+                {
+                  "id": "w_h4",
+                  "a": {
+                    "x": 263,
+                    "y": 280.5
+                  },
+                  "b": {
+                    "x": 544,
+                    "y": 280.5
+                  },
+                  "thicknessPx": 7
+                },
+                {
+                  "id": "w_h5",
+                  "a": {
+                    "x": 544,
+                    "y": 315
+                  },
+                  "b": {
+                    "x": 625,
+                    "y": 315
+                  },
+                  "thicknessPx": 7
+                },
+                {
+                  "id": "w_h6",
+                  "a": {
+                    "x": 288,
+                    "y": 349
+                  },
+                  "b": {
+                    "x": 544,
+                    "y": 349
+                  },
+                  "thicknessPx": 7
+                },
+                {
+                  "id": "w_h7",
+                  "a": {
+                    "x": 91.5,
+                    "y": 536.5
+                  },
+                  "b": {
+                    "x": 625,
+                    "y": 536.5
+                  },
+                  "thicknessPx": 12
+                },
+                {
+                  "id": "w_v8",
+                  "a": {
+                    "x": 91.5,
+                    "y": 194.5
+                  },
+                  "b": {
+                    "x": 91.5,
+                    "y": 536.5
+                  },
+                  "thicknessPx": 12
+                },
+                {
+                  "id": "w_v9",
+                  "a": {
+                    "x": 159,
+                    "y": 160.5
+                  },
+                  "b": {
+                    "x": 159,
+                    "y": 194.5
+                  },
+                  "thicknessPx": 13
+                },
+                {
+                  "id": "w_v10",
+                  "a": {
+                    "x": 181.5,
+                    "y": 76.5
+                  },
+                  "b": {
+                    "x": 181.5,
+                    "y": 160.5
+                  },
+                  "thicknessPx": 12
+                },
+                {
+                  "id": "w_v11",
+                  "a": {
+                    "x": 263,
+                    "y": 76.5
+                  },
+                  "b": {
+                    "x": 263,
+                    "y": 280.5
+                  },
+                  "thicknessPx": 7
+                },
+                {
+                  "id": "w_v12",
+                  "a": {
+                    "x": 288,
+                    "y": 349
+                  },
+                  "b": {
+                    "x": 288,
+                    "y": 536.5
+                  },
+                  "thicknessPx": 13
+                },
+                {
+                  "id": "w_v13",
+                  "a": {
+                    "x": 364.5,
+                    "y": 76.5
+                  },
+                  "b": {
+                    "x": 364.5,
+                    "y": 280.5
+                  },
+                  "thicknessPx": 12
+                },
+                {
+                  "id": "w_v14",
+                  "a": {
+                    "x": 451,
+                    "y": 349
+                  },
+                  "b": {
+                    "x": 451,
+                    "y": 536.5
+                  },
+                  "thicknessPx": 13
+                },
+                {
+                  "id": "w_v15",
+                  "a": {
+                    "x": 476,
+                    "y": 166.5
+                  },
+                  "b": {
+                    "x": 476,
+                    "y": 280.5
+                  },
+                  "thicknessPx": 7
+                },
+                {
+                  "id": "w_v16",
+                  "a": {
+                    "x": 544,
+                    "y": 280.5
+                  },
+                  "b": {
+                    "x": 544,
+                    "y": 349
+                  },
+                  "thicknessPx": 7
+                },
+                {
+                  "id": "w_v17",
+                  "a": {
+                    "x": 625,
+                    "y": 166.5
+                  },
+                  "b": {
+                    "x": 625,
+                    "y": 536.5
+                  },
+                  "thicknessPx": 13
+                }
+              ],
+              "openings": [
+                {
+                  "id": "o0",
+                  "wallId": "w_h0",
+                  "type": "door",
+                  "offset": 44.5,
+                  "width": 58
+                },
+                {
+                  "id": "o1",
+                  "wallId": "w_h2",
+                  "type": "window",
+                  "offset": 85.5,
+                  "width": 48
+                },
+                {
+                  "id": "o2",
+                  "wallId": "w_h2",
+                  "type": "window",
+                  "offset": 176,
+                  "width": 67
+                },
+                {
+                  "id": "o3",
+                  "wallId": "w_h4",
+                  "type": "door",
+                  "offset": 129,
+                  "width": 42
+                },
+                {
+                  "id": "o4",
+                  "wallId": "w_h4",
+                  "type": "door",
+                  "offset": 249,
+                  "width": 46
+                },
+                {
+                  "id": "o5",
+                  "wallId": "w_h6",
+                  "type": "door",
+                  "offset": 38,
+                  "width": 48
+                },
+                {
+                  "id": "o6",
+                  "wallId": "w_h6",
+                  "type": "door",
+                  "offset": 200.5,
+                  "width": 49
+                },
+                {
+                  "id": "o7",
+                  "wallId": "w_h7",
+                  "type": "window",
+                  "offset": 101.5,
+                  "width": 116
+                },
+                {
+                  "id": "o8",
+                  "wallId": "w_h7",
+                  "type": "window",
+                  "offset": 259.5,
+                  "width": 126
+                },
+                {
+                  "id": "o9",
+                  "wallId": "w_h7",
+                  "type": "window",
+                  "offset": 429.5,
+                  "width": 140
+                },
+                {
+                  "id": "o10",
+                  "wallId": "w_v11",
+                  "type": "sliding",
+                  "offset": 112.5,
+                  "width": 74
+                }
+              ]
+            }
+          },
+          "origin": {
+            "x": 91.5,
+            "y": 76.5
+          },
+          "draftId": "7b2ebdd1-6312-4318-b9d7-1b47848144f0",
+          "draftRevision": 5,
+          "draftHash": "3e2d1bc7b0bb6ba60de6fdf9edf2c2639ba6e64dc2eea2a34b6ffd93e17c1e97",
+          "symbolObjects": {
+            "s_fo_009": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_009",
+            "s_fo_010": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_010",
+            "s_fo_011": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_011",
+            "s_fo_012": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_012",
+            "s_fo_013": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_013",
+            "s_fo_014": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_014",
+            "s_fo_015": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_015",
+            "s_fo_016": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_016",
+            "s_fo_017": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_017",
+            "s_fo_018": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_018",
+            "s_fo_020": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_020"
+          },
+          "activityGroups": [
+            {
+              "id": "ag_000",
+              "type": "group_seated",
+              "primaryObjectId": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_011",
+              "memberObjectIds": [
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_011",
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_009",
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_010",
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_012",
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_013"
+              ],
+              "roles": {
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_009": "satellite",
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_010": "satellite",
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_011": "primary",
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_012": "satellite",
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_013": "satellite"
+              }
+            },
+            {
+              "id": "ag_auto_001_s_fo_014",
+              "type": "standalone",
+              "primaryObjectId": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_014",
+              "memberObjectIds": [
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_014"
+              ],
+              "roles": {
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_014": "primary"
+              }
+            },
+            {
+              "id": "ag_auto_002_s_fo_015",
+              "type": "standalone",
+              "primaryObjectId": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_015",
+              "memberObjectIds": [
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_015"
+              ],
+              "roles": {
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_015": "primary"
+              }
+            },
+            {
+              "id": "ag_auto_003_s_fo_016",
+              "type": "direct_access",
+              "primaryObjectId": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_016",
+              "memberObjectIds": [
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_016"
+              ],
+              "roles": {
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_016": "primary"
+              }
+            },
+            {
+              "id": "ag_auto_004_s_fo_017",
+              "type": "direct_occupancy",
+              "primaryObjectId": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_017",
+              "memberObjectIds": [
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_017"
+              ],
+              "roles": {
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_017": "primary"
+              }
+            },
+            {
+              "id": "ag_auto_005_s_fo_018",
+              "type": "standalone",
+              "primaryObjectId": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_018",
+              "memberObjectIds": [
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_018"
+              ],
+              "roles": {
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_018": "primary"
+              }
+            },
+            {
+              "id": "ag_auto_006_s_fo_020",
+              "type": "standalone",
+              "primaryObjectId": "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_020",
+              "memberObjectIds": [
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_020"
+              ],
+              "roles": {
+                "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_020": "primary"
+              }
+            }
+          ],
+          "targetRoomIds": ["40980242-1762-41de-813d-ac7da3d1f285:r:r_living"]
+        }
+      },
+      "roomLabelArchive": []
+    }
+  },
+  "review": {
+    "passed": false,
+    "summary": "确定性检查 passed=true 且 issues=[]，四张视图（原图、识别叠加、top、oblique）完整、检查视图中墙体透明且无吊顶，客餐厅 11 件家具（餐桌 1＋餐椅 4、落地灯 2、边几 1、电视柜 1、沙发 1、茶几 1）类别与相对位置基本对应原图；开放客餐厅仅一个标签、未向未选卧室/厨房登记家具，符合限定范围。但原版 wallaudit 的 4 条启发式不一致无法用现有证据解释，且逐件核算编译洞口发现洞口跨越墙段节点、甚至越出外墙包围盒，属于确定性几何问题，不能以 issueCount=0 放行，故本轮不通过。",
+    "issues": [
+      {
+        "object_ids": [
+          "40980242-1762-41de-813d-ac7da3d1f285:o:o8",
+          "40980242-1762-41de-813d-ac7da3d1f285:o:o9",
+          "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:2",
+          "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:3",
+          "o8",
+          "o9"
+        ],
+        "description": "南墙窗洞口跨段/越界：o8 位于 w_h7:2（长 2895.8mm），pos 1119.2＋宽 2238.5＝3357.7mm，超墙段 462mm，跨过 w_v14（x≈451px）与南墙的 T 节点；o9 位于 w_h7:3（长 3091.2mm），pos 1243.6＋宽 2487.2＝3730.8mm，超墙段 639mm，按像素换算延伸到 x≈661px，已越出外墙外皮（x≈625px）之外。这与原图南侧三处独立窗洞（客厅、次卧01、主卧各一段、均落在各自房间墙段内）不符，须按原图收窄并对齐洞口。"
+      },
+      {
+        "object_ids": [
+          "40980242-1762-41de-813d-ac7da3d1f285:o:o0",
+          "40980242-1762-41de-813d-ac7da3d1f285:w:w_h0:1",
+          "40980242-1762-41de-813d-ac7da3d1f285:w:w_h0:2",
+          "o0"
+        ],
+        "description": "入户门 o0 挂在 w_h0:1（181.5–263px，长 1447.9mm），pos 790.6＋宽 1030.4＝1821.0mm，超段 373mm，跨过 n:2（x≈263px，厨房西墙与外墙交接角）。原图入户门扇与门弧位于 x≈195–255px 之间、未切入 x=263 的转角墙垛，属门洞位置/宽度与原图不符，需按原图重定位并落在单一墙段内。"
+      },
+      {
+        "object_ids": [
+          "40980242-1762-41de-813d-ac7da3d1f285:w:w_v13:1",
+          "40980242-1762-41de-813d-ac7da3d1f285:w:w_v13:2",
+          "w_v13",
+          "o10"
+        ],
+        "description": "wallaudit #2/#3：w_v13:1 在 y≈555–1155mm（原图 y≈108–142px）、w_v13:2 在 y≈2904–3204mm（原图 y≈240–257px）处 drawing=none 而模型为连续墙。这两段正是厨房东墙/次卫西墙一带（含 op_010 推拉门与 940/700 标注门垛区），说明该墙可能存在未建的洞口或墙垛划分与原图不一致；现有四张视图无法判定是墙体真实缺失还是被家具线稿/填充干扰造成的误报，属未验证项，须用局部裁剪复核后再放行。"
+      },
+      {
+        "object_ids": [
+          "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:2",
+          "40980242-1762-41de-813d-ac7da3d1f285:w:w_h7:3",
+          "w_h7",
+          "o7",
+          "o8",
+          "o9"
+        ],
+        "description": "wallaudit #0/#1：w_h7:2（x≈3596–4196mm）与 w_h7:3（x≈6492–7092mm）处 drawing=fill 而模型为 window，与上一条洞口越界问题互为印证：原图窗带位置与模型窗带位置未对齐，需把三处南窗范围收回到实测窗带内后重新核对。另 o7 同样超 w_h7:1 段 373mm 并跨过 x≈288px 的 w_v12 交接节点，应一并修正。"
+      },
+      {
+        "object_ids": [
+          "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_011",
+          "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_009",
+          "40980242-1762-41de-813d-ac7da3d1f285:f:s_fo_010",
+          "s_fo_011"
+        ],
+        "description": "餐桌 s_fo_011 编译尺寸 1474.5×835.0mm、北缘在 y≈263px，而原图餐桌带大致落在 y≈285–330px、进深约 800mm；四个餐椅（s_fo_009/010/012/013，y≈256.5/316px）已与原图一致，餐桌被放大并整体北移约 20px，导致餐椅与桌面的围合关系与原图不符。外观可按目录近似，但占地与位置需回到原图轮廓。"
+      }
+    ]
+  }
+}

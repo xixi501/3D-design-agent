@@ -925,6 +925,26 @@ def test_review_downgrades_dimension_uncertainty_resolved_by_code_bindings():
         and "代码证据已覆盖" in issue["description"]
         for issue in arbitrated["issues"]
     )
+    local = {
+        **draft,
+        "data": {
+            **draft["data"],
+            "uncertainties": [
+                {
+                    "id": "u_dim_local",
+                    "message": "7.00 m 局部标注无候选链",
+                    "blocking": True,
+                    "code": "DIMENSION_LOCAL",
+                }
+            ],
+        },
+    }
+    local_review = _arbitrate_review(review, local, diagnostics, {})
+    assert local_review["passed"] is True
+    assert any(
+        issue["object_ids"] == ["u_dim_local"] and issue["severity"] == "advisory"
+        for issue in local_review["issues"]
+    )
 
 
 def test_review_keeps_uncertainty_blocking_without_code_resolution():

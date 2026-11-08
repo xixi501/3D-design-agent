@@ -239,7 +239,7 @@ def _uncertainty_resolved_by_code(uncertainty, data, checks, skeleton):
         return False
     code = uncertainty.get("code") or _infer_uncertainty_code(uncertainty)
     text = (str(uncertainty.get("id") or "") + " " + str(uncertainty.get("message") or "")).lower()
-    if code == "DIMENSION_BINDING":
+    if code in ("DIMENSION_BINDING", "DIMENSION_LOCAL"):
         return _measurement_bindings_complete(data)
     if code in ("OPENING_OWNERSHIP", "OPENING_TYPE"):
         candidates = skeleton.get("openingCandidates") or []

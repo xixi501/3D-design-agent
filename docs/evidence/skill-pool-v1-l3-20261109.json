@@ -1,0 +1,173 @@
+{
+  "purpose": "Real-core L3 conformance for active Skill Pool v1 entries",
+  "generatedAt": "2026-11-09T00:39:54+08:00",
+  "poolVersion": "2026-11-09",
+  "poolHash": "d8f0b5b28711b8f06b0e7ba9b6d3adca9dcba3fab02c71d35d524dfd30c82f48",
+  "activeMember3Skills": 7,
+  "modelCalls": 0,
+  "cases": [
+    {
+      "skillId": "living-dining-small",
+      "caseId": "LD-dev-01",
+      "kind": "positive",
+      "passed": true,
+      "codes": [],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "living-dining-small",
+      "caseId": "LD-dev-02",
+      "kind": "boundary",
+      "passed": false,
+      "codes": ["CUR-01", "WIN-01"],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "living-dining-open",
+      "caseId": "LDO-dev-01",
+      "kind": "positive",
+      "passed": true,
+      "codes": [],
+      "groupCandidates": 3,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "living-dining-open",
+      "caseId": "LDO-dev-02",
+      "kind": "boundary",
+      "passed": false,
+      "codes": ["CIR-02"],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "social-reading-zone",
+      "caseId": "SRZ-dev-01",
+      "kind": "positive",
+      "passed": true,
+      "codes": [],
+      "groupCandidates": 2,
+      "persistedActivityGroups": 1,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "social-reading-zone",
+      "caseId": "SRZ-dev-02",
+      "kind": "boundary",
+      "passed": false,
+      "codes": ["CUR-01", "WIN-01"],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "style-coherence",
+      "caseId": "STY-dev-01",
+      "kind": "positive",
+      "passed": true,
+      "codes": [],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": [
+        "material",
+        "material",
+        "material",
+        "material",
+        "material",
+        "material"
+      ]
+    },
+    {
+      "skillId": "style-coherence",
+      "caseId": "STY-dev-02",
+      "kind": "boundary",
+      "passed": false,
+      "codes": ["CUR-01", "POSSIBLE_OVERLAP", "WIN-01"],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": ["material"]
+    },
+    {
+      "skillId": "lighting-color",
+      "caseId": "LGT-dev-01",
+      "kind": "positive",
+      "passed": true,
+      "codes": [],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "lighting-color",
+      "caseId": "LGT-dev-02",
+      "kind": "boundary",
+      "passed": false,
+      "codes": ["DOORWAY_BLOCKED"],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "floorplan-intake",
+      "caseId": "FIN-dev-01",
+      "kind": "positive",
+      "passed": true,
+      "codes": [],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "floorplan-intake",
+      "caseId": "FIN-dev-02",
+      "kind": "boundary",
+      "passed": false,
+      "codes": ["CIR-02", "DOORWAY_BLOCKED"],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "layout-check-repair",
+      "caseId": "LCR-dev-01",
+      "kind": "positive",
+      "passed": true,
+      "codes": [],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    },
+    {
+      "skillId": "layout-check-repair",
+      "caseId": "LCR-dev-02",
+      "kind": "boundary",
+      "passed": true,
+      "codes": ["WIN-01"],
+      "groupCandidates": 0,
+      "persistedActivityGroups": 0,
+      "skippedMetadataEdits": []
+    }
+  ],
+  "gates": {
+    "activeSkills": 7,
+    "cases": 14,
+    "positivePassed": 7,
+    "boundarySurfaced": 7,
+    "modelCalls": 0,
+    "passed": true
+  },
+  "notes": [
+    "Positive cases passed real candidate preflight and two-view WebGL render.",
+    "Boundary cases surfaced the expected real-core issue codes; pre-existing nonblocking issues remain evidence.",
+    "Existing-object-only activity groups are persisted as plan.source.activityGroups metadata; groups involving newly created candidate objects remain skill metadata because direct group-write is not exposed.",
+    "Style material edits without a concrete colour were treated as metadata-only and not written as furniture geometry changes.",
+    "The member3 mock service was not used."
+  ],
+  "implementationCommit": "53ea8053b649ed9b083c6c9e0a9573ede4ceaed4"
+}

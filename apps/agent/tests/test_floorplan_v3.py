@@ -365,6 +365,50 @@ def test_measurement_proposal_cannot_submit_code_owned_collections():
         )
 
 
+@pytest.mark.parametrize(
+    "command",
+    [
+        {
+            "type": "patch",
+            "collection": "rooms",
+            "id": "living",
+            "patch": {"name": "expanded label"},
+        },
+        {
+            "type": "patch",
+            "collection": "symbols",
+            "id": "sofa",
+            "patch": {"rot": 180},
+        },
+        {
+            "type": "upsert",
+            "collection": "walls",
+            "object": {
+                "id": "new-wall",
+                "a": {"x": 0, "y": 0},
+                "b": {"x": 100, "y": 0},
+            },
+        },
+        {
+            "type": "calibrate",
+            "anchors": [],
+        },
+    ],
+)
+def test_measurement_proposal_rejects_semantic_or_topology_mutations(command):
+    with pytest.raises(ValidationError):
+        MeasuredDraftProposal.model_validate(
+            {
+                "baseDraftRevision": 0,
+                "baseDraftHash": "a" * 64,
+                "commands": [command],
+                "changeReasons": [],
+                "evidenceRefs": [],
+                "summary": "invalid semantic mutation",
+            }
+        )
+
+
 def test_finalized_measurement_overrides_revision_and_appends_code_bindings():
     draft = {"revision": 4, "hash": "d" * 64}
     features = [
@@ -400,7 +444,36 @@ def test_finalized_measurement_overrides_revision_and_appends_code_bindings():
         "baseDraftRevision": 0,
         "baseDraftHash": "0" * 64,
         "commands": [
-            {"type": "patch", "collection": "walls", "id": "left", "patch": {}},
+            {
+                "type": "patch",
+                "collection": "walls",
+                "id": "left",
+                "patch": {"a": {"x": 8, "y": 10}, "thickness": None},
+            },
+            {
+                "type": "patch",
+                "collection": "rooms",
+                "id": "living",
+                "patch": {"name": "expanded room label"},
+            },
+            {
+                "type": "patch",
+                "collection": "symbols",
+                "id": "sofa",
+                "patch": {"rot": 180},
+            },
+            {
+                "type": "calibrate",
+                "anchors": [
+                    {
+                        "a": {"x": 0, "y": 0},
+                        "b": {"x": 100, "y": 0},
+                        "distance": {"value": 100, "unit": "mm"},
+                        "basis": "exterior",
+                        "evidence": "model-owned calibration",
+                    }
+                ],
+            },
             {
                 "type": "upsert",
                 "collection": "features",
@@ -431,6 +504,12 @@ def test_finalized_measurement_overrides_revision_and_appends_code_bindings():
                 "reason": "must be discarded",
                 "evidenceRefs": ["wall-record"],
             },
+            {
+                "collection": "rooms",
+                "id": "living",
+                "reason": "must be discarded",
+                "evidenceRefs": ["wall-record"],
+            },
         ],
         "evidenceRefs": ["wall-record"],
         "summary": "measured",
@@ -444,10 +523,13 @@ def test_finalized_measurement_overrides_revision_and_appends_code_bindings():
         "features",
         "dimensions",
     ]
+    assert result["commands"][0]["patch"] == {"a": {"x": 8, "y": 10}}
     assert not any(
-        command["collection"] in ("dimensionObservations",) or command.get("id") == "model-owned"
+        command["collection"] in ("rooms", "symbols", "dimensionObservations")
+        or command.get("id") == "model-owned"
         for command in result["commands"]
     )
+    assert "忽略了 6 条" in result["summary"]
     assert result["evidenceRefs"] == ["wall-record", "dim-record"]
     MeasuredDraftUpdate.model_validate(result)
 

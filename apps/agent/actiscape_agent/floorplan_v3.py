@@ -103,8 +103,8 @@ categoryCode 只使用固定枚举，sourceLabel 只写原图名称或简短视�
 MEASURE = (
     COMMON
     + """\n你是空间设计的测量阶段。输入是两阶段合并后的当前草稿、共享证据和原图叠加。仅返回 MeasuredDraftProposal，commands 只修改指定对象和字段。
-baseDraftRevision/Hash 使用当前草稿值；固定代码会在提交前强制绑定当前 revision/hash。修改已有对象须在 changeReasons 中以 collection/id 附原图依据及 evidenceRefs；已有说明累计保留。
-固定代码已预先执行 precomputedWallMeasurements 和 precomputedDimensionMeasurements。优先直接引用这些记录及其 id，不要为已有记录重复调用 fit_wall_candidates 或 measure_dimension_chain。只有新增裁剪墙或预计算明确失败时才调用测量工具。
+baseDraftRevision/Hash 使用当前草稿值；固定代码会在提交前强制绑定当前 revision/hash。测量只可 patch 墙体的 a/b/thicknessPx，或维护 uncertainties；不得修改 openings、rooms、symbols、activityGroups、targetRoomIds 或 anchors。修改对象须在 changeReasons 中以 collection/id 附原图依据及 evidenceRefs；已有说明累计保留。
+固定代码已预先执行 precomputedWallMeasurements 和 precomputedDimensionMeasurements。优先直接引用这些记录及其 id，不要为已有记录重复调用 fit_wall_candidates 或 measure_dimension_chain；预计算明确失败时记录阻断不确定项，不得在测量阶段新增、删除或重建墙。
 precomputedMeasurementBindings 已由固定代码把尺寸锚点绑定到墙面特征。不得返回或修改 features、dimensions、dimensionObservations；这些集合由代码确定性生成。不得为通过预检改数字、伪造连接或删除冲突标注。
 不需要调用终止预检工具；代码在本次结构化结果后执行预检并返回问题。"""
 )
@@ -526,12 +526,53 @@ def _finalize_measured_update(
     measurement_features,
     measurement_dimensions,
 ):
-    commands = [
-        command
-        for command in value.get("commands", [])
-        if isinstance(command, dict)
-        and command.get("collection") not in ("features", "dimensions", "dimensionObservations")
-    ]
+    ignored = 0
+    sanitized = []
+    for command in value.get("commands", []):
+        if not isinstance(command, dict):
+            ignored += 1
+            continue
+        command_type = command.get("type")
+        collection = command.get("collection")
+        if command_type == "defaults":
+            values = {
+                key: item
+                for key, item in (command.get("values") or {}).items()
+                if key in ("height", "wallThickness")
+            }
+            if values:
+                sanitized.append({"type": "defaults", "values": values})
+            else:
+                ignored += 1
+            continue
+        if command_type == "patch" and collection == "walls":
+            patch = {
+                key: item
+                for key, item in (command.get("patch") or {}).items()
+                if key in ("a", "b", "thicknessPx")
+            }
+            if patch:
+                sanitized.append({**command, "patch": patch})
+            else:
+                ignored += 1
+            continue
+        if command_type == "patch" and collection == "uncertainties":
+            sanitized.append(command)
+            continue
+        if command_type in ("upsert", "delete") and collection == "uncertainties":
+            sanitized.append(command)
+            continue
+        ignored += 1
+
+    retained_reasons = {
+        (
+            command.get("collection"),
+            command.get("id") or (command.get("object") or {}).get("id"),
+        )
+        for command in sanitized
+        if command.get("collection")
+    }
+    commands = [command for command in sanitized]
     commands.extend(
         {
             "type": "upsert",
@@ -552,7 +593,7 @@ def _finalize_measured_update(
         reason
         for reason in value.get("changeReasons", [])
         if isinstance(reason, dict)
-        and reason.get("collection") not in ("features", "dimensions", "dimensionObservations")
+        and (reason.get("collection"), reason.get("id")) in retained_reasons
     ]
     reasons.extend(
         {
@@ -580,6 +621,10 @@ def _finalize_measured_update(
     return MeasuredDraftUpdate.model_validate(
         {
             **value,
+            "summary": (
+                value.get("summary", "")
+                + (f" 固定代码忽略了 {ignored} 条测量阶段的越权语义修改命令。" if ignored else "")
+            ),
             "baseDraftRevision": draft["revision"],
             "baseDraftHash": draft["hash"],
             "commands": commands,

@@ -81,9 +81,10 @@ layout-check-repair
 - `npm run test:skill-pool:v1`：首批 7 个成员三 active Skill 各跑正向与边界案例。
 - 正向案例通过真实候选预检与两视图 WebGL。
 - 边界案例命中真实核心问题码；已有非阻断问题仍保留为证据。
+- 任务开始后修改 Skill 文件，重启恢复和 repair 启用仍使用原 bundle 哈希与正文快照。
 - Python、Node、类型检查、构建、浏览器、原能力和完整离线门禁通过。
 
-结构、分类与目录 key 结果见 [Skill Pool v1 结构证据](evidence/skill-pool-v1-structure-20261109.json)；真实核心结果见 [Skill Pool v1 L3 证据](evidence/skill-pool-v1-l3-20261109.json)。
+结构、分类与目录 key 结果见 [Skill Pool v1 结构证据](evidence/skill-pool-v1-structure-20261109.json)；真实核心结果见 [Skill Pool v1 L3 证据](evidence/skill-pool-v1-l3-20261109.json)；repair 快照验证见 [repair snapshot 证据](evidence/skill-pool-v1-repair-snapshot-20261109.json)。
 
 ## 兼容与升级
 

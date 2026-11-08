@@ -1,0 +1,49 @@
+{
+  "purpose": "Verify that a pending repair Skill is pinned with the task snapshot",
+  "generatedAt": "2026-11-09T01:19:24+08:00",
+  "implementationCommit": "dddbf53edf22737bf405ddc87c8496a973ea4d2a",
+  "command": "npm run test:floorplan:offline",
+  "passed": true,
+  "checks": {
+    "python": {
+      "passed": 125,
+      "failed": 0
+    },
+    "node": {
+      "passed": 38,
+      "failed": 0
+    },
+    "build": true,
+    "originalBrowserFlows": {
+      "passed": 16,
+      "failed": 0
+    },
+    "catalogueItems": 266,
+    "skillPoolL3": {
+      "activeSkills": 7,
+      "cases": 14,
+      "modelCalls": 0,
+      "passed": true
+    },
+    "v35Replay": true,
+    "v36Replay": true,
+    "controlledV3Browser": true
+  },
+  "repairSnapshot": {
+    "capturedAtTaskStart": true,
+    "activation": "after deterministic check failure",
+    "fileChangesDuringTaskAffectPinnedBundle": false,
+    "restartUsesPinnedBundle": true
+  },
+  "artifacts": {
+    "test-results/skill-pool-v1-l3.json": "0b9f0e6557f81cc95ffb4b4a179902f99f68e9b51b0a6fe23018404a91a615fd",
+    "test-results/floorplan-v3-tools/report.json": "acea463c37ce655d0684f4c539a35fbe0b138d9c7cbd47804851de24adf80c81",
+    "test-results/browser/report.json": "b06de46d538cc5d3ca3508efdff9b99c25f18dae628cdb4c55cfb36dc5260bea",
+    "test-results/baseline/report.json": "135ec3803ca7c79e9c270b1da5787d996a6a7907e72dded428423eb6f9a5e3a6",
+    "test-results/baseline/extended-report.json": "2d0eae7ef9d480793cdac61f738abe42e684cfdf7605e78caa00cda468b94537"
+  },
+  "notes": [
+    "This run validates snapshot integrity and existing offline regressions.",
+    "It does not claim a new live model run or real-image acceptance."
+  ]
+}

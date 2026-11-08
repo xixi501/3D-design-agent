@@ -112,6 +112,27 @@ def test_missing_crop_evidence_rejects_custom_wall():
         _assemble_structure(skeleton, value, {})
 
 
+def test_mixed_orientation_candidates_are_rejected_offline():
+    image = {"id": "image", "sha256": "a" * 64, "width": 400, "height": 300}
+    skeleton = build_structure_skeleton(analysis_record(), image)
+    value = structure_response()
+    value["walls"][0]["segments"] = [
+        {"analysisId": "analysis-1", "index": 0},
+        {"analysisId": "analysis-1", "index": 3},
+    ]
+    with pytest.raises(TaskError, match="混合了水平和竖直候选"):
+        _assemble_structure(skeleton, value, {})
+
+
+def test_opening_outside_wall_range_is_rejected_offline():
+    image = {"id": "image", "sha256": "a" * 64, "width": 400, "height": 300}
+    skeleton = build_structure_skeleton(analysis_record(), image)
+    value = structure_response()
+    value["walls"][0]["segments"] = [{"analysisId": "analysis-1", "index": 0}]
+    with pytest.raises(TaskError, match="超出所属墙范围"):
+        _assemble_structure(skeleton, value, {})
+
+
 def test_category_enum_and_review_bounds():
     base = {
         "status": "draft",

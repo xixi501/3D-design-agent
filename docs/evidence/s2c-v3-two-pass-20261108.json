@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-08",
+  "scope": "V3 bounded two-pass recognition fixed single-image gate; not complete S2",
+  "codeCommit": "c72d4e9d50e4709d9778695236ec6d16c660fd14",
+  "sourceImageSha256": "7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa",
+  "model": "deepseek-flash",
+  "modelProvider": "api.deepseek.com",
+  "promptVersion": "s2c-floorplan-v3-1",
+  "toolAdapter": "hpd-adapter-4",
+  "skillVersion": "0.5.0",
+  "manualGeometryOperations": 0,
+  "referenceSentToAgent": false,
+  "requiredRuns": 2,
+  "passedRuns": 0,
+  "singleImageAccepted": false,
+  "completeS2Accepted": false,
+  "results": [
+    {
+      "repeat": 1,
+      "projectId": "b10813ec-2dba-4657-9122-5263b26fcaea",
+      "taskId": "092c69f7-0a37-4081-bb70-6adf3f60f1f1",
+      "status": "failed",
+      "errorCode": "INVALID_STRUCTURE",
+      "error": "墙 w_e 混合了水平和竖直候选",
+      "modelCalls": 4,
+      "activeSeconds": 16.408952713012695,
+      "recordedTotalTokens": 156748,
+      "formalRevision": 0,
+      "history": {
+        "undo": 0,
+        "redo": 0
+      },
+      "artifact": "test-results/floorplan-tool-live/2026-11-08T02-38-36-402Z/1-result.json",
+      "artifactSha256": "284485f2ccc5f9e79e18442e7bae44218efbd6f463590985950afcc13b3cfc32"
+    },
+    {
+      "repeat": 2,
+      "projectId": "412866f7-c0f1-4eec-aa2c-0502c3504572",
+      "taskId": "30aa8256-bf6d-4acb-a716-f62ae670121f",
+      "status": "failed",
+      "errorCode": "INVALID_STRUCTURE",
+      "error": "门窗 op_win_lv_n 超出所属墙范围",
+      "modelCalls": 3,
+      "activeSeconds": 21.475021362304688,
+      "recordedTotalTokens": 114696,
+      "formalRevision": 0,
+      "history": {
+        "undo": 0,
+        "redo": 0
+      },
+      "artifact": "test-results/floorplan-tool-live/2026-11-08T02-38-36-402Z/2-result.json",
+      "artifactSha256": "64dd4041481695d7113c15341863057dee67a6d4456c9899e635f2d4e3ed6d42"
+    }
+  ],
+  "report": {
+    "path": "test-results/floorplan-tool-live/2026-11-08T02-38-36-402Z/report.json",
+    "sha256": "1a40ae8fcf43e4eac64167a1ac22256f0b3460d38a2b2b5d3faaccfae5d78801"
+  },
+  "classification": {
+    "run1": "structure candidate selection mixed horizontal and vertical analysis segments",
+    "run2": "opening gap did not fit the selected wall range after deterministic candidate assembly",
+    "common": "both failed before draft creation; deterministic validation rejected invalid structure instead of writing a formal project"
+  }
+}

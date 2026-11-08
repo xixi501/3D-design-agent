@@ -3,7 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { compileFloorplan } from "../packages/scene-core/src/floorplan.ts";
-import { scoreFloorplanRecognition } from "../packages/scene-core/src/floorplan-metrics.ts";
+import {
+  scoreFloorplan,
+  scoreFloorplanRecognition,
+} from "../packages/scene-core/src/floorplan-metrics.ts";
 
 const root = process.cwd();
 const python = path.join(root, ".venv/bin/python");
@@ -207,6 +210,108 @@ assert.ok(score.walls.precision >= 0.9, JSON.stringify(score.walls));
 assert.ok(score.walls.recall >= 0.9, JSON.stringify(score.walls));
 assert.ok(score.openings.precision >= 0.9, JSON.stringify(score.openings));
 assert.ok(score.openings.recall >= 0.9, JSON.stringify(score.openings));
+
+const capturedFixture = JSON.parse(
+  fs.readFileSync(
+    path.join(root, "fixtures/s2c-real/ninety-two.v36-room-merge-replay.json"),
+    "utf8",
+  ),
+);
+assert.equal(
+  capturedFixture.sourceImageSha256,
+  secondManifest.sourceImageSha256,
+  "Captured failure source image changed",
+);
+assert.equal(
+  capturedFixture.draft.image.sha256,
+  secondManifest.sourceImageSha256,
+  "Captured draft is bound to a different image",
+);
+const pythonReplay = spawnSync(
+  python,
+  [path.join(root, "scripts/floorplan-v36-captured-replay.py")],
+  {
+    cwd: root,
+    encoding: "utf8",
+  },
+);
+if (pythonReplay.status !== 0) {
+  process.stderr.write(pythonReplay.stdout || "");
+  process.stderr.write(pythonReplay.stderr || "");
+  process.exit(pythonReplay.status || 1);
+}
+const capturedConsolidation = JSON.parse(
+  pythonReplay.stdout.trim().split("\n").at(-1),
+);
+assert.equal(capturedConsolidation.passed, true);
+const capturedDraft = structuredClone(capturedFixture.draft);
+capturedDraft.rooms = capturedConsolidation.rooms;
+capturedDraft.targetRoomIds = capturedConsolidation.targetRoomIds;
+const capturedCompiled = compileFloorplan(
+  capturedDraft,
+  "v36-captured-room-merge",
+);
+assert.equal(
+  capturedCompiled.state.plan.walls.length,
+  capturedFixture.expected.compiledWalls,
+);
+assert.equal(
+  capturedCompiled.state.plan.openings.length,
+  capturedFixture.expected.compiledOpenings,
+);
+assert.deepEqual(
+  capturedCompiled.rooms
+    .map((room) => ({
+      id: room.id.split(":").at(-1),
+      name: room.name,
+    }))
+    .sort((left, right) => left.id.localeCompare(right.id)),
+  [...capturedFixture.expected.rooms].sort((left, right) =>
+    left.id.localeCompare(right.id),
+  ),
+);
+assert.equal(capturedCompiled.symbols.length, capturedFixture.expected.symbols);
+const capturedRecognition = {
+  ...capturedFixture.recognition,
+  image: secondReference.image,
+};
+const capturedScore = scoreFloorplan(
+  capturedRecognition,
+  capturedDraft,
+  secondReference,
+  0,
+  secondManifest.aliases,
+);
+assert.equal(capturedScore.passed, true, JSON.stringify(capturedScore));
+assert.equal(capturedScore.rawPassed, true);
+assert.equal(capturedScore.finalPassed, true);
+assert.equal(capturedScore.confirmed.structure.passed, true);
+assert.equal(capturedScore.confirmed.dimensionsPassed, true);
+assert.equal(
+  capturedScore.raw.walls.precision,
+  capturedFixture.expected.rawWallPrecision,
+);
+assert.equal(
+  capturedScore.raw.walls.recall,
+  capturedFixture.expected.rawWallRecall,
+);
+assert.equal(
+  capturedScore.raw.openings.precision,
+  capturedFixture.expected.rawOpeningPrecision,
+);
+assert.equal(
+  capturedScore.raw.openings.recall,
+  capturedFixture.expected.rawOpeningRecall,
+);
+assert.equal(
+  capturedScore.raw.furniture.precision,
+  capturedFixture.expected.rawFurniturePrecision,
+);
+assert.equal(
+  capturedScore.raw.furniture.recall,
+  capturedFixture.expected.rawFurnitureRecall,
+);
+
 const furnitureCandidates = toolRequest(ninetyTwoImage, "contours", {
   spec: secondDraft,
 });
@@ -308,6 +413,15 @@ const output = {
       furnitureCandidates.activityGroupCandidates[0].satelliteObjectCandidateIds
         .length,
     furnitureReferenceMatches: objectMatches.length,
+  },
+  capturedRoomMergeReplay: {
+    taskId: capturedFixture.capturedTaskId,
+    capturedRooms: capturedFixture.draft.rooms.length,
+    consolidatedRooms: capturedConsolidation.rooms.length,
+    compiledWalls: capturedCompiled.state.plan.walls.length,
+    compiledOpenings: capturedCompiled.state.plan.openings.length,
+    symbols: capturedCompiled.symbols.length,
+    scoringPassed: capturedScore.passed,
   },
   note: "Offline candidate replay only; furniture classification, model passes and the real 2-of-2 gate are not claimed.",
 };

@@ -48,7 +48,7 @@ V3-3 新任务的固定候选层使用 `hpd-adapter-5`：外围墙先闭合，�
 
 V3-5 新任务继续使用 `hpd-adapter-5`，但家具阶段改为轻量活动单元：代码先把嵌套轮廓整理成稳定对象候选和径向主辅组，证据面板新增 `objects.png`、`groups.png`。Qwen 只分类对象并提交活动组成员，代码验证 13 个可选目标对象、餐桌唯一主对象、六把独立椅子和对象所有权。餐桌、椅子、地毯、书架等关系保存为 `activityGroups`；本批不提供成组拖动或旋转。当前版本为 `s2c-floorplan-v3-5`、Skill `0.5.4`、`activity-unit-1`，评分 `s2c-5`。
 
-V3-6 新任务改为 `s2c-floorplan-v3-6-1`、Skill `0.5.6`、`structureSkeletonVersion=4` 和 `hpd-adapter-6-1`。固定图像层使用真实墙掩膜定向连通段、交点吸附、凹形外围和外部尺寸线；简单矩形图在掩膜候选不足时回退到旧候选层。尺寸候选携带毫米提示，原图无单位数字也可绑定；同一开放区域的客餐厅/玄关点由代码合并为一个目标。家具对象图把上下两排两椅的中央区域合成为桌面对象，并把目标房间内细长独立 group 收纳为柜体候选；玄关固定柜在模型调用前标为 `fixed_entry`，不进入目标家具。运行 `npm run test:floorplan:v36-replay` 可零模型复验两张冻结图；该回放通过不等于真实任务或完整 S2 通过。
+V3-6 新任务改为 `s2c-floorplan-v3-6-1`、Skill `0.5.6`、`structureSkeletonVersion=4` 和 `hpd-adapter-6-1`。固定图像层使用真实墙掩膜定向连通段、交点吸附、凹形外围和外部尺寸线；简单矩形图在掩膜候选不足时回退到旧候选层。尺寸候选携带毫米提示，原图无单位数字也可绑定；同一开放区域的客餐厅、玄关和过道点由代码合并为一个目标。家具对象图把上下两排两椅的中央区域合成为桌面对象，并把目标房间内细长独立 group 收纳为柜体候选；玄关固定柜在模型调用前标为 `fixed_entry`，不进入目标家具。运行 `npm run test:floorplan:v36-replay` 可零模型复验两张冻结图，并重放任务 `50e643f4-2f6d-4ff1-80f4-d15252cb2467` 的完整失败草稿：8 个房间标签归并为 6 个房间后必须编译出 28 个墙段、11 个洞口和 11 件家具，且完整评分通过；该回放通过不等于真实任务或完整 S2 通过。
 
 `/api/floorplan-images` 是独立图片命名空间，不能用 GLB 上传接口代替。`POST` 使用单文件 multipart；返回稳定原图身份、原始 SHA-256、处理图 SHA-256、EXIF 后尺寸、归一化变换及像素线候选。`GET /:image/file` 读处理 PNG，`?variant=original` 读原始文件。裁剪入口为 `POST /:image/crops`，请求 `{"box":[x0,y0,x1,y1]}`；返回文件路径、校验值和 `cropToPixel`。小裁剪有限放大，坐标始终按显式变换映回原图；每任务最多四次裁剪尝试。
 
@@ -152,6 +152,8 @@ Node 的确认记录是恢复依据。确认已持久化、Python 尚未恢复�
 - `node --import tsx scripts/floorplan-model-smoke.mjs`：DeepSeek 官方 API 的真实工具返回图片与合成图识别协议；仍不计作真实户型图验收。
 - `npm run test:floorplan:live -- --manifest ... --stage start`：两张真实图片各两次；暂停等待工作台核对确认。
 - `npm run test:floorplan:v35-replay`：不调用模型，联合回放 r8 完整工作流证据、r9 不确定项仲裁、当前资产归一、目录 proof 和真实 Three.js bounds；要求服务已运行。
+- `npm run test:floorplan:v36-replay`：不调用模型，回放冻结候选层和任务 `50e643f4-2f6d-4ff1-80f4-d15252cb2467` 的真实房间归并失败，要求完整编译与评分通过。
+- `npm run test:floorplan:offline`：启动真实批次前必须通过的单一离线门禁，依次执行 Python 全套、原能力完整回归、V3.5 回放、V3.6 捕获失败回放和 V3 受控浏览器。
 - `npm run test:floorplan:live -- --stage collect --index ...`：对照冻结人工参考，分别评分首次识别、人工校正量和最终保真。参考不进入识别提示词。缺少输入或确认时返回待验收，不记为通过。
 
 真实图片参考必须给每个目标符号设置目录 key 或允许的目录匹配集合。评分检查正式项目实际实例化的目录类型、实际 Three.js 包围盒和确认稿数据，不能仅凭符号标签认定家具类别正确。启动器在任何模型任务创建前校验两张图片及全部参考；同图重复和已知合成夹具不能充当两张真实图片。

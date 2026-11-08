@@ -910,6 +910,7 @@ async def test_v35_vision_uses_object_and_group_images(tmp_path, monkeypatch):
     assert captured["payload"]["objectCandidates"] == record["objectCandidates"]
     assert captured["schema"]["properties"]["symbols"]["minItems"] == 7
     assert captured["schema"]["properties"]["symbols"]["maxItems"] == 7
+    assert {"symbols", "activityGroups"}.issubset(set(captured["schema"]["required"]))
     assert len(symbols) == 7
     assert len(groups) == 1
     saved = store.task(task["id"], internal=True)["generation"]

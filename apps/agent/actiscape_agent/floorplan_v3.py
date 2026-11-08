@@ -1964,7 +1964,12 @@ class FloorplanV3(FloorplanV2):
         schema = schema_model.model_json_schema()
         if schema_patch:
             for field, constraints in schema_patch.items():
-                schema["properties"][field].update(constraints)
+                if field == "__required__":
+                    schema["required"] = list(
+                        dict.fromkeys([*schema.get("required", []), *constraints])
+                    )
+                else:
+                    schema["properties"][field].update(constraints)
         calls = []
         call_count = 0
         elapsed_seconds = 0.0
@@ -2314,6 +2319,7 @@ class FloorplanV3(FloorplanV2):
             lambda parsed: _assemble_activity_symbols(parsed, objects, groups, draft, record["id"]),
             "activity-unit-1",
             {
+                "__required__": ["symbols", "activityGroups"],
                 "symbols": {
                     "minItems": len(objects),
                     "maxItems": len(objects),

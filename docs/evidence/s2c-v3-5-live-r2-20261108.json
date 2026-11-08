@@ -1,0 +1,49 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "81ee0b1d0feb78051e85f8ecce962aa744ba7b75",
+  "scope": "second-independent-single-real-image-run",
+  "task": {
+    "projectId": "a1eabf45-c12c-4981-b3bf-a37f1b291658",
+    "taskId": "f543aaf6-009c-444c-abda-f91b8fe83cbb",
+    "status": "failed",
+    "errorCode": "FURNITURE_MISSING",
+    "error": "目标客餐厅没有识别到家具",
+    "modelCalls": 5,
+    "activeSeconds": 15.081225156784058,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0
+  },
+  "visionAttempts": [
+    {
+      "attempt": 1,
+      "promptTokens": 7885,
+      "completionTokens": 22,
+      "seconds": 1.589,
+      "response": "status=draft, excludedObjectCandidates=[], symbols omitted"
+    },
+    {
+      "attempt": 2,
+      "promptTokens": 7959,
+      "completionTokens": 21,
+      "seconds": 0.712,
+      "response": "status=draft, excludedObjectCandidates=[], symbols omitted"
+    }
+  ],
+  "diagnosis": {
+    "primary": "The request schema set minItems and maxItems on symbols, but symbols and activityGroups were still optional properties. Both guided responses legally omitted them.",
+    "postFailureOfflineFix": "Add symbols and activityGroups to the JSON Schema required array, retain exact 13-symbol and one-group bounds, and reject empty output. The fix is offline/controlled only in this batch.",
+    "imageCandidatesMatchedOffline": true
+  },
+  "decision": {
+    "additionalRealRunStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r2-20261108-report.json",
+      "sha256": "f3ff63d07e79ebfe4b0e3b0dab0b01970db1a45e3601ae7775acd05cf106e736"
+    }
+  }
+}

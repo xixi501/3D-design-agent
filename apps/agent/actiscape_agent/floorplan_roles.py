@@ -76,7 +76,7 @@ request_index 逐项完整，不按 count 展开。选符合原图家具类别�
 """
 )
 FLOORPLAN_ASSET_FAMILIES = {
-    "sofa": ("sofa", "modularSofa", "fourSofa", "loveseat", "officeSofa"),
+    "sofa": ("sofa", "modularSofa"),
     "bookshelf": ("bookshelf", "bookshelfLow", "cabTall"),
     "plant": ("plant", "bigPlant", "smallPlant"),
 }

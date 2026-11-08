@@ -1434,6 +1434,27 @@ def test_floorplan_asset_normalization_preserves_user_catalog_key():
     assert overrides == []
 
 
+def test_captured_sofa_override_never_selects_office_furniture():
+    fixture = json.loads(
+        Path("fixtures/s2c-real/ninety-two.v36-asset-choice-replay.json").read_text()
+    )
+    catalogue = json.loads(Path("fixtures/catalog.json").read_text())
+    task = {
+        "generation": {
+            "symbolGroups": fixture["symbolGroups"],
+            "compiledSymbols": fixture["compiledSymbols"],
+        }
+    }
+    normalized, _overrides = normalize_floorplan_asset_choices(
+        fixture["selection"],
+        task,
+        catalogue,
+    )
+    sofa = next(choice for choice in normalized["choices"] if choice["request_index"] == 5)
+    assert sofa["key"] in fixture["expected"]["sofaKeyIn"]
+    assert sofa["key"] != fixture["expected"]["sofaKeyNot"]
+
+
 @pytest.mark.asyncio
 async def test_code_reconciliation_patches_only_resolved_uncertainties(tmp_path):
     store = TaskStore(tmp_path)

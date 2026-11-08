@@ -1,0 +1,389 @@
+{
+  "purpose": "Captured V3-6 asset-family override failure for deterministic offline replay; never sent to a model or production service",
+  "capturedTaskId": "296584ee-965f-4c1b-bcae-282a74a76c72",
+  "sourceImageSha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+  "referenceSentToModel": false,
+  "capturedFailure": {
+    "workflowPassed": false,
+    "catalogueProof": {
+      "passed": false,
+      "coverageComplete": true,
+      "objects": [
+        {
+          "symbolId": "s_coffeeTable_01",
+          "referenceId": "coffee-table",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_coffeeTable_01",
+          "key": "coffeeTable",
+          "allowedKeys": ["coffeeTable", "teaTable"],
+          "covered": true,
+          "passed": true
+        },
+        {
+          "symbolId": "s_tvCabinet_01",
+          "referenceId": "tv-console",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_tvCabinet_01",
+          "key": "tvCabinet",
+          "allowedKeys": ["tvCabinet", "cabTV"],
+          "covered": true,
+          "passed": true
+        },
+        {
+          "symbolId": "s_sideTable_01",
+          "referenceId": "side-table",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_sideTable_01",
+          "key": "sideTable",
+          "allowedKeys": ["sideTable", "nestTables"],
+          "covered": true,
+          "passed": true
+        },
+        {
+          "symbolId": "s_chair_04",
+          "referenceId": "chair-south-right",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_chair_04",
+          "key": "chair",
+          "allowedKeys": ["chair", "armDiningChair"],
+          "covered": true,
+          "passed": true
+        },
+        {
+          "symbolId": "s_chair_03",
+          "referenceId": "chair-south-left",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_chair_03",
+          "key": "chair",
+          "allowedKeys": ["chair", "armDiningChair"],
+          "covered": true,
+          "passed": true
+        },
+        {
+          "symbolId": "s_chair_02",
+          "referenceId": "chair-north-right",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_chair_02",
+          "key": "chair",
+          "allowedKeys": ["chair", "armDiningChair"],
+          "covered": true,
+          "passed": true
+        },
+        {
+          "symbolId": "s_chair_01",
+          "referenceId": "chair-north-left",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_chair_01",
+          "key": "chair",
+          "allowedKeys": ["chair", "armDiningChair"],
+          "covered": true,
+          "passed": true
+        },
+        {
+          "symbolId": "s_floorLamp_02",
+          "referenceId": "lamp-south-base",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_floorLamp_02",
+          "key": "floorLamp",
+          "allowedKeys": ["arcLamp", "floorLamp"],
+          "covered": true,
+          "passed": true
+        },
+        {
+          "symbolId": "s_floorLamp_01",
+          "referenceId": "lamp-north",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_floorLamp_01",
+          "key": "floorLamp",
+          "allowedKeys": ["floorLamp"],
+          "covered": true,
+          "passed": true
+        },
+        {
+          "symbolId": "s_sofa_01",
+          "referenceId": "sofa",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_sofa_01",
+          "key": "officeSofa",
+          "allowedKeys": ["sofa", "modularSofa"],
+          "covered": true,
+          "passed": false
+        },
+        {
+          "symbolId": "s_diningTable_01",
+          "referenceId": "dining-table",
+          "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_diningTable_01",
+          "key": "diningTable",
+          "allowedKeys": ["diningTable", "diningTable6"],
+          "covered": true,
+          "passed": true
+        }
+      ]
+    }
+  },
+  "selection": {
+    "choices": [
+      {
+        "request_index": 0,
+        "key": "chair",
+        "reason": "需求为 4 把餐厅餐椅，sourceSymbols 确认类别 chair、平面约 444–462mm 见方；目录基础配方 chair（餐椅 460×520）类别与语义一致、尺寸最接近，count=4 沿用同一配方。"
+      },
+      {
+        "request_index": 1,
+        "key": "diningTable",
+        "reason": "需求为餐厅餐桌，确认尺寸约 1475×835；基础配方 diningTable（1600×900）是同类中平面宽深最接近的标准餐桌配方，不选 6 人/8 人等更大或更小规格，实际平面尺寸由代码使用确认值。"
+      },
+      {
+        "request_index": 2,
+        "key": "floorLamp",
+        "reason": "两处落地灯，确认投影分别约 444mm 与 355mm 圆形；基础配方 floorLamp（400×400）为场地落地灯配方，尺寸居中接近，count=2 复用同一 key。"
+      },
+      {
+        "request_index": 3,
+        "key": "sideTable",
+        "reason": "确认类别 sideTable、平面约 426×409；目录唯一匹配边几配方 sideTable（500×500），类别一致且尺寸最接近。"
+      },
+      {
+        "request_index": 4,
+        "key": "tvCabinet",
+        "reason": "确认类别 tvCabinet、平面约 1759×391（rot 90 靠墙）；目录唯一电视柜配方 tvCabinet（2000×400）类别与语义一致，深度接近，长度按确认值由代码覆盖。"
+      },
+      {
+        "request_index": 5,
+        "key": "sofa",
+        "reason": "确认类别 sofa、平面约 1936×853 的三座直排沙发；在标准客厅沙发基础配方中 sofa（2200×950）宽度更接近且不带 L/U 形或模块化等额外结构，不按人数推断更大 or 更小规格（排除四人 sofa、双人 loveseat 等变体），布局尺寸由代码用确认值。"
+      },
+      {
+        "request_index": 6,
+        "key": "coffeeTable",
+        "reason": "确认类别 coffeeTable、平面约 657×995；目录唯一矩形茶几配方 coffeeTable（1200×600）类别与语义一致，圆茶几属 roundTable 用途不同故不选用。"
+      }
+    ]
+  },
+  "symbolGroups": [
+    ["s_chair_01", "s_chair_02", "s_chair_03", "s_chair_04"],
+    ["s_diningTable_01"],
+    ["s_floorLamp_01", "s_floorLamp_02"],
+    ["s_sideTable_01"],
+    ["s_tvCabinet_01"],
+    ["s_sofa_01"],
+    ["s_coffeeTable_01"]
+  ],
+  "compiledSymbols": [
+    {
+      "id": "s_chair_01",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐厅餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_009",
+      "activityGroupIds": ["ag_seated_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 497.436,
+      "y": 3197.802,
+      "w": 444.139,
+      "d": 444.139,
+      "rot": 180,
+      "activityRole": "satellite",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_chair_01"
+    },
+    {
+      "id": "s_chair_02",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐厅餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_010",
+      "activityGroupIds": ["ag_seated_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 1145.879,
+      "y": 3197.802,
+      "w": 461.905,
+      "d": 461.905,
+      "rot": 180,
+      "activityRole": "satellite",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_chair_02"
+    },
+    {
+      "id": "s_diningTable_01",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐厅餐桌",
+      "categoryCode": "diningTable",
+      "category": "diningTable",
+      "objectCandidateId": "fo_011",
+      "activityGroupIds": ["ag_seated_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 906.044,
+      "y": 3730.769,
+      "w": 1474.542,
+      "d": 834.982,
+      "rot": 0,
+      "activityRole": "primary",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_diningTable_01"
+    },
+    {
+      "id": "s_chair_03",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐厅餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_012",
+      "activityGroupIds": ["ag_seated_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 497.436,
+      "y": 4254.853,
+      "w": 444.139,
+      "d": 444.139,
+      "rot": 0,
+      "activityRole": "satellite",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_chair_03"
+    },
+    {
+      "id": "s_chair_04",
+      "roomId": "r_living_dining",
+      "sourceLabel": "餐厅餐椅",
+      "categoryCode": "chair",
+      "category": "chair",
+      "objectCandidateId": "fo_013",
+      "activityGroupIds": ["ag_seated_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 1145.879,
+      "y": 4254.853,
+      "w": 461.905,
+      "d": 461.905,
+      "rot": 0,
+      "activityRole": "satellite",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_chair_04"
+    },
+    {
+      "id": "s_floorLamp_01",
+      "roomId": "r_living_dining",
+      "sourceLabel": "落地灯",
+      "categoryCode": "floorLamp",
+      "category": "floorLamp",
+      "objectCandidateId": "fo_014",
+      "activityGroupIds": ["ag_auto_001_s_floorLamp_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 515.201,
+      "y": 5116.484,
+      "w": 444.139,
+      "d": 444.139,
+      "rot": 0,
+      "activityRole": "primary",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_floorLamp_01"
+    },
+    {
+      "id": "s_sideTable_01",
+      "roomId": "r_living_dining",
+      "sourceLabel": "边桌",
+      "categoryCode": "sideTable",
+      "category": "sideTable",
+      "objectCandidateId": "fo_015",
+      "activityGroupIds": ["ag_auto_002_s_sideTable_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 1554.487,
+      "y": 5205.311,
+      "w": 426.374,
+      "d": 408.608,
+      "rot": 0,
+      "activityRole": "primary",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_sideTable_01"
+    },
+    {
+      "id": "s_tvCabinet_01",
+      "roomId": "r_living_dining",
+      "sourceLabel": "电视柜",
+      "categoryCode": "tvCabinet",
+      "category": "tvCabinet",
+      "objectCandidateId": "fo_016",
+      "activityGroupIds": ["ag_auto_003_s_tvCabinet_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 3153.388,
+      "y": 6413.37,
+      "w": 1758.791,
+      "d": 390.842,
+      "rot": 90,
+      "activityRole": "primary",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_tvCabinet_01"
+    },
+    {
+      "id": "s_sofa_01",
+      "roomId": "r_living_dining",
+      "sourceLabel": "沙发",
+      "categoryCode": "sofa",
+      "category": "sofa",
+      "objectCandidateId": "fo_017",
+      "activityGroupIds": ["ag_auto_004_s_sofa_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 666.209,
+      "y": 6519.963,
+      "w": 1936.447,
+      "d": 852.747,
+      "rot": 270,
+      "activityRole": "primary",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_sofa_01"
+    },
+    {
+      "id": "s_coffeeTable_01",
+      "roomId": "r_living_dining",
+      "sourceLabel": "茶几",
+      "categoryCode": "coffeeTable",
+      "category": "coffeeTable",
+      "objectCandidateId": "fo_018",
+      "activityGroupIds": ["ag_auto_005_s_coffeeTable_01"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 1669.963,
+      "y": 6404.487,
+      "w": 657.326,
+      "d": 994.872,
+      "rot": 0,
+      "activityRole": "primary",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_coffeeTable_01"
+    },
+    {
+      "id": "s_floorLamp_02",
+      "roomId": "r_living_dining",
+      "sourceLabel": "落地灯",
+      "categoryCode": "floorLamp",
+      "category": "floorLamp",
+      "objectCandidateId": "fo_020",
+      "activityGroupIds": ["ag_auto_006_s_floorLamp_02"],
+      "included": true,
+      "evidenceRefs": [
+        "30e88c9a4dc586dfd817dbed4d088f540897d51d58eb330f4de8c99d7a6d0b7c"
+      ],
+      "x": 506.319,
+      "y": 7861.264,
+      "w": 355.311,
+      "d": 355.311,
+      "rot": 0,
+      "activityRole": "primary",
+      "objectId": "296584ee-965f-4c1b-bcae-282a74a76c72:f:s_floorLamp_02"
+    }
+  ],
+  "expected": {
+    "sofaKeyIn": ["sofa", "modularSofa"],
+    "sofaKeyNot": "officeSofa",
+    "allowedCatalogProof": true
+  }
+}

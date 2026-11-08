@@ -244,6 +244,12 @@ const capturedConsolidation = JSON.parse(
   pythonReplay.stdout.trim().split("\n").at(-1),
 );
 assert.equal(capturedConsolidation.passed, true);
+assert.equal(
+  capturedConsolidation.assetChoice.sofaKey,
+  "sofa",
+  JSON.stringify(capturedConsolidation.assetChoice),
+);
+assert.notEqual(capturedConsolidation.assetChoice.sofaKey, "officeSofa");
 const capturedReview = capturedConsolidation.candidateReview;
 assert.equal(capturedReview.passed, true);
 assert.deepEqual(capturedReview.unknownObjectIds, []);
@@ -539,6 +545,11 @@ const output = {
     compiledOpenings: numericCompiled.state.plan.openings.length,
     symbols: numericCompiled.symbols.length,
     scoringPassed: numericScore.passed,
+  },
+  capturedAssetChoiceReplay: {
+    taskId: capturedConsolidation.assetChoice.taskId,
+    sofaKey: capturedConsolidation.assetChoice.sofaKey,
+    overrides: capturedConsolidation.assetChoice.overrides.length,
   },
   note: "Offline candidate replay only; furniture classification, model passes and the real 2-of-2 gate are not claimed.",
 };

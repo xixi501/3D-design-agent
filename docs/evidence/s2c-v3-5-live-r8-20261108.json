@@ -1,0 +1,108 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "461c4684d3bf33b07d89a62713b8df9bb0e99778",
+  "scope": "eighth-independent-single-real-image-run",
+  "task": {
+    "projectId": "a0f0c6ce-4d92-4dae-bd84-aa21b2f38581",
+    "taskId": "1757b7e5-09cc-4905-aae7-f033d3e5ab59",
+    "status": "completed",
+    "errorCode": null,
+    "modelCalls": 22,
+    "activeSeconds": 188.23616933822632,
+    "formalProjectRevision": 4,
+    "manualCorrections": 0,
+    "repairs": 1
+  },
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "openings": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "furniture": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "symbolCount": 13,
+      "chairCount": 6
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "completedWorkflow": {
+    "scoringPassed": true,
+    "confirmationSimulated": true,
+    "catalogueAssetsCreated": true,
+    "webglEvidenceCreated": true,
+    "singleTransactionCommitted": true,
+    "undoToBlank": true,
+    "redoSucceeded": true,
+    "localConversationEditCompleted": true,
+    "formalRevision": 4
+  },
+  "blocker": {
+    "stage": "catalogue-and-geometry-proof",
+    "catalogueProofPassed": false,
+    "geometryProofPassed": false,
+    "catalogueMismatches": [
+      {
+        "category": "sofa",
+        "selectedKey": "fourSofa",
+        "allowedKeys": ["sofa", "modularSofa"]
+      },
+      {
+        "category": "bookshelf",
+        "selectedKey": "bookshelf",
+        "allowedKeys": ["cabTall"]
+      }
+    ],
+    "geometryMismatch": {
+      "key": "plant",
+      "nominalFootprint": [477.949, 495.651],
+      "actualFootprint": [298.24018478393555, 298.24018478393555]
+    }
+  },
+  "rootCause": {
+    "assets": "The asset model used wording such as four-seat sofa and exact bookshelf type instead of selecting the equivalent recipe with the closest confirmed footprint.",
+    "geometry": "The procedural plant mesh was narrower than its declared recipe footprint."
+  },
+  "postFailureOfflineFix": {
+    "commit": "88eb7e2",
+    "change": "Normalize equivalent sofa, bookshelf and plant families against confirmed w/d; preserve user-specified catalogKey. Scale the procedural plant wrapper to its declared footprint.",
+    "recordedSelectionReplay": {
+      "sofa": "fourSofa -> sofa",
+      "bookshelf": "bookshelf -> cabTall",
+      "plant": "plant"
+    },
+    "plantGeometryReplay": {
+      "passed": true,
+      "actual": [477.3399292828568, 466.36598807322315, 1492.5787976783436],
+      "nominal": [477.949, 495.651, 1400]
+    },
+    "realRunAfterFixStarted": false
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r8-20261108-report.json",
+      "sha256": "58973d3cef790c7550c8753495bce4e451c8fbc4ff62e53559ab283b73a89cab"
+    },
+    "scoring": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r8-20261108-scoring.json",
+      "sha256": "7d52fcbf653331b8e81a8ea383bd5c32a940c2d3f5d6fedf6cb022846e871cdf"
+    },
+    "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T07-08-48-851Z"
+  }
+}

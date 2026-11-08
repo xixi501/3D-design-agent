@@ -1594,7 +1594,7 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
             unplaced.append(room)
             continue
         grouped.setdefault(label, []).append(room)
-    allowed_names = {"客餐厅", "客厅", "餐厅", "玄关"}
+    allowed_names = {"客餐厅", "客厅", "餐厅", "玄关", "过道"}
     allowed_areas = {"living", "dining", "other"}
     output = list(unplaced)
     targets = list(dict.fromkeys(target_ids))
@@ -1653,7 +1653,7 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
         notes.append(
             {
                 "id": f"u_merge_{merged['id']}",
-                "message": "固定代码把同一连通区域的客厅、餐厅和玄关标签合并为客餐厅目标区域。",
+                "message": "固定代码把同一连通区域的客厅、餐厅、玄关和过道标签合并为客餐厅目标区域。",
                 "blocking": False,
                 "code": "ROOM_SCOPE_OPEN_KITCHEN",
                 "objectIds": removed,

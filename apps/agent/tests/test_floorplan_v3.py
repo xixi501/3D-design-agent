@@ -1,16 +1,26 @@
 """V3 bounded recognition tests; controlled data never counts as live-image acceptance."""
 
+import json
+from pathlib import Path
+
 import pytest
+from PIL import Image
 from pydantic import ValidationError
 
 from actiscape_agent.config import FLOORPLAN_REVIEW_OPTIONS
+from actiscape_agent.floorplan_candidates import (
+    contour_candidates,
+    structure_candidates,
+)
 from actiscape_agent.floorplan_schemas import (
     FloorplanReview,
+    FurnitureContourRecognition,
     FurnitureRecognition,
     RecognitionV3,
 )
 from actiscape_agent.floorplan_v3 import (
     FloorplanV3,
+    _arbitrate_review,
     _assemble_structure,
     build_structure_skeleton,
 )
@@ -182,6 +192,210 @@ def test_missing_crop_evidence_rejects_custom_wall():
     }
     with pytest.raises(TaskError, match="裁剪证据"):
         _assemble_structure(skeleton, value, {})
+
+
+def test_v33_candidate_layer_closes_walls_and_finds_opening_intervals():
+    raw = {
+        "outline_px": [40, 41, 961, 760],
+        "segments_px": [
+            {"orient": "h", "line": 51, "s0": 60, "s1": 275, "t": 20},
+            {"orient": "h", "line": 51, "s0": 426, "s1": 641, "t": 20},
+            {"orient": "h", "line": 51, "s0": 661, "s1": 941, "t": 20},
+            {"orient": "h", "line": 401, "s0": 661, "s1": 941, "t": 20},
+            {"orient": "h", "line": 750, "s0": 60, "s1": 155, "t": 20},
+            {"orient": "h", "line": 750, "s0": 246, "s1": 641, "t": 20},
+            {"orient": "h", "line": 750, "s0": 661, "s1": 941, "t": 20},
+            {"orient": "v", "line": 50, "s0": 41, "s1": 760, "t": 20},
+            {"orient": "v", "line": 651, "s0": 41, "s1": 760, "t": 20},
+            {"orient": "v", "line": 951, "s0": 41, "s1": 760, "t": 20},
+        ],
+        "gaps_px": [
+            {"orient": "h", "line": 51, "s0": 275, "s1": 426, "t": 20, "a": 0, "b": 1},
+            {"orient": "h", "line": 750, "s0": 155, "s1": 246, "t": 20, "a": 4, "b": 5},
+        ],
+    }
+    candidates = structure_candidates(Image.open("fixtures/s2c-synthetic.png").convert("RGB"), raw)
+    assert len(candidates["candidateWalls"]) == 6
+    assert {candidate["candidateWallId"] for candidate in candidates["candidateWalls"]} == {
+        "cw_top",
+        "cw_bottom",
+        "cw_left",
+        "cw_right",
+        "cw_int_h_0",
+        "cw_int_v_0",
+    }
+    assert len(candidates["openingCandidates"]) == 2
+    assert candidates["dimensionCandidates"] == []
+
+
+@pytest.mark.skipif(
+    not Path(
+        "data/floorplan-images/"
+        "fp-7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa/"
+        "normalized.png"
+    ).exists(),
+    reason="frozen real image is kept outside the repository",
+)
+def test_v33_frozen_real_candidates_replay_known_failure():
+    image_path = Path(
+        "data/floorplan-images/"
+        "fp-7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa/"
+        "normalized.png"
+    )
+    captured_path = Path("test-results/floorplan-tool-live/2026-11-08T03-04-42-162Z/1-result.json")
+    assert captured_path.exists()
+    captured = json.loads(captured_path.read_text())
+
+    def find_raw(value):
+        if isinstance(value, dict):
+            if isinstance(value.get("segments_px"), list) and isinstance(
+                value.get("outline_px"), list
+            ):
+                return value
+            for child in value.values():
+                found = find_raw(child)
+                if found:
+                    return found
+        elif isinstance(value, list):
+            for child in value:
+                found = find_raw(child)
+                if found:
+                    return found
+        return None
+
+    candidates = structure_candidates(Image.open(image_path).convert("RGB"), find_raw(captured))
+    assert len(candidates["candidateWalls"]) == 6
+    assert len(candidates["openingCandidates"]) == 7
+    assert len(candidates["dimensionCandidates"]) == 4
+    assert [opening["typeHint"] for opening in candidates["openingCandidates"]].count("door") == 3
+    assert [opening["typeHint"] for opening in candidates["openingCandidates"]].count("window") == 4
+    assert {dimension["suggestedBasis"] for dimension in candidates["dimensionCandidates"]} == {
+        "exterior",
+        "interior",
+    }
+
+
+def test_v33_assembly_generates_anchor_and_dimension_observations_from_ids():
+    skeleton = {
+        "structureSkeletonVersion": 3,
+        "analysisId": "analysis",
+        "candidateWalls": [
+            {
+                "candidateWallId": "cw_top",
+                "role": "top",
+                "orient": "h",
+                "line": 10,
+                "s0": 10,
+                "s1": 390,
+                "t": 8,
+            },
+            {
+                "candidateWallId": "cw_left",
+                "role": "left",
+                "orient": "v",
+                "line": 10,
+                "s0": 10,
+                "s1": 290,
+                "t": 8,
+            },
+        ],
+        "openingCandidates": [
+            {
+                "candidateId": "op_0",
+                "candidateWallId": "cw_top",
+                "orient": "h",
+                "line": 10,
+                "start": 100,
+                "end": 150,
+                "center": 125,
+                "typeHint": "window",
+            }
+        ],
+        "dimensionCandidates": [
+            {
+                "candidateId": "dim_top_0",
+                "axis": "h",
+                "side": "top",
+                "at": 0,
+                "ticks": [0, 400],
+                "suggestedWallRole": "top",
+                "suggestedBasis": "exterior",
+            }
+        ],
+    }
+    recognition = {
+        "status": "draft",
+        "name": "offline candidate assembly",
+        "walls": [
+            {"id": "north", "candidateWallIds": ["cw_top"]},
+            {"id": "west", "candidateWallIds": ["cw_left"]},
+        ],
+        "openings": [{"id": "window", "candidateId": "op_0", "type": "window"}],
+        "rooms": [{"id": "living", "at": {"x": 200, "y": 150}, "name": "Living"}],
+        "targetRoomIds": ["living"],
+        "dimensionReads": [{"candidateId": "dim_top_0", "label": "4000 mm"}],
+        "uncertainties": [],
+    }
+    value = _assemble_structure(skeleton, recognition, {})
+    assert len(value["anchors"]) == 1
+    assert value["anchors"][0]["distance"] == {"value": 4000, "unit": "mm"}
+    assert len(value["dimensionObservations"]) == 1
+    assert value["dimensionObservations"][0]["scaleReference"] is True
+    RecognitionV3.model_validate(value)
+
+
+def test_v33_furniture_contours_and_review_arbitration():
+    with open("fixtures/s2c-v2-synthetic.floorplan.json", encoding="utf-8") as source:
+        spec = json.load(source)
+    candidates = contour_candidates(Image.open("fixtures/s2c-synthetic.png").convert("RGB"), spec)
+    assert len(candidates["contourCandidates"]) >= 4
+    with pytest.raises(ValidationError):
+        FurnitureContourRecognition.model_validate(
+            {
+                "status": "draft",
+                "symbols": [
+                    {
+                        "id": "sofa",
+                        "roomId": "living",
+                        "categoryCode": "sofa",
+                        "sourceLabel": "sofa",
+                        "included": True,
+                        "contourCandidateIds": ["fc_000"],
+                        "rot": 0,
+                        "x": 100,
+                    }
+                ],
+            }
+        )
+    draft = {
+        "hash": "a" * 64,
+        "data": {
+            "uncertainties": [],
+            "symbols": [{"id": "sofa"}],
+            "anchors": [],
+            "dimensionObservations": [],
+            "walls": [],
+            "openings": [],
+        },
+    }
+    diagnostics = {"id": "diagnostic", "checks": {"passed": True, "issues": []}}
+    review = {
+        "passed": False,
+        "summary": "model-only concern",
+        "issues": [
+            {
+                "code": "OPENING_MISMATCH",
+                "object_ids": ["window"],
+                "description": "model saw a mismatch",
+            }
+        ],
+    }
+    arbitrated = _arbitrate_review(review, draft, diagnostics, {})
+    assert arbitrated["passed"] is True
+    assert any(
+        issue["code"] == "REVIEW_CONFLICT" and issue["severity"] == "advisory"
+        for issue in arbitrated["issues"]
+    )
 
 
 def test_mixed_orientation_candidates_are_rejected_offline():

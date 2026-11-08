@@ -375,6 +375,7 @@ export class ChatPanel {
         };
         const toolLabels: Record<string, string> = {
           analyze_floorplan: "墙线与尺寸刻度",
+          furniture_contours: "家具线稿轮廓",
           fit_wall_faces: "墙面及厚度测量",
           measure_dimension_chain: "尺寸标注核对",
           preview_floorplan: "结构预检",
@@ -382,6 +383,9 @@ export class ChatPanel {
         };
         const fileLabels: Record<string, string> = {
           "analysis.png": "墙线识别图",
+          "candidates.png": "墙体、洞口与尺寸候选",
+          "contours.png": "家具轮廓候选",
+          "target_contours.png": "目标客餐厅轮廓放大图",
           "mask.png": "墙体像素掩膜",
           "furn_all.png": "家具位置与朝向核对",
           "sheet_0.png": "墙体差异放大",

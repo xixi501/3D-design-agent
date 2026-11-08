@@ -246,6 +246,18 @@ try {
     assert.equal(draft.data.measurementVersion, 2);
     if (v3) {
       assert.equal(draft.data.recognitionVersion, 3);
+      assert.equal(
+        waiting.generation?.structureSkeleton?.structureSkeletonVersion,
+        3,
+      );
+      assert.ok(
+        waiting.generation?.upstreamTools?.some(
+          (entry) =>
+            entry.tool === "furniture_contours" &&
+            entry.record?.adapterVersion === "hpd-adapter-5",
+        ),
+        "V3 browser acceptance must use deterministic furniture contours",
+      );
       assert.ok(
         draft.data.symbols.every(
           (symbol) => symbol.categoryCode && symbol.sourceLabel,

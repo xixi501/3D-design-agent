@@ -39,6 +39,12 @@ export interface ScaleAnchor {
   basis: "interior" | "centerline" | "exterior";
   evidence: string;
 }
+export interface DimensionObservation extends ScaleAnchor {
+  id: string;
+  sourceCandidateId: string;
+  label: string;
+  scaleReference: boolean;
+}
 export interface ImageWall {
   id: string;
   a: Point;
@@ -109,6 +115,7 @@ export interface FloorplanData {
   height?: number;
   wallThickness?: number;
   anchors: ScaleAnchor[];
+  dimensionObservations?: DimensionObservation[];
   walls: ImageWall[];
   openings: ImageOpening[];
   rooms: ImageRoom[];
@@ -173,6 +180,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       "height",
       "wallThickness",
       "anchors",
+      "dimensionObservations",
       "walls",
       "openings",
       "rooms",
@@ -240,6 +248,68 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     if (!["interior", "centerline", "exterior"].includes(a.basis))
       invalid("需要确认净尺寸、中线或外尺寸", `anchors.${i}.basis`);
     text(a.evidence, `anchors.${i}.evidence`);
+  }
+  if (data.dimensionObservations !== undefined) {
+    if (
+      !Array.isArray(data.dimensionObservations) ||
+      data.dimensionObservations.length > 20
+    )
+      invalid("尺寸观测数量无效", "dimensionObservations");
+    const observationIds = new Set<string>();
+    for (const [i, observation] of data.dimensionObservations.entries()) {
+      object(
+        observation,
+        [
+          "id",
+          "sourceCandidateId",
+          "label",
+          "a",
+          "b",
+          "distance",
+          "basis",
+          "evidence",
+          "scaleReference",
+        ],
+        `dimensionObservations.${i}`,
+      );
+      text(observation.id, `dimensionObservations.${i}.id`, 100);
+      if (
+        !/^[\w:-]+$/.test(observation.id) ||
+        observationIds.has(observation.id)
+      )
+        invalid("尺寸观测身份重复或无效", `dimensionObservations.${i}.id`);
+      observationIds.add(observation.id);
+      text(
+        observation.sourceCandidateId,
+        `dimensionObservations.${i}.sourceCandidateId`,
+        100,
+      );
+      text(observation.label, `dimensionObservations.${i}.label`, 40);
+      point(observation.a, `dimensionObservations.${i}.a`);
+      point(observation.b, `dimensionObservations.${i}.b`);
+      if (
+        Math.hypot(
+          observation.a.x - observation.b.x,
+          observation.a.y - observation.b.y,
+        ) < 2
+      )
+        invalid("尺寸观测过短", `dimensionObservations.${i}`);
+      if (
+        millimetres(
+          observation.distance,
+          `dimensionObservations.${i}.distance`,
+        ) <= 0
+      )
+        invalid("尺寸观测长度必须大于零", `dimensionObservations.${i}`);
+      if (!["interior", "centerline", "exterior"].includes(observation.basis))
+        invalid("尺寸观测基准无效", `dimensionObservations.${i}.basis`);
+      text(observation.evidence, `dimensionObservations.${i}.evidence`);
+      if (typeof observation.scaleReference !== "boolean")
+        invalid(
+          "尺寸观测缺少比例参考标志",
+          `dimensionObservations.${i}.scaleReference`,
+        );
+    }
   }
   for (const w of data.walls) {
     object(w, ["id", "a", "b", "thicknessPx"], "walls." + w.id);
@@ -716,6 +786,7 @@ export function compileFloorplan(
             ...measurement.report,
             inputs: {
               anchors: data.anchors,
+              dimensionObservations: data.dimensionObservations || [],
               features: data.features,
               dimensions: data.dimensions,
               walls: data.walls,

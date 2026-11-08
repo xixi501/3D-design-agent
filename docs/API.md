@@ -106,7 +106,11 @@ Agent 终止预检工具增加可选 `change_reasons`：以 `anchors:0`、`symbo
 
 新户型图任务带 `workflowVersion=3` 和 `recognitionVersion=3`。草稿新增 `categoryCode` 与 `sourceLabel`；V3 符号的 `category` 保留为 `categoryCode` 兼容值。旧草稿继续接受自由文本 `category`。
 
-`categoryCode` 固定为 `sofa`、`armchair`、`chair`、`coffeeTable`、`sideTable`、`diningTable`、`tvCabinet`、`bookshelf`、`sideboard`、`cabinet`、`desk`、`plant`、`rug`、`floorLamp`、`decor`、`other`。评分版本为 `s2c-3`，阈值不变。
+`categoryCode` 固定为 `sofa`、`armchair`、`chair`、`coffeeTable`、`sideTable`、`diningTable`、`tvCabinet`、`bookshelf`、`sideboard`、`cabinet`、`desk`、`plant`、`rug`、`floorLamp`、`decor`、`other`。V3-1/V3-2 历史评分保持 `s2c-3`，V3-3 新评分使用 `s2c-4`；阈值不变。
+
+V3-3 新任务继续使用 `workflowVersion=3`、`recognitionVersion=3`，固定 `s2c-floorplan-v3-3`、`structureSkeletonVersion=3` 和 `hpd-adapter-5`。`analyze` 只增加 `candidateWalls`、`openingCandidates`、`dimensionCandidates`、`lineCandidates` 和候选图，不删除旧字段；现有工具路径增加只读 `contours` 模式，返回目标房间编号家具轮廓和 `contours.png`、`target_contours.png`。旧 V1/V2/V3-1/V3-2 任务保持原适配器和冻结 Skill。
+
+草稿可附 `dimensionObservations` 保存全部已读标注；只有最长外围外尺寸作为统一比例锚点，其余标注作为交叉核对证据，避免把示意墙厚和标注差值误当成多套比例。审核问题可附 `source`、`severity`、`evidenceRefs`、`bbox`。代码先执行确定性检查，无法由候选或诊断复现的模型问题记为 `advisory`；自动验收入口仍使用冻结参考和 `s2c-4` 评分，不放宽 90% 与 1 mm 门槛。
 
 现有 HTTP 路径不变。V3 审核仍提交到 `POST /api/projects/:id/floorplan-drafts/:draft/review`，但问题对象增加固定 `code`。真实单图使用：
 

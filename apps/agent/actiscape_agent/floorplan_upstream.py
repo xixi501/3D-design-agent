@@ -7,6 +7,7 @@ No project writes, network, arbitrary executable, or caller-controlled file path
 import base64
 import hashlib
 import importlib
+import itertools
 import json
 import math
 import subprocess
@@ -14,11 +15,16 @@ import sys
 import tempfile
 from pathlib import Path
 
+from floorplan_candidates import (
+    contour_candidates,
+    structure_candidates,
+    structure_overlay,
+)
 from floorplan_image import MAX_BYTES, decode_image, overlay_image, png
 from PIL import Image
 
 ROOT = Path(__file__).parent / "vendor" / "house_plan_designer"
-VERSION = "hpd-adapter-3"
+VERSION = "hpd-adapter-5"
 
 
 class ParameterError(ValueError):
@@ -84,7 +90,7 @@ def artifact(path):
     return {"data": base64.b64encode(data).decode(), "type": "application/json"}
 
 
-def analyze(image, image_path, args, out):
+def analyze(image, image_path, args, out, adapter_version):
     allowed = {"grayMax", "satMax", "outlined", "mmPerPixel"}
     if set(args) - allowed:
         raise ValueError("墙线分析包含未知参数")
@@ -112,8 +118,17 @@ def analyze(image, image_path, args, out):
         arguments += ["--outlined"]
     run("analyze.py", arguments)
     raw = json.loads((out / "analysis.json").read_text())
+    result = {k: raw[k] for k in ("size", "outline_px", "segments_px", "gaps_px", "dims_px")}
+    files = {name: artifact(out / name) for name in ("analysis.png", "mask.png")}
+    if adapter_version == "hpd-adapter-5":
+        candidates = structure_candidates(image, result)
+        structure_overlay(image, candidates).save(out / "candidates.png")
+        result.update(
+            {key: value for key, value in candidates.items() if key != "structureSkeletonVersion"}
+        )
+        files["candidates.png"] = artifact(out / "candidates.png")
     return {
-        "result": {k: raw[k] for k in ("size", "outline_px", "segments_px", "gaps_px", "dims_px")},
+        "result": result,
         "parameters": {
             "grayMax": int(gray),
             "satMax": int(saturation),
@@ -124,8 +139,16 @@ def analyze(image, image_path, args, out):
         "limitations": [
             "不是完整结构识别；家具边框可能误检，门窗类型仍需视觉判断",
             "未提供真实比例时只使用像素字段；不采用脚本的毫米草稿或承重推测",
+            *(
+                [
+                    "V3-3 候选已完成外围墙闭合、开洞扫描和尺寸线聚类；语义仍需原图复核",
+                    "家具轮廓候选只提供像素证据，最终类别与组合由受控模型选择",
+                ]
+                if adapter_version == "hpd-adapter-5"
+                else []
+            ),
         ],
-        "files": {name: artifact(out / name) for name in ("analysis.png", "mask.png")},
+        "files": files,
     }
 
 
@@ -211,7 +234,7 @@ def axis(args):
         raise ValueError("采样点过多")
     for p in [*ticks, *samples]:
         finite(p, 0, 25000000)
-    if any(b <= a for a, b in zip(ticks, ticks[1:])):
+    if any(b <= a for a, b in itertools.pairwise(ticks)):
         raise ValueError("尺寸刻度必须严格递增")
     for distance in distances:
         finite(distance, 1, 1000000)
@@ -269,10 +292,11 @@ def evidence(image_path, spec, out):
 
 
 def process(payload):
-    source = verify_vendor()
     mode, args = payload["mode"], payload.get("parameters", {})
     if not isinstance(args, dict):
-        raise ValueError("工具参数必须是对象")
+        raise TypeError("工具参数必须是对象")
+    adapter_version = payload.get("adapterVersion", VERSION)
+    source = {**verify_vendor(), "adapterVersion": adapter_version}
     if mode == "axis":
         return {**source, **axis(args)}
     raw = base64.b64decode(payload["image"], validate=True)
@@ -283,9 +307,29 @@ def process(payload):
         image.save(image_path)
         out.mkdir()
         if mode == "analyze":
-            result = analyze(image, image_path, args, out)
+            result = analyze(image, image_path, args, out, adapter_version)
         elif mode == "fit":
             result = fits(image, image_path, args, out)
+        elif mode == "contours":
+            if adapter_version != "hpd-adapter-5":
+                raise ValueError("家具轮廓候选仅支持 hpd-adapter-5")
+            spec = args.get("spec", args)
+            if not isinstance(spec, dict):
+                raise ValueError("家具轮廓候选缺少草稿")
+            result = contour_candidates(image, spec)
+            result["overlay"].save(out / "contours.png")
+            result["targetOverlay"].save(out / "target_contours.png")
+            result["files"] = {
+                "contours.png": artifact(out / "contours.png"),
+                "target_contours.png": artifact(out / "target_contours.png"),
+            }
+            result.pop("overlay", None)
+            result.pop("targetOverlay", None)
+            result["coverage"] = ["目标房间像素区域", "家具线稿轮廓与分组候选"]
+            result["limitations"] = [
+                "轮廓候选不代表家具语义；模型只选择和组合候选",
+                "被家具遮挡或未闭合的线稿会保留为低置信候选",
+            ]
         elif mode == "evidence":
             result = evidence(image_path, payload["spec"], out)
         elif mode == "diagnostics":

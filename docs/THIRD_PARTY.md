@@ -20,6 +20,8 @@ S2-C 图片预处理新增 Pillow 13.0.0（MIT-CMU）、opencv-python-headless 4
 
 `floorplan-reconstruction@0.5.1` 增加 V3-2 候选墙分组、一次结构修复和人工重审约束；它继续只提供设计指导，不能扩大工具或正式场景写入权限。
 
-`floorplan-reconstruction@0.2.1` 增加上述固定上游的真实读图工作流。`analyze.py`、`axismap.py`、`wallfit.py`、`wallaudit.py`、`furnoverlay.py`、`imgio.py`、尺寸目录和两份工作流说明原样保存在 Python 包内 `vendor/house_plan_designer`；原始 MIT 许可及逐文件哈希一并保留。适配器限制输入、文件和进程边界，正式场景继续由 TypeScript 编译；详情见 [原版工具适配](S2C_UPSTREAM_TOOLS.md)。
+`floorplan-reconstruction@0.5.2` 增加 V3-3 确定性墙体闭合、洞口扫描、外围尺寸候选、家具轮廓组合和代码审核仲裁。`dimticks.py`、`dimocr.py` 从同一固定提交加入随包来源清单，但运行时不依赖其未经验证的自动读数；尺寸文字仍由受控视觉角色抄录，端点、基准和证据由代码生成。
+
+`floorplan-reconstruction@0.2.1` 增加上述固定上游的真实读图工作流。`analyze.py`、`axismap.py`、`wallfit.py`、`wallaudit.py`、`furnoverlay.py`、`dimticks.py`、`dimocr.py`、`imgio.py`、尺寸目录和两份工作流说明原样保存在 Python 包内 `vendor/house_plan_designer`；原始 MIT 许可及逐文件哈希一并保留。适配器限制输入、文件和进程边界，正式场景继续由 TypeScript 编译；详情见 [原版工具适配](S2C_UPSTREAM_TOOLS.md)。
 
 DeepSeek 图像与工具图片协议参考 [Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/) 和 [Vision](https://api-docs.deepseek.com/guides/vision/)。本项目适配器修复锁定 SDK 对工具图片数组的文本化，并保留思考模式字段；实际 API 探针及失败记录独立保留。

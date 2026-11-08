@@ -94,17 +94,50 @@ class ControlledRoles(Roles):
                 assert candidates, opening["id"]
                 gap = min(
                     candidates,
-                    key=lambda item: abs((item["s0"] + item["s1"]) / 2 - expected),
+                    key=lambda item: abs(
+                        (
+                            item["center"]
+                            if "center" in item
+                            else (item["s0"] + item["s1"]) / 2
+                        )
+                        - expected
+                    ),
                 )
                 openings.append(
                     {
                         "id": opening["id"],
-                        "analysisId": analysis_id,
-                        "index": gap["index"],
+                        **(
+                            {"candidateId": gap["candidateId"]}
+                            if gap.get("candidateId")
+                            else {"analysisId": analysis_id, "index": gap["index"]}
+                        ),
                         "type": opening["type"],
                         "evidenceRefs": [analysis_id],
                     }
                 )
+            dimension_reads = []
+            dimensions = skeleton.get("dimensionCandidates") or []
+            if dimensions:
+                for anchor in V2["anchors"]:
+                    horizontal = abs(anchor["a"]["x"] - anchor["b"]["x"]) > abs(
+                        anchor["a"]["y"] - anchor["b"]["y"]
+                    )
+                    candidates = [
+                        item
+                        for item in dimensions
+                        if item["axis"] == ("h" if horizontal else "v")
+                        and item["suggestedBasis"] == anchor["basis"]
+                    ]
+                    assert candidates, anchor["evidence"]
+                    candidate = candidates[0]
+                    value = anchor["distance"]["value"]
+                    unit = anchor["distance"]["unit"]
+                    dimension_reads.append(
+                        {
+                            "candidateId": candidate["candidateId"],
+                            "label": f"{value:g} {unit}",
+                        }
+                    )
             return {
                 "status": "draft",
                 "name": V2["name"],
@@ -119,6 +152,7 @@ class ControlledRoles(Roles):
                 "openings": openings,
                 "rooms": V2["rooms"],
                 "targetRoomIds": V2["targetRoomIds"],
+                "dimensionReads": dimension_reads,
                 "uncertainties": V2["uncertainties"],
             }
         if schema.__name__ == "FurnitureRecognition":
@@ -135,6 +169,41 @@ class ControlledRoles(Roles):
                         "sourceLabel": symbol["category"],
                         "included": True,
                         "evidenceRefs": ["image:" + payload["image"]["sha256"]],
+                    }
+                )
+            return {"status": "draft", "question": "", "symbols": symbols}
+        if schema.__name__ == "FurnitureContourRecognition":
+            targets = set(payload["structure"]["targetRoomIds"])
+            candidates = payload["contourCandidates"]
+            symbols = []
+            used = set()
+            for symbol in V2["symbols"]:
+                if symbol["roomId"] not in targets:
+                    continue
+                available = [
+                    candidate
+                    for candidate in candidates
+                    if candidate["candidateId"] not in used
+                ]
+                assert available, symbol["id"]
+                candidate = min(
+                    available,
+                    key=lambda item: (
+                        (item["center"]["x"] - symbol["x"]) ** 2
+                        + (item["center"]["y"] - symbol["y"]) ** 2
+                    ),
+                )
+                used.add(candidate["candidateId"])
+                symbols.append(
+                    {
+                        "id": symbol["id"],
+                        "roomId": symbol["roomId"],
+                        "categoryCode": CATEGORY_CODES[symbol["category"]],
+                        "sourceLabel": symbol["category"],
+                        "functionalArea": symbol.get("functionalArea", "living"),
+                        "included": True,
+                        "contourCandidateIds": [candidate["candidateId"]],
+                        "rot": symbol["rot"],
                     }
                 )
             return {"status": "draft", "question": "", "symbols": symbols}

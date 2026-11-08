@@ -750,7 +750,13 @@ export class FloorplanStore {
         typeof body.review?.passed !== "boolean" ||
         !Array.isArray(body.review?.issues) ||
         typeof body.review?.summary !== "string" ||
-        (body.review.passed && body.review.issues.length)
+        (body.review.passed &&
+          body.review.issues.some(
+            (issue: any) =>
+              !issue ||
+              typeof issue !== "object" ||
+              (issue.severity ?? "blocking") !== "advisory",
+          ))
       )
         throw new SceneError(
           "DRAFT_CONFLICT",

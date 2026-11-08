@@ -27,6 +27,26 @@ test("original image tools expose measured evidence without changing project/dra
     assert.equal(analysis.files.length, 2);
     assert.ok(analysis.files.every((f: any) => !Object.hasOwn(f, "data")));
     assert.deepEqual((await call(root + "/analyze", {})).json(), analysis);
+    const v33Analysis = await call(root + "/analyze", {
+      adapterVersion: "hpd-adapter-5",
+    });
+    assert.equal(v33Analysis.statusCode, 200, v33Analysis.body);
+    const v33 = v33Analysis.json();
+    assert.ok(v33.result.candidateWalls.length >= 4);
+    assert.ok(v33.result.openingCandidates.length >= 1);
+    assert.ok(v33.files.some((file: any) => file.name === "candidates.png"));
+    const contourSpec = JSON.parse(
+      fs.readFileSync("fixtures/s2c-v2-synthetic.floorplan.json", "utf8"),
+    );
+    const contours = await call(root + "/contours", {
+      adapterVersion: "hpd-adapter-5",
+      spec: contourSpec,
+    });
+    assert.equal(contours.statusCode, 200, contours.body);
+    assert.ok(contours.json().contourCandidates.length >= 4);
+    assert.ok(
+      contours.json().files.some((file: any) => file.name === "contours.png"),
+    );
     const fit = await call(root + "/fit", {
       walls: [{ id: "top", kind: "H", c: 50, p0: 60, p1: 250 }],
     });

@@ -19,6 +19,8 @@
 
 原版读图工具、角色分工、预检及原图对账新增接口见 [原版工具适配](S2C_UPSTREAM_TOOLS.md)。工作台可在任务下展开“识别与测量证据”；任何识别或预检失败都不表示已保存正式场景。
 
+V3-3 新任务的固定候选层使用 `hpd-adapter-5`：外围墙先闭合，逐墙扫描门窗区间，轮廓外长线聚类为尺寸候选，目标房间线稿生成编号家具轮廓。结构角色只选择候选并抄录尺寸文字；家具角色只组合轮廓候选。证据面板会显示 `candidates.png`、`contours.png` 和 `target_contours.png`。草稿的 `dimensionObservations` 保存全部标注，只有最长外围外尺寸用于统一比例，其余作为交叉核对。
+
 `/api/floorplan-images` 是独立图片命名空间，不能用 GLB 上传接口代替。`POST` 使用单文件 multipart；返回稳定原图身份、原始 SHA-256、处理图 SHA-256、EXIF 后尺寸、归一化变换及像素线候选。`GET /:image/file` 读处理 PNG，`?variant=original` 读原始文件。裁剪入口为 `POST /:image/crops`，请求 `{"box":[x0,y0,x1,y1]}`；返回文件路径、校验值和 `cropToPixel`。小裁剪有限放大，坐标始终按显式变换映回原图；每任务最多四次裁剪尝试。
 
 项目下 `/api/projects/:id/floorplan-drafts`：

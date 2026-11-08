@@ -344,10 +344,20 @@ export class FloorplanPanel {
     );
     if (d.measurementVersion === 2) {
       const dims = this.preview.measurement?.dimensions || [];
+      const readDimensions =
+        d.dimensionObservations?.length || d.anchors.length;
+      const reviewIssues = this.draft.sourceReview?.review?.issues || [];
+      const advisory = reviewIssues.filter(
+        (issue: any) => issue.severity === "advisory",
+      ).length;
       this.summary.append(
         el(
           "p",
-          `标注尺寸 ${dims.length} 项 · ${this.draft.sourceReview?.review?.passed ? "原图审核通过" : "原图审核待通过"}`,
+          `已读标注 ${readDimensions} 项 · 解算尺寸 ${dims.length} 项 · ${
+            this.draft.sourceReview?.review?.passed
+              ? "原图审核通过"
+              : "原图审核待通过"
+          }${advisory ? ` · ${advisory} 项建议` : ""}`,
         ),
       );
       for (const f of this.preview.measurement?.features || [])

@@ -45,7 +45,7 @@ export class FloorplanTools {
   }
   async run(
     imageId: string,
-    mode: "analyze" | "fit" | "axis" | "evidence" | "diagnostics",
+    mode: "analyze" | "fit" | "axis" | "contours" | "evidence" | "diagnostics",
     parameters: any,
     spec?: any,
     draftHash?: string,
@@ -74,6 +74,7 @@ export class FloorplanTools {
           mode,
           parameters,
           spec,
+          adapterVersion,
           image: fs
             .readFileSync(this.store.file(imageId, "original").file)
             .toString("base64"),
@@ -150,7 +151,7 @@ export class FloorplanTools {
     for (const f of record.files) this.file(imageId, ref, f.name);
     return record;
   }
-  async fitBound(imageId: string, body: any) {
+  async fitBound(imageId: string, body: any, adapterVersion = "hpd-adapter-4") {
     if (
       !Array.isArray(body.walls) ||
       body.walls.length < 1 ||
@@ -199,7 +200,14 @@ export class FloorplanTools {
         skip: w.skip || [],
       };
     });
-    const result = await this.run(imageId, "fit", { walls });
+    const result = await this.run(
+      imageId,
+      "fit",
+      { walls },
+      undefined,
+      undefined,
+      adapterVersion,
+    );
     // Source binding is part of a distinct content-addressed record, never overwrite a cached fit.
     const id = digest({ result: result.id, bindings, adapter: "bound-fit-1" }),
       dir = this.directory(imageId, id);
@@ -460,7 +468,7 @@ export function floorplanToolRoutes(
             image: { type: "string" },
             tool: {
               type: "string",
-              enum: ["analyze", "fit", "axis", "fit-bound"],
+              enum: ["analyze", "fit", "axis", "contours", "fit-bound"],
             },
           },
         },
@@ -472,13 +480,16 @@ export function floorplanToolRoutes(
       const { adapterVersion = "hpd-adapter-3", ...parameters } = (req.body ||
         {}) as any;
       if (
-        !["hpd-adapter-2", "hpd-adapter-3", "hpd-adapter-4"].includes(
-          adapterVersion,
-        )
+        ![
+          "hpd-adapter-2",
+          "hpd-adapter-3",
+          "hpd-adapter-4",
+          "hpd-adapter-5",
+        ].includes(adapterVersion)
       )
         throw new SceneError("INVALID_REQUEST", "不支持的工具适配版本");
       return tool === "fit-bound"
-        ? tools.fitBound(image, parameters)
+        ? tools.fitBound(image, parameters, adapterVersion)
         : tools.run(
             image,
             tool,

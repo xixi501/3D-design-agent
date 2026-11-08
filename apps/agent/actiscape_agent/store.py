@@ -205,6 +205,8 @@ class TaskStore:
                                 "imageId": body["imageId"],
                                 "phase": "recognizing",
                                 "workflowVersion": 3,
+                                "recognitionVersion": 3,
+                                "floorplanVersion": "s2c-floorplan-v3-3",
                             }
                         ),
                         id,

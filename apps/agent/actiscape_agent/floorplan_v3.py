@@ -1,6 +1,8 @@
 """Bounded two-pass floorplan recognition with deterministic draft assembly."""
 
 import hashlib
+import math
+import re
 import statistics
 
 from langchain_core.tools import tool
@@ -10,6 +12,7 @@ from .config import FLOORPLAN_RECOGNITION_OPTIONS, FLOORPLAN_REVIEW_OPTIONS
 from .floorplan_roles import PIXEL_RULES, RULES
 from .floorplan_schemas import (
     FloorplanReview,
+    FurnitureContourRecognition,
     FurnitureRecognition,
     MeasuredDraftUpdate,
     RecognitionV3,
@@ -20,7 +23,7 @@ from .floorplan_v2 import FloorplanV2
 from .skill_registry import FLOORPLAN_TOOLS, load_design_skill, skill_record
 from .store import TaskError, fingerprint
 
-VERSION = "s2c-floorplan-v3-2"
+VERSION = "s2c-floorplan-v3-3"
 COMMON = (
     RULES
     + PIXEL_RULES.replace("餐椅四把就是四个符号", "每把餐椅都要单独记录")
@@ -33,15 +36,16 @@ STRUCTURE = (
     + """\n你是结构识别角色。输入包含 StructureSkeleton、candidateWalls、编号分析图、墙掩膜和原图。
 walls 中每项 business wall 必须通过 candidateWallIds 选择代码预先合并的候选墙；不得引用原始段索引。candidateWalls 已按共线、相接和断口 a/b 关系合并，同一 candidateWallId 只能使用一次。
 不要把外侧尺寸线、家具边或同一墙的另一侧描边当墙。连接墙需在房间闭合处共享端点。分析图漏墙时才允许引用实际裁剪生成 customSegments；没有裁剪证据的坐标会被拒绝。
-openings 必须引用 StructureSkeleton.gaps 中的真实断口，只写 analysisId、index 和 type；代码根据 gap.a/b 自动确定所属 business wall。同一断口不能重复使用。
+openings 必须引用 openingCandidates 的 candidateId 和 type；代码决定所属墙、偏移和宽度。同一洞口候选不能重复使用。
 rooms 使用房间名所在原图点，每个封闭区域一个标签；functionalArea 写 living/dining/kitchen/bedroom/bathroom/other。targetRoomIds 只选需要复现家具的客餐厅。
-anchors 只抄录清晰尺寸标注或用户明确长度；basis 区分 interior/centerline/exterior。未知 height/wallThickness 留 null。无法确认的关键结构写入 uncertainties(blocking=true)。
+dimensionReads 只选择 dimensionCandidates，并逐字抄录图中真实数字与单位；代码根据候选位置决定端点、墙面基准和 evidence。不要返回 anchors 或自行填写锚点。未知 height/wallThickness 留 null。
+无法确认的关键结构写入 uncertainties(blocking=true)。
 证据引用使用 analysisId、cropId 或 image:<sha256>。status=unsupported 仅用于非单层正交清晰平面图。"""
 )
 STRUCTURE_REPAIR = (
     COMMON
     + """\n上一轮结构结果无法由固定代码组装。你只修正 StructureRecognition，不修改候选骨架，不增加无证据墙。
-只选择 StructureSkeleton.candidateWalls 中存在的 candidateWallId；门窗只引用真实 gap 索引，所属墙由代码根据 gap.a/b 决定。
+只选择 StructureSkeleton.candidateWalls 中存在的 candidateWallId；门窗只引用 openingCandidates，尺寸只引用 dimensionCandidates，并逐字抄录图中标注。
 按输入的 errorCode、objectIds、message 和 allowedCandidateWallIds 修正；不得用相近候选凑数，不得删除阻断不确定项。只返回结构化结果，不输出解释。"""
 )
 FURNITURE = (
@@ -50,6 +54,13 @@ FURNITURE = (
 按固定顺序逐区扫描：北墙、东墙、南墙、西墙，四角，每个门窗附近，然后 3×3 网格。每件可见目标家具单独记录，不得把一组餐椅写成一个符号，也不得添加图中没有的家具。
 categoryCode 只能使用给定枚举；sourceLabel 保存原图中的中文或英文名称，不能把位置、朝向或解释写进 categoryCode。每个符号必须属于 targetRoomIds，included=true，evidenceRefs 引用原图、编号分析图或诊断文件。
 开放厨房、卧室和卫生间只保留结构；它们内部家具不得进入 symbols。w/d 是旋转前原图像素占地，不是毫米或目录默认尺寸。"""
+)
+FURNITURE_CONTOURS = (
+    COMMON
+    + """\n你是家具清点角色。结构草稿、目标客餐厅和编号家具轮廓候选已经确定。只输出 symbols，不修改墙、门窗、房间、锚点或不确定项。
+按北墙、东墙、南墙、西墙、四角、门窗附近、3×3 网格逐件核对。每件目标家具使用一个或多个最贴合的 contourCandidateIds，代码会合并这些轮廓框并计算 x/y/w/d。
+不得返回坐标、宽深或目录默认尺寸。组合轮廓必须紧密覆盖同一件家具；不要把邻近家具、房间文字或尺寸文字混入。地毯可以位于家具下方，餐椅可以收在餐桌旁，均为原图正常布局。
+categoryCode 只能使用固定枚举；sourceLabel 保存原图名称或简短视觉描述。所有符号属于 targetRoomIds，included=true。每件可见目标家具单独登记，不得把一组餐椅写成一个符号，也不得添加图中没有的家具。"""
 )
 MEASURE = (
     COMMON
@@ -63,9 +74,173 @@ CHECK = (
     COMMON
     + """\n你是独立检查角色。只核对当前哈希草稿，不执行修改。检查原图、结构叠加、毫米几何回投和家具清单。
 逐项核对墙体、门窗、房间、目标家具类别/数量/位置/朝向和尺寸证据。必须使用真实草稿对象 id，不能仅凭启发式工具零问题通过。
-issues 只能使用固定 code；description 写一条可定位的具体问题，不写推理过程。passed=true 只有在关键结构和目标家具全部可验证且 issues=[] 时成立。
+每个 issue 必须引用当前诊断 evidenceRefs，并给出原图像素 bbox=[x0,y0,x1,y1]；不能定位的问题标为 advisory。墙上门洞与固定 openingCandidates 冲突时不得仅凭文字声称“连续实墙”。地毯位于家具下方、餐椅收在桌边不算多余遮挡或位置错误。
+issues 只能使用固定 code；description 写一条可定位的具体问题，不写推理过程。passed=true 只有在关键结构和目标家具全部可验证且没有 blocking issues 时成立。
 无法验证关键项、图片缺失或代码检查未通过时必须 passed=false。"""
 )
+
+
+def _code_review_issues(draft, diagnostics, skeleton):
+    issues = []
+    checks = diagnostics.get("checks") or {}
+    for issue in checks.get("issues") or []:
+        if not issue.get("blocking", True):
+            continue
+        issues.append(
+            {
+                "code": "OTHER",
+                "source": "code",
+                "severity": "blocking",
+                "object_ids": list(issue.get("objectIds") or [])[:20],
+                "description": str(issue.get("message") or "确定性检查未通过")[:300],
+                "evidenceRefs": [diagnostics["id"]] if diagnostics.get("id") else [],
+                "bbox": None,
+            }
+        )
+    data = draft["data"]
+    if any(item.get("blocking") for item in data.get("uncertainties", [])):
+        issues.append(
+            {
+                "code": "OTHER",
+                "source": "code",
+                "severity": "blocking",
+                "object_ids": [
+                    item["id"] for item in data.get("uncertainties", []) if item.get("blocking")
+                ][:20],
+                "description": "仍有阻断不确定项",
+                "evidenceRefs": [diagnostics["id"]] if diagnostics.get("id") else [],
+                "bbox": None,
+            }
+        )
+    if not data.get("symbols"):
+        issues.append(
+            {
+                "code": "FURNITURE_MISSING",
+                "source": "code",
+                "severity": "blocking",
+                "object_ids": [],
+                "description": "目标客餐厅没有已确认家具",
+                "evidenceRefs": [diagnostics["id"]] if diagnostics.get("id") else [],
+                "bbox": None,
+            }
+        )
+    if skeleton.get("structureSkeletonVersion", 0) >= 3:
+        dimensions = skeleton.get("dimensionCandidates") or []
+        if len(data.get("dimensionObservations") or []) < len(dimensions):
+            issues.append(
+                {
+                    "code": "DIMENSION_MISMATCH",
+                    "source": "code",
+                    "severity": "blocking",
+                    "object_ids": [candidate["candidateId"] for candidate in dimensions][:20],
+                    "description": "固定尺寸候选没有被完整绑定到草稿",
+                    "evidenceRefs": [skeleton["analysisId"]],
+                    "bbox": None,
+                }
+            )
+        for candidate in skeleton.get("openingCandidates") or []:
+            owner = next(
+                (
+                    wall
+                    for wall in data.get("walls", [])
+                    if (
+                        abs(
+                            (wall["a"]["y"] if wall["a"]["y"] == wall["b"]["y"] else wall["a"]["x"])
+                            - float(candidate["line"])
+                        )
+                        <= 3
+                    )
+                ),
+                None,
+            )
+            matched = False
+            if owner:
+                along = "x" if owner["a"]["y"] == owner["b"]["y"] else "y"
+                wall_start = min(owner["a"][along], owner["b"][along])
+                for opening in data.get("openings", []):
+                    if opening["wallId"] != owner["id"]:
+                        continue
+                    start = wall_start + opening["offset"] - opening["width"] / 2
+                    end = wall_start + opening["offset"] + opening["width"] / 2
+                    if (
+                        abs(start - float(candidate["start"])) <= 3
+                        and abs(end - float(candidate["end"])) <= 3
+                    ):
+                        matched = True
+                        break
+            if not matched:
+                issues.append(
+                    {
+                        "code": "OPENING_MISMATCH",
+                        "source": "code",
+                        "severity": "blocking",
+                        "object_ids": [
+                            owner["id"] if owner else "",
+                            candidate["candidateId"],
+                        ],
+                        "description": "固定洞口候选没有被完整绑定到草稿",
+                        "evidenceRefs": [skeleton["analysisId"]],
+                        "bbox": [
+                            candidate["line"] - 10,
+                            candidate["start"],
+                            candidate["line"] + 10,
+                            candidate["end"],
+                        ]
+                        if candidate["orient"] == "v"
+                        else [
+                            candidate["start"],
+                            candidate["line"] - 10,
+                            candidate["end"],
+                            candidate["line"] + 10,
+                        ],
+                    }
+                )
+    return issues
+
+
+def _arbitrate_review(review, draft, diagnostics, skeleton):
+    code_issues = _code_review_issues(draft, diagnostics, skeleton)
+    model_issues = []
+    for issue in review.get("issues", []):
+        item = {
+            **issue,
+            "source": "model",
+            "severity": "advisory",
+            "evidenceRefs": list(issue.get("evidenceRefs") or []),
+        }
+        model_issues.append(item)
+    conflicts = []
+    if review.get("passed") is False and not code_issues:
+        conflicts.append(
+            {
+                "code": "REVIEW_CONFLICT",
+                "source": "model",
+                "severity": "advisory",
+                "object_ids": sorted(
+                    {
+                        object_id
+                        for issue in review.get("issues", [])
+                        for object_id in issue.get("object_ids", [])
+                    }
+                )[:20],
+                "description": "模型审核提出的问题未被固定候选或代码检查复现",
+                "evidenceRefs": [],
+                "bbox": None,
+            }
+        )
+    issues = [*code_issues, *model_issues, *conflicts]
+    passed = not code_issues
+    if code_issues:
+        summary = "确定性检查发现阻断问题；模型意见仅保留为辅助证据。"
+    elif conflicts:
+        summary = "确定性检查通过；未能复现的模型审核意见已记录为 advisory。"
+    else:
+        summary = "确定性检查通过，模型未提出可复现的阻断问题。"
+    return {
+        "passed": passed,
+        "summary": summary[:800],
+        "issues": issues[:20],
+    }
 
 
 def _candidate_id(index, prefix):
@@ -159,6 +334,55 @@ def _group_candidate_walls(segments, gaps):
 
 def build_structure_skeleton(record, image):
     result = record.get("result") or {}
+    if result.get("candidateWalls"):
+        candidate_walls = []
+        for candidate in result.get("candidateWalls") or []:
+            candidate_walls.append(
+                {
+                    **candidate,
+                    "analysisId": record["id"],
+                    "evidenceRefs": [record["id"]],
+                    "gapIndices": [
+                        index
+                        for index, opening in enumerate(result.get("openingCandidates") or [])
+                        if opening.get("candidateWallId") == candidate.get("candidateWallId")
+                    ],
+                }
+            )
+        opening_candidates = [
+            {
+                **opening,
+                "analysisId": record["id"],
+                "evidenceRefs": [record["id"]],
+            }
+            for opening in result.get("openingCandidates") or []
+        ]
+        dimension_candidates = [
+            {
+                **candidate,
+                "analysisId": record["id"],
+                "evidenceRefs": [record["id"]],
+            }
+            for candidate in result.get("dimensionCandidates") or []
+        ]
+        return {
+            "structureSkeletonVersion": 3,
+            "analysisId": record["id"],
+            "image": {k: image[k] for k in ("id", "sha256", "width", "height")},
+            "outline_px": result.get("outline_px"),
+            "segments": [
+                {"analysisId": record["id"], "index": index, **segment}
+                for index, segment in enumerate(result.get("segments_px") or [])
+            ],
+            "candidateWalls": candidate_walls,
+            "openingCandidates": opening_candidates,
+            "dimensionCandidates": dimension_candidates,
+            "gaps": opening_candidates,
+            "dimensions": result.get("dims_px") or {},
+            "repository": record.get("repository"),
+            "commit": record.get("commit"),
+            "limitations": record.get("limitations") or [],
+        }
     segments = []
     for index, segment in enumerate(result.get("segments_px") or []):
         segments.append(
@@ -209,7 +433,340 @@ def _gap_piece(skeleton, analysis_id, index):
     return skeleton["gaps"][index]
 
 
+def _dimension_value(label):
+    match = re.search(
+        r"([0-9]+(?:\.[0-9]+)?)\s*(mm|cm|m)(?![a-z])",
+        label,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        raise TaskError(
+            "INVALID_DIMENSION_REFERENCE",
+            f"尺寸标注 {label!r} 不含可解析的长度",
+            details={"objectIds": [label]},
+        )
+    return float(match.group(1)), match.group(2).lower()
+
+
+def _dimension_anchor(candidate, geometry, label):
+    basis = candidate.get("suggestedBasis")
+    if basis not in ("interior", "centerline", "exterior"):
+        raise TaskError(
+            "INVALID_DIMENSION_REFERENCE",
+            f"尺寸候选 {candidate['candidateId']} 缺少有效基准",
+            details={"objectIds": [candidate["candidateId"]]},
+        )
+    value, unit = _dimension_value(label)
+    role = geometry["role"]
+    orient = geometry["orient"]
+    line = geometry["line"]
+    start = geometry["start"]
+    end = geometry["end"]
+    thickness = geometry["thickness"]
+    if basis == "centerline":
+        along_start, along_end = start, end
+        normal = line
+    else:
+        outward = -1 if role in ("top", "left") else 1
+        sign = outward if basis == "exterior" else -outward
+        normal = line + sign * thickness / 2
+        along_start = start + (-1 if basis == "exterior" else 1) * thickness / 2
+        along_end = end + (1 if basis == "exterior" else -1) * thickness / 2
+    if orient == "h":
+        a = {"x": round(along_start, 3), "y": round(normal, 3)}
+        b = {"x": round(along_end, 3), "y": round(normal, 3)}
+    else:
+        a = {"x": round(normal, 3), "y": round(along_start, 3)}
+        b = {"x": round(normal, 3), "y": round(along_end, 3)}
+    return {
+        "a": a,
+        "b": b,
+        "distance": {"value": value, "unit": unit},
+        "basis": basis,
+        "evidence": (
+            f"dimension candidate {candidate['candidateId']} "
+            f"ticks {candidate['ticks'][0]}..{candidate['ticks'][1]}: {label}"
+        ),
+    }
+
+
+def _assemble_structure_v3(skeleton, recognition, evidence_index):
+    candidate_by_id = {wall["candidateWallId"]: wall for wall in skeleton.get("candidateWalls", [])}
+    candidate_owner = {}
+    draft_walls = []
+    wall_geometry = {}
+    for wall in recognition["walls"]:
+        pieces = []
+        for candidate_id in wall.get("candidateWallIds", []):
+            candidate = candidate_by_id.get(candidate_id)
+            if candidate is None:
+                raise TaskError(
+                    "UNKNOWN_WALL_GROUP",
+                    f"墙 {wall['id']} 引用了未知候选墙 {candidate_id}",
+                    details={"objectIds": [wall["id"], candidate_id]},
+                )
+            if candidate_id in candidate_owner:
+                raise TaskError(
+                    "INVALID_WALL_GEOMETRY",
+                    f"候选墙 {candidate_id} 被多个业务墙重复使用",
+                    details={"objectIds": [wall["id"], candidate_id]},
+                )
+            candidate_owner[candidate_id] = wall["id"]
+            pieces.append(candidate)
+        for custom in wall.get("customSegments", []):
+            if custom["cropId"] not in evidence_index:
+                raise TaskError(
+                    "INVALID_WALL_GEOMETRY",
+                    f"新增墙段 {wall['id']} 缺少有效裁剪证据",
+                    details={"objectIds": [wall["id"], custom["cropId"]]},
+                )
+            pieces.append(
+                {
+                    "orient": custom["kind"].lower(),
+                    "line": custom["c"],
+                    "s0": min(custom["p0"], custom["p1"]),
+                    "s1": max(custom["p0"], custom["p1"]),
+                    "t": wall.get("thicknessPx"),
+                    "role": "custom",
+                }
+            )
+        if not pieces:
+            raise TaskError(
+                "INVALID_WALL_GEOMETRY",
+                f"墙 {wall['id']} 没有真实候选",
+                details={"objectIds": [wall["id"]]},
+            )
+        orientations = {piece["orient"] for piece in pieces}
+        if len(orientations) != 1:
+            raise TaskError(
+                "MIXED_WALL_ORIENTATION",
+                f"墙 {wall['id']} 混合了水平和竖直候选",
+                details={"objectIds": [wall["id"]]},
+            )
+        lines = [float(piece["line"]) for piece in pieces]
+        if max(lines) - min(lines) > 3:
+            raise TaskError(
+                "INVALID_WALL_GEOMETRY",
+                f"墙 {wall['id']} 的候选不在同一直线上",
+                details={"objectIds": [wall["id"]]},
+            )
+        orient = next(iter(orientations))
+        line = statistics.median(lines)
+        start = min(float(piece["s0"]) for piece in pieces)
+        end = max(float(piece["s1"]) for piece in pieces)
+        if end - start < 2:
+            raise TaskError(
+                "INVALID_WALL_GEOMETRY",
+                f"墙 {wall['id']} 长度无效",
+                details={"objectIds": [wall["id"]]},
+            )
+        thickness_values = [
+            float(piece["t"])
+            for piece in pieces
+            if piece.get("t") is not None and float(piece["t"]) > 0
+        ]
+        thickness = (
+            float(wall["thicknessPx"])
+            if wall.get("thicknessPx") is not None
+            else statistics.median(thickness_values)
+            if thickness_values
+            else 8.0
+        )
+        role = next(
+            (
+                piece.get("role")
+                for piece in pieces
+                if piece.get("role") in ("top", "bottom", "left", "right")
+            ),
+            "interior",
+        )
+        if orient == "h":
+            a = {"x": round(start, 3), "y": round(line, 3)}
+            b = {"x": round(end, 3), "y": round(line, 3)}
+        else:
+            a = {"x": round(line, 3), "y": round(start, 3)}
+            b = {"x": round(line, 3), "y": round(end, 3)}
+        draft_walls.append(
+            {
+                "id": wall["id"],
+                "a": a,
+                "b": b,
+                "thicknessPx": round(thickness, 3),
+            }
+        )
+        wall_geometry[wall["id"]] = {
+            "orient": orient,
+            "line": line,
+            "start": start,
+            "end": end,
+            "thickness": thickness,
+            "role": role,
+        }
+    used_openings = set()
+    opening_by_id = {
+        opening["candidateId"]: opening for opening in skeleton.get("openingCandidates", [])
+    }
+    draft_openings = []
+    for opening in recognition["openings"]:
+        candidate_id = opening.get("candidateId")
+        candidate = opening_by_id.get(candidate_id)
+        if candidate is None:
+            raise TaskError(
+                "OPENING_OWNER_UNRESOLVED",
+                f"门窗 {opening['id']} 引用了未知洞口候选 {candidate_id}",
+                details={"objectIds": [opening["id"], candidate_id]},
+            )
+        if candidate_id in used_openings:
+            raise TaskError(
+                "OPENING_OWNER_UNRESOLVED",
+                "同一个门窗候选被重复使用",
+                details={"objectIds": [opening["id"], candidate_id]},
+            )
+        used_openings.add(candidate_id)
+        owner_candidate = candidate.get("candidateWallId")
+        owner = candidate_owner.get(owner_candidate)
+        if owner is None:
+            raise TaskError(
+                "OPENING_OWNER_UNRESOLVED",
+                f"门窗 {opening['id']} 的洞口所属墙未被选择",
+                details={"objectIds": [opening["id"], owner_candidate or ""]},
+            )
+        geometry = wall_geometry[owner]
+        start = float(candidate["start"])
+        end = float(candidate["end"])
+        if (
+            candidate.get("orient") != geometry["orient"]
+            or start < geometry["start"] - 2
+            or end > geometry["end"] + 2
+        ):
+            raise TaskError(
+                "OPENING_OUT_OF_RANGE",
+                f"门窗 {opening['id']} 超出所属墙范围",
+                details={"objectIds": [opening["id"], owner]},
+            )
+        draft_openings.append(
+            {
+                "id": opening["id"],
+                "wallId": owner,
+                "type": opening["type"],
+                "offset": round((start + end) / 2 - geometry["start"], 3),
+                "width": round(end - start + 1, 3),
+                **{
+                    key: opening[key]
+                    for key in ("sill", "head", "side", "hinge")
+                    if opening.get(key) is not None
+                },
+            }
+        )
+    missing_openings = set(opening_by_id) - used_openings
+    if missing_openings:
+        raise TaskError(
+            "OPENING_OWNER_UNRESOLVED",
+            "固定洞口候选没有被完整选择",
+            details={"objectIds": sorted(missing_openings)},
+        )
+    room_ids = {room["id"] for room in recognition["rooms"]}
+    if any(room_id not in room_ids for room_id in recognition["targetRoomIds"]):
+        raise TaskError(
+            "TARGET_ROOM_MISSING",
+            "目标客餐厅引用了未知房间",
+            details={"objectIds": recognition["targetRoomIds"]},
+        )
+    dimension_by_id = {
+        candidate["candidateId"]: candidate for candidate in skeleton.get("dimensionCandidates", [])
+    }
+    used_dimensions = set()
+    observations = []
+    for read in recognition.get("dimensionReads", []):
+        candidate = dimension_by_id.get(read["candidateId"])
+        if candidate is None:
+            raise TaskError(
+                "INVALID_DIMENSION_REFERENCE",
+                f"尺寸引用未知候选 {read['candidateId']}",
+                details={"objectIds": [read["candidateId"]]},
+            )
+        if read["candidateId"] in used_dimensions:
+            raise TaskError(
+                "INVALID_DIMENSION_REFERENCE",
+                f"尺寸候选 {read['candidateId']} 被重复引用",
+                details={"objectIds": [read["candidateId"]]},
+            )
+        used_dimensions.add(read["candidateId"])
+        role = candidate.get("suggestedWallRole")
+        owner = next(
+            (wall_id for wall_id, geometry in wall_geometry.items() if geometry["role"] == role),
+            None,
+        )
+        if owner is None:
+            raise TaskError(
+                "INVALID_DIMENSION_REFERENCE",
+                f"尺寸候选 {read['candidateId']} 对应的外围墙未被选择",
+                details={"objectIds": [read["candidateId"], role or ""]},
+            )
+        anchor = _dimension_anchor(candidate, wall_geometry[owner], read["label"])
+        observations.append(
+            {
+                "id": "dim_obs_" + read["candidateId"],
+                "sourceCandidateId": read["candidateId"],
+                "label": read["label"],
+                **anchor,
+                "scaleReference": False,
+            }
+        )
+    anchors = []
+    if observations:
+        primary = max(
+            (observation for observation in observations if observation["basis"] == "exterior"),
+            key=lambda observation: math.hypot(
+                observation["b"]["x"] - observation["a"]["x"],
+                observation["b"]["y"] - observation["a"]["y"],
+            ),
+            default=observations[0],
+        )
+        primary["scaleReference"] = True
+        anchors = [{key: primary[key] for key in ("a", "b", "distance", "basis", "evidence")}]
+    elif recognition.get("anchors"):
+        anchors = recognition["anchors"]
+    if dimension_by_id and len(used_dimensions) != len(dimension_by_id):
+        raise TaskError(
+            "INVALID_DIMENSION_REFERENCE",
+            "固定尺寸候选没有被完整绑定",
+            details={"objectIds": sorted(set(dimension_by_id) - used_dimensions)},
+        )
+    missing_walls = set(candidate_by_id) - set(candidate_owner)
+    if missing_walls:
+        raise TaskError(
+            "INVALID_WALL_GEOMETRY",
+            "固定墙体候选没有被完整选择",
+            details={"objectIds": sorted(missing_walls)},
+        )
+    return {
+        "status": "draft",
+        "question": recognition.get("question", ""),
+        "recognitionVersion": 3,
+        "measurementVersion": 2,
+        "name": recognition["name"],
+        **{
+            key: recognition[key]
+            for key in ("height", "wallThickness")
+            if recognition.get(key) is not None
+        },
+        "anchors": anchors,
+        **({"dimensionObservations": observations} if observations else {}),
+        "walls": draft_walls,
+        "openings": draft_openings,
+        "rooms": recognition["rooms"],
+        "symbols": [],
+        "targetRoomIds": recognition["targetRoomIds"],
+        "uncertainties": recognition["uncertainties"],
+        "features": [],
+        "dimensions": [],
+    }
+
+
 def _assemble_structure(skeleton, recognition, evidence_index):
+    if skeleton.get("structureSkeletonVersion", 0) >= 3:
+        return _assemble_structure_v3(skeleton, recognition, evidence_index)
     if recognition["status"] == "unsupported":
         return recognition
 
@@ -518,6 +1075,7 @@ class FloorplanV3(FloorplanV2):
                 "OPENING_OUT_OF_RANGE",
                 "INVALID_WALL_GEOMETRY",
                 "TARGET_ROOM_MISSING",
+                "INVALID_DIMENSION_REFERENCE",
             }
             object_ids = (getattr(error, "details", None) or {}).get("objectIds", [])
             generation = self.store.task(task["id"], internal=True)["generation"]
@@ -571,6 +1129,13 @@ class FloorplanV3(FloorplanV2):
                     "objectIds": object_ids,
                     "allowedCandidateWallIds": [
                         wall["candidateWallId"] for wall in skeleton.get("candidateWalls", [])
+                    ],
+                    "allowedOpeningCandidateIds": [
+                        opening["candidateId"] for opening in skeleton.get("openingCandidates", [])
+                    ],
+                    "allowedDimensionCandidateIds": [
+                        candidate["candidateId"]
+                        for candidate in skeleton.get("dimensionCandidates", [])
                     ],
                 },
             )
@@ -646,6 +1211,9 @@ class FloorplanV3(FloorplanV2):
         return assembled
 
     async def recognize_furniture(self, task, image, draft, diagnostics):
+        generation = self.store.task(task["id"], internal=True)["generation"]
+        if generation.get("floorplanVersion") == "s2c-floorplan-v3-3":
+            return await self.recognize_furniture_contours(task, image, draft, diagnostics)
         evidence, context = await self.context(task, image, "main")
         analysis = next(
             (
@@ -710,7 +1278,130 @@ class FloorplanV3(FloorplanV2):
         self.patch(
             task["id"],
             furniturePass=value,
-            pendingFurniture=value,
+            pendingFurniture={"symbols": symbols},
+            phase="recognizing_furniture",
+        )
+        return symbols
+
+    async def recognize_furniture_contours(self, task, image, draft, diagnostics):
+        tools = FloorplanToolset(self.base, task, image, "main")
+        record = await tools.request("contours", {"spec": draft["data"]})
+        if record.get("error"):
+            raise TaskError(
+                record["error"],
+                record.get("message") or "家具轮廓候选生成失败",
+                422,
+            )
+        candidates = record.get("contourCandidates") or []
+        if not candidates:
+            raise TaskError("FURNITURE_MISSING", "目标客餐厅没有家具轮廓候选")
+        await tools.result("furniture_contours", record, pictures=False)
+        container = {candidate["candidateId"]: candidate for candidate in candidates}
+        evidence, context = await self.context(task, image, "main")
+        images = [await self.client.image(f"/floorplan-images/{image['id']}/file")]
+        images += await evidence.images()
+        images += [await self.client.image(file["path"]) for file in record.get("files", [])]
+        images += [await self.client.image(file["path"]) for file in diagnostics.get("files", [])]
+        value = await self.base.invoke(
+            "main",
+            FURNITURE_CONTOURS,
+            FurnitureContourRecognition,
+            [context, evidence.crop_tool()],
+            {
+                "userRequest": task["input"],
+                "image": image,
+                "structure": draft["data"],
+                "diagnostics": diagnostics,
+                "contourCandidates": candidates,
+                "targetRegions": record.get("targetRegions") or {},
+                "skill": self.store.task(task["id"], internal=True)["generation"]["skillSnapshot"],
+            },
+            task["id"],
+            images,
+            prompt_version=VERSION,
+            bounded_schema=True,
+            model_options=FLOORPLAN_RECOGNITION_OPTIONS,
+        )
+        value = FurnitureContourRecognition.model_validate(value).model_dump(
+            exclude_none=True, by_alias=True
+        )
+        if value["status"] == "unsupported":
+            raise TaskError(
+                "FURNITURE_UNSUPPORTED",
+                value.get("question") or "无法识别目标客餐厅家具",
+            )
+        if not value["symbols"]:
+            raise TaskError("FURNITURE_MISSING", "目标客餐厅没有识别到家具")
+        targets = set(draft["data"]["targetRoomIds"])
+        seen_ids = set()
+        used_contours = set()
+        symbols = []
+        for symbol in value["symbols"]:
+            if symbol["roomId"] not in targets:
+                raise TaskError("INVALID_FURNITURE", "家具符号不属于目标客餐厅")
+            if symbol["id"] in seen_ids:
+                raise TaskError("INVALID_FURNITURE", "家具符号身份重复")
+            seen_ids.add(symbol["id"])
+            selected = []
+            for candidate_id in symbol["contourCandidateIds"]:
+                candidate = container.get(candidate_id)
+                if candidate is None:
+                    raise TaskError(
+                        "INVALID_FURNITURE",
+                        f"家具 {symbol['id']} 引用了未知轮廓 {candidate_id}",
+                    )
+                if candidate_id in used_contours:
+                    raise TaskError(
+                        "INVALID_FURNITURE",
+                        f"轮廓 {candidate_id} 被多个家具重复使用",
+                    )
+                used_contours.add(candidate_id)
+                selected.append(candidate)
+            x0 = min(item["bbox"][0] for item in selected)
+            y0 = min(item["bbox"][1] for item in selected)
+            x1 = max(item["bbox"][0] + item["bbox"][2] for item in selected)
+            y1 = max(item["bbox"][1] + item["bbox"][3] for item in selected)
+            if symbol["categoryCode"] == "chair" and y1 - y0 < 18 <= x1 - x0:
+                pad = (18 - (y1 - y0)) / 2
+                y0 -= pad
+                y1 += pad
+            if x1 - x0 < 3 or y1 - y0 < 3:
+                raise TaskError(
+                    "INVALID_FURNITURE",
+                    f"家具 {symbol['id']} 的轮廓组合无效",
+                )
+            symbols.append(
+                {
+                    **{
+                        key: symbol[key]
+                        for key in (
+                            "id",
+                            "roomId",
+                            "categoryCode",
+                            "sourceLabel",
+                            "functionalArea",
+                        )
+                        if symbol.get(key) is not None
+                    },
+                    "category": symbol["categoryCode"],
+                    "included": True,
+                    "evidenceRefs": [record["id"]],
+                    "x": round((x0 + x1) / 2, 3),
+                    "y": round((y0 + y1) / 2, 3),
+                    "w": round(x1 - x0, 3),
+                    "d": round(y1 - y0, 3),
+                    "rot": symbol["rot"],
+                }
+            )
+        self.patch(
+            task["id"],
+            furniturePass=value,
+            pendingFurniture={"symbols": symbols},
+            furnitureContours={
+                "recordId": record["id"],
+                "candidateCount": len(candidates),
+                "targetRegions": record.get("targetRegions") or {},
+            },
             phase="recognizing_furniture",
         )
         return symbols
@@ -730,7 +1421,7 @@ class FloorplanV3(FloorplanV2):
             for candidate_id in wall.get("candidateWallIds", []):
                 candidate = candidate_by_id.get(candidate_id)
                 if candidate:
-                    indices.extend(candidate["indices"])
+                    indices.extend(candidate.get("indices") or candidate.get("sourceIndices") or [])
             if indices:
                 wall_candidates.append(
                     {
@@ -839,7 +1530,7 @@ class FloorplanV3(FloorplanV2):
                 "imageHashes": [hashlib.sha256(i).hexdigest() for i in images],
             },
         )
-        review = await self.base.invoke(
+        model_review = await self.base.invoke(
             "check",
             CHECK,
             FloorplanReview,
@@ -857,7 +1548,27 @@ class FloorplanV3(FloorplanV2):
             bounded_schema=True,
             model_options=FLOORPLAN_REVIEW_OPTIONS,
         )
-        return FloorplanReview.model_validate(review).model_dump()
+        model_review = FloorplanReview.model_validate(model_review).model_dump()
+        skeleton = (
+            self.store.task(task["id"], internal=True)["generation"].get("structureSkeleton") or {}
+        )
+        review = _arbitrate_review(model_review, draft, diagnostics, skeleton)
+        self.store.event(
+            task["id"],
+            "review_arbitration",
+            {
+                "draftHash": draft["hash"],
+                "phase": phase,
+                "modelPassed": model_review["passed"],
+                "finalPassed": review["passed"],
+                "codeBlocking": sum(
+                    item.get("source") == "code" and item.get("severity") == "blocking"
+                    for item in review["issues"]
+                ),
+                "advisory": sum(item.get("severity") == "advisory" for item in review["issues"]),
+            },
+        )
+        return review
 
     async def ground(self, state, task, legacy):
         project = state["project"]

@@ -111,6 +111,29 @@ test("v2 diagnostics, candidate binding, patch evidence ledger and review invali
       review: { passed: true, summary: "controlled source-only", issues: [] },
     };
     assert.equal((await call(url + "/review", review)).statusCode, 200);
+    const advisory = await call(url + "/review", {
+      ...review,
+      requestId: "current-with-advisory",
+      review: {
+        passed: true,
+        summary: "deterministic checks passed with one model advisory",
+        issues: [
+          {
+            code: "OTHER",
+            source: "model",
+            severity: "advisory",
+            object_ids: ["chair1"],
+            description: "non-blocking visual observation",
+            evidenceRefs: [current.id],
+          },
+        ],
+      },
+    });
+    assert.equal(advisory.statusCode, 200, advisory.body);
+    assert.equal(
+      advisory.json().sourceReview.review.issues[0].severity,
+      "advisory",
+    );
     assert.equal(
       (
         await call(url + "/confirm", {

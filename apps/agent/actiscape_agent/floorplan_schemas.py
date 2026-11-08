@@ -130,14 +130,20 @@ class StructureWall(StrictModel):
 
 class StructureGapRef(StrictModel):
     id: str
-    analysisId: str
-    index: int = Field(ge=0)
+    candidateId: str | None = None
+    analysisId: str | None = None
+    index: int | None = Field(default=None, ge=0)
     type: Literal["door", "window", "hole", "sliding"]
     sill: FiniteFloat | None = None
     head: FiniteFloat | None = None
     side: Literal[-1, 1] | None = None
     hinge: Literal[0, 1] | None = None
     evidenceRefs: list[str] = Field(default_factory=list, max_length=10)
+
+
+class DimensionRead(StrictModel):
+    candidateId: str
+    label: str = Field(min_length=2, max_length=40)
 
 
 class StructureRecognition(StrictModel):
@@ -151,6 +157,7 @@ class StructureRecognition(StrictModel):
     openings: list[StructureGapRef] = Field(default_factory=list, max_length=100)
     rooms: list[ImageRoom] = Field(default_factory=list, max_length=60)
     targetRoomIds: list[str] = Field(default_factory=list, max_length=60)
+    dimensionReads: list[DimensionRead] = Field(default_factory=list, max_length=20)
     uncertainties: list[Uncertainty] = Field(default_factory=list, max_length=100)
 
 
@@ -176,6 +183,24 @@ class FurnitureRecognition(StrictModel):
     symbols: list[FurnitureSymbol] = Field(default_factory=list, max_length=100)
 
 
+class FurnitureContourSelection(StrictModel):
+    id: str
+    roomId: str
+    categoryCode: CategoryCode
+    sourceLabel: str = Field(min_length=1, max_length=100)
+    functionalArea: Literal["living", "dining", "kitchen", "other"] | None = None
+    included: bool | None = None
+    exclusionReason: str | None = None
+    contourCandidateIds: list[str] = Field(min_length=1, max_length=20)
+    rot: FiniteFloat = Field(ge=-360, le=360)
+
+
+class FurnitureContourRecognition(StrictModel):
+    status: Literal["draft", "unsupported"]
+    question: str = ""
+    symbols: list[FurnitureContourSelection] = Field(default_factory=list, max_length=100)
+
+
 class FloorplanReviewIssue(StrictModel):
     code: Literal[
         "WALL_MISMATCH",
@@ -186,10 +211,15 @@ class FloorplanReviewIssue(StrictModel):
         "FURNITURE_EXTRA",
         "FURNITURE_POSITION",
         "EVIDENCE_MISSING",
+        "REVIEW_CONFLICT",
         "OTHER",
     ]
+    source: Literal["code", "model"] = "model"
+    severity: Literal["blocking", "advisory"] = "blocking"
     object_ids: list[str] = Field(max_length=20)
     description: str = Field(max_length=300)
+    evidenceRefs: list[str] = Field(default_factory=list, max_length=20)
+    bbox: list[FiniteFloat] | None = Field(default=None, min_length=4, max_length=4)
 
 
 class FloorplanReview(StrictModel):
@@ -251,6 +281,13 @@ class MeasurementDimension(StrictModel):
     evidenceRefs: list[str] = Field(min_length=1, max_length=20)
 
 
+class DimensionObservation(ScaleAnchor):
+    id: str
+    sourceCandidateId: str
+    label: str = Field(min_length=2, max_length=40)
+    scaleReference: bool
+
+
 class RecognitionV2(FloorplanRecognition):
     measurementVersion: Literal[2] = 2
     features: list[MeasurementFeature] = Field(default_factory=list, max_length=500)
@@ -259,6 +296,7 @@ class RecognitionV2(FloorplanRecognition):
 
 class RecognitionV3(RecognitionV2):
     recognitionVersion: Literal[3] = 3
+    dimensionObservations: list[DimensionObservation] = Field(default_factory=list, max_length=20)
 
 
 DraftCollection = Literal[

@@ -9,6 +9,8 @@
     "scripts/wallfit.py": "2285a70923928d684ec8583f91d3162512d06099264e68fe61810a927a90cb20",
     "scripts/wallaudit.py": "12cfedab1d44937d6549baccfbc16150a0ac52d0fb15fa184cf8a3b7df02ce1f",
     "scripts/furnoverlay.py": "ec64cafb092b907306e085c106607a3ed91edb8f7f398b2708bdee1d5ed6a624",
+    "scripts/dimticks.py": "ffa5867baaf954171dd90aa10034486fba601023a88a14f21e74eb87909cbb58",
+    "scripts/dimocr.py": "be53dde458ecadb64675cebe39e6b0916c58bbef58fbf02fd7def79401d4b530",
     "scripts/imgio.py": "066bf71d1859d396e847176c48c1d80c2fd3d9be2123fd0ba99c268fb730496b",
     "reference/catalog-sizes.json": "d299f37787ae1a2361697aa7244dcd46b43d35ae45601b39d98564c771863b3f",
     "reference/route-image.md": "469da463cd34c1ab3a59e4b079bed57c25de65069a001d84a3b03a7e99df5cfa",

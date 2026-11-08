@@ -263,7 +263,7 @@ export function scoreFloorplanRecognition(
     walls,
     openings,
     furniture,
-    thresholdVersion: raw.recognitionVersion === 3 ? "s2c-3" : "s2c-1",
+    thresholdVersion: raw.recognitionVersion === 3 ? "s2c-4" : "s2c-1",
   };
 }
 
@@ -445,7 +445,7 @@ export function scoreFloorplan(
       dimensionsPassed,
     },
     thresholdVersion:
-      raw.recognitionVersion === 3 ? "s2c-3" : measurement ? "s2c-2" : "s2c-1",
+      raw.recognitionVersion === 3 ? "s2c-4" : measurement ? "s2c-2" : "s2c-1",
   };
 }
 

@@ -43,8 +43,13 @@ class FloorplanToolset:
         workflow_version = self.store.task(self.task["id"], internal=True)["generation"].get(
             "workflowVersion"
         )
+        floorplan_version = self.store.task(self.task["id"], internal=True)["generation"].get(
+            "floorplanVersion"
+        )
         adapter = (
-            "hpd-adapter-4"
+            "hpd-adapter-5"
+            if floorplan_version == "s2c-floorplan-v3-3"
+            else "hpd-adapter-4"
             if workflow_version == 3
             else "hpd-adapter-3"
             if workflow_version == 2

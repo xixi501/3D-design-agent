@@ -1,0 +1,94 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "f21b65d98b45bcab97a154aa94b01a0b2e9b6818",
+  "scope": "sixth-independent-single-real-image-run",
+  "task": {
+    "projectId": "b5280748-3b79-48d7-ae8d-cb7e42be20e8",
+    "taskId": "827d7b7c-4e8d-4b8d-87c5-971b18d2e403",
+    "status": "waiting_input",
+    "error": "两阶段识别后仍有阻断问题，正式项目未改变。请查看原图证据及检查结果。",
+    "modelCalls": 17,
+    "activeSeconds": 110.76368880271912,
+    "formalProjectRevision": 0,
+    "manualCorrections": 0,
+    "repairs": 3
+  },
+  "firstRecognition": {
+    "passed": true,
+    "walls": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "openings": {
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "furniture": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "symbolCount": 13,
+      "chairCount": 6
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "finalScoring": {
+    "passed": true,
+    "rawPassed": true,
+    "finalPassed": true,
+    "layoutObjectsPassed": 13,
+    "roomPrecision": 1.0,
+    "roomRecall": 1.0,
+    "topologyAdjacencyPassed": true,
+    "roomNamesPassed": true,
+    "dimensionCount": 4,
+    "dimensionResidualsMm": [0, 0, 0, 0]
+  },
+  "blocker": {
+    "stage": "code-review-arbitration",
+    "code": "FLOORPLAN_UNCERTAIN",
+    "message": "The final geometry passed independent scoring, but four stale blocking uncertainties were still treated as hard review failures.",
+    "compilationPassed": false,
+    "sourceReviewReached": false,
+    "confirmationReached": false,
+    "candidateSubmitted": false,
+    "projectWritten": false,
+    "staleUncertaintyIds": [
+      "u_dim_basis",
+      "u_dim_bind",
+      "u_int_v_split",
+      "u_int_v_openings_block"
+    ]
+  },
+  "rootCause": {
+    "message": "The code review layer treated every blocking uncertainty as an unconditional error and duplicated FLOORPLAN_UNCERTAIN diagnostics as blocking issues.",
+    "codeEvidenceAvailable": "All four measurement bindings existed with zero residual and all seven fixed opening candidates matched the draft exactly."
+  },
+  "postFailureOfflineFix": {
+    "commit": "cec6510",
+    "change": "Arbitrate blocking uncertainties against current code evidence. Dimension uncertainties are advisory when all anchor bindings exist; opening uncertainties are advisory when every fixed opening candidate matches; unresolved uncertainties remain blocking.",
+    "recordedDraftReplay": "The exact failed draft now produces review passed=true with four advisory issues and no blocking issue.",
+    "realRunAfterFixStarted": false
+  },
+  "decision": {
+    "secondRunInBatchStarted": false,
+    "secondImageStarted": false,
+    "thresholdsRelaxed": false,
+    "formalAcceptance": false
+  },
+  "artifacts": {
+    "liveReport": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r6-20261108-report.json",
+      "sha256": "8cea9b2813a263fd3eb968c0c46ce623cb6e86d3322668ac8140a2607e03a2b4"
+    },
+    "scoring": {
+      "path": "docs/evidence/s2c-v3-5-vision/live-r6-20261108-scoring.json",
+      "sha256": "720a2cdad0b2e4b9c18896da194297724a2cb77e5204f25e36f7fb6f8bbc194a"
+    },
+    "rawDirectory": "test-results/floorplan-tool-live/2026-11-08T06-58-37-316Z"
+  }
+}

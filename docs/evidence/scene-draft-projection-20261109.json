@@ -1,0 +1,49 @@
+{
+  "purpose": "Project existing text-generation and local-edit tasks into the generic scene draft",
+  "generatedAt": "2026-11-09T02:13:59+08:00",
+  "implementationCommit": "6e9bfe2af8bcf7284e1a76113550a05e40198a1b",
+  "command": "npm run test:floorplan:offline",
+  "passed": true,
+  "checks": {
+    "python": {
+      "passed": 129,
+      "failed": 0
+    },
+    "node": {
+      "passed": 41,
+      "failed": 0
+    },
+    "buildAndTypecheck": true,
+    "browser": true,
+    "skillPoolL3": true,
+    "v35Replay": true,
+    "v36Replay": true,
+    "controlledV3Browser": true
+  },
+  "projection": {
+    "textGeneration": [
+      "The task text is stored as a text_brief source.",
+      "Brief dimensions, openings, style and furniture become IntentSpec constraints.",
+      "The compiled shell and candidate plans become SceneProgram revisions.",
+      "Catalogue furniture receives catalogCandidates asset resolutions."
+    ],
+    "localEdit": [
+      "The current project revision becomes a project_import baseline source.",
+      "The user task becomes IntentSpec with target and addition constraints.",
+      "The baseline and accepted candidate states are projected into SceneProgram.",
+      "The formal candidate remains the authority until later migration."
+    ]
+  },
+  "notClaimed": [
+    "Floorplan recognition migration to SceneProgram",
+    "Whole-home furniture reconstruction",
+    "Reserved room activation",
+    "Photo input adapters",
+    "Generic draft as formal commit source"
+  ],
+  "artifacts": {
+    "test-results/skill-pool-v1-l3.json": "0b9f0e6557f81cc95ffb4b4a179902f99f68e9b51b0a6fe23018404a91a615fd",
+    "test-results/floorplan-v3-tools/report.json": "b62712531337acf9a9ade0246a1813c1c59d99316672b3fd6e393db11ed4efd1",
+    "test-results/browser/report.json": "b06de46d538cc5d3ca3508efdff9b99c25f18dae628cdb4c55cfb36dc5260bea"
+  }
+}

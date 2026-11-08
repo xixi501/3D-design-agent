@@ -1,7 +1,805 @@
 {
-  "generated_at": "2026-11-08T23:49:16+08:00",
+  "generated_at": "2026-11-08T23:50:55+08:00",
   "engine": "mockscene/0.1",
   "skills": [
+    {
+      "id": "aging-friendly",
+      "cases": [
+        {
+          "case_id": "AGE-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "AGE-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02",
+            "CIR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02",
+              "CIR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "balcony-laundry",
+      "cases": [
+        {
+          "case_id": "BAL-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "BAL-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-01",
+            "DOOR-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-01",
+              "DOOR-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "bathroom-standard",
+      "cases": [
+        {
+          "case_id": "BAT-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "BAT-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "dining-island",
+      "cases": [
+        {
+          "case_id": "ISL-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "ISL-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CIR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CIR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "entry-storage",
+      "cases": [
+        {
+          "case_id": "ENT-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "ENT-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "floorplan-intake",
+      "cases": [
+        {
+          "case_id": "FIN-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "FIN-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02",
+            "CIR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02",
+              "CIR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "gaming-room",
+      "cases": [
+        {
+          "case_id": "GAM-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "GAM-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CUR-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CUR-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "guest-bedroom",
+      "cases": [
+        {
+          "case_id": "GBR-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "PROP-01",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "GBR-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02",
+            "CIR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02",
+              "CIR-02"
+            ]
+          }
+        }
+      ]
+    },
     {
       "id": "home-gym",
       "cases": [
@@ -118,12 +916,2263 @@
           }
         }
       ]
+    },
+    {
+      "id": "home-office",
+      "cases": [
+        {
+          "case_id": "HOF-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "HOF-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "ASSET-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "ASSET-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "kids-room",
+      "cases": [
+        {
+          "case_id": "KID-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "KID-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "OVER-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "OVER-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "kitchen-line-l-u",
+      "cases": [
+        {
+          "case_id": "KIT-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "KIT-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CIR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CIR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "layout-check-repair",
+      "cases": [
+        {
+          "case_id": "LCR-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "LCR-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "WIN-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "WIN-01",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "WIN-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "lighting-color",
+      "cases": [
+        {
+          "case_id": "LGT-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "LGT-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "living-dining-open",
+      "cases": [
+        {
+          "case_id": "LDO-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "LDO-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CIR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CIR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "living-dining-small",
+      "cases": [
+        {
+          "case_id": "LD-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "LD-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CUR-01",
+            "WIN-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "WIN-01",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CUR-01",
+              "WIN-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "master-bedroom",
+      "cases": [
+        {
+          "case_id": "MBR-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "MBR-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "media-room",
+      "cases": [
+        {
+          "case_id": "MED-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "PROP-01",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "MED-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CUR-01",
+            "WIN-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CUR-01",
+              "WIN-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "nursery",
+      "cases": [
+        {
+          "case_id": "NUR-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "NUR-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CUR-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CUR-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "office-workstation",
+      "cases": [
+        {
+          "case_id": "OFW-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "OFW-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02",
+            "DOOR-02",
+            "CIR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02",
+              "DOOR-02",
+              "CIR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pet-friendly",
+      "cases": [
+        {
+          "case_id": "PET-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "PET-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CUR-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CUR-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "photo-object-import",
+      "cases": [
+        {
+          "case_id": "POI-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "POI-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "ASSET-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "ASSET-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "rental-makeover",
+      "cases": [
+        {
+          "case_id": "RNT-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "RNT-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CUR-01",
+            "WIN-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CUR-01",
+              "WIN-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "social-reading-zone",
+      "cases": [
+        {
+          "case_id": "SRZ-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "SRZ-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CUR-01",
+            "WIN-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CUR-01",
+              "WIN-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "studio-micro",
+      "cases": [
+        {
+          "case_id": "STU-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "STU-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02",
+            "CIR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02",
+              "CIR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "style-coherence",
+      "cases": [
+        {
+          "case_id": "STY-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "STY-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "CUR-01",
+            "WIN-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "WIN-01",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "CUR-01",
+              "WIN-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "tatami-multipurpose",
+      "cases": [
+        {
+          "case_id": "TAT-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "TAT-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "tea-room",
+      "cases": [
+        {
+          "case_id": "TEA-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "PROP-01",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "TEA-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "OVER-01"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "OVER-01"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "utility-storage",
+      "cases": [
+        {
+          "case_id": "UTL-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "UTL-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "villa-ground-floor",
+      "cases": [
+        {
+          "case_id": "VIL-dev-01",
+          "kind": "positive",
+          "pass": true,
+          "issues": [],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": true,
+                "got": true,
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CIR-02",
+                "ok": true
+              }
+            ],
+            "got_codes": []
+          }
+        },
+        {
+          "case_id": "VIL-dev-02",
+          "kind": "boundary",
+          "pass": false,
+          "issues": [
+            "DOOR-02"
+          ],
+          "evaluation": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "pass",
+                "want": false,
+                "got": false,
+                "ok": true
+              },
+              {
+                "check": "must_trigger",
+                "code": "DOOR-02",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "CUR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WIN-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "DOOR-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "WALL-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "OVER-01",
+                "ok": true
+              },
+              {
+                "check": "must_not_trigger",
+                "code": "ASSET-02",
+                "ok": true
+              }
+            ],
+            "got_codes": [
+              "DOOR-02"
+            ]
+          }
+        }
+      ]
     }
   ],
   "totals": {
-    "skills": 1,
-    "cases": 2,
-    "cases_ok": 2,
+    "skills": 30,
+    "cases": 60,
+    "cases_ok": 60,
     "all_ok": true
   }
 }

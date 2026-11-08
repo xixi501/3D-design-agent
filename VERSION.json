@@ -2,7 +2,7 @@
   "snapshot": "2026-11-08",
   "skills": 30,
   "cases": 60,
-  "judgements": 62,
+  "judgements": 69,
   "skill_list": [
     {
       "id": "aging-friendly",
@@ -186,7 +186,7 @@
     }
   ],
   "hashes": {
-    "skills": "ba25cdd5f17cbb01",
+    "skills": "46b9d240fb45c459",
     "index": "c0d1bfd651b177b2"
   }
 }

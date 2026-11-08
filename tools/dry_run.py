@@ -20,6 +20,10 @@ sys.path.insert(0, HERE)
 
 from mockscene import load_catalog, run_case  # noqa: E402
 
+# GBK 控制台下直接 print emoji 会 UnicodeEncodeError；统一把 stdout 切到 UTF-8。
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 SKILLS_DIR = os.path.join(ROOT, "skills")
 TZ = timezone(timedelta(hours=8))
 

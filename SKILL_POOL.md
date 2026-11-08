@@ -1,7 +1,7 @@
 # ActiScape Skill 池
 
 面向"普通用户自助做室内设计"的多 Agent 系统（ActiScape / 演境）的**技能包集合**。
-成员3 交付；当前 30 个技能包、60 条判据、60 个可执行案例。
+成员3 交付；当前 30 个技能包、69 条判据、60 个可执行案例。
 
 > 阅读顺序建议：本文件 → `skills/README.md`（索引与状态）→ 任选一个包的 `SKILL.md` → 它的 `examples/`。
 > 想快速判断"这东西靠不靠谱"：看第 5 节"验证"和 `reports/`，不用读代码。
@@ -27,7 +27,7 @@
 │   ├── README.md          # ★ 索引：30 个包、分组、验证结果、加载方式
 │   ├── _framework/        # 池子的"宪法"
 │   │   ├── FORMAT.md      #   包格式（Agent Skills 规范 + manifest + ops.json）
-│   │   ├── JUDGEMENTS.md  #   判据库（60 条，唯一真源）
+│   │   ├── JUDGEMENTS.md  #   判据库（69 条，唯一真源）
 │   │   ├── TOOLS.md       #   工具契约（场景/检查/资产/技能加载，待成员1 确认）
 │   │   ├── VERIFY.md      #   三级验证机制与已知局限
 │   │   └── CHANGELOG.md   #   框架变更

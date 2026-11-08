@@ -14,6 +14,10 @@ import os
 import re
 import sys
 
+# GBK 控制台下直接 print emoji 会 UnicodeEncodeError；统一把 stdout 切到 UTF-8。
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SKILLS = os.path.join(ROOT, "skills")

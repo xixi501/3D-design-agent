@@ -1,8 +1,8 @@
 {
   "purpose": "Strict Skill Pool v1 structure, classification and catalogue-key validation",
-  "generatedAt": "2026-11-09T00:39:54+08:00",
+  "generatedAt": "2026-11-09T01:08:39+08:00",
   "poolVersion": "2026-11-09",
-  "poolHash": "d8f0b5b28711b8f06b0e7ba9b6d3adca9dcba3fab02c71d35d524dfd30c82f48",
+  "poolHash": "efa714fb5dbdb98d87753b32493a8977087e4c5be0f7d50c418c2a9810f8ec23",
   "skills": 32,
   "member3Skills": 30,
   "builtInSkills": 2,
@@ -11,6 +11,7 @@
   "judgements": 69,
   "member3Cases": 60,
   "manifestSchema": "actiscape.skill.v1",
+  "judgementSchema": "actiscape.judgements.v1",
   "gates": {
     "allManifestsValid": true,
     "allCapabilitiesAllowed": true,
@@ -18,6 +19,5 @@
     "allCatalogueKeysKnown": true,
     "activeAllowlistExact": true,
     "passed": true
-  },
-  "implementationCommit": "53ea8053b649ed9b083c6c9e0a9573ede4ceaed4"
+  }
 }

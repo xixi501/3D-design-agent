@@ -24,7 +24,7 @@
     "只调家具位置、不做风格判断",
     "出效果图替代方案评审"
   ],
-  "capabilities": ["scene.read", "candidate.review"],
+  "capabilities": ["scene.read", "catalog.search", "candidate.review"],
   "judgements": [
     "J-CIR-01",
     "J-COL-01",

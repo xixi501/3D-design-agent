@@ -2,7 +2,7 @@
 name: floorplan-intake
 description: 在动手布置前，把户型图或一句文字需求整理成"可布置的场景 + 待确认清单 + 假设表"：尺寸缺什么、按什么补、哪些是推断。当用户发来户型图/截图、或只说"三室两厅、想要北欧风"时先走本技能；不适用于信息已经完整、直接进入具体房间布置的场合。
 license: MIT
-compatibility: 需要 scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review / candidate.render；图纸解析与尺寸标注识别归主系统，本技能只负责"信息补齐与确认"，不重跑识图。
+compatibility: 需要 scene.read / candidate.preflight；图纸解析与尺寸标注识别归主系统，本技能只负责"信息补齐与确认"，不重跑识图。
 metadata:
   version: "0.2.0"
   status: verified
@@ -70,12 +70,10 @@ metadata:
 
 ## 依赖什么
 
-| 工具                                      | 用途                           | 状态    |
-| ----------------------------------------- | ------------------------------ | ------- |
-| `scene.read`                              | 读取已生成场景的墙、洞口、房间 | 待成员1 |
-| `candidate.propose + candidate.preflight` | 补房间名、补缺失对象、修正标注 | 待成员1 |
-| `candidate.preflight / candidate.review`  | 面积下限、门窗完整性           | 可 mock |
-| `candidate.render`                        | 平面图/近景给用户核对          | 待成员1 |
+| 工具                  | 用途                           | 状态    |
+| --------------------- | ------------------------------ | ------- |
+| `scene.read`          | 读取已生成场景的墙、洞口、房间 | 待成员1 |
+| `candidate.preflight` | 只读核对面积下限、门窗完整性   | 可 mock |
 
 与上游 Skill 的差异：上游把"读图—写户型描述—生成"合成一个大流程，识图脚本与格式规范都在流程里；本技能**不碰识图实现**，只负责"信息完整性、假设透明、确认闭环"，识图与建模归主系统。
 
@@ -83,7 +81,7 @@ metadata:
 
 ## 怎么验证
 
-- **正向** `FIN-dev-01`：3.0 × 3.8m 主卧（11.4㎡），1.5m 床 + 1.0m 衣柜 + 一个床头柜，通道满足 700。期望 `candidate.preflight / candidate.review` 通过。
+- **正向** `FIN-dev-01`：3.0 × 3.8m 主卧（11.4㎡），1.5m 床 + 1.0m 衣柜 + 一个床头柜，通道满足 700。期望 `candidate.preflight` 通过。
 - **边界** `FIN-dev-02`：同样 3.0 × 3.4m（10.2㎡）的房间，用户坚持 1.8m 床 + 2.0m 衣柜。期望报 `CIR-02`（无 ≥700 通行区）——技能应在进场阶段就提示"这个组合放不下"，而不是硬塞后说"已尽力"。
 
 ## 版本与来源

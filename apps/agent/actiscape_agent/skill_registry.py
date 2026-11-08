@@ -185,12 +185,17 @@ class SkillRegistry:
         self.pool_version = self._validate_index()
 
     def _load_judgements(self) -> dict[str, dict]:
-        path = self.root / "judgements.v1.json"
+        path = self.root / "_framework" / "judgements.v1.json"
+        if not path.is_file():
+            path = self.root / "judgements.v1.json"
         raw = _read_json(path)
-        if raw.get("schemaVersion") != JUDGEMENT_SCHEMA or not isinstance(raw.get("items"), list):
+        entries = raw.get("judgements")
+        if entries is None:
+            entries = raw.get("items")
+        if raw.get("schemaVersion") != JUDGEMENT_SCHEMA or not isinstance(entries, list):
             raise TaskError("SKILL_POOL_INVALID", "结构化判据库格式无效")
         result = {}
-        for item in raw["items"]:
+        for item in entries:
             jid = item.get("id")
             if not isinstance(jid, str) or jid in result:
                 raise TaskError("SKILL_POOL_INVALID", "判据 ID 缺失或重复")

@@ -47,6 +47,10 @@ def test_pool_is_strict_v1_and_active_allowlist_is_exact():
     assert summary["skills"] == 32
     assert summary["active"] == 9
     assert summary["reserved"] == 23
+    judgements = json.loads((ROOT / "_framework" / "judgements.v1.json").read_text())
+    assert judgements["schemaVersion"] == "actiscape.judgements.v1"
+    assert len(judgements["judgements"]) == 69
+    assert "items" not in judgements
 
 
 def test_all_member3_cases_use_real_catalogue_keys():
@@ -209,6 +213,20 @@ def test_manifest_rejects_direct_scene_write_capability():
     manifest["capabilities"] = [*manifest["capabilities"], "scene.write"]
     with pytest.raises(ValidationError, match="禁止能力"):
         SkillManifest.model_validate(manifest)
+
+
+def test_active_skill_bodies_do_not_claim_undeclared_capabilities():
+    registry = SkillRegistry(ROOT)
+    for snapshot in registry.all():
+        if snapshot["activation"] != "active":
+            continue
+        referenced = {
+            capability for capability in ALLOWED_CAPABILITIES if capability in snapshot["content"]
+        }
+        assert referenced <= set(snapshot["capabilities"]), (
+            snapshot["id"],
+            sorted(referenced - set(snapshot["capabilities"])),
+        )
 
 
 def test_invalid_pinned_bundle_fails_closed():

@@ -23,6 +23,7 @@ packages = ["actiscape_agent"]
 actiscape_agent = [
   "skills/*.json",
   "skills/*.md",
+  "skills/_framework/*.json",
   "skills/*/*.json",
   "skills/*/*.md",
   "skills/*/LICENSE",

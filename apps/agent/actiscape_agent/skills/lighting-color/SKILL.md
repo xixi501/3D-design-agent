@@ -2,7 +2,7 @@
 name: lighting-color
 description: 先按"环境 / 任务 / 重点"三层定比例，再按房间给照度与色温，最后把灯位落到家具上（餐桌吊灯对中、阅读角落地灯、镜前灯垂直照面），并让配色落到可采购的材质。当用户问"灯怎么布、家里太暗、晚上太刺眼、色温选多少、颜色怎么配不翻车"时使用；不适用于需要电气施工图（回路、线径、开关点位）或只调家具位置的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（照明表 + 人工照度估算）。
+compatibility: 需要 catalog.search / scene.read / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（照明表 + 人工照度估算）。
 metadata:
   version: "0.2.0"
   status: verified
@@ -104,21 +104,20 @@ metadata:
 - 颜色必须写成"可采购的描述"：不是"高级灰"，而是"墙面 NCS S1500-N、柜面哑光暖白、沙发浅灰棉麻"；
 - 灯光会改色：3000K 下蓝色会发灰、红色会发橘，**先定色温再定颜色**。
 
-**第 8 步 · 提交与检查**
+**第 8 步 · 输出约束与检查口径**
 
-1. 先提交灯具（吸顶/落地/台面），再用 `candidate.preflight / candidate.review` 看遮挡与通行；
+1. 输出去向明确的灯具约束（吸顶/落地/台面）交给主 Skill 和固定代码形成候选；modifier 不独立提交第二轮修改；
 2. 落地灯、台灯不进门扇扫掠区 [J-DOOR-02]；沙发到茶几 400–500 [J-CIR-07]，别为了放灯把茶几推远；
 3. 台面灯用 `on` 挂到桌面，且不超出支撑面 [J-ASSET-02]；壁灯、挂画贴墙不压洞口 [J-WALL-01]；
 4. 最多 3 轮修复 [J-VER-02]；3 轮后仍不满足的（如层高不够放吊灯）写进"未解决清单"。
 
 ## 依赖什么
 
-| 工具                                      | 用途                                                  | 状态    |
-| ----------------------------------------- | ----------------------------------------------------- | ------- |
-| `catalog.search`                          | 取吊灯、落地灯、台灯、壁灯的 key、尺寸与 `mount` 类型 | 可 mock |
-| `scene.read`                              | 读房间尺寸、洞口、家具位置（灯要对着家具落位）        | 待成员1 |
-| `candidate.propose + candidate.preflight` | 提交灯具与材质修改，带版本与幂等                      | 待成员1 |
-| `candidate.preflight / candidate.review`  | 灯位与门扇、窗帘区、挂墙、台面支撑的冲突              | 可 mock |
+| 工具               | 用途                                                  | 状态    |
+| ------------------ | ----------------------------------------------------- | ------- |
+| `catalog.search`   | 取吊灯、落地灯、台灯、壁灯的 key、尺寸与 `mount` 类型 | 可 mock |
+| `scene.read`       | 读房间尺寸、洞口、家具位置（灯要对着家具落位）        | 待成员1 |
+| `candidate.review` | 核对灯位与门扇、窗帘区、挂墙、台面支撑的冲突          | 可 mock |
 
 与原项目 Skill 的差异：原流程把灯写进效果图描述；本技能把"三层比例—照度—色温—灯位"拆成四张可核对的表，**灯位是否对中、是否挡门是可算的**，不靠看图。
 
@@ -126,13 +125,13 @@ metadata:
 
 - 没有 `scene.*`：输出"房间 → 回路 → 灯具 → 安装坐标"表，交主控执行；
 - 没有照度工具：按第 2 步的区间人工估算，并在交付里注明"照度为方案估值，未做 Dialux 类复核"；
-- 没有 `candidate.preflight / candidate.review`：按第 8 步人工核对门扇与窗帘区，注明"未经工具检查"。
+- 没有 `candidate.review`：按第 8 步人工核对门扇与窗帘区，注明"未经工具检查"。
 
 ## 怎么验证
 
-- **正向** `LGT-dev-01`：4.2 × 5.4m 客餐厅，北窗 2400、西墙门；餐桌 1400 × 800 上方 `pendant` 对中，东南阅读角 `armchair` + `floorLamp`，南墙 `wallArt` 作重点。期望 `candidate.preflight / candidate.review` 全通过。
+- **正向** `LGT-dev-01`：4.2 × 5.4m 客餐厅，北窗 2400、西墙门；餐桌 1400 × 800 上方 `chandelier` 对中，东南阅读角 `armchair` + `floorLamp`，南墙 `wallArt` 作重点。期望主设计候选和 `candidate.review` 全通过。
 - **边界** `LGT-dev-02`：为了"进门就有光"，把落地灯放到西墙门边、正落在 900 门扇的开启范围里。期望报 `DOOR-02`；技能应改灯位（挪到门侧 400 外或改用壁灯），不是把门改小。
-- **反向校验**：把 `LGT-dev-01` 的吊灯平移到偏离餐桌中心 400，`candidate.preflight / candidate.review` 不会报错——说明"对中"只能人评/半自动，**不能假装自动**。
+- **反向校验**：把 `LGT-dev-01` 的吊灯平移到偏离餐桌中心 400，`candidate.review` 不应虚构自动错误——说明"对中"只能人评/半自动，**不能假装自动**。
 
 两个案例在 `examples/` 下，`ops.json` 可被 mock 引擎复跑；L1 结构与 L2 几何结果记录在 `manifest.validation`。
 

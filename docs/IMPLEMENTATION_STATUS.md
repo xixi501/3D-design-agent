@@ -98,7 +98,7 @@ The runtime now accepts only `actiscape.skill.v1`. The fixed in-repo snapshot co
 
 Code filters by task mode, project state, room kind, area, capabilities and verification status. The grounding model may select one primary Skill and at most two modifiers from that shortlist; intake and repair Skills are activated automatically by fixed workflow stages. Skill bundles pin manifest, body, referenced judgements and licence text by hash, while old tasks continue reading their frozen legacy snapshots.
 
-`npm run test:skill-pool:v1` runs the seven active member-three Skills through real candidate preflight and two-view WebGL for positive cases and verifies the expected real-core codes for boundary cases. The combined offline gate passes with Python 123, Node 38, build, browser/WebGL, V3-5/V3-6 replay and controlled V3. Evidence is stored in [Skill Pool v1 L3](evidence/skill-pool-v1-l3-20261109.json) and [structure/catalogue validation](evidence/skill-pool-v1-structure-20261109.json). GEPA candidate optimisation and final evaluation splitting remain open.
+`npm run test:skill-pool:v1` runs the seven active member-three Skills through real candidate preflight and two-view WebGL for positive cases and verifies the expected real-core codes for boundary cases. The combined offline gate passes with Python 124, Node 38, build, browser/WebGL, V3-5/V3-6 replay and controlled V3. Evidence is stored in [Skill Pool v1 L3](evidence/skill-pool-v1-l3-20261109.json) and [structure/catalogue validation](evidence/skill-pool-v1-structure-20261109.json). GEPA candidate optimisation and final evaluation splitting remain open.
 
 ## Remaining scope
 

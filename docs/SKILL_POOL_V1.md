@@ -40,9 +40,10 @@ layout-check-repair
 - `kind: intake | layout | edit | floorplan | modifier | repair | asset`
 - `status: draft | conformant | verified | deprecated`
 - `activation: active | reserved`
+- `appliesTo.modes` 只使用 `generate_rectangular | edit | reconstruct_floorplan | asset_import`；不得使用 `generate_from_text`、`edit_existing` 或 `floorplan_import`。
 - 结构化 `appliesTo`、语义 `capabilities`、判据 ID、组合限制、许可证和验证状态。
 
-结构化判据位于 `apps/agent/actiscape_agent/skills/judgements.v1.json`。内容哈希覆盖 manifest、正文、被引用判据和许可证文本。
+结构化判据位于 `apps/agent/actiscape_agent/skills/_framework/judgements.v1.json`，使用 `judgements` 数组。内容哈希覆盖 manifest、正文、被引用判据和许可证文本。
 
 ## 选择与快照
 

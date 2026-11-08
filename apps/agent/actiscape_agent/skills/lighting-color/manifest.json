@@ -25,7 +25,7 @@
     "智能家居协议与品牌选型",
     "需要实测照度报告"
   ],
-  "capabilities": ["scene.read", "candidate.review"],
+  "capabilities": ["scene.read", "catalog.search", "candidate.review"],
   "judgements": [
     "J-ASSET-02",
     "J-COL-01",

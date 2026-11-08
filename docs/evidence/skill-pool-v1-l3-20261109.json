@@ -1,8 +1,8 @@
 {
   "purpose": "Real-core L3 conformance for active Skill Pool v1 entries",
-  "generatedAt": "2026-11-09T00:39:54+08:00",
+  "generatedAt": "2026-11-09T01:08:39+08:00",
   "poolVersion": "2026-11-09",
-  "poolHash": "d8f0b5b28711b8f06b0e7ba9b6d3adca9dcba3fab02c71d35d524dfd30c82f48",
+  "poolHash": "efa714fb5dbdb98d87753b32493a8977087e4c5be0f7d50c418c2a9810f8ec23",
   "activeMember3Skills": 7,
   "modelCalls": 0,
   "cases": [
@@ -164,10 +164,9 @@
   },
   "notes": [
     "Positive cases passed real candidate preflight and two-view WebGL render.",
-    "Boundary cases surfaced the expected real-core issue codes; pre-existing nonblocking issues remain evidence.",
-    "Existing-object-only activity groups are persisted as plan.source.activityGroups metadata; groups involving newly created candidate objects remain skill metadata because direct group-write is not exposed.",
-    "Style material edits without a concrete colour were treated as metadata-only and not written as furniture geometry changes.",
-    "The member3 mock service was not used."
-  ],
-  "implementationCommit": "53ea8053b649ed9b083c6c9e0a9573ede4ceaed4"
+    "Boundary cases surfaced expected real-core codes; pre-existing nonblocking issues remain evidence.",
+    "Activity groups persist only as plan.source.activityGroups metadata for existing objects; no group-write capability exists.",
+    "Style material edits without concrete colours remain metadata-only.",
+    "Member3 mock service was not used."
+  ]
 }

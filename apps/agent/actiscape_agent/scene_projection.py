@@ -42,6 +42,20 @@ def project_source(project: dict) -> InputSource:
     )
 
 
+def floorplan_source(task: dict) -> InputSource:
+    image = (task.get("generation") or {}).get("floorplan", {}).get("data", {}).get("image")
+    if not image:
+        raise ValueError("户型图任务缺少冻结原图")
+    return InputSource(
+        sourceId=f"floorplan:{image['id']}",
+        kind="floorplan_image",
+        adapterVersion=(task.get("generation") or {}).get("adapterVersion") or "hpd-adapter-6-1",
+        sha256=image["sha256"],
+        uri=f"floorplan-image:{image['id']}",
+        metadata={"width": image["width"], "height": image["height"]},
+    )
+
+
 def text_intent(task_id: str, generation: dict, request_text: str) -> IntentSpec:
     brief = generation["brief"]
     source_id = f"task:{task_id}:text"
@@ -506,6 +520,108 @@ async def sync_edit_scene_program(
             "revision": patched["revision"],
             "hash": patched["hash"],
             "stage": "candidate",
+        },
+    )
+    return generation
+
+
+async def project_floorplan_candidate(
+    *,
+    store,
+    client,
+    task: dict,
+    plan: dict,
+    selection_id: str,
+    project_revision: int,
+) -> dict:
+    generation = store.task(task["id"], internal=True).get("generation") or {}
+    image_source = floorplan_source({**task, "generation": generation})
+    text = text_source(task["id"], task["input"])
+    program = plan_to_scene_program(
+        plan,
+        source_id=image_source.sourceId,
+        authority="observed",
+        room_type=None,
+    )
+    resolutions = catalog_asset_resolutions(plan)
+    if not generation.get("sceneDraftId"):
+        draft = SceneDraftPayload(
+            projectId=task["projectId"],
+            baseProjectRevision=project_revision,
+            inputBundle=InputBundle(sources=[text, image_source]),
+            evidenceGraph=EvidenceGraph(
+                facts=[
+                    {
+                        "id": f"floorplan:{image_source.sha256}:scene",
+                        "sourceId": image_source.sourceId,
+                        "kind": "confirmed_floorplan_candidate",
+                        "data": {
+                            "rooms": len(program["levels"][0]["roomSeeds"]),
+                            "objects": len(program["objects"]),
+                        },
+                        "locator": image_source.uri,
+                    }
+                ]
+            ),
+            intentSpec=IntentSpec(request=task["input"], constraints=[], unknowns=[]),
+            program=program,
+            assetResolutions=resolutions,
+            budgetLedger={
+                "modelCalls": generation.get("modelCalls", 0),
+                "activeSeconds": generation.get("elapsedSeconds", 0),
+                "repairRounds": generation.get("repairsUsed", 0),
+                "adapterCalls": 0,
+                "assetJobs": 0,
+            },
+            fieldAuthorities=[
+                {
+                    "path": "program.levels",
+                    "authority": "observed",
+                    "sourceIds": [image_source.sourceId],
+                }
+            ],
+        ).model_dump(mode="json")
+        created = await client.request(
+            f"/projects/{task['projectId']}/scene-drafts",
+            {
+                "requestId": f"{task['id']}:generic-scene",
+                "draft": draft,
+            },
+        )
+        generation.update(
+            sceneDraftId=created["id"],
+            sceneDraftRevision=created["revision"],
+            sceneDraftHash=created["hash"],
+            sceneDraftBaseProjectRevision=draft["baseProjectRevision"],
+        )
+    else:
+        created = await client.request(
+            f"/projects/{task['projectId']}/scene-drafts/{generation['sceneDraftId']}/patches",
+            {
+                "requestId": f"{task['id']}:generic-scene:{selection_id}",
+                "draftRevision": generation["sceneDraftRevision"],
+                "commands": [
+                    {"op": "replaceProgram", "program": program},
+                    {
+                        "op": "replaceAssetResolutions",
+                        "assetResolutions": resolutions,
+                    },
+                ],
+            },
+        )
+        generation.update(
+            sceneDraftRevision=created["revision"],
+            sceneDraftHash=created["hash"],
+        )
+    store.update(task["id"], generation=generation)
+    store.event(
+        task["id"],
+        "scene_draft",
+        {
+            "id": created["id"],
+            "revision": created["revision"],
+            "hash": created["hash"],
+            "stage": "floorplan-candidate",
         },
     )
     return generation

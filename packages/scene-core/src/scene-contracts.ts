@@ -301,13 +301,13 @@ export function validateAssetResolutions(input: unknown): AssetResolution[] {
       objectId,
       status: value.status,
       ...(catalogKeys === undefined ? {} : { catalogKeys }),
-      ...(value.jobId === undefined
+      ...(value.jobId == null
         ? {}
         : { jobId: text(value.jobId, `${field}.jobId`, 200) }),
-      ...(value.assetId === undefined
+      ...(value.assetId == null
         ? {}
         : { assetId: text(value.assetId, `${field}.assetId`, 200) }),
-      ...(value.reason === undefined
+      ...(value.reason == null
         ? {}
         : { reason: text(value.reason, `${field}.reason`, 500) }),
     } as AssetResolution;

@@ -312,6 +312,8 @@ async def test_confirmation_is_required_and_four_roles_commit_once_after_lost_re
         await manager.confirm_floorplan(task["id"], body)
         result = await finished(manager, task["id"])
         assert result["status"] == "completed", result
+        assert result["generation"]["sceneDraftId"] == "edit-scene-draft"
+        assert result["generation"]["sceneDraftRevision"] == 0
         assert len(client.ledger) == 1 and client.project["revision"] == 1
         assert len(result["result"]["changes"]) == 4
         roles = {

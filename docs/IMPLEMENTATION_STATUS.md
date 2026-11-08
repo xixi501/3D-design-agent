@@ -108,7 +108,7 @@ A data-driven scene registry now owns room status, Skill mapping, materials, def
 
 This foundation does not migrate the floorplan recognition flow, reconstruct whole-home furniture, activate reserved rooms or claim photo input. Those remain later gates in [Scene Architecture](SCENE_ARCHITECTURE.md). Executed results are in [scene foundation evidence](evidence/scene-foundation-v1-20261109.json).
 
-The text-generation and local-edit task paths now maintain a task-bound generic draft alongside the existing candidate and commit path. Text is projected into IntentSpec, imported project state into baseline authority, and shell/candidate plans into SceneProgram with catalogue asset resolutions. This is a compatibility bridge; floorplan recognition is not yet migrated and the generic draft is not yet the formal commit source. Evidence is in [scene draft projection](evidence/scene-draft-projection-20261109.json).
+Text-generation, local-edit and confirmed-floorplan candidates now maintain a task-bound generic draft alongside the existing candidate and commit path. Text is projected into IntentSpec, imported project state into baseline authority, confirmed floorplan images into observed evidence, and shell/candidate plans into SceneProgram with catalogue asset resolutions. This is a compatibility bridge; the existing specialized candidate remains authoritative and the generic draft is not yet the formal commit source. Evidence is in [scene draft projection](evidence/scene-draft-projection-20261109.json).
 
 ## Remaining scope
 

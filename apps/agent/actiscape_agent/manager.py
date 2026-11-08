@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import traceback
 from pathlib import Path
 
 import httpx
@@ -425,6 +426,8 @@ class TaskManager:
                     if isinstance(error, TimeoutError)
                     else "TASK_ERROR"
                 )
+                if code == "TASK_ERROR":
+                    traceback.print_exc()
                 message = (
                     str(error)
                     if isinstance(error, (TaskError, SceneFailure))

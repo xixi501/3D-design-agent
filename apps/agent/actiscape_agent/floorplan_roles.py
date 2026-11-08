@@ -16,6 +16,7 @@ from .floorplan_schemas import (
 from .floorplan_tools import FloorplanToolset
 from .generation_roles import GenerationRoles
 from .roles import objects_summary
+from .scene_projection import project_floorplan_candidate
 from .store import TaskError, fingerprint
 
 VERSION = "s2c-floorplan-8"
@@ -523,6 +524,14 @@ class FloorplanRoles:
         current = self.store.task(task["id"], internal=True)["generation"]
         current.update(lastCandidateId=c["id"], lastChecks=c["checks"])
         self.store.update(task["id"], generation=current)
+        await project_floorplan_candidate(
+            store=self.store,
+            client=self.client,
+            task=task,
+            plan=c["state"]["plan"],
+            selection_id=f"candidate-{round}",
+            project_revision=project["revision"],
+        )
         return c
 
     async def design(self, task, project, scope, last_report, round):

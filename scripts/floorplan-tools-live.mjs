@@ -125,6 +125,7 @@ assert.ok(uploaded.ok);
 const image = await uploaded.json();
 save("image.json", image);
 const results = [];
+let stoppedAfterFailure = false;
 for (let repeat = 1; repeat <= repeats; repeat++) {
   const plan = blankPlan();
   plan.name = `系统实测 · 原版读图工具 · ${repeat}`;
@@ -395,16 +396,36 @@ for (let repeat = 1; repeat <= repeats; repeat++) {
     manualGeometryOperations: 0,
   };
   results.push(result);
-  save("report.json", { ...context, results });
+  save("report.json", {
+    ...context,
+    requestedRepeats: repeats,
+    stoppedAfterFailure,
+    results,
+  });
   console.log(JSON.stringify(result));
+  if (!result.imageFidelityAccepted) {
+    stoppedAfterFailure = repeat < repeats;
+    save("report.json", {
+      ...context,
+      requestedRepeats: repeats,
+      stoppedAfterFailure,
+      results,
+    });
+    break;
+  }
 }
+const imageFidelityAccepted =
+  results.length === repeats &&
+  results.every((result) => result.imageFidelityAccepted);
 console.log(
   JSON.stringify({
     output: out,
     compilationPasses: results.filter((r) => r.compilationPassed).length,
     total: results.length,
-    imageFidelityAccepted:
-      results.length === 2 && results.every((r) => r.imageFidelityAccepted),
+    requestedRepeats: repeats,
+    stoppedAfterFailure,
+    imageFidelityAccepted,
     note: "Compilation is not image-fidelity acceptance; independently review all outputs and failures.",
   }),
 );
+process.exitCode = imageFidelityAccepted ? 0 : 1;

@@ -1,0 +1,247 @@
+{
+  "manifest": {
+    "sha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+    "userRequest": "请识别这张单层户型图，保留整层结构并复现客餐厅原图家具布局，先提供草稿供我确认。"
+  },
+  "evaluation": {
+    "purpose": "Frozen second-image scoring reference; NEVER supplied to Agent, production service or recognition tools",
+    "sourceImageSha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+    "referenceSha256": "7d41256c2c16cc5cc3a2de58a55241bb7d08d2110688ec46a8661033bb6f0c60",
+    "referenceFile": "ninety-two.evaluation-only.json",
+    "sourceCommit": "e1fe94c",
+    "coordinateSpace": "EXIF-oriented original image pixels",
+    "annotationMethod": "Independent visual reading of the original raster before the V3-5 second-image batch; no Agent draft copied",
+    "limits": "Raster positions approximate. The top overall 9700 mm dimension is the sole scale anchor. Three south bay projections are normalized to standard window openings, and the unenclosed white north strip is not invented as a room.",
+    "manualObjectCorrectionLimit": 0,
+    "requiredRuns": 2,
+    "aliases": {
+      "客餐厅": "客餐厅",
+      "客厅": "客餐厅",
+      "餐厅": "客餐厅",
+      "厨房": "厨房",
+      "次卫": "次卫",
+      "卫生间": "次卫",
+      "书房": "书房",
+      "次卧01": "次卧01",
+      "次卧": "次卧01",
+      "主卧": "主卧",
+      "餐桌": "diningtable",
+      "餐椅": "chair",
+      "三人沙发": "sofa",
+      "沙发": "sofa",
+      "茶几": "coffeetable",
+      "边几": "sidetable",
+      "电视柜": "tvcabinet",
+      "落地灯": "floorlamp",
+      "钓鱼灯底座": "floorlamp",
+      "玄关低鞋柜": "cabinet",
+      "玄关鞋柜": "cabinet"
+    },
+    "scoringVersion": "s2c-5",
+    "dimensionPolicy": "Measure the solved feature distance, not reference-pixel length times candidate scale. Raster localization thresholds remain unchanged.",
+    "allowedCatalogueKeys": {
+      "dining-table": [
+        "diningTable",
+        "diningTable6"
+      ],
+      "chair-north-left": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-north-right": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-south-left": [
+        "chair",
+        "armDiningChair"
+      ],
+      "chair-south-right": [
+        "chair",
+        "armDiningChair"
+      ],
+      "sofa": [
+        "sofa",
+        "modularSofa"
+      ],
+      "coffee-table": [
+        "coffeeTable",
+        "teaTable"
+      ],
+      "side-table": [
+        "sideTable",
+        "nestTables"
+      ],
+      "tv-console": [
+        "tvCabinet",
+        "cabTV"
+      ],
+      "lamp-north": [
+        "floorLamp"
+      ],
+      "lamp-south-base": [
+        "arcLamp",
+        "floorLamp"
+      ],
+      "shoe-low": [
+        "shoeCabinet",
+        "cabShoe",
+        "hallCabinet"
+      ],
+      "shoe-tall": [
+        "shoeCabinet",
+        "cabShoe",
+        "hallCabinet"
+      ]
+    }
+  },
+  "evaluationFile": "/workspace/3D-design-agent/fixtures/s2c-real/ninety-two.evaluation-manifest.json",
+  "codeCommit": "de6135078ff1648198a9efdad4a0c41b6eedea61",
+  "serviceVersions": {
+    "codeCommit": "de6135078ff1648198a9efdad4a0c41b6eedea61",
+    "workingTreeModified": false,
+    "python": "3.13.13",
+    "langgraph": "1.2.20",
+    "langchain": "1.4.9",
+    "deepseekAdapter": "1.1.1",
+    "deepseekProtocolAdapter": "auto-tools+tool-images-2",
+    "model": "deepseek-flash",
+    "modelProvider": "api.deepseek.com",
+    "reasoningEffort": "high",
+    "tools": "scene-candidate-v3",
+    "structuredOutputRecovery": "one-bounded-continuation-1",
+    "modelConfigVersion": "per-role-output-budget-3",
+    "floorplanRecognitionOptions": {
+      "max_tokens": 32768,
+      "timeout": 180,
+      "reasoning_effort": "low",
+      "extra_body": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    },
+    "floorplanReviewOptions": {
+      "max_tokens": 16384,
+      "timeout": 180,
+      "reasoning_effort": "low",
+      "extra_body": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    },
+    "floorplanPromptVersion": "s2c-floorplan-v3-5",
+    "floorplanToolAdapter": "hpd-adapter-5",
+    "floorplanVisionConfigVersion": "vision-furniture-1",
+    "floorplanActivityUnitVersion": "activity-unit-1",
+    "floorplanScoringVersion": "s2c-5",
+    "floorplanVision": {
+      "provider": "local-vllm",
+      "model": "Qwen/Qwen3-VL-32B-Instruct-FP8",
+      "base_url": "http://127.0.0.1:3003/v1",
+      "max_tokens": 8192,
+      "timeout": 180
+    },
+    "floorplanUpdateContract": "discriminated-commands-2",
+    "floorplanToolSource": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+    "pillow": "13.0.0",
+    "opencv": "4.14.0.94",
+    "promptVersion": "s2a-local-edit-2",
+    "generationPromptVersion": "s2b-rectangular-2"
+  },
+  "referenceSentToAgent": false,
+  "manualGeometryOperations": 0,
+  "completeS2Accepted": false,
+  "completeV3": true,
+  "results": [
+    {
+      "repeat": 1,
+      "projectId": "0e261d5b-3644-4e11-88b2-4ee28128dfa3",
+      "taskId": "7712e4e6-b083-4254-86a5-3cf70027297a",
+      "status": "waiting_input",
+      "error": "两阶段识别后仍有阻断问题，正式项目未改变。请查看原图证据及检查结果。",
+      "modelCalls": 16,
+      "activeSeconds": 176.53652548789978,
+      "compilationPassed": false,
+      "firstRecognition": {
+        "passed": false,
+        "walls": {
+          "precision": 0.37854848832329263,
+          "recall": 0.2580390123554291,
+          "allMatched": false
+        },
+        "openings": {
+          "matches": [
+            {
+              "i": 1,
+              "j": 0
+            }
+          ],
+          "precision": 0.06666666666666667,
+          "recall": 0.08333333333333333
+        },
+        "furniture": {
+          "matches": [
+            {
+              "i": 9,
+              "j": 2
+            },
+            {
+              "i": 14,
+              "j": 4
+            },
+            {
+              "i": 15,
+              "j": 1
+            },
+            {
+              "i": 13,
+              "j": 3
+            },
+            {
+              "i": 1,
+              "j": 8
+            },
+            {
+              "i": 2,
+              "j": 0
+            },
+            {
+              "i": 0,
+              "j": 5
+            }
+          ],
+          "precision": 0.4375,
+          "recall": 0.5384615384615384
+        },
+        "activityGroups": {
+          "passed": true,
+          "applicable": true,
+          "issues": []
+        },
+        "thresholdVersion": "s2c-5"
+      },
+      "scoring": {
+        "passed": false,
+        "reason": "缺少可读标注或用户标定，不能估计比例"
+      },
+      "completeV2": true,
+      "completeV3": true,
+      "toolRoles": [
+        "main:analyze_floorplan",
+        "main:furniture_contours",
+        "system:draft_diagnostics",
+        "design:fit_wall_candidates"
+      ],
+      "repairs": 3,
+      "formalRevision": 0,
+      "imageFidelityAccepted": false,
+      "workflow": {
+        "passed": false,
+        "confirmationSimulated": false
+      },
+      "manualGeometryOperations": 0
+    }
+  ]
+}

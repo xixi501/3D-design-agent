@@ -1,0 +1,95 @@
+{
+  "version": "s2c-floorplan-v3-5",
+  "businessCommit": "de6135078ff1648198a9efdad4a0c41b6eedea61",
+  "scope": "second-frozen-image-two-run-attempt",
+  "passed": false,
+  "sourceImageSha256": "d824f172b4d05e64863ca853033311558412979a0ed6e6cb3bbae44fa246d5c7",
+  "referenceSha256": "7d41256c2c16cc5cc3a2de58a55241bb7d08d2110688ec46a8661033bb6f0c60",
+  "requestedRuns": 2,
+  "completedRuns": 1,
+  "cancelledRuns": 1,
+  "referenceSentToAgent": false,
+  "manualGeometryOperations": 0,
+  "run1": {
+    "projectId": "0e261d5b-3644-4e11-88b2-4ee28128dfa3",
+    "taskId": "7712e4e6-b083-4254-86a5-3cf70027297a",
+    "status": "waiting_input",
+    "modelCalls": 16,
+    "activeSeconds": 176.53652548789978,
+    "repairs": 3,
+    "draftRevision": 5,
+    "manualCorrections": 0,
+    "firstRecognitionPassed": false,
+    "walls": {
+      "precision": 0.37854848832329263,
+      "recall": 0.2580390123554291
+    },
+    "openings": {
+      "matched": 1,
+      "precision": 0.06666666666666667,
+      "recall": 0.08333333333333333
+    },
+    "furniture": {
+      "matched": 7,
+      "precision": 0.4375,
+      "recall": 0.5384615384615384
+    },
+    "compilationPassed": false,
+    "compilationBlocker": "缺少可读标注或用户标定，不能估计比例",
+    "formalProjectRevision": 0
+  },
+  "run2": {
+    "projectId": "027ae5ab-db52-4651-9a4c-b280b8dfb4af",
+    "taskId": "f92b66ef-93c7-4afb-8c4e-c4740a8e6ef6",
+    "status": "cancelled",
+    "modelCalls": 5,
+    "activeSeconds": 65.87327122688293,
+    "cancelReason": "The first run failed; the acceptance plan forbids continuing the same batch.",
+    "formalProjectRevision": 0
+  },
+  "rootCause": {
+    "candidateLayer": "hpd-adapter-5 converted the outer image/line envelope into a rectangular cw_top/cw_left/cw_bottom/cw_right set instead of following the actual concave apartment outline.",
+    "structureInput": "Only two interior walls and no dimension candidates survived into StructureSkeletonV3.",
+    "modelDraft": "The structure role emitted six walls, fifteen broad openings and no scale anchors.",
+    "furnitureInput": "The connected living/dining zone was split into two target labels, while the object layer exposed many non-target fixtures and chair-like contours.",
+    "conclusion": "The primary failure is deterministic image-to-geometry candidate generation on a complex multi-room raster, not Three.js generation, rendering, transaction handling or asset loading."
+  },
+  "decision": {
+    "secondImagePassed": false,
+    "secondImageRunsPassed": "0/2",
+    "completeS2Passed": false,
+    "rerunInSameBatch": false,
+    "nextGate": "V3-6 must replace the rectangular fallback with mask-backed wall/opening/document-dimension candidates on this frozen image, then start a new two-run batch."
+  },
+  "artifacts": {
+    "directory": "docs/evidence/s2c-v3-5-second-image-20261108",
+    "runReport": {
+      "path": "run-report.json",
+      "sha256": "a8c45e65b0b26e716da75cf274fd72a06891e472cb12bcac05709e5523668b07"
+    },
+    "run1Result": {
+      "path": "run1-result.json",
+      "sha256": "0d66e9ade32b565d81ec9e3a27e2b83eb129c85dda2cf80f1707e67368f000f0"
+    },
+    "run1Scoring": {
+      "path": "run1-scoring.json",
+      "sha256": "74b51ccf0cd61b9726556c67e58129250a53a04dbcf54a13412b35acdda64cca"
+    },
+    "run2Cancelled": {
+      "path": "run2-cancelled.json",
+      "sha256": "827a03b98ec07860efd4a58666c8a89aa73960e1e6e0beab44f4fefe7dde25a9"
+    },
+    "run1Candidates": {
+      "path": "run1-candidates.png",
+      "sha256": "ff98332a8c8e8b4b31924d2e96363fbb50be4c5223878741eb54585a58fb0a1e"
+    },
+    "run1Objects": {
+      "path": "run1-objects.png",
+      "sha256": "9663ee667cb66b77b7dcadfafe186c7ff137b88cb3261e4912ac201a5593ec2e"
+    },
+    "run1Overlay": {
+      "path": "run1-overlay.png",
+      "sha256": "1cdf5978aef1cb2fcb3ec4165f19be47b1b5a423b182a99dc145a95f5d6210be"
+    }
+  }
+}

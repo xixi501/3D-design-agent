@@ -1,0 +1,70 @@
+{
+  "firstRecognition": {
+    "passed": false,
+    "walls": {
+      "precision": 0.37854848832329263,
+      "recall": 0.2580390123554291,
+      "allMatched": false
+    },
+    "openings": {
+      "matches": [
+        {
+          "i": 1,
+          "j": 0
+        }
+      ],
+      "precision": 0.06666666666666667,
+      "recall": 0.08333333333333333
+    },
+    "furniture": {
+      "matches": [
+        {
+          "i": 9,
+          "j": 2
+        },
+        {
+          "i": 14,
+          "j": 4
+        },
+        {
+          "i": 15,
+          "j": 1
+        },
+        {
+          "i": 13,
+          "j": 3
+        },
+        {
+          "i": 1,
+          "j": 8
+        },
+        {
+          "i": 2,
+          "j": 0
+        },
+        {
+          "i": 0,
+          "j": 5
+        }
+      ],
+      "precision": 0.4375,
+      "recall": 0.5384615384615384
+    },
+    "activityGroups": {
+      "passed": true,
+      "applicable": true,
+      "issues": []
+    },
+    "thresholdVersion": "s2c-5"
+  },
+  "scoring": {
+    "passed": false,
+    "reason": "缺少可读标注或用户标定，不能估计比例"
+  },
+  "zeroObjectCorrections": true,
+  "completeFourRoleWorkflow": false,
+  "workflow": {
+    "passed": false,
+    "confirmationSimulated": false
+  }
+}

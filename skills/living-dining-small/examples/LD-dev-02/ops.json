@@ -1,0 +1,29 @@
+{
+  "case_id": "LD-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [3800, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [3800, 0], "b": [3800, 5600], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 5600], "b": [3800, 5600], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 5600], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wN", "type": "window", "from": 900, "to": 2900, "sill": 900, "head": 2400},
+      {"id": "d1", "wall": "wE", "type": "door", "from": 4200, "to": 5100, "hinge": "from", "into": [3200, 4650]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "客餐厅", "polygon": [[0, 0], [3800, 0], [3800, 5600], [0, 5600]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_shelf", "key": "bookshelf", "at": [1200, 275], "rot": 0, "w": 900, "d": 350, "h": 2000}}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["CUR-01", "WIN-01"]
+  }
+}

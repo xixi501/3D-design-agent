@@ -1,0 +1,37 @@
+{
+  "case_id": "LCR-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [3800, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [3800, 0], "b": [3800, 5400], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 5400], "b": [3800, 5400], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 5400], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wN", "type": "window", "from": 800, "to": 2600, "sill": 900, "head": 2400},
+      {"id": "d1", "wall": "wE", "type": "door", "from": 3800, "to": 4700, "hinge": "from", "into": [3300, 4250]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "起居室", "polygon": [[0, 0], [3800, 0], [3800, 5400], [0, 5400]]}
+    ],
+    "objects": [
+      {"id": "o_sofa", "key": "sofa", "at": [2800, 3800], "rot": 90, "w": 2200, "d": 950},
+      {"id": "o_coffee", "key": "coffeeTable", "at": [3300, 4300], "rot": 0, "w": 1200, "d": 600},
+      {"id": "o_plant", "key": "plant", "at": [3300, 700], "rot": 0}
+    ]
+  },
+  "edits": [
+    {"op": "rotate", "id": "o_sofa", "rot": 0},
+    {"op": "move", "id": "o_sofa", "to": [1900, 1800]},
+    {"op": "move", "id": "o_coffee", "to": [1900, 3025]},
+    {"op": "add", "object": {"id": "o_rug", "key": "rug", "at": [1900, 2700], "rot": 0, "w": 2000, "d": 1700}}
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": ["CIR-02", "DOOR-01", "DOOR-02", "CUR-01", "WIN-01", "OVER-01", "WALL-01", "ASSET-02"]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "case_id": "TAT-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [2800, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [2800, 0], "b": [2800, 3400], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 3400], "b": [2800, 3400], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 3400], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wN", "type": "window", "from": 500, "to": 1700, "sill": 450, "head": 2200},
+      {"id": "d1", "wall": "wE", "type": "door", "from": 2200, "to": 3100, "hinge": "from", "into": [2300, 2650]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "多功能房（榻榻米）", "polygon": [[0, 0], [2800, 0], [2800, 3400], [0, 3400]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_tatami", "key": "tatami", "at": [1100, 2200], "rot": 0, "w": 2000, "d": 2000, "h": 400}},
+    {"op": "add", "object": {"id": "o_lowtable", "key": "coffeeTable", "at": [1200, 2500], "rot": 0, "w": 1000, "d": 600, "h": 350, "on": "o_tatami"}}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["DOOR-02"],
+    "must_not_trigger": ["CUR-01", "WIN-01", "OVER-01", "WALL-01", "ASSET-02", "DOOR-01"]
+  }
+}

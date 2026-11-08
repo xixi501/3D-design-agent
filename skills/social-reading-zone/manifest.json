@@ -1,0 +1,53 @@
+{
+  "schema_version": "0.1",
+  "id": "social-reading-zone",
+  "name": "会客 + 阅读的功能分组与局部调整",
+  "version": "0.1.0",
+  "status": "pending_adaptation",
+  "level": "structure",
+  "summary": "把客厅家具声明成会客组/阅读组，只对目标组下发编辑，新增或重排“单人椅 + 落地灯 + 边几（可加书架）”的阅读角，并守住组内通道与窗带。",
+  "applies_when": {
+    "scene_types": ["客厅", "起居室", "客餐厅"],
+    "area_m2": [12, 40],
+    "inputs": ["含墙体与门窗的场景或户型图", "已有会客组家具", "阅读角使用者与用途（可选）"],
+    "preconditions": ["场景已有会客家具且用户声明哪些不能动", "有一处可用的实墙角落", "能从门口或会客区走到该角落"]
+  },
+  "not_applicable": [
+    "要重排整间客厅或更换主沙发（转 living-dining-small / living-dining-open）",
+    "阅读角要兼书房（书桌 + 屏幕，转 home-office）",
+    "需要改墙体、门窗或插座点位",
+    "要求改动会客组才能实现（退回与用户确认范围）"
+  ],
+  "depends": {
+    "tools": [
+      {"name": "catalog.search", "min_version": "0.1"},
+      {"name": "scene.get_snapshot", "min_version": "0.1"},
+      {"name": "scene.apply_edits", "min_version": "0.1"},
+      {"name": "scene.diff", "min_version": "0.1"},
+      {"name": "check.run", "min_version": "0.1"},
+      {"name": "view.capture", "min_version": "0.1"}
+    ],
+    "judgements": [
+      "J-CIR-01", "J-CIR-02", "J-CIR-07", "J-OVER-01", "J-CUR-01", "J-WIN-01",
+      "J-LIGHT-01", "J-LIGHT-02", "J-LIGHT-03", "J-LAY-01", "J-PROP-02", "J-STY-03",
+      "J-VER-01", "J-VER-02"
+    ],
+    "assets": []
+  },
+  "cases": [
+    {"id": "SRZ-dev-01", "kind": "positive", "expect": "check.run 全通过；scene.diff 只有 4 个 added，会客组 0 改动"},
+    {"id": "SRZ-dev-02", "kind": "boundary", "expect": "check.run 报 CUR-01 与 WIN-01：书架挪到窗下"}
+  ],
+  "provenance": {
+    "based_on": [
+      "house-plan-designer@b94183f9/reference/furnishing.md",
+      "house-plan-designer@b94183f9/workflow-check.md"
+    ],
+    "license": "MIT",
+    "external_refs": [
+      "interior-design-expert (seating anthropometrics)",
+      "IES 照度与色温参考（阅读 300–500 lux / 晚间 2700–3000K）"
+    ]
+  },
+  "validation": {"record": null, "checked_at": null, "checks": []}
+}

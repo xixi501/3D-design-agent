@@ -57,3 +57,10 @@ git switch --track origin/dev/skills-deploy
 - [AgentArts SDK](https://github.com/huaweicloud/agentarts-sdk-python)：平台运行与部署。
 
 复用第三方代码时保留来源和相应许可。参考项目不是本仓库已完成的能力。
+
+## 成员三交付（Skill 池与阶段性部署）
+
+- Skill 池：skills/（30 个包 + _framework/ 判据库），入口见 [SKILL_POOL.md](SKILL_POOL.md)
+- 验证工具：	ools/（结构检查、几何 dry-run、索引生成）
+- 验证证据：eports/
+- 部署件：暂未合入本分支（等成员一给出固定应用版本后再接入）

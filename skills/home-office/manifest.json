@@ -1,0 +1,51 @@
+{
+  "schema_version": "0.1",
+  "id": "home-office",
+  "name": "书房 / 居家办公：采光、久坐与画面",
+  "version": "0.1.0",
+  "status": "pending_adaptation",
+  "level": "structure",
+  "summary": "5–15㎡ 书房或居家办公位：书桌对窗但离窗墙留出窗帘与暖气，屏幕侧光不背光，椅后留出起身净空，视频背景干净，收纳分三处。",
+  "applies_when": {
+    "scene_types": ["书房", "居家办公位", "次卧兼办公"],
+    "area_m2": [5, 15],
+    "inputs": ["含墙体与门窗的场景或户型图", "每日使用时长（可选）", "视频会频率（可选）", "纸质资料量（可选）"],
+    "preconditions": ["场景已有墙体与门窗", "窗的开启方式与有无暖气片已知", "用户确认是否外接显示器"]
+  },
+  "not_applicable": [
+    "两人以上开放工位或会议室（转 office-workstation）",
+    "只需在客厅角落加一张桌子（转 social-reading-zone / studio-micro）",
+    "需要新增弱电点位、地插或网口",
+    "使用面积 < 5㎡（放不下桌前使用区，改走 studio-micro）"
+  ],
+  "depends": {
+    "tools": [
+      {"name": "catalog.search", "min_version": "0.1"},
+      {"name": "scene.get_snapshot", "min_version": "0.1"},
+      {"name": "scene.apply_edits", "min_version": "0.1"},
+      {"name": "check.run", "min_version": "0.1"},
+      {"name": "view.capture", "min_version": "0.1"}
+    ],
+    "judgements": [
+      "J-CIR-01", "J-CIR-05", "J-CUR-01", "J-OVER-01", "J-DOOR-02", "J-ASSET-02",
+      "J-LIGHT-02", "J-LIGHT-03", "J-STY-03", "J-VER-01", "J-VER-02"
+    ],
+    "assets": []
+  },
+  "cases": [
+    {"id": "HOF-dev-01", "kind": "positive", "expect": "check.run 全通过：桌离窗墙 350、椅后 950、台灯压在桌面内"},
+    {"id": "HOF-dev-02", "kind": "boundary", "expect": "check.run 报 ASSET-02：打印机超出桌面支撑范围"}
+  ],
+  "provenance": {
+    "based_on": [
+      "house-plan-designer@b94183f9/reference/furnishing.md",
+      "house-plan-designer@b94183f9/reference/spec-format.md"
+    ],
+    "license": "MIT",
+    "external_refs": [
+      "interior-design-expert (desk clearance / anthropometrics)",
+      "IES 照度与色温参考（读写 300–750 lux / 白天 4000–5000K / 晚间 2700–3000K）"
+    ]
+  },
+  "validation": {"record": null, "checked_at": null, "checks": []}
+}

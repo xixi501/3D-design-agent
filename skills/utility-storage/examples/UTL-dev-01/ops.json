@@ -1,0 +1,37 @@
+{
+  "case_id": "UTL-dev-01",
+  "kind": "positive",
+  "scene": {
+    "units": "mm",
+    "min_passage": 600,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [1800, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [1800, 0], "b": [1800, 2600], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 2600], "b": [1800, 2600], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 2600], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "d1", "wall": "wS", "type": "door", "from": 900, "to": 1700, "hinge": "from", "into": [1300, 2200]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "家政间", "polygon": [[0, 0], [1800, 0], [1800, 2600], [0, 2600]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_washer", "key": "washer", "at": [400, 400], "rot": 0, "w": 600, "d": 600}},
+    {"op": "add", "object": {"id": "o_dryer", "key": "dryer", "at": [1000, 400], "rot": 0, "w": 600, "d": 600}},
+    {"op": "add", "object": {"id": "o_cab", "key": "cabTall", "at": [1500, 700], "rot": 90, "w": 1200, "d": 400}},
+    {"op": "add", "object": {"id": "o_sink", "key": "laundrySink", "at": [375, 1725], "rot": 270, "w": 600, "d": 550}},
+    {"op": "add", "object": {"id": "o_pegboard", "key": "wallPanel", "at": [130, 1725], "rot": 270, "w": 700, "d": 60, "h": 1200, "mount": "wall"}},
+    {"op": "add", "object": {"id": "o_robot", "key": "robotVac", "at": [400, 2300], "rot": 180, "w": 380, "d": 400}},
+    {"op": "group", "name": "洗烘区", "ids": ["o_washer", "o_dryer"]},
+    {"op": "group", "name": "囤货区", "ids": ["o_cab"]},
+    {"op": "group", "name": "清洁工具区", "ids": ["o_sink", "o_pegboard", "o_robot"]}
+  ],
+  "expect": {
+    "pass": true,
+    "must_trigger": [],
+    "must_not_trigger": ["CIR-02", "CUR-01", "DOOR-01", "DOOR-02", "WIN-01", "OVER-01", "WALL-01", "ASSET-02"]
+  }
+}

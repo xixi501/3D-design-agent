@@ -1,0 +1,32 @@
+{
+  "case_id": "VIL-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 900,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [8000, 0], "t": 240, "bearing": true},
+      {"id": "wE", "a": [8000, 0], "b": [8000, 12000], "t": 240, "bearing": true},
+      {"id": "wS", "a": [0, 12000], "b": [8000, 12000], "t": 240, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 12000], "t": 240, "bearing": true}
+    ],
+    "openings": [
+      {"id": "d1", "wall": "wS", "type": "door", "from": 1200, "to": 2200, "hinge": "from", "into": [1700, 11500]},
+      {"id": "sd1", "wall": "wN", "type": "sliding", "from": 2600, "to": 4400},
+      {"id": "win1", "wall": "wN", "type": "window", "from": 5000, "to": 7600, "sill": 300, "head": 2600},
+      {"id": "win2", "wall": "wW", "type": "window", "from": 6000, "to": 9000, "sill": 900, "head": 2400}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "起居室", "polygon": [[0, 0], [8000, 0], [8000, 12000], [0, 12000]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_shoe", "key": "shoeCabinet", "at": [2000, 11375], "rot": 180}}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["DOOR-02"],
+    "must_not_trigger": ["CUR-01", "WIN-01", "DOOR-01", "WALL-01", "OVER-01", "ASSET-02"]
+  }
+}

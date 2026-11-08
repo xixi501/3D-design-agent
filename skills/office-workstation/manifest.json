@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.1",
+  "id": "office-workstation",
+  "name": "小型办公工位与会议室",
+  "version": "0.1.0",
+  "status": "pending_adaptation",
+  "level": "structure",
+  "summary": "30–60㎡ 工作室：分四块后按 1200×600/1400×700 排工位，留 900 主通道，玻璃隔断围会议区，贴边放打印机，只给插座网口位置建议。",
+  "applies_when": {
+    "scene_types": ["小型办公", "工作室", "共享工位", "居家工作室"],
+    "area_m2": [30, 60],
+    "inputs": ["含墙体与门窗的场景或户型图", "在座人数", "开会频率与人数（可选）", "是否需要独立会议室（可选）"],
+    "preconditions": ["场景已有墙体与门窗", "墙体与洞口尺寸可信（缺失时先补）"]
+  },
+  "not_applicable": ["需要水电点位设计（回路/线径/插座做法）", "需要拆改承重墙或门窗洞口", "整层或多房间办公区规划", "一人书房/居家办公（转 home-office）"],
+  "depends": {
+    "tools": [
+      {"name": "catalog.search", "min_version": "0.1"},
+      {"name": "scene.get_snapshot", "min_version": "0.1"},
+      {"name": "scene.apply_edits", "min_version": "0.1"},
+      {"name": "check.run", "min_version": "0.1"}
+    ],
+    "judgements": ["J-CIR-01", "J-CIR-02", "J-CIR-05", "J-DOOR-01", "J-DOOR-02", "J-LIGHT-02", "J-OVER-01", "J-PROP-01", "J-STY-01", "J-STA-03", "J-VER-01", "J-VER-02", "J-WIN-01"],
+    "assets": []
+  },
+  "cases": [
+    {"id": "OFW-dev-01", "kind": "positive", "expect": "check.run 全通过"},
+    {"id": "OFW-dev-02", "kind": "boundary", "expect": "check.run 报 DOOR-02 与 CIR-02"}
+  ],
+  "provenance": {
+    "based_on": ["house-plan-designer@b94183f9/reference/furnishing.md", "house-plan-designer@b94183f9/reference/workflow-check.md"],
+    "license": "MIT",
+    "external_refs": ["interior-design-expert (space-planning: circulation/clearance; IES illuminance)"]
+  },
+  "validation": {"record": null, "checked_at": null, "checks": []}
+}

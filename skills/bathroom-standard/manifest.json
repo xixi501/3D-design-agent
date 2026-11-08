@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.1",
+  "id": "bathroom-standard",
+  "name": "卫生间干湿分离与洁具排布",
+  "version": "0.1.0",
+  "status": "pending_adaptation",
+  "level": "structure",
+  "summary": "1.2–6㎡ 单卫：先按排水立管定马桶与淋浴位，再控马桶前后左右、淋浴区尺寸、浴室柜前净空，最后决定门内开/外开与挡水防滑。",
+  "applies_when": {
+    "scene_types": ["卫生间", "客卫", "次卫", "淋浴间"],
+    "area_m2": [1.2, 6],
+    "inputs": ["含墙体与门窗的卫生间场景或实测尺寸", "马桶坑距与排水立管位置", "门是内开还是外开"],
+    "preconditions": ["场景已有墙体与门窗", "排水立管位置已知且不移位", "门扇开启方向已知"]
+  },
+  "not_applicable": ["需要改排水立管、移位马桶或楼板开洞", "适老化改造（转 aging-friendly）", "双卫/主卫套间与干区外置", "需要拆改墙体或扩大门洞", "需要改窗"],
+  "depends": {
+    "tools": [
+      {"name": "catalog.search", "min_version": "0.1"},
+      {"name": "scene.get_snapshot", "min_version": "0.1"},
+      {"name": "scene.apply_edits", "min_version": "0.1"},
+      {"name": "check.run", "min_version": "0.1"}
+    ],
+    "judgements": ["J-BATH-01", "J-BATH-02", "J-BATH-03", "J-BATH-04", "J-CIR-01", "J-DOOR-02", "J-LIGHT-02", "J-VER-01", "J-VER-02"],
+    "assets": []
+  },
+  "cases": [
+    {"id": "BAT-dev-01", "kind": "positive", "expect": "check.run 全通过：门扇 700×700 扫掠区干净、无重叠、挂墙件贴实墙且不压洞口"},
+    {"id": "BAT-dev-02", "kind": "boundary", "expect": "check.run 报 DOOR-02（马桶挡住门扇）"}
+  ],
+  "provenance": {
+    "based_on": ["skills/_framework/JUDGEMENTS.md#E-卫生间", "skills/_framework/JUDGEMENTS.md#B-遮挡与冲突"],
+    "license": "MIT",
+    "external_refs": ["interior-design-expert (bath clearance)", "IES bathroom mirror illuminance"]
+  },
+  "validation": {"record": null, "checked_at": null, "checks": []}
+}

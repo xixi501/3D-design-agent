@@ -1,0 +1,2071 @@
+{
+  "at": "2026-11-08T23:25:19+0800",
+  "mode": "http-contract",
+  "service": "http://127.0.0.1:8101",
+  "took_s": 4.1,
+  "total": 47,
+  "passed": 47,
+  "ok": true,
+  "cases": [
+    {
+      "skill": "aging-friendly",
+      "case": "AGE-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/aging-friendly__AGE-dev-01_v2.png"
+    },
+    {
+      "skill": "aging-friendly",
+      "case": "AGE-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-02",
+        "CIR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "balcony-laundry",
+      "case": "BAL-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/balcony-laundry__BAL-dev-01_v2.png"
+    },
+    {
+      "skill": "balcony-laundry",
+      "case": "BAL-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-01",
+        "DOOR-01"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "bathroom-standard",
+      "case": "BAT-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/bathroom-standard__BAT-dev-01_v2.png"
+    },
+    {
+      "skill": "bathroom-standard",
+      "case": "BAT-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "dining-island",
+      "case": "ISL-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/dining-island__ISL-dev-01_v2.png"
+    },
+    {
+      "skill": "dining-island",
+      "case": "ISL-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "CIR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "entry-storage",
+      "case": "ENT-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/entry-storage__ENT-dev-01_v2.png"
+    },
+    {
+      "skill": "entry-storage",
+      "case": "ENT-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "floorplan-intake",
+      "case": "FIN-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/floorplan-intake__FIN-dev-01_v2.png"
+    },
+    {
+      "skill": "floorplan-intake",
+      "case": "FIN-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-02",
+        "CIR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "home-office",
+      "case": "HOF-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/home-office__HOF-dev-01_v2.png"
+    },
+    {
+      "skill": "home-office",
+      "case": "HOF-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "ASSET-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "kids-room",
+      "case": "KID-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/kids-room__KID-dev-01_v2.png"
+    },
+    {
+      "skill": "kids-room",
+      "case": "KID-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "OVER-01"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "kitchen-line-l-u",
+      "case": "KIT-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/kitchen-line-l-u__KIT-dev-01_v2.png"
+    },
+    {
+      "skill": "kitchen-line-l-u",
+      "case": "KIT-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "CIR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "layout-check-repair",
+      "case": "LCR-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/layout-check-repair__LCR-dev-01_v2.png"
+    },
+    {
+      "skill": "layout-check-repair",
+      "case": "LCR-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "WIN-01"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "WIN-01",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "lighting-color",
+      "case": "LGT-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/lighting-color__LGT-dev-01_v2.png"
+    },
+    {
+      "skill": "lighting-color",
+      "case": "LGT-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "living-dining-open",
+      "case": "LDO-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/living-dining-open__LDO-dev-01_v2.png"
+    },
+    {
+      "skill": "living-dining-open",
+      "case": "LDO-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "CIR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "living-dining-small",
+      "case": "LD-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/living-dining-small__LD-dev-01_v2.png"
+    },
+    {
+      "skill": "living-dining-small",
+      "case": "LD-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "CUR-01",
+        "WIN-01"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "WIN-01",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "master-bedroom",
+      "case": "MBR-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/master-bedroom__MBR-dev-01_v2.png"
+    },
+    {
+      "skill": "master-bedroom",
+      "case": "MBR-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "office-workstation",
+      "case": "OFW-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/office-workstation__OFW-dev-01_v2.png"
+    },
+    {
+      "skill": "office-workstation",
+      "case": "OFW-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-02",
+        "DOOR-02",
+        "CIR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "pet-friendly",
+      "case": "PET-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/pet-friendly__PET-dev-01_v2.png"
+    },
+    {
+      "skill": "pet-friendly",
+      "case": "PET-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "CUR-01"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "photo-object-import",
+      "case": "POI-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/photo-object-import__POI-dev-01_v2.png"
+    },
+    {
+      "skill": "photo-object-import",
+      "case": "POI-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "ASSET-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "rental-makeover",
+      "case": "RNT-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/rental-makeover__RNT-dev-01_v2.png"
+    },
+    {
+      "skill": "rental-makeover",
+      "case": "RNT-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "CUR-01",
+        "WIN-01"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "social-reading-zone",
+      "case": "SRZ-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/social-reading-zone__SRZ-dev-01_v2.png"
+    },
+    {
+      "skill": "social-reading-zone",
+      "case": "SRZ-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "CUR-01",
+        "WIN-01"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "studio-micro",
+      "case": "STU-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/studio-micro__STU-dev-01_v2.png"
+    },
+    {
+      "skill": "studio-micro",
+      "case": "STU-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-02",
+        "CIR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "style-coherence",
+      "case": "STY-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/style-coherence__STY-dev-01_v2.png"
+    },
+    {
+      "skill": "style-coherence",
+      "case": "STY-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "CUR-01",
+        "WIN-01"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "WIN-01",
+          "ok": true
+        }
+      ],
+      "image": null
+    },
+    {
+      "skill": "villa-ground-floor",
+      "case": "VIL-dev-01",
+      "kind": "positive",
+      "version": 2,
+      "pass": true,
+      "codes": [],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": true,
+          "got": true,
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CIR-02",
+          "ok": true
+        }
+      ],
+      "image": "reports/mock/villa-ground-floor__VIL-dev-01_v2.png"
+    },
+    {
+      "skill": "villa-ground-floor",
+      "case": "VIL-dev-02",
+      "kind": "boundary",
+      "version": 2,
+      "pass": false,
+      "codes": [
+        "DOOR-02"
+      ],
+      "ok": true,
+      "checks": [
+        {
+          "check": "pass",
+          "want": false,
+          "got": false,
+          "ok": true
+        },
+        {
+          "check": "must_trigger",
+          "code": "DOOR-02",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "CUR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WIN-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "DOOR-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "WALL-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "OVER-01",
+          "ok": true
+        },
+        {
+          "check": "must_not_trigger",
+          "code": "ASSET-02",
+          "ok": true
+        }
+      ],
+      "image": null
+    }
+  ],
+  "semantics": [
+    {
+      "check": "版本冲突被拒",
+      "ok": true,
+      "detail": "E_VERSION_CONFLICT"
+    },
+    {
+      "check": "同 op_id 幂等",
+      "ok": true,
+      "detail": 2
+    },
+    {
+      "check": "diff 能指出新增对象",
+      "ok": true,
+      "detail": [
+        "o1"
+      ]
+    }
+  ]
+}

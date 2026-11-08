@@ -1,0 +1,35 @@
+{
+  "case_id": "GYM-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [3400, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [3400, 0], "b": [3400, 4000], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 4000], "b": [3400, 4000], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 4000], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wN", "type": "window", "from": 300, "to": 1500, "sill": 900, "head": 2400},
+      {"id": "d1", "wall": "wW", "type": "door", "from": 2800, "to": 3700, "hinge": "from", "into": [450, 3250]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "健身角", "polygon": [[0, 0], [3400, 0], [3400, 4000], [0, 4000]]}
+    ],
+    "objects": [
+      {"id": "o_bike", "key": "bike", "at": [650, 800], "rot": 270, "w": 550, "d": 1100},
+      {"id": "o_lockers", "key": "lockers", "at": [325, 1900], "rot": 270, "w": 1200, "d": 450}
+    ]
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_treadmill", "key": "treadmill", "at": [1000, 3250], "rot": 270, "w": 800, "d": 1800}},
+    {"op": "add", "object": {"id": "o_mirror", "key": "mirror", "at": [900, 150], "rot": 0, "w": 1800, "d": 60, "h": 1800, "mount": "wall"}},
+    {"op": "add", "object": {"id": "o_yogaMat", "key": "yogaMat", "at": [2600, 2200], "rot": 0, "w": 610, "d": 1830}}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["DOOR-02", "WALL-01"],
+    "must_not_trigger": ["CIR-02", "OVER-01", "CUR-01", "WIN-01"]
+  }
+}

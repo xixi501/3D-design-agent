@@ -1,0 +1,33 @@
+{
+  "case_id": "MED-dev-02",
+  "kind": "boundary",
+  "scene": {
+    "units": "mm",
+    "min_passage": 700,
+    "walls": [
+      {"id": "wN", "a": [0, 0], "b": [4200, 0], "t": 200, "bearing": true},
+      {"id": "wE", "a": [4200, 0], "b": [4200, 5000], "t": 200, "bearing": true},
+      {"id": "wS", "a": [0, 5000], "b": [4200, 5000], "t": 200, "bearing": true},
+      {"id": "wW", "a": [0, 0], "b": [0, 5000], "t": 200, "bearing": true}
+    ],
+    "openings": [
+      {"id": "win1", "wall": "wE", "type": "window", "from": 1500, "to": 3300, "sill": 700, "head": 2400},
+      {"id": "d1", "wall": "wW", "type": "door", "from": 2200, "to": 3100, "hinge": "from", "into": [900, 2650]}
+    ],
+    "rooms": [
+      {"id": "r1", "name": "影音室", "polygon": [[0, 0], [4200, 0], [4200, 5000], [0, 5000]]}
+    ],
+    "objects": []
+  },
+  "edits": [
+    {"op": "add", "object": {"id": "o_screen", "key": "projScreen", "at": [2100, 130], "rot": 0, "w": 2400, "d": 80, "h": 1500}},
+    {"op": "add", "object": {"id": "o_sofa", "key": "theaterSofa", "at": [2100, 4400], "rot": 180, "w": 2600, "d": 1000, "h": 1000}},
+    {"op": "add", "object": {"id": "o_coffee", "key": "coffeeTable", "at": [2100, 3150], "rot": 0, "w": 1200, "d": 600, "h": 400}},
+    {"op": "add", "object": {"id": "o_rack", "key": "cabTall", "at": [3900, 2400], "rot": 90, "w": 1200, "d": 400, "h": 2400}}
+  ],
+  "expect": {
+    "pass": false,
+    "must_trigger": ["CUR-01", "WIN-01"],
+    "must_not_trigger": ["OVER-01", "WALL-01", "ASSET-02", "DOOR-02"]
+  }
+}

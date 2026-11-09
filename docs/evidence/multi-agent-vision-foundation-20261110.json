@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "actiscape.multi-agent-vision-foundation.v1",
+  "baseCommit": "49e3fc3",
+  "implementationCommit": "a1846c9",
+  "status": "foundation-passed",
+  "scope": "V4-2 role contracts, code supervisor, provider registry and HPD provider baseline",
+  "versions": {
+    "floorplanTask": "s2c-floorplan-v4-2",
+    "sceneDraft": "actiscape.scene-draft.v2",
+    "roleContext": "actiscape.role-context.v1",
+    "stageResult": "actiscape.stage-result.v1",
+    "repairRequest": "actiscape.repair-request.v1",
+    "artifactEnvelope": "actiscape.artifact-envelope.v1",
+    "providerManifest": "actiscape.vision-provider.v1"
+  },
+  "agentBoundaries": {
+    "main": "intent, room scope, Skill selection and clarification only",
+    "structure": "wall, opening, room and dimension candidate selection plus bounded measurement",
+    "vision": "furniture object-candidate classification, orientation and activity groups only",
+    "assets": "real catalogue key selection only",
+    "design": "frozen symbol-to-catalogue matching and preflight only",
+    "check": "structured issue reporting against the current draft hash",
+    "coordinator": "fixed-code stage, budget, permissions, issue ownership and stop/repair routing"
+  },
+  "coordinator": {
+    "structureRepairLimit": 1,
+    "visionRepairLimit": 1,
+    "assetsAndDesignSharedLegacyRounds": 3,
+    "noFreeAgentChat": true,
+    "evidenceRequiredForRepair": true,
+    "staleHashHandledWithoutModelRetry": true,
+    "unresolvedStructureOrVisionIssueBehavior": "waiting_input_with_editable_draft"
+  },
+  "provider": {
+    "registry": "static",
+    "currentIds": ["hpd-adapter-6-1"],
+    "currentStatus": "experimental",
+    "capabilities": {
+      "walls": true,
+      "openings": true,
+      "dimensions": true,
+      "rooms": false,
+      "symbols": false,
+      "ocr": false
+    },
+    "isolation": "subprocess",
+    "forbiddenRoots": ["fixtures/full-home-candidates", "fixtures/s2c-real"],
+    "runtimeGuardAttemptCount": 0,
+    "formalSceneWrite": false,
+    "draftWrite": false
+  },
+  "publicApis": [
+    "GET /api/agent/vision/providers",
+    "GET /api/agent/capabilities"
+  ],
+  "verified": [
+    "Each Agent receives an allowlisted RoleContextV1 and emits a hash-bound StageResultV1.",
+    "The review coordinator maps issue codes to structure, vision, assets, design or coordinator.",
+    "A missing evidence reference cannot trigger a model repair loop.",
+    "The HPD provider runs in a subprocess and returns a hashed ArtifactEnvelopeV1.",
+    "The provider process has no evaluation reference input and its file guard reports zero forbidden accesses.",
+    "The provider declares no room or furniture capability.",
+    "The capabilities API exposes V4-2 as experimental and photo inputs as reserved.",
+    "V1/V2/V3 and V4-1 task snapshots remain separate."
+  ],
+  "recognitionBaseline": {
+    "status": "baseline-blocked",
+    "methodologyPassed": true,
+    "twoBhk": {
+      "wallCoverageRecall": 0.5709278884720208,
+      "openingMatched": 0,
+      "openingReferenceCount": 15
+    },
+    "oakRidgeC": {
+      "wallCoverageRecall": 0.010313280290636334,
+      "openingMatched": 0,
+      "openingReferenceCount": 14
+    },
+    "report": "test-results/floorplan-quality/batch-report.json",
+    "reportSha256": "7690f36265d23177b4f15e7bca495afc82293230117865bf87e352a9c0f5309c"
+  },
+  "verification": {
+    "nodeTests": 60,
+    "pythonTests": 150,
+    "typecheck": "passed",
+    "build": "passed",
+    "fullFloorplanOfflineSuite": "passed",
+    "prettier": "passed",
+    "ruff": "passed",
+    "v3ControlledBrowser": {
+      "passed": true,
+      "report": "test-results/floorplan-v3-tools/report.json",
+      "reportSha256": "5116e030d4f550568a746552fa51e142bdae52f751d633f43bb226f9f53757cb"
+    }
+  },
+  "notClaimed": [
+    "V4-2 real model recognition",
+    "multi-provider structure benchmark",
+    "furniture provider comparison",
+    "automatic zero-correction whole-home acceptance",
+    "room or furniture candidate recall",
+    "second image or full S2 acceptance"
+  ]
+}

@@ -1,4 +1,4 @@
-"""Fail closed if a candidate process touches evaluation-only evidence."""
+"""Fail closed when a vision provider touches evaluation-only evidence."""
 
 from __future__ import annotations
 
@@ -21,8 +21,6 @@ class EvidenceAccessGuard:
         if not isinstance(value, (str, bytes, os.PathLike)):
             return False
         try:
-            # Keep the audit hook side-effect free. OS permissions enforce real
-            # access while this check supplies a deterministic fail-closed signal.
             path = Path(os.path.abspath(os.fsdecode(value)))
         except (OSError, ValueError, TypeError):
             return False

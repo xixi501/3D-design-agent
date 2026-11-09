@@ -107,6 +107,11 @@ export interface FloorplanVisionArtifact {
     candidateInputs: Array<
       "image.bytes" | "scope" | "adapterVersion" | "provider.options"
     >;
+    runtimeGuard?: {
+      referenceAccess: "denied-and-audited";
+      forbiddenRootCount: number;
+      attemptCount: number;
+    };
   };
 }
 
@@ -507,7 +512,7 @@ export function validateFloorplanVisionArtifact(
   const audit = record(item.audit, "audit");
   exactFields(
     audit,
-    ["modelCalls", "referenceAccess", "candidateInputs"],
+    ["modelCalls", "referenceAccess", "candidateInputs", "runtimeGuard"],
     "audit",
   );
   if (audit.modelCalls !== 0)
@@ -530,6 +535,33 @@ export function validateFloorplanVisionArtifact(
     candidateInputs.some((inputName) => !allowedInputs.includes(inputName))
   )
     invalid("候选输入超出允许集合", "audit.candidateInputs");
+  let runtimeGuard:
+    FloorplanVisionArtifact["audit"]["runtimeGuard"] | undefined;
+  if (audit.runtimeGuard !== undefined) {
+    const guard = record(audit.runtimeGuard, "audit.runtimeGuard");
+    exactFields(
+      guard,
+      ["referenceAccess", "forbiddenRootCount", "attemptCount"],
+      "audit.runtimeGuard",
+    );
+    if (guard.referenceAccess !== "denied-and-audited")
+      invalid("运行时证据守卫声明无效", "audit.runtimeGuard.referenceAccess");
+    runtimeGuard = {
+      referenceAccess: "denied-and-audited",
+      forbiddenRootCount: finite(
+        guard.forbiddenRootCount,
+        "audit.runtimeGuard.forbiddenRootCount",
+        0,
+        100,
+      ),
+      attemptCount: finite(
+        guard.attemptCount,
+        "audit.runtimeGuard.attemptCount",
+        0,
+        100,
+      ),
+    };
+  }
 
   return {
     schemaVersion: FLOORPLAN_VISION_ARTIFACT_SCHEMA,
@@ -563,6 +595,7 @@ export function validateFloorplanVisionArtifact(
       referenceAccess: "denied-and-audited",
       candidateInputs:
         candidateInputs as FloorplanVisionArtifact["audit"]["candidateInputs"],
+      ...(runtimeGuard === undefined ? {} : { runtimeGuard }),
     },
   };
 }

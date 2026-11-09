@@ -60,6 +60,7 @@ class FloorplanToolset:
                 "s2c-floorplan-v3-6-1",
                 "s2c-floorplan-v4",
                 "s2c-floorplan-v4-1",
+                "s2c-floorplan-v4-2",
             )
             else "hpd-adapter-6"
             if floorplan_version == "s2c-floorplan-v3-6"

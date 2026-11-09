@@ -17,6 +17,7 @@ image bytes + user scope + adapter version
 - `scripts/quality/score-floorplan-candidates.ts` 在候选进程退出并校验产物哈希后才读取参考。
 - `packages/scene-core/src/floorplan-quality.ts` 使用最大基数、最小成本一对一匹配；合并候选不能同时命中两个参考对象。
 - `packages/scene-core/src/vision-artifact.ts` 定义严格、版本化、像素空间的 provider 产物，不允许候选直接写毫米场景。
+- `apps/agent/actiscape_agent/floorplan_vision/` 提供静态 provider registry、子进程 runner、HPD 包装器和运行时证据守卫；真实 Agent 主链只通过 `ArtifactEnvelopeV1` 接收 provider 结果。
 
 ## 命令
 

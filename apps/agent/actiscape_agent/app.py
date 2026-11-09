@@ -11,7 +11,9 @@ from fastapi import FastAPI, Header, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+from .capability_registry import capability_document
 from .config import model_settings, state_directory
+from .floorplan_vision import get_provider_registry
 from .manager import TaskManager
 from .schemas import ResumeInput, TaskInput
 from .skill_registry import get_registry
@@ -92,6 +94,17 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
             "pool": registry.pool_summary(),
             "items": items,
         }
+
+    @app.get("/vision/providers")
+    async def vision_providers(status: str = "all"):
+        return {
+            "schemaVersion": "actiscape.vision-provider-list.v1",
+            "items": get_provider_registry().public_records(status=status),
+        }
+
+    @app.get("/capabilities")
+    async def capabilities():
+        return capability_document()
 
     @app.get("/skills/{skill_id}")
     async def skill(skill_id: str):

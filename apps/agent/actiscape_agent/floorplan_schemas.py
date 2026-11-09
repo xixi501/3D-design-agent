@@ -239,6 +239,37 @@ class StructureRecognition(StrictModel):
     uncertainties: list[Uncertainty] = Field(default_factory=list, max_length=100)
 
 
+class StructureWallSelectionV42(StrictModel):
+    id: str
+    candidateWallIds: list[str] = Field(min_length=1, max_length=20)
+    thicknessPx: FiniteFloat | None = Field(default=None, gt=0)
+
+
+class StructureOpeningSelectionV42(StrictModel):
+    id: str
+    candidateId: str
+    type: Literal["door", "window", "hole", "sliding"]
+    sill: FiniteFloat | None = None
+    head: FiniteFloat | None = None
+    side: Literal[-1, 1] | None = None
+    hinge: Literal[0, 1] | None = None
+    evidenceRefs: list[str] = Field(default_factory=list, max_length=10)
+
+
+class StructureSelectionV42(StrictModel):
+    status: Literal["draft", "unsupported"]
+    question: str = ""
+    name: str = Field(default="户型图复现", max_length=100)
+    height: FiniteFloat | None = Field(default=None, ge=100, le=20000)
+    wallThickness: FiniteFloat | None = Field(default=None, ge=20, le=1000)
+    walls: list[StructureWallSelectionV42] = Field(default_factory=list, max_length=150)
+    openings: list[StructureOpeningSelectionV42] = Field(default_factory=list, max_length=100)
+    rooms: list[ImageRoom] = Field(default_factory=list, max_length=60)
+    targetRoomIds: list[str] = Field(default_factory=list, max_length=60)
+    dimensionReads: list[DimensionRead] = Field(default_factory=list, max_length=20)
+    uncertainties: list[Uncertainty] = Field(default_factory=list, max_length=100)
+
+
 class FurnitureSymbol(StrictModel):
     id: str
     roomId: str

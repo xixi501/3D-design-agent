@@ -17,6 +17,7 @@ from .floorplan_tools import FloorplanToolset
 from .generation_roles import GenerationRoles
 from .roles import objects_summary
 from .scene_projection import project_floorplan_candidate
+from .role_contracts import build_role_context
 from .store import TaskError, fingerprint
 
 VERSION = "s2c-floorplan-8"
@@ -580,16 +581,36 @@ class FloorplanRoles:
                     "details": getattr(error, "data", {}).get("details"),
                 }
 
+        payload = {
+            "userRequest": task["input"],
+            "frozenScope": scope,
+            "sourceMatches": task["generation"]["matches"],
+            "lastReport": last_report,
+            "skill": task["generation"].get("skillSnapshot"),
+        }
+        role_context = build_role_context(
+            task_id=task["id"],
+            role="design",
+            stage="design",
+            project_revision=project["revision"],
+            payload=payload,
+        )
+        self.store.event(
+            task["id"],
+            "role_context_validated",
+            {
+                "role": role_context.role,
+                "stage": role_context.stage,
+                "inputHash": role_context.inputHash,
+                "permissions": role_context.permissions,
+            },
+        )
         value = await self.base.invoke(
             "design",
             DESIGN,
             ReconstructionProposal,
             [floorplan_context, precheck_floorplan],
-            {
-                "frozenScope": scope,
-                "sourceMatches": task["generation"]["matches"],
-                "lastReport": last_report,
-            },
+            payload,
             task["id"],
             prompt_version=VERSION,
         )
@@ -627,6 +648,33 @@ class FloorplanRoles:
         before = len(
             self.store.task(task["id"], internal=True)["generation"].get("upstreamTools", [])
         )
+        payload = {
+            "userRequest": task["input"],
+            "skill": task["generation"]["skillSnapshot"],
+            "frozenDraft": d["data"],
+            "candidate": objects_summary(
+                {"plan": candidate["state"]["plan"], "revision": candidate["baseRevision"]}
+            ),
+            "checks": candidate["checks"],
+            "imageViews": ["original", "overlay"] + [e["view"] for e in evidence],
+        }
+        role_context = build_role_context(
+            task_id=task["id"],
+            role="check",
+            stage="check",
+            project_revision=candidate["baseRevision"],
+            payload=payload,
+        )
+        self.store.event(
+            task["id"],
+            "role_context_validated",
+            {
+                "role": role_context.role,
+                "stage": role_context.stage,
+                "inputHash": role_context.inputHash,
+                "permissions": role_context.permissions,
+            },
+        )
         review = await self.base.invoke(
             "check",
             CHECK,
@@ -635,16 +683,7 @@ class FloorplanRoles:
                 candidate_checks,
                 *FloorplanToolset(self.base, task, {"id": image_id}, "check").inspection(d["id"]),
             ],
-            {
-                "userRequest": task["input"],
-                "skill": task["generation"]["skillSnapshot"],
-                "frozenDraft": d["data"],
-                "candidate": objects_summary(
-                    {"plan": candidate["state"]["plan"], "revision": candidate["baseRevision"]}
-                ),
-                "checks": candidate["checks"],
-                "imageViews": ["original", "overlay"] + [e["view"] for e in evidence],
-            },
+            payload,
             task["id"],
             images,
             prompt_version=VERSION,

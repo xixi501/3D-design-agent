@@ -3,7 +3,11 @@ from pathlib import Path
 
 import pytest
 
-from actiscape_agent.floorplan_schemas import CategoryCode, FurnitureActivityRecognition
+from actiscape_agent.floorplan_schemas import (
+    CategoryCode,
+    FurnitureActivityRecognition,
+    StructureSelectionV42,
+)
 from actiscape_agent.floorplan_v3 import (
     _assemble_activity_symbols,
     _consolidate_open_room_labels,
@@ -11,6 +15,7 @@ from actiscape_agent.floorplan_v3 import (
     _v4_target_room_ids,
 )
 from actiscape_agent.floorplan_v4 import FloorplanV4
+from actiscape_agent.floorplan_v4_2 import FloorplanV42
 from actiscape_agent.scene_registry import get_scene_registry
 from actiscape_agent.store import TaskError, TaskStore
 
@@ -42,7 +47,7 @@ def test_new_floorplan_tasks_pin_v4_and_geometry_only_policy(tmp_path):
             "phase": "recognizing",
             "workflowVersion": 4,
             "recognitionVersion": 4,
-            "floorplanVersion": "s2c-floorplan-v4-1",
+            "floorplanVersion": "s2c-floorplan-v4-2",
             "candidatePolicyVersion": "geometry-only",
             "floorplanScope": {
                 "roomSelection": "all_visible",
@@ -100,6 +105,16 @@ def test_v4_prompts_cover_whole_home_without_legacy_living_room_scope():
     assert "geometry-only" in furniture
     assert "群组" not in structure
     assert "不输出 chain-of-thought" in structure
+
+
+def test_v4_2_uses_dedicated_structure_role_without_free_anchors():
+    helper = object.__new__(FloorplanV42)
+    structure = helper.prompt("STRUCTURE", None)
+    assert helper.recognition_role(None) == "structure"
+    assert helper.measurement_role(None) == "structure"
+    assert helper.structure_schema(None) is StructureSelectionV42
+    assert "只选择 structureSkeleton.candidateWalls" in structure
+    assert "不要返回 anchors" in structure
 
 
 def test_v4_room_normalization_preserves_bedroom_and_kitchen_labels():

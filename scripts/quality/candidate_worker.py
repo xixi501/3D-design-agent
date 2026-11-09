@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from evidence_guard import EvidenceAccessGuard
+from actiscape_agent.floorplan_vision.evidence_guard import EvidenceAccessGuard
 
 
 def main():

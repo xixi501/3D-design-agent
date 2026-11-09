@@ -245,7 +245,7 @@ class TaskStore:
                                 "phase": "recognizing",
                                 "workflowVersion": 4,
                                 "recognitionVersion": 4,
-                                "floorplanVersion": "s2c-floorplan-v4-1",
+                                "floorplanVersion": "s2c-floorplan-v4-2",
                                 "candidatePolicyVersion": "geometry-only",
                                 "floorplanScope": body.get("floorplanScope")
                                 or {

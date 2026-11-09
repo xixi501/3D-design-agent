@@ -58,9 +58,11 @@ def runtime_versions():
         "modelConfigVersion": "per-role-output-budget-3",
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
         "floorplanReviewOptions": FLOORPLAN_REVIEW_OPTIONS,
-        "floorplanPromptVersion": "s2c-floorplan-v4-1",
+        "floorplanPromptVersion": "s2c-floorplan-v4-2",
         "floorplanToolAdapter": "hpd-adapter-6-1",
         "floorplanVisionConfigVersion": "vision-furniture-2",
+        "floorplanVisionProviderRegistry": "actiscape.vision-provider.v1",
+        "floorplanVisionProviderIds": ["hpd-adapter-6-1"],
         "floorplanActivityUnitVersion": "activity-unit-1",
         "floorplanScoringVersion": "s2c-6",
         "floorplanVision": {

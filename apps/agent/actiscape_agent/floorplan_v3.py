@@ -33,6 +33,7 @@ from .floorplan_schemas import (
 )
 from .floorplan_tools import FloorplanToolset
 from .floorplan_v2 import FloorplanV2
+from .role_contracts import StageResultV1, build_role_context
 from .scene_registry import get_scene_registry
 from .skill_registry import get_registry
 from .store import TaskError, fingerprint
@@ -2542,6 +2543,15 @@ class FloorplanV3(FloorplanV2):
     def furniture_model_version(self, task):
         return "activity-unit-1"
 
+    def recognition_role(self, task):
+        return "main"
+
+    def measurement_role(self, task):
+        return "design"
+
+    def structure_schema(self, task):
+        return StructureRecognition
+
     def prompt_version(self, task):
         generation = self.store.task(task["id"], internal=True)["generation"]
         return generation.get("floorplanVersion") or VERSION
@@ -2564,7 +2574,9 @@ class FloorplanV3(FloorplanV2):
         return tools, record, skeleton
 
     async def recognize_structure(self, task, image, skeleton):
-        evidence, context = await self.context(task, image, "main")
+        role = self.recognition_role(task)
+        schema = self.structure_schema(task)
+        evidence, context = await self.context(task, image, role)
         analysis = next(
             entry["record"]
             for entry in reversed(
@@ -2578,9 +2590,9 @@ class FloorplanV3(FloorplanV2):
 
         async def invoke(prompt, payload):
             result = await self.base.invoke(
-                "main",
+                role,
                 prompt,
-                StructureRecognition,
+                schema,
                 [context, evidence.crop_tool()],
                 payload,
                 task["id"],
@@ -2589,7 +2601,7 @@ class FloorplanV3(FloorplanV2):
                 bounded_schema=True,
                 model_options=FLOORPLAN_RECOGNITION_OPTIONS,
             )
-            return StructureRecognition.model_validate(result).model_dump(
+            return schema.model_validate(result).model_dump(
                 exclude_none=True, by_alias=True
             )
 
@@ -2612,6 +2624,29 @@ class FloorplanV3(FloorplanV2):
                     "excludeFunctionalAreas": [],
                 },
             )
+            if role == "structure":
+                role_context = build_role_context(
+                    task_id=task["id"],
+                    role="structure",
+                    stage="structure",
+                    project_revision=(
+                        self.store.task(task["id"], internal=True)["generation"].get(
+                            "sceneDraftBaseProjectRevision"
+                        )
+                        or 0
+                    ),
+                    payload=payload,
+                )
+                self.store.event(
+                    task["id"],
+                    "role_context_validated",
+                    {
+                        "role": role_context.role,
+                        "stage": role_context.stage,
+                        "inputHash": role_context.inputHash,
+                        "permissions": role_context.permissions,
+                    },
+                )
         generation = self.store.task(task["id"], internal=True)["generation"]
         floorplan_scope = generation.get("floorplanScope")
         repaired_value = generation.get("structureRepairResponse")
@@ -2620,14 +2655,14 @@ class FloorplanV3(FloorplanV2):
         value = repaired_value if repaired_value else pending_value if resuming_repair else None
         if value is None:
             value = await invoke(self.prompt("STRUCTURE", task), payload)
-            value = StructureRecognition.model_validate(value).model_dump(
+            value = schema.model_validate(value).model_dump(
                 exclude_none=True, by_alias=True
             )
             attempts = generation.setdefault("structureAttempts", [])
             attempts.append(value)
             self.patch(task["id"], structureAttempts=attempts, pendingStructure=value)
         else:
-            value = StructureRecognition.model_validate(value).model_dump(
+            value = schema.model_validate(value).model_dump(
                 exclude_none=True, by_alias=True
             )
         if value["status"] == "unsupported":
@@ -3132,6 +3167,27 @@ class FloorplanV3(FloorplanV2):
                 {"parseError": parse_error},
             )
         self.patch(task["id"], furnitureModel=model_record("completed"))
+        stage_result = StageResultV1.create(
+            task_id=task["id"],
+            role="vision",
+            stage="furniture",
+            status="ok"
+            if value.get("status") == "draft"
+            else "unsupported"
+            if value.get("status") == "unsupported"
+            else "blocked",
+            input_hash=fingerprint(payload),
+            output=value,
+            issue_codes=sorted(
+                {
+                    str(item.get("code"))
+                    for item in value.get("uncertainties") or []
+                    if isinstance(item, dict) and item.get("code")
+                }
+            ),
+            model_calls=call_count,
+        )
+        self.store.event(task["id"], "stage_result", stage_result.model_dump())
         return value, result
 
     async def recognize_furniture_vision(self, task, image, draft, diagnostics):
@@ -3304,6 +3360,28 @@ class FloorplanV3(FloorplanV2):
             "allowedRooms": draft["data"]["targetRoomIds"],
             "allowedCategories": list(CategoryCode.__args__),
         }
+        role_context = build_role_context(
+            task_id=task["id"],
+            role="vision",
+            stage="furniture",
+            project_revision=(
+                self.store.task(task["id"], internal=True)["generation"].get(
+                    "sceneDraftBaseProjectRevision"
+                )
+                or 0
+            ),
+            payload=payload,
+        )
+        self.store.event(
+            task["id"],
+            "role_context_validated",
+            {
+                "role": role_context.role,
+                "stage": role_context.stage,
+                "inputHash": role_context.inputHash,
+                "permissions": role_context.permissions,
+            },
+        )
         value, assembled = await self._vision_structured_call(
             task,
             self.prompt("VISION_ACTIVITY", task),
@@ -3344,8 +3422,9 @@ class FloorplanV3(FloorplanV2):
         return symbols, activity_groups
 
     async def measure(self, task, image, draft, diagnostics, report):
-        evidence, context = await self.context(task, image, "design")
-        tools = FloorplanToolset(self.base, task, image, "design")
+        role = self.measurement_role(task)
+        evidence, context = await self.context(task, image, role)
+        tools = FloorplanToolset(self.base, task, image, role)
         generation = self.store.task(task["id"], internal=True)["generation"]
         raw_structure = generation.get("rawStructure") or {}
         candidate_by_id = {
@@ -3450,7 +3529,7 @@ class FloorplanV3(FloorplanV2):
         ]
         images += [await self.client.image(f["path"]) for f in diagnostics.get("files", [])]
         value = await self.base.invoke(
-            "design",
+            role,
             self.prompt("MEASURE", task),
             MeasuredDraftProposal,
             [context, evidence.crop_tool(), fit_wall_candidates, axis],
@@ -3922,7 +4001,7 @@ class FloorplanV3(FloorplanV2):
                     )
                     current.setdefault("recognitionAttempts", []).append(
                         {
-                            "role": "design",
+                            "role": self.measurement_role(task),
                             "response": current_pending,
                             "draftHash": current_draft["hash"],
                             "report": current_report,

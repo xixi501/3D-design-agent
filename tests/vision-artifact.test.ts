@@ -102,6 +102,19 @@ test("vision artifact rejects undeclared candidate capabilities", () => {
   );
 });
 
+test("vision artifact records the runtime evidence guard when available", () => {
+  const value = artifact();
+  value.audit.runtimeGuard = {
+    referenceAccess: "denied-and-audited",
+    forbiddenRootCount: 2,
+    attemptCount: 0,
+  };
+  assert.equal(
+    validateFloorplanVisionArtifact(value).audit.runtimeGuard?.attemptCount,
+    0,
+  );
+});
+
 test("vision artifact seal hash changes with candidate content", () => {
   const first = artifact();
   const second = artifact();

@@ -125,7 +125,7 @@ V3-5 新任务使用 `s2c-floorplan-v3-5`、Skill `0.5.4`、`activity-unit-1` �
 
 V3-6 新任务使用 `s2c-floorplan-v3-6-1`、Skill `0.5.6`、`structureSkeletonVersion=4`、`hpd-adapter-6-1` 和同一 `s2c-5` 门槛。复杂图的 `analyze` 不再用整图包围盒生成矩形四面墙，而是从真实低饱和灰墙掩膜提取定向连通段、吸附交点、保留分析断口并单独检测外部尺寸线；简单矩形图可回退到已验证的旧候选层。家具对象图新增上下各两椅的桌面合成、细长 group 柜体收纳、固定玄关柜排除和旋转前后宽深归一。外部尺寸候选携带 `unitHint=mm`，原图只写数字 `9700` 时仍可绑定；同一开放区域的客厅、餐厅、玄关标签由代码合并为单个客餐厅目标。分析响应增加 `wallmask.png` 和候选诊断字段，旧 V1 至 V3-5 任务继续使用各自冻结适配器与 Skill。
 
-V4 全屋开发任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-floorplan-v4-1`、Skill `0.7.0`、`hpd-adapter-6-1`、`candidatePolicyVersion=geometry-only` 和评分 `s2c-6`。任务可选携带 `floorplanScope`：
+V4 全屋开发任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-floorplan-v4-2`、Skill `0.7.0`、`hpd-adapter-6-1`、`candidatePolicyVersion=geometry-only` 和评分 `s2c-6`。任务可选携带 `floorplanScope`：
 
 ```json
 {
@@ -140,6 +140,15 @@ V4 全屋开发任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-
 V4 代码接入和离线契约已实现，执行结果见 [V4 contract evidence](evidence/floorplan-v4-contract-20261109.json)。但还没有全屋参考、真实全屋零校正运行或第二张独立验证图；不得把本节解释为全屋自动验收通过。旧 V1/V2/V3 任务继续使用各自的提示词、适配器和冻结 Skill。
 
 V4 的 `POST /api/projects/:id/floorplan-drafts` 是兼容 façade，实际只写 `scene_program_drafts` 中的 `actiscape.scene-draft.v2`。返回记录继续暴露 V3 使用的 `id/revision/hash/data/confirmed/sourceReview` 字段，因此原编辑器、诊断、审核、确认和候选路径无需改 URL。对应记录同时可通过 `/api/projects/:id/scene-drafts/:draft` 读取，`recognition` 保存像素提案、比例锚点、测量和审核状态，`program` 是唯一派生毫米几何。V4 任务同时出现不同的 `draftId` 和 `sceneDraftId` 时 fail-closed；旧 V1/V2/V3 草稿继续写原表。
+
+V4-2 将结构和家具认知职责从主控拆开：结构使用独立 `structure` role，只选择墙、洞口、房间和尺寸候选；家具使用 `vision` role，只选择对象候选并提交类别、朝向和活动组。固定代码 Coordinator 负责阶段、预算、权限和错误回溯。设计、资产和检查继续使用独立 role，V4-2 不改变 V1/V2/V3 或 V4-1 的历史快照。
+
+Agent 只读能力入口：
+
+- `GET /api/agent/vision/providers?status=all|production|experimental|research-only|disabled`
+- `GET /api/agent/capabilities`
+
+能力矩阵区分 `active`、`verified_limited`、`experimental`、`research-only` 和 `reserved`。Provider 只返回像素空间 artifact，不读取评估参考，不写 SceneDraft，不拥有正式提交权限。
 
 V3-5 硬阻断错误包括 `UNKNOWN_OBJECT_CANDIDATE`、`OBJECT_CANDIDATE_REUSED`、`ACTIVITY_GROUP_INCOMPLETE`、`ACTIVITY_GROUP_ROLE_INVALID` 和 `UNRESOLVED_ACTIVITY_GROUP`。一次有界修复仍使用同一任务预算和请求上限。
 

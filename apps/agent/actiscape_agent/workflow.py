@@ -7,6 +7,11 @@ from .floorplan_flow import FloorplanFlow
 from .floorplan_roles import FloorplanRoles
 from .generation_flow import COLLECTIONS, GenerationFlow
 from .generation_roles import GenerationRoles
+from .role_contracts import (
+    RepairBudgetState,
+    ReviewIssueV1,
+    build_repair_request,
+)
 from .roles import Roles
 from .scene_projection import ensure_edit_scene_draft, sync_edit_scene_program
 from .skill_registry import get_registry
@@ -565,6 +570,104 @@ class Workflow:
         )
         task = self.store.task(state["task_id"], internal=True)
         generation = task.get("generation", {})
+        if generation.get("floorplanVersion") == "s2c-floorplan-v4-2":
+            raw_issues = (state.get("last_report") or {}).get("visualReview", {}).get(
+                "issues"
+            ) or []
+            issues = [
+                ReviewIssueV1(
+                    code=str(item.get("code") or "OTHER"),
+                    source=item.get("source") or "model",
+                    severity=item.get("severity") or "blocking",
+                    objectIds=list(item.get("object_ids") or item.get("objectIds") or []),
+                    evidenceRefs=list(item.get("evidenceRefs") or []),
+                    message=str(item.get("description") or item.get("message") or item.get("code")),
+                    bbox=item.get("bbox"),
+                )
+                for item in raw_issues
+                if isinstance(item, dict)
+            ]
+            draft_hash = (
+                (state.get("candidate") or {})
+                .get("floorplan", {})
+                .get("binding", {})
+                .get("draftHash")
+                or generation.get("sceneDraftHash")
+                or ""
+            )
+            if issues and len(draft_hash) != 64:
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "waiting_input",
+                        "phase": "reviewing_floorplan",
+                        "draftId": generation.get("draftId"),
+                        "candidateId": (state.get("candidate") or {}).get("id"),
+                        "message": "检查问题未绑定当前草稿哈希，不能回溯或提交。",
+                        "report": state.get("last_report"),
+                    },
+                }
+            budget = RepairBudgetState.model_validate(generation.get("repairBudget") or {})
+            request, next_budget, codes = build_repair_request(
+                task_id=task["id"],
+                source_stage="check",
+                draft_hash=draft_hash,
+                issues=issues,
+                budget=budget,
+            )
+            generation["repairBudget"] = next_budget.model_dump()
+            if request is not None:
+                generation["repairRequests"] = [
+                    *generation.get("repairRequests", []),
+                    request.model_dump(),
+                ]
+                self.store.update(task["id"], generation=generation)
+                self.store.event(
+                    task["id"],
+                    "repair_routed",
+                    {
+                        **request.model_dump(),
+                        "issueCodes": codes,
+                    },
+                )
+                if request.targetRole in ("assets", "design"):
+                    return {
+                        "repairs": count + 1,
+                        "route": request.targetRole,
+                    }
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "waiting_input",
+                        "phase": "reviewing_floorplan",
+                        "draftId": generation.get("draftId"),
+                        "candidateId": (state.get("candidate") or {}).get("id"),
+                        "message": (
+                            f"检查问题需要由 {request.targetRole} 角色处理，"
+                            "当前候选不会循环重放或自动提交。"
+                        ),
+                        "repairRequest": request.model_dump(),
+                        "report": state.get("last_report"),
+                    },
+                }
+            if codes:
+                self.store.update(task["id"], generation=generation)
+                self.store.event(
+                    task["id"],
+                    "repair_stopped",
+                    {"codes": codes, "report": state.get("last_report")},
+                )
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "waiting_input",
+                        "phase": "reviewing_floorplan",
+                        "draftId": generation.get("draftId"),
+                        "candidateId": (state.get("candidate") or {}).get("id"),
+                        "message": "检查问题缺少可验证证据或修复预算已耗尽；正式项目未改变。",
+                        "report": state.get("last_report"),
+                    },
+                }
         if generation.get("skillBundle") and not generation["skillBundle"].get("repair"):
             registry = get_registry()
             bundle = registry.with_repair(generation["skillBundle"], task["mode"])

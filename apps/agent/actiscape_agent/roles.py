@@ -2,7 +2,8 @@ import asyncio
 import base64
 import json
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import httpx
 from langchain.agents import create_agent
@@ -14,6 +15,7 @@ from langchain_core.tools import tool
 from .client import SceneClient
 from .config import model_settings
 from .model import create_model
+from .role_contracts import StageResultV1
 from .schemas import AssetSelection, Edit, Intent, Proposal, Review
 from .skill_registry import get_registry
 from .store import TaskError, TaskStore, fingerprint
@@ -177,6 +179,7 @@ class Roles:
                 "timeoutSeconds": options["timeout"],
                 "reasoningEffort": options["reasoning_effort"],
                 "thinkingMode": options.get("extra_body", {}).get("thinking", {}).get("type"),
+                "inputHash": fingerprint(payload),
             },
         )
         content = [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]
@@ -272,12 +275,49 @@ class Roles:
                         "MODEL_FORMAT", "模型在一次格式恢复后仍未返回可验证的结构化结果"
                     )
                 self.store.event(
-                    task_id, "agent_end", {"role": role, "result": structured.model_dump()}
+                    task_id,
+                    "agent_end",
+                    {
+                        "role": role,
+                        "result": structured.model_dump(),
+                        "outputHash": fingerprint(structured.model_dump()),
+                    },
                 )
+                stage = {
+                    "main": "ground",
+                    "structure": "structure",
+                    "vision": "furniture",
+                    "assets": "assets",
+                    "design": "design",
+                    "check": "check",
+                }.get(role, "ground")
+                output = structured.model_dump()
+                status = (
+                    "unsupported"
+                    if output.get("status") == "unsupported"
+                    else "blocked"
+                    if output.get("status") == "blocked" or output.get("passed") is False
+                    else "ok"
+                )
+                issue_codes = [
+                    str(item.get("code"))
+                    for item in output.get("issues") or []
+                    if isinstance(item, dict) and item.get("code")
+                ]
+                stage_result = StageResultV1.create(
+                    task_id=task_id,
+                    role=role,
+                    stage=stage,
+                    status=status,
+                    input_hash=fingerprint(payload),
+                    output=output,
+                    issue_codes=issue_codes,
+                )
+                self.store.event(task_id, "stage_result", stage_result.model_dump())
                 return structured.model_dump()
             except TaskError:
                 raise
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001 - provider errors share retry policy
                 status = getattr(error, "status_code", None)
                 transient = (
                     isinstance(error, (httpx.TimeoutException, httpx.TransportError))

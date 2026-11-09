@@ -138,8 +138,14 @@ class FloorplanFlow:
     async def ground(self, state, task):
         if task["generation"].get("workflowVersion") == 4:
             from .floorplan_v4 import FloorplanV4
+            from .floorplan_v4_2 import FloorplanV42
 
-            return await FloorplanV4(self.store, self.client, self.roles.base).ground(
+            implementation = (
+                FloorplanV42
+                if task["generation"].get("floorplanVersion") == "s2c-floorplan-v4-2"
+                else FloorplanV4
+            )
+            return await implementation(self.store, self.client, self.roles.base).ground(
                 state, task, self._ground_legacy
             )
         if task["generation"].get("workflowVersion") == 3:

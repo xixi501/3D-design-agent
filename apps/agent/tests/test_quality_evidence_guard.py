@@ -1,12 +1,9 @@
-import sys
-from pathlib import Path
-
 import pytest
 
-ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / "scripts/quality"))
-
-from evidence_guard import EvidenceAccessDenied, EvidenceAccessGuard
+from actiscape_agent.floorplan_vision.evidence_guard import (
+    EvidenceAccessDenied,
+    EvidenceAccessGuard,
+)
 
 
 def test_evidence_guard_denies_forbidden_descendants(tmp_path):

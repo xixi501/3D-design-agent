@@ -17,6 +17,10 @@ import {
   type FloorplanBinding,
   type ImageReference,
 } from "../../../packages/scene-core/src/floorplan.js";
+import {
+  applyFloorplanCommands,
+  applyFloorplanReview,
+} from "./floorplan-draft-mutations.js";
 const hash = (v: unknown) =>
   createHash("sha256").update(canonical(v)).digest("hex");
 const identity = (v: any) => {
@@ -397,6 +401,16 @@ export class FloorplanStore {
         .all(project) as any[]
     ).map((r) => JSON.parse(r.record));
   }
+  revisions(project: string, id: string) {
+    this.get(project, id);
+    return (
+      this.projects.db
+        .prepare(
+          "SELECT record FROM floorplan_revisions WHERE draft=? ORDER BY revision",
+        )
+        .all(id) as Array<{ record: string }>
+    ).map((r) => JSON.parse(r.record));
+  }
   create(
     project: string,
     body: {
@@ -531,253 +545,23 @@ export class FloorplanStore {
   }
   commands(project: string, id: string, body: any, system = false) {
     return this.action(project, id, body, (record) => {
-      if (
-        !Array.isArray(body.commands) ||
-        (!system && !body.commands.length) ||
-        body.commands.length > 100
-      )
-        throw new SceneError("INVALID_REQUEST", "需要 1–100 条草稿校正");
-      const data = clone(record.data) as FloorplanData;
-      if (
-        system &&
-        (data.measurementVersion !== 2 || body.draftHash !== record.hash)
-      )
-        throw new SceneError(
-          "DRAFT_CONFLICT",
-          "测量更新须绑定当前第二版草稿哈希",
-          409,
-        );
-      let corrections = record.corrections;
-      for (const c of body.commands) {
-        if (!c || typeof c !== "object" || Array.isArray(c))
-          throw new SceneError("INVALID_REQUEST", "草稿命令必须是对象");
-        const allowed: any = {
-          calibrate: ["type", "anchors"],
-          targets: ["type", "roomIds"],
-          defaults: ["type", "values"],
-          upsert: ["type", "collection", "object"],
-          delete: ["type", "collection", "id"],
-          patch: ["type", "collection", "id", "patch"],
-        };
-        if (
-          !allowed[c.type] ||
-          Object.keys(c).some((k) => !allowed[c.type].includes(k))
-        )
-          throw new SceneError("INVALID_REQUEST", "草稿命令包含未知类型或字段");
-        if (c.type === "calibrate") data.anchors = clone(c.anchors);
-        else if (c.type === "targets") data.targetRoomIds = clone(c.roomIds);
-        else if (c.type === "defaults") {
-          if (
-            !c.values ||
-            typeof c.values !== "object" ||
-            Array.isArray(c.values) ||
-            !Object.keys(c.values).length
-          )
-            throw new SceneError("INVALID_REQUEST", "草稿默认值需要非空对象");
-          for (const k of Object.keys(c.values || {})) {
-            if (!["height", "wallThickness", "name"].includes(k))
-              throw new SceneError("INVALID_REQUEST", "未知草稿默认字段");
-            (data as any)[k] = clone(c.values[k]);
-          }
-        } else if (
-          c.type === "upsert" ||
-          c.type === "delete" ||
-          c.type === "patch"
-        ) {
-          if (
-            ![
-              "walls",
-              "openings",
-              "rooms",
-              "symbols",
-              "activityGroups",
-              "uncertainties",
-              ...(data.measurementVersion === 2
-                ? ["features", "dimensions"]
-                : []),
-            ].includes(c.collection)
-          )
-            throw new SceneError("INVALID_REQUEST", "未知草稿集合");
-          const list = (data as any)[c.collection] as any[],
-            oid = c.type === "upsert" ? c.object?.id : c.id,
-            index = list.findIndex((o) => o.id === oid);
-          identity(oid);
-          if (c.type === "delete") {
-            if (index < 0)
-              throw new SceneError("NOT_FOUND", "草稿对象不存在", 404);
-            list.splice(index, 1);
-          } else if (c.type === "patch") {
-            if (
-              index < 0 ||
-              !c.patch ||
-              typeof c.patch !== "object" ||
-              Array.isArray(c.patch) ||
-              Object.hasOwn(c.patch, "id")
-            )
-              throw new SceneError("INVALID_REQUEST", "对象字段修改无效");
-            list[index] = { ...list[index], ...clone(c.patch) };
-          } else if (index < 0) list.push(clone(c.object));
-          else list[index] = clone(c.object);
-          if (!system) corrections++;
-        } else throw new SceneError("INVALID_REQUEST", "未知草稿操作");
-      }
-      validateFloorplan(data);
-      const ledger = clone(record.changeLedger || []);
-      if (system)
-        this.evidenceRefVerifier?.(data, [
-          ...(body.evidenceRefs || []),
-          ...(body.changeReasons || []).flatMap(
-            (r: any) => r.evidenceRefs || [],
-          ),
-        ]);
-      if (system) {
-        const reasons = body.changeReasons || [];
-        for (const field of [
-          "name",
-          "height",
-          "wallThickness",
-          "targetRoomIds",
-        ]) {
-          const before = (record.data as any)[field] ?? null,
-            after = (data as any)[field] ?? null;
-          if (canonical(before) === canonical(after)) continue;
-          const reason = reasons.find(
-            (r: any) => r.collection === "defaults" && r.id === field,
-          );
-          if (
-            !reason?.reason?.trim() ||
-            !Array.isArray(reason.evidenceRefs) ||
-            !reason.evidenceRefs.length
-          )
-            throw new SceneError(
-              "CHANGE_EVIDENCE_REQUIRED",
-              "默认值或目标区域变化须说明依据",
-              422,
-              { collection: "defaults", id: field },
-            );
-          ledger.push({
-            collection: "defaults",
-            id: field,
-            beforeHash: hash(before),
-            afterHash: hash(after),
-            reason: reason.reason,
-            evidenceRefs: reason.evidenceRefs,
-          });
-        }
-        for (const collection of [
-          "anchors",
-          "walls",
-          "openings",
-          "rooms",
-          "symbols",
-          "activityGroups",
-          "features",
-          "dimensions",
-        ]) {
-          const old = (record.data[collection] || []) as any[],
-            next = ((data as any)[collection] || []) as any[];
-          for (const [index, prior] of old.entries()) {
-            const identity = String(prior.id ?? index),
-              after = prior.id
-                ? next.find((o) => o.id === prior.id)
-                : next[index];
-            if (canonical(prior) === canonical(after ?? null)) continue;
-            const beforeHash = hash(prior),
-              afterHash = hash(after ?? null),
-              saved = ledger.find(
-                (l: any) =>
-                  l.collection === collection &&
-                  l.id === identity &&
-                  l.beforeHash === beforeHash &&
-                  l.afterHash === afterHash,
-              );
-            const reason = reasons.find(
-              (r: any) => r.collection === collection && r.id === identity,
-            );
-            if (
-              !saved &&
-              (!reason ||
-                typeof reason.reason !== "string" ||
-                !reason.reason.trim() ||
-                !Array.isArray(reason.evidenceRefs) ||
-                !reason.evidenceRefs.length)
-            )
-              throw new SceneError(
-                "CHANGE_EVIDENCE_REQUIRED",
-                "修改已有观测必须附对应原图依据",
-                422,
-                { collection, id: identity, beforeHash, afterHash },
-              );
-            if (!saved)
-              ledger.push({
-                collection,
-                id: identity,
-                beforeHash,
-                afterHash,
-                reason: reason.reason,
-                evidenceRefs: reason.evidenceRefs,
-              });
-          }
-        }
-      }
-      const revision = record.revision + 1,
-        next = {
-          ...record,
-          data,
-          revision,
-          hash: hash({ id, revision, data }),
-          confirmed: null,
-          sourceReview: null,
-          ...(system
-            ? {
-                changeLedger: ledger,
-                agentEdits: (record.agentEdits || 0) + body.commands.length,
-              }
-            : {}),
-          corrections,
-        };
+      const next = applyFloorplanCommands(record, body, {
+        system,
+        evidenceRefVerifier: this.evidenceRefVerifier,
+      });
       this.projects.db
         .prepare(
           "INSERT INTO floorplan_revisions(draft,revision,record) VALUES(?,?,?)",
         )
-        .run(id, revision, JSON.stringify(next));
+        .run(id, next.revision, JSON.stringify(next));
       return next;
     });
   }
   review(project: string, id: string, body: any) {
     return this.action(project, id, body, (record) => {
-      if (
-        record.data.measurementVersion !== 2 ||
-        body.draftHash !== record.hash ||
-        typeof body.review?.passed !== "boolean" ||
-        !Array.isArray(body.review?.issues) ||
-        typeof body.review?.summary !== "string" ||
-        (body.review.passed &&
-          body.review.issues.some(
-            (issue: any) =>
-              !issue ||
-              typeof issue !== "object" ||
-              (issue.severity ?? "blocking") !== "advisory",
-          ))
-      )
-        throw new SceneError(
-          "DRAFT_CONFLICT",
-          "审核必须绑定当前草稿，且结果完整",
-          409,
-        );
-      this.evidenceRefVerifier?.(
-        record.data,
-        body.evidenceRefs || [],
-        record.hash,
-      );
-      return {
-        ...record,
-        sourceReview: {
-          hash: record.hash,
-          review: body.review,
-          evidenceRefs: body.evidenceRefs || [],
-        },
-      };
+      return applyFloorplanReview(record, body, {
+        evidenceRefVerifier: this.evidenceRefVerifier,
+      });
     });
   }
   preview(project: string, id: string, seed = id) {

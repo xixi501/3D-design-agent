@@ -8,6 +8,7 @@ INPUT_BUNDLE_SCHEMA = "actiscape.input-bundle.v1"
 EVIDENCE_GRAPH_SCHEMA = "actiscape.evidence-graph.v1"
 INTENT_SPEC_SCHEMA = "actiscape.intent-spec.v1"
 SCENE_DRAFT_SCHEMA = "actiscape.scene-draft.v1"
+SCENE_DRAFT_SCHEMA_V2 = "actiscape.scene-draft.v2"
 
 
 class ContractModel(BaseModel):
@@ -107,12 +108,16 @@ class FieldAuthority(ContractModel):
 
 
 class SceneDraftPayload(ContractModel):
-    schemaVersion: Literal["actiscape.scene-draft.v1"] = SCENE_DRAFT_SCHEMA
+    schemaVersion: Literal[
+        "actiscape.scene-draft.v1",
+        "actiscape.scene-draft.v2",
+    ] = SCENE_DRAFT_SCHEMA
     projectId: str = Field(min_length=1, max_length=200)
     baseProjectRevision: int = Field(ge=0)
     inputBundle: InputBundle
     evidenceGraph: EvidenceGraph
     intentSpec: IntentSpec
+    recognition: dict | None = None
     program: dict
     assetResolutions: list[AssetResolution] = Field(default_factory=list, max_length=300)
     uncertainties: list[dict] = Field(default_factory=list, max_length=500)
@@ -122,6 +127,18 @@ class SceneDraftPayload(ContractModel):
     @model_validator(mode="after")
     def validate_source_ownership(self):
         sources = {item.sourceId: item for item in self.inputBundle.sources}
+        if self.schemaVersion == SCENE_DRAFT_SCHEMA_V2:
+            if not self.recognition:
+                raise ValueError("第二版场景草稿需要识别块")
+            source_id = self.recognition.get("sourceId")
+            if source_id not in sources:
+                raise ValueError(f"识别块引用未知来源：{source_id}")
+            if self.recognition.get("schemaVersion") != "actiscape.floorplan-recognition.v1":
+                raise ValueError("识别块版本无效")
+            if self.recognition.get("kind") != "floorplan":
+                raise ValueError("识别块类型无效")
+        elif self.recognition is not None:
+            raise ValueError("第一版场景草稿不能包含识别块")
         evidence_sources = {"floorplan_image", "reference_photo", "project_import"}
         for fact in self.evidenceGraph.facts:
             source = sources.get(fact.sourceId)

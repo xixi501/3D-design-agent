@@ -54,9 +54,9 @@ InputBundle
 
 草稿更新从不修改正式项目。旧户型草稿 API 保持兼容。
 
-现有矩形文字生成、自然编辑和户型图任务在返回正式候选时，同步维护同一任务绑定的通用草稿：文字成为 IntentSpec，项目当前状态成为 baseline authority，确认户型图成为 observed evidence，墙图、房间种子和家具投影为 SceneProgram。专业候选检查与正式提交仍是当前权威路径；通用草稿先作为可恢复的规范化投影，全屋阶段再迁移候选物化和几何-only 语义策略。
+现有矩形文字生成和自然编辑任务在返回正式候选时，同步维护同一任务绑定的通用草稿。V4 户型图任务不再使用“先候选、后投影”的双轨方式：旧 `/floorplan-drafts` 端点成为兼容 façade，底层只创建和更新 `SceneDraft v2`。`recognition` 保存像素提案、比例、测量、审核和确认元数据；`program` 由同一提案确定性派生为毫米几何。任何几何 revision 都使旧审核和确认失效，审核和确认本身只绑定当前 hash，不改变几何 hash。
 
-全屋 V4 开发批次已把户型图识别切到独立版本：新任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-floorplan-v4`、Skill `0.7.0` 和 `s2c-6` 评分。房间约束由 `floorplanScope` 决定，代码在房间归并后重新计算全部或指定功能区的目标房间；V4 家具候选使用 `geometry-only`，只输出轮廓、嵌套、邻接、包含和房间归属，类别由 Qwen 视觉角色判断。家具对象上限提升为 300，单 patch 仍为 100 条命令。
+全屋 V4 开发批次已把户型图识别切到独立版本：新任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-floorplan-v4-1`、Skill `0.7.0` 和 `s2c-6` 评分。房间约束由 `floorplanScope` 决定，代码在房间归并后重新计算全部或指定功能区的目标房间；V4 家具候选使用 `geometry-only`，只输出轮廓、嵌套、邻接、包含和房间归属，类别由 Qwen 视觉角色判断。家具对象上限提升为 300，单 patch 仍为 100 条命令。
 
 这不等同于全屋验收。两张现有图仍缺少卧室、厨房、卫浴、书房等全屋家具参考；V4 目前只完成契约、候选策略、版本隔离、容量和离线测试，执行结果见 [V4 contract evidence](evidence/floorplan-v4-contract-20261109.json)。必须补齐真实全屋参考并通过同图真实零校正运行后，才能对外声明“全屋家具复现已支持”。
 

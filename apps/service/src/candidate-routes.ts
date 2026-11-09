@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { CandidateStore } from "./candidates.js";
 import { ProjectStore } from "./store.js";
 import { RenderWorker } from "./render-worker.js";
+import { FloorplanStore } from "./floorplans.js";
 import { SceneError } from "../../../packages/scene-core/src/index.js";
 import {
   compileRectangular,
@@ -13,8 +14,9 @@ export function candidateRoutes(
   app: FastifyInstance,
   store: ProjectStore,
   notify: (id: string, revision: number) => void,
+  floorplans?: FloorplanStore,
 ) {
-  const candidates = new CandidateStore(store),
+  const candidates = new CandidateStore(store, floorplans),
     renderer = new RenderWorker();
   const root = "/api/projects/:id/candidates",
     item = root + "/:candidate";

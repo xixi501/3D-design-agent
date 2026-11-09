@@ -3638,6 +3638,14 @@ class FloorplanV3(FloorplanV2):
         root = f"/projects/{task['projectId']}/floorplan-drafts"
         if generation.get("draftId"):
             draft = await self.client.request(root + "/" + generation["draftId"])
+            if self.recognition_version(task) >= 4:
+                self.patch(
+                    task_id,
+                    sceneDraftId=draft["id"],
+                    sceneDraftRevision=draft["revision"],
+                    sceneDraftHash=draft["hash"],
+                    sceneDraftBaseProjectRevision=draft["baseRevision"],
+                )
             if draft.get("confirmed"):
                 if draft.get("sourceReview", {}).get("hash") != draft["hash"]:
                     raise TaskError("SOURCE_REVIEW_REQUIRED", "确认前审核已失效")
@@ -3720,6 +3728,15 @@ class FloorplanV3(FloorplanV2):
                     "imageId": image["id"],
                     "baseRevision": project["revision"],
                     "data": data,
+                    "taskId": task_id,
+                    "taskInput": task["input"],
+                    "budgetLedger": {
+                        "modelCalls": task.get("modelCalls", 0),
+                        "activeSeconds": task.get("elapsedSeconds", 0),
+                        "repairRounds": generation.get("repairsUsed", 0),
+                        "adapterCalls": len(generation.get("upstreamTools", [])),
+                        "assetJobs": 0,
+                    },
                 },
             )
             self.patch(
@@ -3728,6 +3745,14 @@ class FloorplanV3(FloorplanV2):
                 floorplan=draft,
                 sourceInputHash=fingerprint(task["input"]),
             )
+            if self.recognition_version(task) >= 4:
+                self.patch(
+                    task_id,
+                    sceneDraftId=draft["id"],
+                    sceneDraftRevision=draft["revision"],
+                    sceneDraftHash=draft["hash"],
+                    sceneDraftBaseProjectRevision=draft["baseRevision"],
+                )
 
         diagnostics = await self.client.request(root + "/" + draft["id"] + "/diagnostics", {})
         draft, diagnostics = await self.reconcile_code_uncertainties(task, root, draft, diagnostics)
@@ -3931,6 +3956,16 @@ class FloorplanV3(FloorplanV2):
             floorplan=draft,
             diagnostics=diagnostics,
             phase="reviewing_floorplan",
+            **(
+                {
+                    "sceneDraftId": draft["id"],
+                    "sceneDraftRevision": draft["revision"],
+                    "sceneDraftHash": draft["hash"],
+                    "sceneDraftBaseProjectRevision": draft["baseRevision"],
+                }
+                if self.recognition_version(task) >= 4
+                else {}
+            ),
         )
         return {
             "route": "end",

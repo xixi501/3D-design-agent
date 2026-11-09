@@ -542,6 +542,12 @@ async def project_floorplan_candidate(
     project_revision: int,
 ) -> dict:
     generation = store.task(task["id"], internal=True).get("generation") or {}
+    if (task.get("generation") or generation).get("workflowVersion") == 4:
+        if not generation.get("sceneDraftId"):
+            raise ValueError("V4 户型候选缺少唯一 SceneDraft")
+        if generation.get("draftId") != generation.get("sceneDraftId"):
+            raise ValueError("V4 户型候选存在两个不同的草稿身份")
+        return generation
     image_source = floorplan_source({**task, "generation": generation})
     text = text_source(task["id"], task["input"])
     program = plan_to_scene_program(

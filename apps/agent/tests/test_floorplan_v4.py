@@ -42,7 +42,7 @@ def test_new_floorplan_tasks_pin_v4_and_geometry_only_policy(tmp_path):
             "phase": "recognizing",
             "workflowVersion": 4,
             "recognitionVersion": 4,
-            "floorplanVersion": "s2c-floorplan-v4",
+            "floorplanVersion": "s2c-floorplan-v4-1",
             "candidatePolicyVersion": "geometry-only",
             "floorplanScope": {
                 "roomSelection": "all_visible",

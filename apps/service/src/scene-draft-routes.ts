@@ -56,13 +56,13 @@ export function sceneDraftRoutes(app: FastifyInstance, store: SceneDraftStore) {
       },
     },
     async (req) =>
-      store.patch(
-        (req.params as any).id,
-        (req.params as any).draft,
-        req.body,
-      ),
+      store.patch((req.params as any).id, (req.params as any).draft, req.body),
   );
   app.post(root + "/:draft/preview", async (req) =>
-    store.preview((req.params as any).id, (req.params as any).draft),
+    store.preview(
+      (req.params as any).id,
+      (req.params as any).draft,
+      (req.body as any)?.taskId,
+    ),
   );
 }

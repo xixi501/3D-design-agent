@@ -87,6 +87,10 @@ export function floorplanRoutes(app: FastifyInstance, store: FloorplanStore) {
             imageId: { type: "string" },
             baseRevision: { type: "integer", minimum: 0 },
             data: { type: "object", additionalProperties: true },
+            taskId: { type: "string", minLength: 1, maxLength: 200 },
+            taskInput: { type: "string", minLength: 1, maxLength: 4000 },
+            adapterVersion: { type: "string", minLength: 1, maxLength: 100 },
+            budgetLedger: { type: "object", additionalProperties: true },
           },
         },
       },
@@ -98,14 +102,7 @@ export function floorplanRoutes(app: FastifyInstance, store: FloorplanStore) {
   );
   app.get(item, async (req) => store.get(...params(req)));
   app.get(item + "/revisions", async (req) => {
-    store.get(...params(req));
-    return (
-      store.projects.db
-        .prepare(
-          "SELECT record FROM floorplan_revisions WHERE draft=? ORDER BY revision",
-        )
-        .all((req.params as any).draft) as any[]
-    ).map((r) => JSON.parse(r.record));
+    return store.revisions(...params(req));
   });
   app.post(
     item + "/commands",

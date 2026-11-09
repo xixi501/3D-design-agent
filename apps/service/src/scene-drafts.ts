@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
 import { ProjectStore, canonical } from "./store.js";
 import { newId, SceneError } from "../../../packages/scene-core/src/index.js";
+import { requireBlank } from "../../../packages/scene-core/src/rectangular.js";
+import {
+  compileFloorplan,
+  floorplanScale,
+} from "../../../packages/scene-core/src/floorplan.js";
 import {
   validateSceneDraftPayload,
   type SceneDraftPayload,
@@ -23,6 +28,9 @@ const recordPayload = (record: SceneDraftRecord): SceneDraftPayload => ({
   inputBundle: record.inputBundle,
   evidenceGraph: record.evidenceGraph,
   intentSpec: record.intentSpec,
+  ...(record.recognition === undefined
+    ? {}
+    : { recognition: record.recognition }),
   program: record.program,
   assetResolutions: record.assetResolutions,
   uncertainties: record.uncertainties,
@@ -38,7 +46,17 @@ const recordHash = (
   patchHistory: SceneDraftRecord["patchHistory"],
 ) =>
   sha256({
-    ...payload,
+    ...(payload.schemaVersion === "actiscape.scene-draft.v2" &&
+    payload.recognition
+      ? {
+          ...payload,
+          recognition: {
+            ...payload.recognition,
+            confirmed: null,
+            sourceReview: null,
+          },
+        }
+      : payload),
     id,
     revision,
     previousHash: previousHash ?? null,
@@ -84,6 +102,16 @@ export class SceneDraftStore {
     return this.row(project, id);
   }
 
+  find(project: string, id: string): SceneDraftRecord | null {
+    this.projects.get(project);
+    const row = this.projects.db
+      .prepare(
+        "SELECT record FROM scene_program_drafts WHERE id=? AND project=?",
+      )
+      .get(id, project) as { record: string } | undefined;
+    return row ? (JSON.parse(row.record) as SceneDraftRecord) : null;
+  }
+
   revisions(project: string, id: string) {
     this.row(project, id);
     return (
@@ -100,6 +128,111 @@ export class SceneDraftStore {
         createdAt: record.updatedAt,
       };
     });
+  }
+
+  revision(project: string, id: string, revision: number) {
+    this.row(project, id);
+    const row = this.projects.db
+      .prepare(
+        "SELECT record FROM scene_program_draft_revisions WHERE draft=? AND revision=?",
+      )
+      .get(id, revision) as { record: string } | undefined;
+    if (!row) throw new SceneError("NOT_FOUND", "场景草稿修订不存在", 404);
+    return JSON.parse(row.record) as SceneDraftRecord;
+  }
+
+  replayAction(
+    project: string,
+    id: string,
+    body: { requestId: string },
+    requestFingerprint: unknown,
+  ): SceneDraftRecord | null {
+    this.row(project, id);
+    const request = requestId(body.requestId);
+    const row = this.projects.db
+      .prepare(
+        "SELECT hash,response FROM scene_program_draft_actions WHERE draft=? AND request_id=?",
+      )
+      .get(id, request) as { hash: string; response: string } | undefined;
+    if (!row) return null;
+    if (row.hash !== sha256(requestFingerprint))
+      throw new SceneError(
+        "OPERATION_CONFLICT",
+        "相同 requestId 对应不同草稿操作",
+        409,
+      );
+    return JSON.parse(row.response) as SceneDraftRecord;
+  }
+
+  updateRecognitionMetadata(
+    project: string,
+    id: string,
+    body: { requestId: string; draftRevision: number; draftHash: string },
+    recognition: SceneDraftPayload["recognition"],
+  ) {
+    const current = this.row(project, id);
+    const request = requestId(body.requestId);
+    const requestHash = sha256(body);
+    const replay = this.projects.db
+      .prepare(
+        "SELECT hash,response FROM scene_program_draft_actions WHERE draft=? AND request_id=?",
+      )
+      .get(id, request) as { hash: string; response: string } | undefined;
+    if (replay) {
+      if (replay.hash !== requestHash)
+        throw new SceneError(
+          "OPERATION_CONFLICT",
+          "相同 requestId 对应不同草稿操作",
+          409,
+        );
+      return JSON.parse(replay.response) as SceneDraftRecord;
+    }
+    if (
+      current.revision !== body.draftRevision ||
+      current.hash !== body.draftHash
+    )
+      throw new SceneError(
+        "DRAFT_CONFLICT",
+        "审核或确认元数据未绑定当前草稿",
+        409,
+        {
+          currentRevision: current.revision,
+          currentHash: current.hash,
+        },
+      );
+    const payload = recordPayload(current);
+    if (!payload.recognition)
+      throw new SceneError(
+        "INVALID_REQUEST",
+        "只有识别草稿可以更新审核元数据",
+        422,
+      );
+    payload.recognition = recognition;
+    const validated = validateSceneDraftPayload(payload, {
+      expectedProjectId: project,
+    });
+    const next: SceneDraftRecord = {
+      ...validated,
+      id,
+      revision: current.revision,
+      hash: current.hash,
+      createdAt: current.createdAt,
+      updatedAt: new Date().toISOString(),
+      patchHistory: current.patchHistory,
+    };
+    this.projects.db.transaction(() => {
+      this.projects.db
+        .prepare(
+          "UPDATE scene_program_drafts SET record=? WHERE id=? AND project=?",
+        )
+        .run(JSON.stringify(next), id, project);
+      this.projects.db
+        .prepare(
+          "INSERT INTO scene_program_draft_actions(draft,request_id,hash,response) VALUES(?,?,?,?)",
+        )
+        .run(id, request, requestHash, JSON.stringify(next));
+    })();
+    return next;
   }
 
   create(project: string, body: any) {
@@ -121,8 +254,7 @@ export class SceneDraftStore {
         "SELECT request_hash,record FROM scene_program_drafts WHERE project=? AND request_id=?",
       )
       .get(project, request) as
-      | { request_hash: string; record: string }
-      | undefined;
+      { request_hash: string; record: string } | undefined;
     if (existing) {
       if (existing.request_hash !== requestHash)
         throw new SceneError(
@@ -159,11 +291,49 @@ export class SceneDraftStore {
     return record;
   }
 
-  preview(project: string, id: string) {
+  preview(project: string, id: string, seed = id) {
     const record = this.row(project, id);
     const payload = validateSceneDraftPayload(recordPayload(record), {
       expectedProjectId: project,
     });
+    const geometryIssues = payload.recognition
+      ? payload.recognition.proposal.uncertainties
+          .filter((item) => item.blocking)
+          .map((item) => ({
+            code: "FLOORPLAN_UNCERTAIN",
+            message: item.message,
+            objectIds: item.objectIds || [item.id],
+            blocking: true,
+          }))
+      : [];
+    let geometry: ReturnType<typeof compileFloorplan> | undefined;
+    try {
+      if (payload.recognition) {
+        geometry = compileFloorplan(payload.recognition.proposal, seed, {
+          draftId: id,
+          draftRevision: record.revision,
+          draftHash: record.hash,
+        });
+        if (
+          !Number.isFinite(floorplanScale(payload.recognition.proposal)) ||
+          floorplanScale(payload.recognition.proposal) <= 0
+        )
+          geometryIssues.push({
+            code: "FLOORPLAN_SCALE_INVALID",
+            message: "户型比例无效",
+            objectIds: [],
+            blocking: true,
+          });
+      }
+    } catch (error) {
+      if (!(error instanceof SceneError)) throw error;
+      geometryIssues.push({
+        code: error.code,
+        message: error.message,
+        objectIds: (error.details as any)?.objectIds || [],
+        blocking: true,
+      });
+    }
     const resolutions = new Map(
       payload.assetResolutions.map((item) => [item.objectId, item]),
     );
@@ -176,26 +346,46 @@ export class SceneDraftStore {
         if (resolution.status === "generatedJob" && !resolution.assetId)
           return true;
         if (resolution.status === "catalogCandidates")
-          return !item.catalogKey || !resolution.catalogKeys?.includes(item.catalogKey);
+          return (
+            !item.catalogKey ||
+            !resolution.catalogKeys?.includes(item.catalogKey)
+          );
         return false;
       })
       .map((item) => item.id);
-    const unresolvedUnknownIds = payload.program.unknowns.map((item) => item.id);
+    const unresolvedUnknownIds = payload.program.unknowns.map(
+      (item) => item.id,
+    );
+    const geometryPassed = geometryIssues.length === 0;
+    const passed =
+      geometryPassed &&
+      missingAssets.length === 0 &&
+      unresolvedUnknownIds.length === 0;
     return {
       draftId: record.id,
       revision: record.revision,
       hash: record.hash,
-      passed: true,
-      autoCommitReady:
-        missingAssets.length === 0 && unresolvedUnknownIds.length === 0,
+      passed,
+      autoCommitReady: passed,
       missingAssets,
       unresolvedUnknownIds,
+      checks: {
+        passed: geometryPassed,
+        issues: geometryIssues,
+        coverage: geometry
+          ? geometry.coverage
+          : ["SceneProgram 字段、房间归属和对象边界"],
+        limitations: payload.recognition
+          ? ["家具匹配、实际模型和截图仍需候选检查"]
+          : ["通用 SceneProgram 尚未执行任意方向拓扑和施工级几何检查"],
+      },
+      ...(geometry || {}),
       authority: payload.fieldAuthorities,
       budgetLedger: payload.budgetLedger,
     };
   }
 
-  patch(project: string, id: string, body: any) {
+  patch(project: string, id: string, body: any, requestFingerprint?: unknown) {
     const current = this.row(project, id);
     const request = requestId(body.requestId);
     if (
@@ -205,10 +395,12 @@ export class SceneDraftStore {
       body.commands.length > 100
     )
       throw new SceneError("INVALID_REQUEST", "场景草稿 patch 无效");
-    const requestHash = sha256({
-      draftRevision: body.draftRevision,
-      commands: body.commands,
-    });
+    const requestHash = sha256(
+      requestFingerprint ?? {
+        draftRevision: body.draftRevision,
+        commands: body.commands,
+      },
+    );
     const replay = this.projects.db
       .prepare(
         "SELECT hash,response FROM scene_program_draft_actions WHERE draft=? AND request_id=?",
@@ -224,12 +416,10 @@ export class SceneDraftStore {
       return JSON.parse(replay.response);
     }
     if (current.revision !== body.draftRevision)
-      throw new SceneError(
-        "REVISION_CONFLICT",
-        "场景草稿版本已变化",
-        409,
-        { currentRevision: current.revision, currentHash: current.hash },
-      );
+      throw new SceneError("REVISION_CONFLICT", "场景草稿版本已变化", 409, {
+        currentRevision: current.revision,
+        currentHash: current.hash,
+      });
 
     const payload = recordPayload(current);
     for (const raw of body.commands) {
@@ -241,6 +431,8 @@ export class SceneDraftStore {
         payload.evidenceGraph = command.evidenceGraph;
       else if (command.op === "replaceIntentSpec")
         payload.intentSpec = command.intentSpec;
+      else if (command.op === "replaceRecognition")
+        payload.recognition = command.recognition;
       else if (command.op === "replaceAssetResolutions")
         payload.assetResolutions = command.assetResolutions;
       else if (command.op === "replaceUncertainties")
@@ -266,11 +458,28 @@ export class SceneDraftStore {
               { field: key },
             );
         payload.budgetLedger = next;
+      } else if (command.op === "replaceBaseProjectRevision") {
+        const projectRecord = this.projects.get(project);
+        requireBlank(projectRecord);
+        if (
+          !Number.isInteger(command.baseProjectRevision) ||
+          command.baseProjectRevision < 0
+        )
+          throw new SceneError("INVALID_REQUEST", "项目基础版本无效", 422);
+        if (projectRecord.revision !== command.baseProjectRevision)
+          throw new SceneError("REVISION_CONFLICT", "项目版本已变化", 409, {
+            currentRevision: projectRecord.revision,
+          });
+        payload.baseProjectRevision = command.baseProjectRevision;
       } else
         throw new SceneError(
           "INVALID_REQUEST",
           `未知场景草稿命令：${String(command.op)}`,
         );
+    }
+    if (payload.recognition) {
+      payload.recognition.confirmed = null;
+      payload.recognition.sourceReview = null;
     }
     const validated = validateSceneDraftPayload(payload, {
       expectedProjectId: project,
@@ -298,7 +507,9 @@ export class SceneDraftStore {
     };
     this.projects.db.transaction(() => {
       this.projects.db
-        .prepare("UPDATE scene_program_drafts SET record=? WHERE id=? AND project=?")
+        .prepare(
+          "UPDATE scene_program_drafts SET record=? WHERE id=? AND project=?",
+        )
         .run(JSON.stringify(next), id, project);
       this.projects.db
         .prepare(

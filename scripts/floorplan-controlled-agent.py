@@ -433,12 +433,14 @@ class ControlledRoles(Roles):
                 checked = await available["preview_floorplan"].ainvoke(
                     {"draft": payload["recognition"]}
                 )
+                assert "checks" in checked, checked
                 assert checked["checks"]["passed"], checked
                 return payload["recognition"]
             await available["floorplan_context"].ainvoke({})
             checked = await available["precheck_floorplan"].ainvoke(
                 {"matches": payload["sourceMatches"]}
             )
+            assert "checks" in checked, checked
             assert checked["checks"]["passed"], checked
             return {
                 "summary": "合成样图工具与浏览器验证（受控模型）",

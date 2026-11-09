@@ -6,11 +6,18 @@ import {
   type SceneProgram,
   type SceneProgramPolicy,
 } from "./scene-program.js";
+import {
+  FLOORPLAN_RECOGNITION_SCHEMA,
+  assertFloorplanProgram,
+  validateFloorplanRecognition,
+  type FloorplanRecognition,
+} from "./floorplan-scene-draft.js";
 
 export const INPUT_BUNDLE_SCHEMA = "actiscape.input-bundle.v1";
 export const EVIDENCE_GRAPH_SCHEMA = "actiscape.evidence-graph.v1";
 export const INTENT_SPEC_SCHEMA = "actiscape.intent-spec.v1";
 export const SCENE_DRAFT_SCHEMA = "actiscape.scene-draft.v1";
+export const SCENE_DRAFT_SCHEMA_V2 = "actiscape.scene-draft.v2";
 
 export type InputSourceKind =
   | "text_brief"
@@ -79,12 +86,13 @@ export interface DraftBudgetLedger {
 }
 
 export interface SceneDraftPayload {
-  schemaVersion: "actiscape.scene-draft.v1";
+  schemaVersion: "actiscape.scene-draft.v1" | "actiscape.scene-draft.v2";
   projectId: string;
   baseProjectRevision: number;
   inputBundle: InputBundle;
   evidenceGraph: EvidenceGraph;
   intentSpec: IntentSpec;
+  recognition?: FloorplanRecognition;
   program: SceneProgram;
   assetResolutions: AssetResolution[];
   uncertainties: Array<Record<string, unknown>>;
@@ -173,7 +181,11 @@ export function validateInputBundle(input: unknown): InputBundle {
     return {
       sourceId,
       kind,
-      adapterVersion: text(source.adapterVersion, `${field}.adapterVersion`, 100),
+      adapterVersion: text(
+        source.adapterVersion,
+        `${field}.adapterVersion`,
+        100,
+      ),
       ...(source.sha256 === undefined ? {} : { sha256: source.sha256 }),
       ...(source.uri === undefined
         ? {}
@@ -195,7 +207,9 @@ export function validateEvidenceGraph(
     invalid("证据图 schema 无效", "evidenceGraph.schemaVersion");
   if (!Array.isArray(value.facts) || value.facts.length > 5000)
     invalid("证据数量无效", "evidenceGraph.facts");
-  const sources = new Map(bundle.sources.map((source) => [source.sourceId, source]));
+  const sources = new Map(
+    bundle.sources.map((source) => [source.sourceId, source]),
+  );
   const ids = new Set<string>();
   const facts = value.facts.map((item: unknown, index: number) => {
     const field = `evidenceGraph.facts.${index}`;
@@ -238,32 +252,28 @@ export function validateIntentSpec(
     invalid("意图未知项数量无效", "intentSpec.unknowns");
   const sourceIds = new Set(bundle.sources.map((source) => source.sourceId));
   const ids = new Set<string>();
-  const constraints = value.constraints.map(
-    (item: unknown, index: number) => {
-      const field = `intentSpec.constraints.${index}`;
-      const constraint = object(item, field);
-      const id = text(constraint.id, `${field}.id`, 200);
-      if (ids.has(id)) invalid("意图约束 ID 重复", `${field}.id`);
-      ids.add(id);
-      if (!Array.isArray(constraint.sourceRefs) || !constraint.sourceRefs.length)
-        invalid("意图必须绑定来源", `${field}.sourceRefs`);
-      const refs = constraint.sourceRefs.map(
-        (ref: unknown, refIndex: number) => {
-          const sourceId = text(ref, `${field}.sourceRefs.${refIndex}`, 200);
-          if (!sourceIds.has(sourceId))
-            invalid("意图引用未知来源", `${field}.sourceRefs.${refIndex}`);
-          return sourceId;
-        },
-      );
-      return {
-        id,
-        kind: text(constraint.kind, `${field}.kind`, 100),
-        text: text(constraint.text, `${field}.text`, 4000),
-        strict: Boolean(constraint.strict),
-        sourceRefs: refs,
-      };
-    },
-  );
+  const constraints = value.constraints.map((item: unknown, index: number) => {
+    const field = `intentSpec.constraints.${index}`;
+    const constraint = object(item, field);
+    const id = text(constraint.id, `${field}.id`, 200);
+    if (ids.has(id)) invalid("意图约束 ID 重复", `${field}.id`);
+    ids.add(id);
+    if (!Array.isArray(constraint.sourceRefs) || !constraint.sourceRefs.length)
+      invalid("意图必须绑定来源", `${field}.sourceRefs`);
+    const refs = constraint.sourceRefs.map((ref: unknown, refIndex: number) => {
+      const sourceId = text(ref, `${field}.sourceRefs.${refIndex}`, 200);
+      if (!sourceIds.has(sourceId))
+        invalid("意图引用未知来源", `${field}.sourceRefs.${refIndex}`);
+      return sourceId;
+    });
+    return {
+      id,
+      kind: text(constraint.kind, `${field}.kind`, 100),
+      text: text(constraint.text, `${field}.text`, 4000),
+      strict: Boolean(constraint.strict),
+      sourceRefs: refs,
+    };
+  });
   return {
     schemaVersion: INTENT_SPEC_SCHEMA,
     request: text(value.request, "intentSpec.request", 4000),
@@ -301,13 +311,13 @@ export function validateAssetResolutions(input: unknown): AssetResolution[] {
       objectId,
       status: value.status,
       ...(catalogKeys === undefined ? {} : { catalogKeys }),
-      ...(value.jobId == null
+      ...(value.jobId == null || value.jobId === ""
         ? {}
         : { jobId: text(value.jobId, `${field}.jobId`, 200) }),
-      ...(value.assetId == null
+      ...(value.assetId == null || value.assetId === ""
         ? {}
         : { assetId: text(value.assetId, `${field}.assetId`, 200) }),
-      ...(value.reason == null
+      ...(value.reason == null || value.reason === ""
         ? {}
         : { reason: text(value.reason, `${field}.reason`, 500) }),
     } as AssetResolution;
@@ -319,7 +329,10 @@ export function validateSceneDraftPayload(
   options: { policy?: SceneProgramPolicy; expectedProjectId?: string } = {},
 ): SceneDraftPayload {
   const value = object(input, "draft");
-  if (value.schemaVersion !== SCENE_DRAFT_SCHEMA)
+  if (
+    value.schemaVersion !== SCENE_DRAFT_SCHEMA &&
+    value.schemaVersion !== SCENE_DRAFT_SCHEMA_V2
+  )
     invalid("场景草稿 schema 无效", "draft.schemaVersion");
   const projectId = text(value.projectId, "draft.projectId", 200);
   if (options.expectedProjectId && projectId !== options.expectedProjectId)
@@ -332,28 +345,50 @@ export function validateSceneDraftPayload(
   const inputBundle = validateInputBundle(value.inputBundle);
   const evidenceGraph = validateEvidenceGraph(value.evidenceGraph, inputBundle);
   const intentSpec = validateIntentSpec(value.intentSpec, inputBundle);
+  const sourceSha256 = new Map(
+    inputBundle.sources.map((source) => [source.sourceId, source.sha256]),
+  );
+  const sourceKinds = new Map(
+    inputBundle.sources.map((source) => [source.sourceId, source.kind]),
+  );
+  let recognition: FloorplanRecognition | undefined;
+  if (value.schemaVersion === SCENE_DRAFT_SCHEMA_V2) {
+    if (!value.recognition || value.recognition === null)
+      invalid("第二版场景草稿需要识别块", "draft.recognition");
+    if (
+      !object(value.recognition, "draft.recognition").schemaVersion ||
+      value.recognition.schemaVersion !== FLOORPLAN_RECOGNITION_SCHEMA
+    )
+      invalid("识别块版本无效", "draft.recognition.schemaVersion");
+    recognition = validateFloorplanRecognition(value.recognition, {
+      sourceIds: new Set(inputBundle.sources.map((source) => source.sourceId)),
+      sourceKinds,
+      sourceSha256,
+    });
+  } else if (value.recognition !== undefined && value.recognition !== null) {
+    invalid("第一版场景草稿不能包含识别块", "draft.recognition");
+  }
   const program = validateSceneProgram(
     value.program,
     options.policy ?? CURRENT_SCENE_PROGRAM_POLICY,
   );
+  if (recognition) assertFloorplanProgram(program, recognition);
   const assetResolutions = validateAssetResolutions(value.assetResolutions);
   const budgetLedger = object(value.budgetLedger, "draft.budgetLedger");
   const sourceIds = new Set(
     inputBundle.sources.map((source) => source.sourceId),
-  );
-  const sourceKinds = new Map(
-    inputBundle.sources.map((source) => [source.sourceId, source.kind]),
   );
   const validateProgramSource = (
     sourceId: string,
     field: string,
     sourceAuthority: string,
   ) => {
-    if (!sourceIds.has(sourceId))
-      invalid("场景程序引用未知来源", field);
+    if (!sourceIds.has(sourceId)) invalid("场景程序引用未知来源", field);
     if (
       sourceAuthority === "baseline" &&
-      !["project_import", "floorplan_image"].includes(sourceKinds.get(sourceId)!)
+      !["project_import", "floorplan_image"].includes(
+        sourceKinds.get(sourceId)!,
+      )
     )
       invalid("只有项目或户型图可以声明结构基线", field);
     if (
@@ -423,7 +458,10 @@ export function validateSceneDraftPayload(
                   200,
                 );
                 if (!sourceIds.has(sourceId))
-                  invalid("字段权威引用未知来源", `${field}.sourceIds.${sourceIndex}`);
+                  invalid(
+                    "字段权威引用未知来源",
+                    `${field}.sourceIds.${sourceIndex}`,
+                  );
                 if (
                   entry.authority === "baseline" &&
                   !["project_import", "floorplan_image"].includes(
@@ -464,12 +502,13 @@ export function validateSceneDraftPayload(
   if (repairRounds > 3)
     invalid("修复轮次不能超过 3", "draft.budgetLedger.repairRounds");
   return {
-    schemaVersion: SCENE_DRAFT_SCHEMA,
+    schemaVersion: value.schemaVersion,
     projectId,
     baseProjectRevision: value.baseProjectRevision,
     inputBundle,
     evidenceGraph,
     intentSpec,
+    ...(recognition === undefined ? {} : { recognition }),
     program,
     assetResolutions,
     uncertainties: Array.isArray(value.uncertainties)

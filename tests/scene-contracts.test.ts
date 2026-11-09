@@ -3,11 +3,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { blankPlan, SceneError } from "../packages/scene-core/src/index.js";
 import {
-  blankPlan,
-  SceneError,
-} from "../packages/scene-core/src/index.js";
-import {
+  validateAssetResolutions,
   validateEvidenceGraph,
   validateInputBundle,
   validateIntentSpec,
@@ -50,7 +48,11 @@ const roomProgram = () => ({
           b: { x: 4000, y: 0 },
           thickness: 200,
           sourceRefs: [
-            { sourceId: "plan-1", authority: "observed", evidenceRefs: ["wall-1"] },
+            {
+              sourceId: "plan-1",
+              authority: "observed",
+              evidenceRefs: ["wall-1"],
+            },
           ],
         },
         {
@@ -153,6 +155,28 @@ const draft = () => ({
   ],
 });
 
+test("legacy empty asset resolution ids are treated as absent", () => {
+  assert.deepEqual(
+    validateAssetResolutions([
+      {
+        objectId: "object-1",
+        status: "catalogCandidates",
+        catalogKeys: ["sofa"],
+        jobId: "",
+        assetId: "",
+        reason: "",
+      },
+    ]),
+    [
+      {
+        objectId: "object-1",
+        status: "catalogCandidates",
+        catalogKeys: ["sofa"],
+      },
+    ],
+  );
+});
+
 test("scene contracts separate evidence, intent, authority and future geometry", () => {
   const bundle = validateInputBundle(draft().inputBundle);
   const evidence = validateEvidenceGraph(draft().evidenceGraph, bundle);
@@ -231,10 +255,7 @@ test("scene contracts separate evidence, intent, authority and future geometry",
       },
     ],
   };
-  assert.throws(
-    () => validateSceneProgram(multiLevelAngled),
-    /正交墙|单层/,
-  );
+  assert.throws(() => validateSceneProgram(multiLevelAngled), /正交墙|单层/);
   assert.equal(
     validateSceneProgram(multiLevelAngled, {
       orthogonalOnly: false,
@@ -256,6 +277,9 @@ test("scene contracts separate evidence, intent, authority and future geometry",
         ],
       }),
     /只有已确认项目或户型图/,
+  );
+  assert.doesNotThrow(() =>
+    validateSceneDraftPayload({ ...draft(), recognition: null }),
   );
 });
 

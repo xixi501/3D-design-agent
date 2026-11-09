@@ -21,10 +21,10 @@ import {
 import { ProjectStore } from "./store.js";
 import { inspectGlb } from "./assets.js";
 import { candidateRoutes } from "./candidate-routes.js";
-import { FloorplanStore } from "./floorplans.js";
 import { floorplanRoutes } from "./floorplan-routes.js";
 import { SceneDraftStore } from "./scene-drafts.js";
 import { sceneDraftRoutes } from "./scene-draft-routes.js";
+import { RoutedFloorplanStore } from "./scene-floorplan-drafts.js";
 import { agentProxy } from "./agent-proxy.js";
 
 export async function createApp(options: {
@@ -78,10 +78,10 @@ export async function createApp(options: {
     }),
   );
   app.get("/api/openapi.json", async () => app.swagger());
-  const candidates = candidateRoutes(app, store, notify);
-  const floorplans = new FloorplanStore(store);
-  floorplanRoutes(app, floorplans);
   const sceneDrafts = new SceneDraftStore(store);
+  const floorplans = new RoutedFloorplanStore(store, sceneDrafts);
+  const candidates = candidateRoutes(app, store, notify, floorplans);
+  floorplanRoutes(app, floorplans);
   sceneDraftRoutes(app, sceneDrafts);
   agentProxy(app);
   app.get(

@@ -12,27 +12,27 @@ S2-C 的图片上传、版本化草稿、标定、叠加、确认和整层初始
 
 资产 `normalization.center` 使用 GLB 源文件坐标单位，顺序为 `[中心 X, 底部 Y, 中心 Z]`；`normalization.scale` 是源文件单位转换到米的系数。渲染层先平移，再缩放，业务工具直接使用返回的 w/d/h 毫米尺寸。
 
-| 方法与路径                         | 作用                                                                           |
-| ---------------------------------- | ------------------------------------------------------------------------------ |
-| GET `/health`                      | 服务与 SQLite 健康状态                                                         |
-| GET `/catalog`                     | 全部 266 项目录、默认配方、17 类自由造型、材质、家具风格及适用类型、门窗默认值 |
-| GET `/projects`                    | 持久项目列表                                                                   |
-| POST `/projects`                   | `{document, assetMap?, imageMap?}` 创建 / 导入；无 document 创建空项目         |
-| GET `/projects/:id`                | 完整快照、修订号、资产身份、历史位置                                           |
-| GET `/projects/:id/export`         | JSON 快照、资产清单和可选原图来源清单                                          |
-| POST `/projects/:id/commands`      | 原子命令批次                                                                   |
-| GET `/projects/:id/history`        | 最近 200 个编辑事务、当前位置与操作记录                                        |
-| POST `/projects/:id/undo`、`/redo` | 持久撤销 / 重做，生成新修订号                                                  |
-| GET `/projects/:id/events`         | SSE `revision` 事件；客户端据此重新读取快照                                    |
-| GET `/projects/:id/checks`         | 确定性检查结果、对象 ID、覆盖范围与限制                                        |
-| GET `/projects/:id/scene-drafts`   | 通用场景草稿摘要列表                                                           |
-| POST `/projects/:id/scene-drafts`  | 创建绑定当前项目 revision 的通用场景草稿                                       |
-| GET `/projects/:id/scene-drafts/:draft` | 读取草稿、program、资产解析、预算与字段权威                              |
-| POST `/projects/:id/scene-drafts/:draft/patches` | 用 `requestId`、`draftRevision` 和命令原子更新草稿              |
-| POST `/projects/:id/scene-drafts/:draft/preview` | 只读返回未解析对象、资产缺口与自动提交就绪状态                  |
-| GET `/assets`、`/assets/:id`       | 已上传资产与尺寸/归一化元数据                                                  |
-| POST `/assets`                     | multipart 单个 GLB 文件字段 `file`                                             |
-| GET `/assets/:id/file`             | 持久 GLB 文件                                                                  |
+| 方法与路径                                       | 作用                                                                           |
+| ------------------------------------------------ | ------------------------------------------------------------------------------ |
+| GET `/health`                                    | 服务与 SQLite 健康状态                                                         |
+| GET `/catalog`                                   | 全部 266 项目录、默认配方、17 类自由造型、材质、家具风格及适用类型、门窗默认值 |
+| GET `/projects`                                  | 持久项目列表                                                                   |
+| POST `/projects`                                 | `{document, assetMap?, imageMap?}` 创建 / 导入；无 document 创建空项目         |
+| GET `/projects/:id`                              | 完整快照、修订号、资产身份、历史位置                                           |
+| GET `/projects/:id/export`                       | JSON 快照、资产清单和可选原图来源清单                                          |
+| POST `/projects/:id/commands`                    | 原子命令批次                                                                   |
+| GET `/projects/:id/history`                      | 最近 200 个编辑事务、当前位置与操作记录                                        |
+| POST `/projects/:id/undo`、`/redo`               | 持久撤销 / 重做，生成新修订号                                                  |
+| GET `/projects/:id/events`                       | SSE `revision` 事件；客户端据此重新读取快照                                    |
+| GET `/projects/:id/checks`                       | 确定性检查结果、对象 ID、覆盖范围与限制                                        |
+| GET `/projects/:id/scene-drafts`                 | 通用场景草稿摘要列表                                                           |
+| POST `/projects/:id/scene-drafts`                | 创建绑定当前项目 revision 的通用场景草稿                                       |
+| GET `/projects/:id/scene-drafts/:draft`          | 读取草稿、program、资产解析、预算与字段权威                                    |
+| POST `/projects/:id/scene-drafts/:draft/patches` | 用 `requestId`、`draftRevision` 和命令原子更新草稿                             |
+| POST `/projects/:id/scene-drafts/:draft/preview` | 只读返回未解析对象、资产缺口与自动提交就绪状态                                 |
+| GET `/assets`、`/assets/:id`                     | 已上传资产与尺寸/归一化元数据                                                  |
+| POST `/assets`                                   | multipart 单个 GLB 文件字段 `file`                                             |
+| GET `/assets/:id/file`                           | 持久 GLB 文件                                                                  |
 
 ## 命令协议
 
@@ -125,7 +125,7 @@ V3-5 新任务使用 `s2c-floorplan-v3-5`、Skill `0.5.4`、`activity-unit-1` �
 
 V3-6 新任务使用 `s2c-floorplan-v3-6-1`、Skill `0.5.6`、`structureSkeletonVersion=4`、`hpd-adapter-6-1` 和同一 `s2c-5` 门槛。复杂图的 `analyze` 不再用整图包围盒生成矩形四面墙，而是从真实低饱和灰墙掩膜提取定向连通段、吸附交点、保留分析断口并单独检测外部尺寸线；简单矩形图可回退到已验证的旧候选层。家具对象图新增上下各两椅的桌面合成、细长 group 柜体收纳、固定玄关柜排除和旋转前后宽深归一。外部尺寸候选携带 `unitHint=mm`，原图只写数字 `9700` 时仍可绑定；同一开放区域的客厅、餐厅、玄关标签由代码合并为单个客餐厅目标。分析响应增加 `wallmask.png` 和候选诊断字段，旧 V1 至 V3-5 任务继续使用各自冻结适配器与 Skill。
 
-V4 全屋开发任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-floorplan-v4`、Skill `0.7.0`、`hpd-adapter-6-1`、`candidatePolicyVersion=geometry-only` 和评分 `s2c-6`。任务可选携带 `floorplanScope`：
+V4 全屋开发任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-floorplan-v4-1`、Skill `0.7.0`、`hpd-adapter-6-1`、`candidatePolicyVersion=geometry-only` 和评分 `s2c-6`。任务可选携带 `floorplanScope`：
 
 ```json
 {
@@ -138,6 +138,8 @@ V4 全屋开发任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-
 `roomSelection=functional_areas` 时只把 `functionalAreas` 中的房间作为家具目标，`excludeFunctionalAreas` 始终再做一次排除。结构始终保留全部可见封闭房间；代码在房间标签归并后重新计算 `targetRoomIds`，不信任模型自行缩小全屋范围。`contours` 的 V4 模式新增 `policyVersion=geometry-only`：候选只保留轮廓、嵌套、邻接、包含和 `roomIds`，不提前赋予 sofa、table、television 或固定玄关柜类别。全屋家具符号支持 `bed`、`crib`、`nightstand`、`wardrobe`、`kitchenUnit`、`island`、`fridge`、`washer`、`dryer`、`toilet`、`vanity`、`shower`、`bathtub`、`bench`、`lamp`、`art` 等目录类别。单场景上限为 300 件家具对象、300 个原始对象候选和单 patch 100 条命令。
 
 V4 代码接入和离线契约已实现，执行结果见 [V4 contract evidence](evidence/floorplan-v4-contract-20261109.json)。但还没有全屋参考、真实全屋零校正运行或第二张独立验证图；不得把本节解释为全屋自动验收通过。旧 V1/V2/V3 任务继续使用各自的提示词、适配器和冻结 Skill。
+
+V4 的 `POST /api/projects/:id/floorplan-drafts` 是兼容 façade，实际只写 `scene_program_drafts` 中的 `actiscape.scene-draft.v2`。返回记录继续暴露 V3 使用的 `id/revision/hash/data/confirmed/sourceReview` 字段，因此原编辑器、诊断、审核、确认和候选路径无需改 URL。对应记录同时可通过 `/api/projects/:id/scene-drafts/:draft` 读取，`recognition` 保存像素提案、比例锚点、测量和审核状态，`program` 是唯一派生毫米几何。V4 任务同时出现不同的 `draftId` 和 `sceneDraftId` 时 fail-closed；旧 V1/V2/V3 草稿继续写原表。
 
 V3-5 硬阻断错误包括 `UNKNOWN_OBJECT_CANDIDATE`、`OBJECT_CANDIDATE_REUSED`、`ACTIVITY_GROUP_INCOMPLETE`、`ACTIVITY_GROUP_ROLE_INVALID` 和 `UNRESOLVED_ACTIVITY_GROUP`。一次有界修复仍使用同一任务预算和请求上限。
 

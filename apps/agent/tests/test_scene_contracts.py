@@ -1,3 +1,4 @@
+import asyncio
 import json
 import shutil
 from pathlib import Path
@@ -12,7 +13,10 @@ from actiscape_agent.scene_contracts import (
     SceneDraftPayload,
     contract_hash,
 )
-from actiscape_agent.scene_projection import plan_to_scene_program
+from actiscape_agent.scene_projection import (
+    plan_to_scene_program,
+    project_floorplan_candidate,
+)
 from actiscape_agent.scene_registry import SCENE_REGISTRY_PATH, SceneRegistry
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -143,6 +147,25 @@ def test_contracts_keep_evidence_intent_and_authority_separate():
         ],
     )
     assert len(contract_hash(draft)) == 64
+    with pytest.raises(ValidationError, match="第二版场景草稿需要识别块"):
+        SceneDraftPayload(
+            **{
+                **draft.model_dump(),
+                "schemaVersion": "actiscape.scene-draft.v2",
+            }
+        )
+    v2 = SceneDraftPayload(
+        **{
+            **draft.model_dump(),
+            "schemaVersion": "actiscape.scene-draft.v2",
+            "recognition": {
+                "schemaVersion": "actiscape.floorplan-recognition.v1",
+                "kind": "floorplan",
+                "sourceId": "plan-1",
+            },
+        }
+    )
+    assert v2.recognition["kind"] == "floorplan"
     with pytest.raises(ValidationError, match="不能写入事实证据"):
         SceneDraftPayload(
             **{
@@ -196,3 +219,46 @@ def test_scene_projection_prefers_compiled_object_room_ownership():
         room_type=None,
     )
     assert program["objects"][0]["roomSeedId"] == "s:r:bedroom"
+
+
+def test_v4_floorplan_projection_requires_one_scene_draft_identity():
+    generation = {
+        "workflowVersion": 4,
+        "draftId": "draft-1",
+        "sceneDraftId": "draft-1",
+    }
+
+    class Store:
+        def task(self, task_id, internal=False):
+            return {"generation": generation}
+
+    class Client:
+        async def request(self, *args, **kwargs):
+            raise AssertionError("V4 projection must not create a second draft")
+
+    task = {"id": "task-1", "projectId": "project-1", "generation": generation}
+    assert (
+        asyncio.run(
+            project_floorplan_candidate(
+                store=Store(),
+                client=Client(),
+                task=task,
+                plan={},
+                selection_id="selection",
+                project_revision=0,
+            )
+        )
+        is generation
+    )
+    generation["sceneDraftId"] = "draft-2"
+    with pytest.raises(ValueError, match="两个不同的草稿身份"):
+        asyncio.run(
+            project_floorplan_candidate(
+                store=Store(),
+                client=Client(),
+                task=task,
+                plan={},
+                selection_id="selection",
+                project_revision=0,
+            )
+        )

@@ -447,7 +447,7 @@ export function floorplanToolRoutes(
       throw new SceneError("EVIDENCE_MISSING", "审核需要当前诊断证据", 422);
     for (const ref of refs) {
       const evidence = tools.evidence(data.image.id, ref);
-      if (draftHash && evidence.draftHash !== draftHash)
+      if (draftHash && evidence.draftHash && evidence.draftHash !== draftHash)
         throw new SceneError("DRAFT_CONFLICT", "审核证据与当前草稿不一致", 409);
     }
   };

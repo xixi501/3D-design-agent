@@ -1,0 +1,465 @@
+{
+  "image": {
+    "id": "fp-26ea0490fb9bd14ab64d09029d20b33b51673d3f1c352107bdd5382d40042818",
+    "sha256": "26ea0490fb9bd14ab64d09029d20b33b51673d3f1c352107bdd5382d40042818",
+    "width": 3000,
+    "height": 2570
+  },
+  "name": "Evaluation only: Oak Ridge Type C development reference",
+  "anchors": [
+    {
+      "a": { "x": 410, "y": 2100 },
+      "b": { "x": 2040, "y": 2100 },
+      "distance": { "value": 12192, "unit": "mm" },
+      "basis": "centerline",
+      "evidence": "Bottom overall dimension 40'-0\" across the single-floor plan"
+    }
+  ],
+  "walls": [
+    {
+      "id": "north",
+      "a": { "x": 850, "y": 390 },
+      "b": { "x": 2040, "y": 390 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "east",
+      "a": { "x": 2040, "y": 390 },
+      "b": { "x": 2040, "y": 2100 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "south",
+      "a": { "x": 2040, "y": 2100 },
+      "b": { "x": 410, "y": 2100 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "west-lower",
+      "a": { "x": 410, "y": 2100 },
+      "b": { "x": 410, "y": 1250 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "west-upper",
+      "a": { "x": 850, "y": 1250 },
+      "b": { "x": 850, "y": 390 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "utility-top",
+      "a": { "x": 410, "y": 1250 },
+      "b": { "x": 1250, "y": 1250 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "bedroom-west-divide",
+      "a": { "x": 1450, "y": 390 },
+      "b": { "x": 1450, "y": 1250 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "bedroom-strip-top",
+      "a": { "x": 850, "y": 850 },
+      "b": { "x": 2040, "y": 850 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "closet-strip-bottom",
+      "a": { "x": 1600, "y": 1020 },
+      "b": { "x": 2040, "y": 1020 },
+      "thicknessPx": 14
+    },
+    {
+      "id": "passage-right",
+      "a": { "x": 1600, "y": 850 },
+      "b": { "x": 1600, "y": 1250 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "passage-bottom",
+      "a": { "x": 1450, "y": 1250 },
+      "b": { "x": 1600, "y": 1250 },
+      "thicknessPx": 14
+    },
+    {
+      "id": "bath-bottom",
+      "a": { "x": 850, "y": 1160 },
+      "b": { "x": 1450, "y": 1160 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "bedroom-right-left",
+      "a": { "x": 1600, "y": 1020 },
+      "b": { "x": 1600, "y": 1400 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "bedroom-right-bottom",
+      "a": { "x": 1600, "y": 1400 },
+      "b": { "x": 2040, "y": 1400 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "utility-east",
+      "a": { "x": 1140, "y": 1250 },
+      "b": { "x": 1140, "y": 2100 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "utility-kitchen-divide",
+      "a": { "x": 410, "y": 1600 },
+      "b": { "x": 1140, "y": 1600 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "entry-west",
+      "a": { "x": 1250, "y": 1250 },
+      "b": { "x": 1250, "y": 1400 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "living-west-north",
+      "a": { "x": 1140, "y": 1400 },
+      "b": { "x": 1250, "y": 1400 },
+      "thicknessPx": 18
+    }
+  ],
+  "openings": [
+    {
+      "id": "bedroom-left-window",
+      "wallId": "north",
+      "type": "window",
+      "offset": 300,
+      "width": 180
+    },
+    {
+      "id": "bedroom-right-window",
+      "wallId": "north",
+      "type": "window",
+      "offset": 900,
+      "width": 220
+    },
+    {
+      "id": "bedroom-left-west-window",
+      "wallId": "west-upper",
+      "type": "window",
+      "offset": 650,
+      "width": 200
+    },
+    {
+      "id": "bedroom-right-east-window",
+      "wallId": "east",
+      "type": "window",
+      "offset": 110,
+      "width": 200
+    },
+    {
+      "id": "bedroom-lower-east-window",
+      "wallId": "east",
+      "type": "window",
+      "offset": 760,
+      "width": 160
+    },
+    {
+      "id": "living-east-window",
+      "wallId": "east",
+      "type": "window",
+      "offset": 1360,
+      "width": 300
+    },
+    {
+      "id": "bedroom-left-door",
+      "wallId": "bedroom-strip-top",
+      "type": "door",
+      "offset": 440,
+      "width": 90
+    },
+    {
+      "id": "bedroom-right-door",
+      "wallId": "bedroom-strip-top",
+      "type": "door",
+      "offset": 930,
+      "width": 90
+    },
+    {
+      "id": "lower-bedroom-door",
+      "wallId": "bedroom-right-left",
+      "type": "door",
+      "offset": 140,
+      "width": 80
+    },
+    {
+      "id": "bath-door",
+      "wallId": "bedroom-west-divide",
+      "type": "door",
+      "offset": 550,
+      "width": 80
+    },
+    {
+      "id": "passage-door",
+      "wallId": "passage-bottom",
+      "type": "door",
+      "offset": 80,
+      "width": 60
+    },
+    {
+      "id": "utility-kitchen-door",
+      "wallId": "utility-kitchen-divide",
+      "type": "door",
+      "offset": 500,
+      "width": 90
+    },
+    {
+      "id": "kitchen-living-door",
+      "wallId": "utility-east",
+      "type": "door",
+      "offset": 430,
+      "width": 90
+    },
+    {
+      "id": "entry-living-door",
+      "wallId": "entry-west",
+      "type": "door",
+      "offset": 80,
+      "width": 60
+    }
+  ],
+  "rooms": [
+    {
+      "id": "bedroom-left",
+      "name": "BED ROOM",
+      "at": { "x": 1100, "y": 620 },
+      "functionalArea": "bedroom",
+      "roomType": "guest_bedroom"
+    },
+    {
+      "id": "bedroom-right",
+      "name": "BED ROOM",
+      "at": { "x": 1760, "y": 620 },
+      "functionalArea": "bedroom",
+      "roomType": "guest_bedroom"
+    },
+    {
+      "id": "bedroom-lower",
+      "name": "BED ROOM",
+      "at": { "x": 1800, "y": 1200 },
+      "functionalArea": "bedroom",
+      "roomType": "master_bedroom"
+    },
+    {
+      "id": "bath",
+      "name": "BATH",
+      "at": { "x": 1100, "y": 1010 },
+      "functionalArea": "bathroom",
+      "roomType": "bathroom"
+    },
+    {
+      "id": "closet-strip",
+      "name": "CLOSETS",
+      "at": { "x": 1800, "y": 935 },
+      "functionalArea": "storage",
+      "roomType": "utility"
+    },
+    {
+      "id": "passage",
+      "name": "PASSAGE",
+      "at": { "x": 1525, "y": 1080 },
+      "functionalArea": "circulation",
+      "roomType": "circulation"
+    },
+    {
+      "id": "utility",
+      "name": "UTILITY ROOM",
+      "at": { "x": 760, "y": 1450 },
+      "functionalArea": "utility",
+      "roomType": "utility"
+    },
+    {
+      "id": "entry-hall",
+      "name": "ENTRY",
+      "at": { "x": 1195, "y": 1325 },
+      "functionalArea": "entry",
+      "roomType": "entry"
+    },
+    {
+      "id": "kitchen",
+      "name": "KITCHEN",
+      "at": { "x": 760, "y": 1850 },
+      "functionalArea": "kitchen",
+      "roomType": "kitchen"
+    },
+    {
+      "id": "living-entry-dining",
+      "name": "LIVING ROOM / ENTRY / DINING",
+      "at": { "x": 1500, "y": 1700 },
+      "functionalArea": "living",
+      "roomType": "living_dining"
+    }
+  ],
+  "symbols": [
+    {
+      "id": "closet-strip-wardrobe",
+      "roomId": "closet-strip",
+      "category": "wardrobe",
+      "x": 1770,
+      "y": 935,
+      "w": 380,
+      "d": 100,
+      "rot": 0
+    },
+    {
+      "id": "bath-tub",
+      "roomId": "bath",
+      "category": "bathtub",
+      "x": 960,
+      "y": 1030,
+      "w": 150,
+      "d": 220,
+      "rot": 90
+    },
+    {
+      "id": "bath-toilet",
+      "roomId": "bath",
+      "category": "toilet",
+      "x": 1210,
+      "y": 1070,
+      "w": 80,
+      "d": 100,
+      "rot": 0
+    },
+    {
+      "id": "bath-vanity",
+      "roomId": "bath",
+      "category": "vanity",
+      "x": 1360,
+      "y": 1070,
+      "w": 120,
+      "d": 90,
+      "rot": 0
+    },
+    {
+      "id": "dining-table",
+      "roomId": "living-entry-dining",
+      "category": "diningTable",
+      "x": 1450,
+      "y": 1900,
+      "w": 180,
+      "d": 120,
+      "rot": 0
+    },
+    {
+      "id": "dining-chair-nw",
+      "roomId": "living-entry-dining",
+      "category": "chair",
+      "x": 1370,
+      "y": 1830,
+      "w": 65,
+      "d": 60,
+      "rot": 0
+    },
+    {
+      "id": "dining-chair-ne",
+      "roomId": "living-entry-dining",
+      "category": "chair",
+      "x": 1530,
+      "y": 1830,
+      "w": 65,
+      "d": 60,
+      "rot": 0
+    },
+    {
+      "id": "dining-chair-sw",
+      "roomId": "living-entry-dining",
+      "category": "chair",
+      "x": 1370,
+      "y": 1970,
+      "w": 65,
+      "d": 60,
+      "rot": 180
+    },
+    {
+      "id": "dining-chair-se",
+      "roomId": "living-entry-dining",
+      "category": "chair",
+      "x": 1530,
+      "y": 1970,
+      "w": 65,
+      "d": 60,
+      "rot": 180
+    },
+    {
+      "id": "living-armchair-left",
+      "roomId": "living-entry-dining",
+      "category": "armchair",
+      "x": 1715,
+      "y": 1700,
+      "w": 85,
+      "d": 85,
+      "rot": 30
+    },
+    {
+      "id": "living-armchair-right",
+      "roomId": "living-entry-dining",
+      "category": "armchair",
+      "x": 1810,
+      "y": 1665,
+      "w": 85,
+      "d": 85,
+      "rot": -30
+    },
+    {
+      "id": "living-side-table",
+      "roomId": "living-entry-dining",
+      "category": "sideTable",
+      "x": 1860,
+      "y": 1700,
+      "w": 70,
+      "d": 70,
+      "rot": 0
+    },
+    {
+      "id": "kitchen-counter-west",
+      "roomId": "kitchen",
+      "category": "kitchenUnit",
+      "x": 560,
+      "y": 1780,
+      "w": 240,
+      "d": 380,
+      "rot": 90
+    },
+    {
+      "id": "kitchen-counter-south",
+      "roomId": "kitchen",
+      "category": "kitchenUnit",
+      "x": 850,
+      "y": 2010,
+      "w": 420,
+      "d": 100,
+      "rot": 0
+    },
+    {
+      "id": "utility-storage-shelf",
+      "roomId": "utility",
+      "category": "bookshelf",
+      "x": 1050,
+      "y": 1565,
+      "w": 130,
+      "d": 70,
+      "rot": 0
+    }
+  ],
+  "targetRoomIds": [
+    "bedroom-left",
+    "bedroom-right",
+    "bedroom-lower",
+    "bath",
+    "closet-strip",
+    "passage",
+    "utility",
+    "entry-hall",
+    "kitchen",
+    "living-entry-dining"
+  ],
+  "uncertainties": []
+}

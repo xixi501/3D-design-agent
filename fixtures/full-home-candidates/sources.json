@@ -1,7 +1,7 @@
 {
   "schemaVersion": "actiscape.full-home-candidate.v1",
   "createdAt": "2026-11-09T19:21:00Z",
-  "status": "candidate-not-verified",
+  "status": "development-references-partial",
   "selectionPolicy": {
     "singleVisibleLevel": true,
     "orthogonalOrPredominantlyOrthogonal": true,
@@ -12,6 +12,12 @@
   "candidates": [
     {
       "id": "2bhk-bungalow",
+      "status": "development-reference-reviewed",
+      "evaluationReferenceFile": "2bhk-bungalow.evaluation-only.json",
+      "evaluationReferenceSha256": "63d37747cfad2b078a41d7366e2b3ec32c5d119ecbb676eb7453eef09963c4f0",
+      "evaluationManifestFile": "2bhk-bungalow.evaluation-manifest.json",
+      "evaluationOverlayFile": "reviews/2bhk-bungalow.overlay.jpg",
+      "evaluationOverlaySha256": "5a04172d361cccd8285655372d38df98d0fd978f5d9b341a7260a882ce295ebd",
       "workingFile": "2bhk-bungalow.jpg",
       "workingWidth": 2160,
       "workingHeight": 2576,
@@ -48,6 +54,7 @@
     },
     {
       "id": "oak-ridge-b1",
+      "status": "candidate-not-verified",
       "workingFile": "oak-ridge-b1.jpg",
       "workingWidth": 2965,
       "workingHeight": 3000,
@@ -80,6 +87,12 @@
     },
     {
       "id": "oak-ridge-c",
+      "status": "development-reference-reviewed",
+      "evaluationReferenceFile": "oak-ridge-c.evaluation-only.json",
+      "evaluationReferenceSha256": "4f475e7b52efad3affb248030bb71a02f758523aab767ac491e515d8b9d65b09",
+      "evaluationManifestFile": "oak-ridge-c.evaluation-manifest.json",
+      "evaluationOverlayFile": "reviews/oak-ridge-c.overlay.jpg",
+      "evaluationOverlaySha256": "19efcbc254c8289ef7683f8cf5f8f518e13e3f3c9222254ea5364746a2fd2eb3",
       "workingFile": "oak-ridge-c.jpg",
       "workingWidth": 3000,
       "workingHeight": 2570,
@@ -114,6 +127,7 @@
     },
     {
       "id": "oak-ridge-d",
+      "status": "candidate-not-verified",
       "workingFile": "oak-ridge-d.jpg",
       "workingWidth": 3000,
       "workingHeight": 2298,

@@ -1,0 +1,512 @@
+{
+  "image": {
+    "id": "fp-564fdfac6747c586b5078eea7151fff688b1e3eff61c0b08b987acba643ade69",
+    "sha256": "564fdfac6747c586b5078eea7151fff688b1e3eff61c0b08b987acba643ade69",
+    "width": 2160,
+    "height": 2576
+  },
+  "name": "Evaluation only: 2BHK bungalow development reference",
+  "anchors": [
+    {
+      "a": { "x": 1040, "y": 580 },
+      "b": { "x": 1690, "y": 580 },
+      "distance": { "value": 4470, "unit": "mm" },
+      "basis": "centerline",
+      "evidence": "Utility room label 14'8\" x 3'0\"; horizontal working-scale reference"
+    }
+  ],
+  "walls": [
+    {
+      "id": "utility-north",
+      "a": { "x": 1040, "y": 500 },
+      "b": { "x": 1690, "y": 500 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "central-west",
+      "a": { "x": 1040, "y": 500 },
+      "b": { "x": 1040, "y": 1115 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "utility-south",
+      "a": { "x": 1040, "y": 655 },
+      "b": { "x": 1690, "y": 655 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "east-outer",
+      "a": { "x": 1690, "y": 500 },
+      "b": { "x": 1690, "y": 2250 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "stair-north",
+      "a": { "x": 380, "y": 775 },
+      "b": { "x": 1040, "y": 775 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "west-outer",
+      "a": { "x": 380, "y": 775 },
+      "b": { "x": 380, "y": 2110 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "stair-south",
+      "a": { "x": 380, "y": 1115 },
+      "b": { "x": 1040, "y": 1115 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "service-west",
+      "a": { "x": 1490, "y": 1115 },
+      "b": { "x": 1490, "y": 1700 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "service-north",
+      "a": { "x": 1490, "y": 1115 },
+      "b": { "x": 1690, "y": 1115 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "service-divider-wc",
+      "a": { "x": 1490, "y": 1275 },
+      "b": { "x": 1690, "y": 1275 },
+      "thicknessPx": 14
+    },
+    {
+      "id": "service-divider-bath",
+      "a": { "x": 1490, "y": 1575 },
+      "b": { "x": 1690, "y": 1575 },
+      "thicknessPx": 14
+    },
+    {
+      "id": "living-south",
+      "a": { "x": 380, "y": 1700 },
+      "b": { "x": 1690, "y": 1700 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "entry-bottom",
+      "a": { "x": 380, "y": 2110 },
+      "b": { "x": 740, "y": 2110 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "bedroom-west",
+      "a": { "x": 740, "y": 1700 },
+      "b": { "x": 740, "y": 2250 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "bedroom-south",
+      "a": { "x": 740, "y": 2250 },
+      "b": { "x": 1690, "y": 2250 },
+      "thicknessPx": 18
+    },
+    {
+      "id": "bedroom-divider",
+      "a": { "x": 1220, "y": 1700 },
+      "b": { "x": 1220, "y": 2250 },
+      "thicknessPx": 18
+    }
+  ],
+  "openings": [
+    {
+      "id": "utility-door",
+      "wallId": "utility-south",
+      "type": "door",
+      "offset": 80,
+      "width": 100
+    },
+    {
+      "id": "stair-door",
+      "wallId": "stair-south",
+      "type": "door",
+      "offset": 450,
+      "width": 100
+    },
+    {
+      "id": "wc-door",
+      "wallId": "service-west",
+      "type": "door",
+      "offset": 90,
+      "width": 70
+    },
+    {
+      "id": "bath-door",
+      "wallId": "service-west",
+      "type": "door",
+      "offset": 260,
+      "width": 80
+    },
+    {
+      "id": "toilet-door",
+      "wallId": "service-west",
+      "type": "door",
+      "offset": 500,
+      "width": 80
+    },
+    {
+      "id": "entry-opening",
+      "wallId": "living-south",
+      "type": "door",
+      "offset": 100,
+      "width": 120
+    },
+    {
+      "id": "bedroom-left-door",
+      "wallId": "living-south",
+      "type": "door",
+      "offset": 650,
+      "width": 90
+    },
+    {
+      "id": "bedroom-right-door",
+      "wallId": "living-south",
+      "type": "door",
+      "offset": 950,
+      "width": 90
+    },
+    {
+      "id": "west-living-window",
+      "wallId": "west-outer",
+      "type": "window",
+      "offset": 580,
+      "width": 260
+    },
+    {
+      "id": "kitchen-east-window",
+      "wallId": "east-outer",
+      "type": "window",
+      "offset": 290,
+      "width": 190
+    },
+    {
+      "id": "wc-east-window",
+      "wallId": "east-outer",
+      "type": "window",
+      "offset": 680,
+      "width": 80
+    },
+    {
+      "id": "bath-east-window",
+      "wallId": "east-outer",
+      "type": "window",
+      "offset": 920,
+      "width": 100
+    },
+    {
+      "id": "toilet-east-window",
+      "wallId": "east-outer",
+      "type": "window",
+      "offset": 1140,
+      "width": 80
+    },
+    {
+      "id": "bedroom-left-south-window",
+      "wallId": "bedroom-south",
+      "type": "window",
+      "offset": 310,
+      "width": 200
+    },
+    {
+      "id": "bedroom-right-south-window",
+      "wallId": "bedroom-south",
+      "type": "window",
+      "offset": 720,
+      "width": 200
+    }
+  ],
+  "rooms": [
+    {
+      "id": "utility",
+      "name": "UTILITY",
+      "at": { "x": 1350, "y": 580 },
+      "functionalArea": "utility",
+      "roomType": "utility"
+    },
+    {
+      "id": "stairs",
+      "name": "UP",
+      "at": { "x": 700, "y": 950 },
+      "functionalArea": "circulation",
+      "roomType": "circulation"
+    },
+    {
+      "id": "living-dining",
+      "name": "LIVING ROOM / DINING / KITCHEN",
+      "at": { "x": 1100, "y": 1400 },
+      "functionalArea": "living",
+      "roomType": "living_dining"
+    },
+    {
+      "id": "wc",
+      "name": "WC",
+      "at": { "x": 1580, "y": 1200 },
+      "functionalArea": "bathroom",
+      "roomType": "bathroom"
+    },
+    {
+      "id": "bath",
+      "name": "BATH",
+      "at": { "x": 1580, "y": 1400 },
+      "functionalArea": "bathroom",
+      "roomType": "bathroom"
+    },
+    {
+      "id": "toilet",
+      "name": "TOILET",
+      "at": { "x": 1580, "y": 1630 },
+      "functionalArea": "bathroom",
+      "roomType": "bathroom"
+    },
+    {
+      "id": "entry",
+      "name": "ENT. LOBBY",
+      "at": { "x": 560, "y": 1900 },
+      "functionalArea": "entry",
+      "roomType": "entry"
+    },
+    {
+      "id": "bedroom-left",
+      "name": "BED ROOM",
+      "at": { "x": 1000, "y": 1900 },
+      "functionalArea": "bedroom",
+      "roomType": "guest_bedroom"
+    },
+    {
+      "id": "bedroom-right",
+      "name": "BED ROOM",
+      "at": { "x": 1450, "y": 1900 },
+      "functionalArea": "bedroom",
+      "roomType": "master_bedroom"
+    }
+  ],
+  "symbols": [
+    {
+      "id": "living-sofa",
+      "roomId": "living-dining",
+      "category": "sofa",
+      "x": 630,
+      "y": 1312,
+      "w": 450,
+      "d": 345,
+      "rot": 0
+    },
+    {
+      "id": "living-coffee-table",
+      "roomId": "living-dining",
+      "category": "coffeeTable",
+      "x": 675,
+      "y": 1398,
+      "w": 130,
+      "d": 115,
+      "rot": 0
+    },
+    {
+      "id": "living-tv-cabinet",
+      "roomId": "living-dining",
+      "category": "tvCabinet",
+      "x": 868,
+      "y": 1648,
+      "w": 265,
+      "d": 75,
+      "rot": 0
+    },
+    {
+      "id": "dining-table",
+      "roomId": "living-dining",
+      "category": "diningTable",
+      "x": 1233,
+      "y": 1450,
+      "w": 205,
+      "d": 140,
+      "rot": 0
+    },
+    {
+      "id": "dining-chair-nw",
+      "roomId": "living-dining",
+      "category": "chair",
+      "x": 1195,
+      "y": 1345,
+      "w": 70,
+      "d": 60,
+      "rot": 0
+    },
+    {
+      "id": "dining-chair-ne",
+      "roomId": "living-dining",
+      "category": "chair",
+      "x": 1320,
+      "y": 1345,
+      "w": 70,
+      "d": 60,
+      "rot": 0
+    },
+    {
+      "id": "dining-chair-sw",
+      "roomId": "living-dining",
+      "category": "chair",
+      "x": 1195,
+      "y": 1555,
+      "w": 70,
+      "d": 60,
+      "rot": 180
+    },
+    {
+      "id": "dining-chair-se",
+      "roomId": "living-dining",
+      "category": "chair",
+      "x": 1320,
+      "y": 1555,
+      "w": 70,
+      "d": 60,
+      "rot": 180
+    },
+    {
+      "id": "kitchen-counter-north",
+      "roomId": "living-dining",
+      "category": "kitchenUnit",
+      "x": 1290,
+      "y": 725,
+      "w": 400,
+      "d": 90,
+      "rot": 0
+    },
+    {
+      "id": "kitchen-counter-east",
+      "roomId": "living-dining",
+      "category": "kitchenUnit",
+      "x": 1620,
+      "y": 905,
+      "w": 120,
+      "d": 250,
+      "rot": 90
+    },
+    {
+      "id": "kitchen-fridge",
+      "roomId": "living-dining",
+      "category": "fridge",
+      "x": 1615,
+      "y": 1045,
+      "w": 130,
+      "d": 120,
+      "rot": 90
+    },
+    {
+      "id": "wc-toilet",
+      "roomId": "wc",
+      "category": "toilet",
+      "x": 1615,
+      "y": 1205,
+      "w": 130,
+      "d": 90,
+      "rot": 90
+    },
+    {
+      "id": "toilet-room-toilet",
+      "roomId": "toilet",
+      "category": "toilet",
+      "x": 1600,
+      "y": 1640,
+      "w": 120,
+      "d": 120,
+      "rot": 0
+    },
+    {
+      "id": "bed-left",
+      "roomId": "bedroom-left",
+      "category": "bed",
+      "x": 1040,
+      "y": 2065,
+      "w": 280,
+      "d": 330,
+      "rot": 0
+    },
+    {
+      "id": "bed-right",
+      "roomId": "bedroom-right",
+      "category": "bed",
+      "x": 1460,
+      "y": 2065,
+      "w": 280,
+      "d": 330,
+      "rot": 0
+    },
+    {
+      "id": "nightstand-left-west",
+      "roomId": "bedroom-left",
+      "category": "nightstand",
+      "x": 860,
+      "y": 2198,
+      "w": 70,
+      "d": 75,
+      "rot": 0
+    },
+    {
+      "id": "nightstand-left-east",
+      "roomId": "bedroom-left",
+      "category": "nightstand",
+      "x": 1235,
+      "y": 2198,
+      "w": 70,
+      "d": 75,
+      "rot": 0
+    },
+    {
+      "id": "nightstand-right-west",
+      "roomId": "bedroom-right",
+      "category": "nightstand",
+      "x": 1280,
+      "y": 2198,
+      "w": 70,
+      "d": 75,
+      "rot": 0
+    },
+    {
+      "id": "nightstand-right-east",
+      "roomId": "bedroom-right",
+      "category": "nightstand",
+      "x": 1620,
+      "y": 2198,
+      "w": 70,
+      "d": 75,
+      "rot": 0
+    },
+    {
+      "id": "wardrobe-left",
+      "roomId": "bedroom-left",
+      "category": "wardrobe",
+      "x": 910,
+      "y": 1765,
+      "w": 300,
+      "d": 80,
+      "rot": 0
+    },
+    {
+      "id": "wardrobe-right",
+      "roomId": "bedroom-right",
+      "category": "wardrobe",
+      "x": 1628,
+      "y": 1840,
+      "w": 280,
+      "d": 115,
+      "rot": 90
+    }
+  ],
+  "targetRoomIds": [
+    "utility",
+    "stairs",
+    "living-dining",
+    "wc",
+    "bath",
+    "toilet",
+    "entry",
+    "bedroom-left",
+    "bedroom-right"
+  ],
+  "uncertainties": []
+}

@@ -50,6 +50,7 @@
     "test:floorplan:v36-replay": "node --import tsx scripts/floorplan-v36-replay.mjs",
     "test:skill-pool:v1": "node --import tsx scripts/skill-pool-v1-replay.mjs",
     "test:floorplan:offline": "npm run test:agent && npm run test:all && npm run test:skill-pool:v1 && npm run test:floorplan:v35-replay && npm run test:floorplan:v36-replay && npm run test:floorplan:v3",
+    "test:full-home:references": "tsx --test tests/full-home-references.test.ts && .venv/bin/python -m pytest -q apps/agent/tests/test_full_home_candidates.py",
     "test:floorplan:live": "node --import tsx scripts/floorplan-live.mjs",
     "test:floorplan:tools:live": "node --import tsx scripts/floorplan-tools-live.mjs",
     "pretest": "node scripts/image-runtime.mjs"

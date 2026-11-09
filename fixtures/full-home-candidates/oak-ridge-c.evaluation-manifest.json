@@ -1,0 +1,50 @@
+{
+  "purpose": "Development scoring reference; never supplied to Agent, production service or recognition tools",
+  "status": "development-reference-reviewed",
+  "sourceCandidateId": "oak-ridge-c",
+  "sourceImageSha256": "26ea0490fb9bd14ab64d09029d20b33b51673d3f1c352107bdd5382d40042818",
+  "referenceSha256": "4f475e7b52efad3affb248030bb71a02f758523aab767ac491e515d8b9d65b09",
+  "referenceFile": "oak-ridge-c.evaluation-only.json",
+  "sourcePage": "https://commons.wikimedia.org/wiki/File:Type_C_house_plan_(18853887652).jpg",
+  "license": "Public domain",
+  "licenseUrl": null,
+  "coordinateSpace": "Working image pixels after bounded downscale",
+  "annotationMethod": "Independent visual reading of the source image with a deterministic wall-overlay review; no model draft was copied",
+  "overlayReview": {
+    "completed": true,
+    "file": "reviews/oak-ridge-c.overlay.jpg",
+    "sha256": "19efcbc254c8289ef7683f8cf5f8f518e13e3f3c9222254ea5364746a2fd2eb3",
+    "walls": 18,
+    "openings": 14,
+    "rooms": 10,
+    "symbols": 15
+  },
+  "limits": [
+    "Raster centerlines and object boxes are approximate; existing metric tolerances remain unchanged",
+    "The source scan does not draw beds in the three bedrooms; no beds were invented",
+    "Open entry and living areas are represented by one room seed where no complete wall separates them",
+    "This is a development reference and still requires an independent reviewer before being promoted to a final acceptance set"
+  ],
+  "manualObjectCorrectionLimit": 0,
+  "requiredRuns": 2,
+  "aliases": {
+    "BED ROOM": "bedroom",
+    "BATH": "bath",
+    "PASSAGE": "passage",
+    "UTILITY ROOM": "utilityroom",
+    "KITCHEN": "kitchen",
+    "LIVING ROOM": "livingroom",
+    "ENTRY": "entry",
+    "CL": "closet",
+    "Dining Table": "diningtable",
+    "Dining Chair": "chair",
+    "Armchair": "armchair",
+    "Side Table": "sidetable",
+    "Bathtub": "bathtub",
+    "Toilet": "toilet",
+    "Vanity": "vanity",
+    "Kitchen Unit": "kitchenunit",
+    "Storage Shelf": "bookshelf",
+    "Wardrobe": "wardrobe"
+  }
+}

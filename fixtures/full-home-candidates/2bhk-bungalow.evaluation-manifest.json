@@ -1,0 +1,51 @@
+{
+  "purpose": "Development scoring reference; never supplied to Agent, production service or recognition tools",
+  "status": "development-reference-reviewed",
+  "sourceCandidateId": "2bhk-bungalow",
+  "sourceImageSha256": "564fdfac6747c586b5078eea7151fff688b1e3eff61c0b08b987acba643ade69",
+  "referenceSha256": "63d37747cfad2b078a41d7366e2b3ec32c5d119ecbb676eb7453eef09963c4f0",
+  "referenceFile": "2bhk-bungalow.evaluation-only.json",
+  "sourcePage": "https://commons.wikimedia.org/wiki/File:2_bhk_Bungalow_floor_plan.jpg",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "coordinateSpace": "Working image pixels after bounded re-encoding",
+  "annotationMethod": "Independent visual reading of the source image with a deterministic wall-overlay review; no model draft was copied",
+  "overlayReview": {
+    "completed": true,
+    "file": "reviews/2bhk-bungalow.overlay.jpg",
+    "sha256": "5a04172d361cccd8285655372d38df98d0fd978f5d9b341a7260a882ce295ebd",
+    "walls": 16,
+    "openings": 15,
+    "rooms": 9,
+    "symbols": 21
+  },
+  "limits": [
+    "Raster centerlines and object boxes are approximate; existing metric tolerances remain unchanged",
+    "The open living, dining and kitchen area is represented as one room region because no wall fully separates them",
+    "The stair and upper-floor connection is structure-only; no second floor is referenced",
+    "This is a development reference and still requires an independent reviewer before being promoted to a final acceptance set"
+  ],
+  "manualObjectCorrectionLimit": 0,
+  "requiredRuns": 2,
+  "aliases": {
+    "UTILITY": "utility",
+    "KITCHEN": "kitchen",
+    "LIVING ROOM / DINING": "livingdining",
+    "WC": "wc",
+    "BATH": "bath",
+    "TOILET": "toilet",
+    "ENT. LOBBY": "entry",
+    "BED ROOM": "bedroom",
+    "Sofa": "sofa",
+    "Coffee Table": "coffeetable",
+    "Dining Table": "diningtable",
+    "Dining Chair": "chair",
+    "TV Cabinet": "tvcabinet",
+    "Kitchen Unit": "kitchenunit",
+    "Refrigerator": "fridge",
+    "Toilet": "toilet",
+    "Bed": "bed",
+    "Nightstand": "nightstand",
+    "Wardrobe": "wardrobe"
+  }
+}

@@ -114,6 +114,8 @@ The next floorplan development batch introduces V4 without changing the accepted
 
 This is not a whole-home acceptance result. The two existing images still lack reviewed furniture references for bedrooms, kitchens, bathrooms and studies, and no real V4 zero-correction run has been executed. The accepted S2-C result remains the V3-6 two-image, living/dining-furniture matrix. The executed V4 contract gate is recorded in [floorplan V4 contract evidence](evidence/floorplan-v4-contract-20261109.json).
 
+A separate four-image candidate pool now covers one modern colored two-bedroom plan and three public-domain Oak Ridge single-floor plans. Each working image is size-bounded, SHA-256 bound, source-attributed and explicitly marked `candidate-not-verified`; no room or furniture reference has been invented. The pool is documented in [full-home candidates](../fixtures/full-home-candidates/README.md) and remains outside recognition prompts and acceptance scoring.
+
 ## Remaining scope
 
 S2-A provides local multi-agent editing. S2-B adds initial rectangular-room generation and the first real Skill. S2-C adds two frozen floorplan-image cases with two fully passing real runs each. Nonrectangular/multiroom text generation and cabinet/kitchen/free-form recipe conversation editing remain later; existing manual editing is retained.

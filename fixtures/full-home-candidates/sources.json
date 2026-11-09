@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "actiscape.full-home-candidate.v1",
+  "createdAt": "2026-11-09T19:21:00Z",
+  "status": "candidate-not-verified",
+  "selectionPolicy": {
+    "singleVisibleLevel": true,
+    "orthogonalOrPredominantlyOrthogonal": true,
+    "furnitureOrFixtureSymbolsRequired": true,
+    "dimensionEvidenceRequired": true,
+    "evaluationReferencesIncluded": false
+  },
+  "candidates": [
+    {
+      "id": "2bhk-bungalow",
+      "workingFile": "2bhk-bungalow.jpg",
+      "workingWidth": 2160,
+      "workingHeight": 2576,
+      "workingSha256": "564fdfac6747c586b5078eea7151fff688b1e3eff61c0b08b987acba643ade69",
+      "originalSha256": "70cb6d6328df17dfa624913b43291f35e3e043586493698a5241dd665b646b15",
+      "sourceTitle": "File:2 bhk Bungalow floor plan.jpg",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:2_bhk_Bungalow_floor_plan.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/6/61/2_bhk_Bungalow_floor_plan.jpg",
+      "author": "Jithurad4539",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "workingLicense": "CC BY-SA 4.0",
+      "roomsVisible": [
+        "entry_lobby",
+        "living_room",
+        "dining",
+        "kitchen",
+        "utility",
+        "wc",
+        "bath",
+        "toilet",
+        "bedroom",
+        "bedroom"
+      ],
+      "qualityChecks": {
+        "labelsReadable": true,
+        "dimensionsReadable": true,
+        "openingsReadable": true,
+        "furnitureReadable": true,
+        "fixturesReadable": true,
+        "stairOrUpperLevelVisible": true
+      },
+      "notes": "Best modern furniture plan in the pool. The visible stair symbol connects to an upper floor, but only this ground floor is in scope."
+    },
+    {
+      "id": "oak-ridge-b1",
+      "workingFile": "oak-ridge-b1.jpg",
+      "workingWidth": 2965,
+      "workingHeight": 3000,
+      "workingSha256": "e6fa74f119ce17ff4b3534e9476f1a7c2b9674fa55bcd431f70d2e3e8434bd4b",
+      "originalSha256": "67f6449080fc7d24fc22c4d9148f8ced27159e1692a0d064bbc465ff6540104d",
+      "sourceTitle": "File:Type B-1 House Plans (18896741351).jpg",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Type_B-1_House_Plans_(18896741351).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/1/14/Type_B-1_House_Plans_%2818896741351%29.jpg",
+      "author": "doe-oakridge",
+      "license": "Public domain",
+      "licenseUrl": null,
+      "workingLicense": "Public domain",
+      "roomsVisible": [
+        "living_dining_room",
+        "kitchen",
+        "bath",
+        "bedroom",
+        "bedroom",
+        "storage"
+      ],
+      "qualityChecks": {
+        "labelsReadable": true,
+        "dimensionsReadable": true,
+        "openingsReadable": true,
+        "furnitureReadable": true,
+        "fixturesReadable": true,
+        "stairOrUpperLevelVisible": false
+      },
+      "notes": "Compact two-bedroom prefabricated single-floor house."
+    },
+    {
+      "id": "oak-ridge-c",
+      "workingFile": "oak-ridge-c.jpg",
+      "workingWidth": 3000,
+      "workingHeight": 2570,
+      "workingSha256": "26ea0490fb9bd14ab64d09029d20b33b51673d3f1c352107bdd5382d40042818",
+      "originalSha256": "28567f25c17ab242f140557ce74137bc7207c006142e05a1117425f772571060",
+      "sourceTitle": "File:Type C house plan (18853887652).jpg",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Type_C_house_plan_(18853887652).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Type_C_house_plan_%2818853887652%29.jpg",
+      "author": "doe-oakridge",
+      "license": "Public domain",
+      "licenseUrl": null,
+      "workingLicense": "Public domain",
+      "roomsVisible": [
+        "living_room",
+        "entry",
+        "kitchen",
+        "utility_room",
+        "bath",
+        "bedroom",
+        "bedroom",
+        "bedroom"
+      ],
+      "qualityChecks": {
+        "labelsReadable": true,
+        "dimensionsReadable": true,
+        "openingsReadable": true,
+        "furnitureReadable": true,
+        "fixturesReadable": true,
+        "stairOrUpperLevelVisible": false
+      },
+      "notes": "Irregular L-shaped three-bedroom plan with dimension chains."
+    },
+    {
+      "id": "oak-ridge-d",
+      "workingFile": "oak-ridge-d.jpg",
+      "workingWidth": 3000,
+      "workingHeight": 2298,
+      "workingSha256": "26075c22421d164f2645b3dfc09a4637c90ae2276ec744c9848db37feeabf5cd",
+      "originalSha256": "06032c41e0aa79c6622f991395564bea6a3adf542e10e9dc3076360b81258be2",
+      "sourceTitle": "File:Type D House Plan 1940s Oak Ridge (18671677588).jpg",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Type_D_House_Plan_1940s_Oak_Ridge_(18671677588).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Type_D_House_Plan_1940s_Oak_Ridge_%2818671677588%29.jpg",
+      "author": "doe-oakridge",
+      "license": "Public domain",
+      "licenseUrl": null,
+      "workingLicense": "Public domain",
+      "roomsVisible": [
+        "living_room",
+        "dining_room",
+        "kitchen",
+        "utility_room",
+        "bath",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "porch"
+      ],
+      "qualityChecks": {
+        "labelsReadable": true,
+        "dimensionsReadable": true,
+        "openingsReadable": true,
+        "furnitureReadable": true,
+        "fixturesReadable": true,
+        "stairOrUpperLevelVisible": false
+      },
+      "notes": "Wide three-bedroom plan with explicit dining and utility zones."
+    }
+  ],
+  "contactSheet": {
+    "file": "contact-sheet.jpg",
+    "sha256": "cb97adf5f41f74c88bc0f14bb7398ff4f760306d85446e518009e24a0298cd44",
+    "purpose": "human inspection only"
+  },
+  "notClaimed": [
+    "evaluation reference",
+    "recognition accuracy",
+    "accepted development or validation split",
+    "final external test set"
+  ]
+}

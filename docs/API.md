@@ -137,7 +137,7 @@ V4 全屋开发任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-
 
 `roomSelection=functional_areas` 时只把 `functionalAreas` 中的房间作为家具目标，`excludeFunctionalAreas` 始终再做一次排除。结构始终保留全部可见封闭房间；代码在房间标签归并后重新计算 `targetRoomIds`，不信任模型自行缩小全屋范围。`contours` 的 V4 模式新增 `policyVersion=geometry-only`：候选只保留轮廓、嵌套、邻接、包含和 `roomIds`，不提前赋予 sofa、table、television 或固定玄关柜类别。全屋家具符号支持 `bed`、`crib`、`nightstand`、`wardrobe`、`kitchenUnit`、`island`、`fridge`、`washer`、`dryer`、`toilet`、`vanity`、`shower`、`bathtub`、`bench`、`lamp`、`art` 等目录类别。单场景上限为 300 件家具对象、300 个原始对象候选和单 patch 100 条命令。
 
-V4 代码接入和离线契约已实现，但还没有全屋参考、真实全屋零校正运行或第二张独立验证图；不得把本节解释为全屋自动验收通过。旧 V1/V2/V3 任务继续使用各自的提示词、适配器和冻结 Skill。
+V4 代码接入和离线契约已实现，执行结果见 [V4 contract evidence](evidence/floorplan-v4-contract-20261109.json)。但还没有全屋参考、真实全屋零校正运行或第二张独立验证图；不得把本节解释为全屋自动验收通过。旧 V1/V2/V3 任务继续使用各自的提示词、适配器和冻结 Skill。
 
 V3-5 硬阻断错误包括 `UNKNOWN_OBJECT_CANDIDATE`、`OBJECT_CANDIDATE_REUSED`、`ACTIVITY_GROUP_INCOMPLETE`、`ACTIVITY_GROUP_ROLE_INVALID` 和 `UNRESOLVED_ACTIVITY_GROUP`。一次有界修复仍使用同一任务预算和请求上限。
 

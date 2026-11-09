@@ -1,0 +1,55 @@
+{
+  "purpose": "Add the whole-home V4 floorplan contract and geometry-only candidate policy without changing accepted V3 behavior",
+  "generatedAt": "2026-11-09T19:00:00+08:00",
+  "implementationCommit": "2142297e5125c19dcf8694e4e5cd04fcb130765c",
+  "command": "npm run test:floorplan:offline",
+  "passed": true,
+  "checks": {
+    "python": {
+      "passed": 137,
+      "failed": 0
+    },
+    "node": {
+      "passed": 45,
+      "failed": 0
+    },
+    "typecheck": true,
+    "build": true,
+    "browserAndWebGL": true,
+    "catalogue266": true,
+    "skillPoolL3": true,
+    "v35Replay": true,
+    "v36Replay": true,
+    "controlledV3Browser": true
+  },
+  "versions": {
+    "workflowVersion": 4,
+    "recognitionVersion": 4,
+    "floorplanVersion": "s2c-floorplan-v4",
+    "skillVersion": "0.7.0",
+    "adapterVersion": "hpd-adapter-6-1",
+    "candidatePolicyVersion": "geometry-only",
+    "scoringVersion": "s2c-6"
+  },
+  "implemented": [
+    "New reconstruction tasks default to all visible rooms while structure remains complete.",
+    "floorplanScope supports functional-area inclusion and exclusion, and code recomputes targetRoomIds after room-label consolidation.",
+    "V4 object candidates carry deterministic roomIds and no living-room category hints or fixed-entry exclusions.",
+    "The residential category contract covers beds, wardrobes, kitchen units, appliances and bathroom fixtures.",
+    "Bed and nightstand groups use group_sleep; other deterministic primary/satellite candidates can use group_cluster.",
+    "The capacity contract accepts 300 furniture objects and 100 patch commands; the 301st object fails closed.",
+    "SceneProgram projection prefers compiled object-to-room ownership and falls back to nearest room labels only for old plans.",
+    "V1/V2/V3 historical task versions and prompts remain separate."
+  ],
+  "notClaimed": [
+    "Whole-home furniture references for the existing frozen images",
+    "A real V4 zero-correction reconstruction run",
+    "A second-image or two-image whole-home acceptance matrix",
+    "Photo input, generated GLB assets or AgentArts deployment"
+  ],
+  "artifacts": {
+    "test-results/floorplan-v3-tools/report.json": "e64252cc3dd4f51c0c97a79f2ecab8c24136c24fe943eb6f9c12982de213957b",
+    "test-results/skill-pool-v1-l3.json": "0b9f0e6557f81cc95ffb4b4a179902f99f68e9b51b0a6fe23018404a91a615fd",
+    "test-results/browser/report.json": "b06de46d538cc5d3ca3508efdff9b99c25f18dae628cdb4c55cfb36dc5260bea"
+  }
+}

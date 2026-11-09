@@ -1,0 +1,63 @@
+{
+  "purpose": "Create and visually review two full-home development references without copying model output",
+  "generatedAt": "2026-11-09T19:45:00Z",
+  "implementationCommit": "78bb191381ecea649bf2f30f134ac6e9af337de3",
+  "commands": [
+    "npm run test:full-home:references",
+    "npm test",
+    "npm run typecheck",
+    ".venv/bin/python -m pytest -q apps/agent/tests"
+  ],
+  "passed": true,
+  "tests": {
+    "node": {
+      "passed": 47,
+      "failed": 0
+    },
+    "python": {
+      "passed": 139,
+      "failed": 0
+    },
+    "typecheck": true
+  },
+  "references": [
+    {
+      "id": "2bhk-bungalow",
+      "status": "development-reference-reviewed",
+      "sourceImageSha256": "564fdfac6747c586b5078eea7151fff688b1e3eff61c0b08b987acba643ade69",
+      "referenceSha256": "63d37747cfad2b078a41d7366e2b3ec32c5d119ecbb676eb7453eef09963c4f0",
+      "manifestSha256": "50b01dd6a8ba32da94c000b1865f13247997d8de42fefe2e94e68751679dea13",
+      "overlaySha256": "5a04172d361cccd8285655372d38df98d0fd978f5d9b341a7260a882ce295ebd",
+      "rooms": 9,
+      "walls": 16,
+      "openings": 15,
+      "objects": 21
+    },
+    {
+      "id": "oak-ridge-c",
+      "status": "development-reference-reviewed",
+      "sourceImageSha256": "26ea0490fb9bd14ab64d09029d20b33b51673d3f1c352107bdd5382d40042818",
+      "referenceSha256": "4f475e7b52efad3affb248030bb71a02f758523aab767ac491e515d8b9d65b09",
+      "manifestSha256": "7a670dcf6237736bb9f51fec06ef2d1e355202dd75a31235807dd8997d4f89bb",
+      "overlaySha256": "19efcbc254c8289ef7683f8cf5f8f518e13e3f3c9222254ea5364746a2fd2eb3",
+      "rooms": 10,
+      "walls": 18,
+      "openings": 14,
+      "objects": 15
+    }
+  ],
+  "reviewCoverage": [
+    "Room labels have one seed in each enclosed region.",
+    "Wall centerlines and opening ownership are visibly checked against the source image.",
+    "Furniture and fixture boxes are checked against the visible raster symbols.",
+    "The open living/dining/kitchen region in 2bhk is represented as one room seed.",
+    "Oak Ridge Type C bedrooms do not draw beds; no beds were invented.",
+    "Source image, evaluation reference, manifest and overlay hashes are cross-bound by tests."
+  ],
+  "notClaimed": [
+    "An independent reviewer outside this annotation pass has approved the references",
+    "A V4 offline recognition score has been measured",
+    "A real V4 zero-correction run has been executed",
+    "These development references form the final external test set"
+  ]
+}

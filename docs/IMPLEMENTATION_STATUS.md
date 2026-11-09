@@ -116,6 +116,8 @@ This is not a whole-home acceptance result. The two existing images still lack r
 
 A separate four-image candidate pool now covers one modern colored two-bedroom plan and three public-domain Oak Ridge single-floor plans. Each working image is size-bounded, SHA-256 bound and source-attributed. `2bhk-bungalow` and `oak-ridge-c` now have compilable, hash-bound development references with 9/21 and 10/15 room/object counts respectively; their wall, opening, room and object overlays were visually reviewed. The other two remain unannotated candidates. No model draft was copied into a reference and no missing bed was invented. `npm run test:full-home:references` verifies source/reference/overlay hashes and compiles both references. The pool is documented in [full-home candidates](../fixtures/full-home-candidates/README.md) and remains outside recognition prompts and acceptance scoring.
 
+The reviewed reference batch passes Node `47`, Python `139` and typecheck. Detailed hashes and the two overlay artifacts are recorded in [full-home reference review](evidence/full-home-reference-review-20261109.json). This is still a development-reference gate, not an independent-review or real-model result.
+
 ## Remaining scope
 
 S2-A provides local multi-agent editing. S2-B adds initial rectangular-room generation and the first real Skill. S2-C adds two frozen floorplan-image cases with two fully passing real runs each. Nonrectangular/multiroom text generation and cabinet/kitchen/free-form recipe conversation editing remain later; existing manual editing is retained.

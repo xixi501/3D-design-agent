@@ -52,6 +52,8 @@ V3-6 新任务改为 `s2c-floorplan-v3-6-1`、Skill `0.5.6`、`structureSkeleton
 
 V4 全屋开发任务默认 `workflowVersion=4`、`recognitionVersion=4`、`s2c-floorplan-v4`、Skill `0.7.0`、`hpd-adapter-6-1` 和 `geometry-only` 候选策略。任务可带 `floorplanScope`，结构始终保留全部房间，家具目标默认全部可见功能区；显式 scope 只影响家具目标，不会删除结构。V4 家具候选只提供轮廓、嵌套、邻接、包含和 `roomIds`，模型必须分类全部可选对象；床与床头柜等组合使用 `group_sleep`，代码生成的主辅候选无法归入专用类型时使用 `group_cluster`。单场景容量为 300 件家具对象，单 patch 100 条命令。离线通过不代表全屋已验收：当前还缺卧室、厨房、卫浴、书房等全屋家具参考和真实 V4 零校正任务。
 
+`npm run test:full-home:references` 验证开发图和参考哈希。`npm run test:full-home:v4-replay -- --diagnose` 执行零模型阶段诊断并写出报告；当前报告为 blocked，原因是固定墙体/洞口覆盖不足和家具对象候选过生成。该命令不会调用 Qwen 或 DeepSeek，也不得把诊断报告写成真实识别通过。
+
 `/api/floorplan-images` 是独立图片命名空间，不能用 GLB 上传接口代替。`POST` 使用单文件 multipart；返回稳定原图身份、原始 SHA-256、处理图 SHA-256、EXIF 后尺寸、归一化变换及像素线候选。`GET /:image/file` 读处理 PNG，`?variant=original` 读原始文件。裁剪入口为 `POST /:image/crops`，请求 `{"box":[x0,y0,x1,y1]}`；返回文件路径、校验值和 `cropToPixel`。小裁剪有限放大，坐标始终按显式变换映回原图；每任务最多四次裁剪尝试。
 
 项目下 `/api/projects/:id/floorplan-drafts`：

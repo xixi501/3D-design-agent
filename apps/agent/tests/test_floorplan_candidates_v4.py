@@ -364,6 +364,9 @@ def test_v4_geometry_only_policy_removes_legacy_category_guesses():
         policy_version="geometry-only",
     )
     assert graph["objectCandidates"]
+    assert len(graph["objectCandidates"]) <= 300
+    assert all(item["selectable"] for item in graph["objectCandidates"])
+    assert graph["suppressedObjectCandidateCount"] > 0
     assert all(not item["categoryHints"] for item in graph["objectCandidates"])
     assert all(
         not {

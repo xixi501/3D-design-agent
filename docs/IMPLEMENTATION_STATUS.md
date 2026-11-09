@@ -118,6 +118,14 @@ A separate four-image candidate pool now covers one modern colored two-bedroom p
 
 The reviewed reference batch passes Node `47`, Python `139` and typecheck. Detailed hashes and the two overlay artifacts are recorded in [full-home reference review](evidence/full-home-reference-review-20261109.json). This is still a development-reference gate, not an independent-review or real-model result.
 
+The first zero-model V4 replay is now implemented and has been executed against both reviewed references. It separated raw contour evidence from the model-facing object list and enforced the 300-selectable-object limit without changing V3. The result is **blocked**:
+
+- `2bhk-bungalow`: wall coverage recall `0.6556`; opening coverage recall `0`; 280 selectable object candidates, only 1 matched reference geometry, furniture geometry precision/recall `0.0036/0.0476`.
+- `oak-ridge-c`: wall coverage recall `0.0224`; opening coverage recall `0`; 139 selectable object candidates, 0 matched, furniture geometry precision/recall `0/0`.
+- Room-label semantics, category classification, rotation and activity-group completeness remain unmeasured because this replay calls no model.
+
+The failure is in the fixed candidate layer, not DeepSeek or Qwen. The next work must improve wall/opening availability and collapse the furniture candidate graph before any real V4 run. No live task, draft, candidate or project write was started. Evidence is in [V4 zero-model blocked replay](evidence/full-home-v4-replay-blocked-20261109.json).
+
 ## Remaining scope
 
 S2-A provides local multi-agent editing. S2-B adds initial rectangular-room generation and the first real Skill. S2-C adds two frozen floorplan-image cases with two fully passing real runs each. Nonrectangular/multiroom text generation and cabinet/kitchen/free-form recipe conversation editing remain later; existing manual editing is retained.

@@ -43,14 +43,14 @@ InputBundle
 
 ## 草稿 API
 
-| 方法与路径 | 作用 |
-| --- | --- |
-| `GET /api/projects/:id/scene-drafts` | 列出草稿摘要 |
-| `POST /api/projects/:id/scene-drafts` | 创建绑定项目 revision 的草稿 |
-| `GET /api/projects/:id/scene-drafts/:draft` | 读取当前草稿 |
-| `GET /api/projects/:id/scene-drafts/:draft/revisions` | 读取 revision/hash 链 |
-| `POST /api/projects/:id/scene-drafts/:draft/patches` | 以 requestId、`draftRevision` 和命令更新草稿 |
-| `POST /api/projects/:id/scene-drafts/:draft/preview` | 只读校验、未解析项和预算状态 |
+| 方法与路径                                            | 作用                                         |
+| ----------------------------------------------------- | -------------------------------------------- |
+| `GET /api/projects/:id/scene-drafts`                  | 列出草稿摘要                                 |
+| `POST /api/projects/:id/scene-drafts`                 | 创建绑定项目 revision 的草稿                 |
+| `GET /api/projects/:id/scene-drafts/:draft`           | 读取当前草稿                                 |
+| `GET /api/projects/:id/scene-drafts/:draft/revisions` | 读取 revision/hash 链                        |
+| `POST /api/projects/:id/scene-drafts/:draft/patches`  | 以 requestId、`draftRevision` 和命令更新草稿 |
+| `POST /api/projects/:id/scene-drafts/:draft/preview`  | 只读校验、未解析项和预算状态                 |
 
 草稿更新从不修改正式项目。旧户型草稿 API 保持兼容。
 
@@ -59,6 +59,8 @@ InputBundle
 全屋 V4 开发批次已把户型图识别切到独立版本：新任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-floorplan-v4`、Skill `0.7.0` 和 `s2c-6` 评分。房间约束由 `floorplanScope` 决定，代码在房间归并后重新计算全部或指定功能区的目标房间；V4 家具候选使用 `geometry-only`，只输出轮廓、嵌套、邻接、包含和房间归属，类别由 Qwen 视觉角色判断。家具对象上限提升为 300，单 patch 仍为 100 条命令。
 
 这不等同于全屋验收。两张现有图仍缺少卧室、厨房、卫浴、书房等全屋家具参考；V4 目前只完成契约、候选策略、版本隔离、容量和离线测试，执行结果见 [V4 contract evidence](evidence/floorplan-v4-contract-20261109.json)。必须补齐真实全屋参考并通过同图真实零校正运行后，才能对外声明“全屋家具复现已支持”。
+
+两张开发参考已经存在，但首个零模型 V4 回放被阻断：固定墙体与洞口候选的覆盖不足，家具对象图过生成，2BHK 的 280 个可选对象只匹配 1 个参考，Oak Ridge C 的 139 个对象匹配 0 个。详见 [blocked replay evidence](evidence/full-home-v4-replay-blocked-20261109.json)。因此当前禁止启动真实 V4 模型任务，下一步只能先修 fixed candidate layer。
 
 ## 预算与容量
 

@@ -1545,9 +1545,13 @@ def contour_candidates(
                 }
             )
     candidates = _dedupe_candidates(candidates)
-    candidate_limit = 300 if geometry_only else 80
-    if len(candidates) > candidate_limit:
-        raise ValueError(f"家具原始轮廓候选超过 {candidate_limit} 个上限")
+    # Raw contours include furniture parts and text strokes. The contract limits
+    # stable object candidates, not their unbounded intermediate evidence.
+    raw_contour_limit = 3000 if geometry_only else 80
+    if len(candidates) > raw_contour_limit:
+        raise ValueError(
+            f"家具原始轮廓候选 {len(candidates)} 个，超过 {raw_contour_limit} 个上限"
+        )
     for candidate in candidates:
         x, y, width, height = candidate["bbox"]
         cx, cy = x + width / 2, y + height / 2
@@ -1597,8 +1601,42 @@ def contour_candidates(
         target_bbox,
         policy_version=policy_version,
     )
+    if geometry_only:
+        all_objects = graph["objectCandidates"]
+        selectable_objects = [
+            candidate for candidate in all_objects if candidate.get("selectable")
+        ]
+        selectable_ids = {
+            candidate["objectCandidateId"] for candidate in selectable_objects
+        }
+        for candidate in selectable_objects:
+            candidate["containsObjectCandidateIds"] = [
+                object_id
+                for object_id in candidate.get("containsObjectCandidateIds") or []
+                if object_id in selectable_ids
+            ]
+            candidate["containedByObjectCandidateIds"] = [
+                object_id
+                for object_id in candidate.get("containedByObjectCandidateIds") or []
+                if object_id in selectable_ids
+            ]
+        graph["suppressedObjectCandidateCount"] = len(all_objects) - len(
+            selectable_objects
+        )
+        graph["objectCandidates"] = selectable_objects
+        graph["activityGroupCandidates"] = [
+            group
+            for group in graph["activityGroupCandidates"]
+            if {
+                *group.get("primaryObjectCandidateIds", []),
+                *group.get("satelliteObjectCandidateIds", []),
+            }
+            <= selectable_ids
+        ]
     if len(graph["objectCandidates"]) > 300:
-        raise ValueError("家具对象候选超过 300 个上限")
+        raise ValueError(
+            f"可分类家具对象候选 {len(graph['objectCandidates'])} 个，超过 300 个上限"
+        )
     selectable_objects = [
         candidate for candidate in graph["objectCandidates"] if candidate.get("selectable")
     ]

@@ -58,11 +58,11 @@ def runtime_versions():
         "modelConfigVersion": "per-role-output-budget-3",
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
         "floorplanReviewOptions": FLOORPLAN_REVIEW_OPTIONS,
-        "floorplanPromptVersion": "s2c-floorplan-v3-6-1",
+        "floorplanPromptVersion": "s2c-floorplan-v4",
         "floorplanToolAdapter": "hpd-adapter-6-1",
-        "floorplanVisionConfigVersion": "vision-furniture-1",
+        "floorplanVisionConfigVersion": "vision-furniture-2",
         "floorplanActivityUnitVersion": "activity-unit-1",
-        "floorplanScoringVersion": "s2c-5",
+        "floorplanScoringVersion": "s2c-6",
         "floorplanVision": {
             key: vision_model_settings()[key]
             for key in ("provider", "model", "base_url", "max_tokens", "timeout")

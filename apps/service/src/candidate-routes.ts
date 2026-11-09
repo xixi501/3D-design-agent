@@ -98,7 +98,7 @@ export function candidateRoutes(
             },
             matches: {
               type: "array",
-              maxItems: 50,
+              maxItems: 300,
               items: {
                 type: "object",
                 additionalProperties: false,
@@ -114,12 +114,12 @@ export function candidateRoutes(
             edits: {
               type: "array",
               minItems: 0,
-              maxItems: 50,
+              maxItems: 100,
               items: { type: "object", additionalProperties: true },
             },
             activityGroups: {
               type: "array",
-              maxItems: 20,
+              maxItems: 100,
               items: {
                 type: "object",
                 additionalProperties: false,

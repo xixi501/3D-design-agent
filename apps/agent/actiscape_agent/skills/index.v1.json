@@ -47,7 +47,7 @@
     },
     {
       "id": "floorplan-reconstruction",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "kind": "floorplan",
       "status": "verified",
       "activation": "active"

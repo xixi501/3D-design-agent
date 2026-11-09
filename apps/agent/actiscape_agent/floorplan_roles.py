@@ -80,6 +80,22 @@ FLOORPLAN_ASSET_FAMILIES = {
     "sofa": ("sofa", "modularSofa"),
     "bookshelf": ("bookshelf", "bookshelfLow", "cabTall"),
     "plant": ("plant", "bigPlant", "smallPlant"),
+    "bed": ("bed12", "bed15", "bed18", "bed20", "kingBed", "kidsBed"),
+    "crib": ("crib",),
+    "nightstand": ("nightstand",),
+    "wardrobe": ("wardrobe", "wardrobe2", "wardrobe3", "cabWardrobe"),
+    "kitchenUnit": ("counter", "lCounter", "uCounter"),
+    "island": ("kitchenIsland", "island"),
+    "fridge": ("fridge", "fridgeDouble", "fridgeFrench"),
+    "washer": ("washer",),
+    "dryer": ("dryer",),
+    "toilet": ("toilet", "wallToilet", "squatToilet"),
+    "vanity": ("vanity", "doubleVanity", "pedestalSink"),
+    "shower": ("shower", "showerScreen", "showerSet"),
+    "bathtub": ("bathtub", "freeTub"),
+    "bench": ("entryBench", "shoeBench", "bedBench", "diningBench"),
+    "lamp": ("deskLamp", "chandelier"),
+    "art": ("wallArt", "wallArt3", "wallClock"),
 }
 
 

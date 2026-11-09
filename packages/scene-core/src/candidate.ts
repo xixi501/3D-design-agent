@@ -88,11 +88,11 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     const values = s[name];
     if (
       !Array.isArray(values) ||
-      values.length > 100 ||
+      values.length > 300 ||
       values.some((x) => typeof x !== "string") ||
       new Set(values).size !== values.length
     )
-      fail(`${name} 需要最多 100 个不重复身份`);
+      fail(`${name} 需要最多 300 个不重复身份`);
   }
   if (
     s.targetIds.some((id) => !ids.has(id)) ||
@@ -111,7 +111,7 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
       )
         fail("字段授权超出家具基础参数范围");
   }
-  if (!Array.isArray(s.requirements) || s.requirements.length > 30)
+  if (!Array.isArray(s.requirements) || s.requirements.length > 100)
     fail("数量要求无效");
   for (const r of s.requirements) {
     keys(r, ["key", "count", "scope"]);
@@ -119,7 +119,7 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
       !Object.hasOwn(catalog, r.key) ||
       !Number.isInteger(r.count) ||
       r.count < 0 ||
-      r.count > 100 ||
+      r.count > 300 ||
       !["project", "targets"].includes(r.scope)
     )
       fail("数量要求需要有效目录类型、范围与整数数量");
@@ -153,8 +153,8 @@ export function materializeEdits(
   scope: EditScope,
   edits: CandidateEdit[],
 ): Command[] {
-  if (!Array.isArray(edits) || !edits.length || edits.length > 50)
-    fail("候选需要 1–50 条编辑");
+  if (!Array.isArray(edits) || !edits.length || edits.length > 100)
+    fail("候选需要 1–100 条编辑");
   let working = clone(state);
   const commands: Command[] = [];
   for (const edit of edits) {

@@ -101,8 +101,8 @@ class ActivityGroupProposal(StrictModel):
 
 class Proposal(StrictModel):
     summary: str = Field(max_length=200)
-    edits: list[Edit] = Field(min_length=1, max_length=50)
-    activityGroups: list[ActivityGroupProposal] = Field(default_factory=list, max_length=20)
+    edits: list[Edit] = Field(min_length=1, max_length=100)
+    activityGroups: list[ActivityGroupProposal] = Field(default_factory=list, max_length=100)
 
 
 class ReviewIssue(StrictModel):
@@ -116,12 +116,38 @@ class Review(StrictModel):
     issues: list[ReviewIssue]
 
 
+FloorplanFunctionalArea = Literal[
+    "living",
+    "dining",
+    "kitchen",
+    "bedroom",
+    "bathroom",
+    "entry",
+    "balcony",
+    "storage",
+    "circulation",
+    "study",
+    "utility",
+    "multipurpose",
+    "other",
+]
+
+
+class FloorplanScope(StrictModel):
+    roomSelection: Literal["all_visible", "functional_areas"] = "all_visible"
+    functionalAreas: list[FloorplanFunctionalArea] = Field(default_factory=list, max_length=13)
+    excludeFunctionalAreas: list[FloorplanFunctionalArea] = Field(
+        default_factory=list, max_length=13
+    )
+
+
 class TaskInput(StrictModel):
     requestId: str = Field(min_length=1, max_length=200)
     input: str = Field(min_length=1, max_length=4000)
     selectedIds: list[str] = Field(default_factory=list, max_length=20)
     mode: Literal["edit", "generate_rectangular", "reconstruct_floorplan"] = "edit"
     imageId: str | None = Field(default=None, min_length=1, max_length=200)
+    floorplanScope: FloorplanScope | None = None
 
 
 class ResumeInput(StrictModel):

@@ -62,12 +62,28 @@ export interface ImageOpening {
   side?: number;
   hinge?: number;
 }
+export const imageFunctionalAreas = [
+  "living",
+  "dining",
+  "kitchen",
+  "bedroom",
+  "bathroom",
+  "entry",
+  "balcony",
+  "storage",
+  "circulation",
+  "study",
+  "utility",
+  "multipurpose",
+  "other",
+] as const;
+export type ImageFunctionalArea = (typeof imageFunctionalAreas)[number];
 export interface ImageRoom {
   id: string;
   at: Point;
   name: string;
-  functionalArea?:
-    "living" | "dining" | "kitchen" | "bedroom" | "bathroom" | "other";
+  functionalArea?: ImageFunctionalArea;
+  roomType?: string;
 }
 export const imageCategoryCodes = [
   "sofa",
@@ -85,6 +101,22 @@ export const imageCategoryCodes = [
   "rug",
   "floorLamp",
   "decor",
+  "bench",
+  "bed",
+  "crib",
+  "nightstand",
+  "wardrobe",
+  "kitchenUnit",
+  "island",
+  "fridge",
+  "washer",
+  "dryer",
+  "toilet",
+  "vanity",
+  "shower",
+  "bathtub",
+  "lamp",
+  "art",
   "other",
 ] as const;
 export type ImageCategoryCode = (typeof imageCategoryCodes)[number];
@@ -93,11 +125,13 @@ export type ActivityUnitType =
   | "direct_access"
   | "seated_work"
   | "group_seated"
+  | "group_sleep"
+  | "group_cluster"
   | "standalone";
 export type ActivityRole =
   "primary" | "satellite" | "floorCovering" | "accessory";
 export interface ImageSymbol {
-  functionalArea?: "living" | "dining" | "kitchen" | "other";
+  functionalArea?: ImageFunctionalArea;
   included?: boolean;
   exclusionReason?: string;
   evidenceRefs?: string[];
@@ -137,7 +171,8 @@ export type UncertaintyCode =
   | "FURNITURE_AMBIGUITY"
   | "OTHER";
 export interface FloorplanData {
-  recognitionVersion?: 3;
+  recognitionVersion?: 3 | 4;
+  candidatePolicyVersion?: "legacy-room-semantics" | "geometry-only";
   measurementVersion?: 1 | 2;
   features?: MeasurementFeature[];
   dimensions?: MeasurementDimension[];
@@ -216,6 +251,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       "image",
       "name",
       "recognitionVersion",
+      "candidatePolicyVersion",
       "height",
       "wallThickness",
       "anchors",
@@ -234,8 +270,23 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     "draft",
   );
   object(data.image, ["id", "sha256", "width", "height"], "image");
-  if (data.recognitionVersion !== undefined && data.recognitionVersion !== 3)
+  if (
+    data.recognitionVersion !== undefined &&
+    ![3, 4].includes(data.recognitionVersion)
+  )
     invalid("不支持的识别版本", "recognitionVersion");
+  if (
+    data.candidatePolicyVersion !== undefined &&
+    !["legacy-room-semantics", "geometry-only"].includes(
+      data.candidatePolicyVersion,
+    )
+  )
+    invalid("未知候选语义策略", "candidatePolicyVersion");
+  if (
+    data.recognitionVersion === 4 &&
+    data.candidatePolicyVersion !== "geometry-only"
+  )
+    invalid("V4 必须使用 geometry-only 候选语义策略", "candidatePolicyVersion");
   text(data.image.id, "image.id");
   if (!/^[a-f0-9]{64}$/.test(data.image.sha256))
     invalid("图片校验值无效", "image.sha256");
@@ -262,7 +313,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     ["walls", 150],
     ["openings", 100],
     ["rooms", 60],
-    ["symbols", 100],
+    ["symbols", 300],
     ["uncertainties", 100],
   ] as const) {
     if (!Array.isArray(data[field]) || data[field].length > max)
@@ -410,14 +461,21 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       invalid("门铰方向无效", o.id + ".hinge");
   }
   for (const r of data.rooms) {
-    object(r, ["id", "at", "name", "functionalArea"], "rooms." + r.id);
+    object(
+      r,
+      ["id", "at", "name", "functionalArea", "roomType"],
+      "rooms." + r.id,
+    );
     point(r.at, r.id + ".at");
     text(r.name, r.id + ".name", 100);
+    if (r.roomType !== undefined) {
+      text(r.roomType, r.id + ".roomType", 64);
+      if (!/^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(r.roomType))
+        invalid("房间类型 ID 无效", r.id + ".roomType");
+    }
     if (
       r.functionalArea !== undefined &&
-      !["living", "dining", "kitchen", "bedroom", "bathroom", "other"].includes(
-        r.functionalArea,
-      )
+      !imageFunctionalAreas.includes(r.functionalArea)
     )
       invalid("未知房间功能区", r.id + ".functionalArea");
   }
@@ -465,7 +523,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     )
       invalid("未知活动组角色", f.id + ".activityRole");
     if (
-      data.recognitionVersion === 3 &&
+      (data.recognitionVersion === 3 || data.recognitionVersion === 4) &&
       (!f.categoryCode || !f.sourceLabel || f.category !== f.categoryCode)
     )
       invalid(
@@ -478,7 +536,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     number(f.rot, f.id + ".rot", -360, 360);
     if (
       f.functionalArea !== undefined &&
-      !["living", "dining", "kitchen", "other"].includes(f.functionalArea)
+      !imageFunctionalAreas.includes(f.functionalArea)
     )
       invalid("未知家具功能区", f.id);
     if (f.included !== undefined && typeof f.included !== "boolean")
@@ -495,7 +553,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
   }
   const activityGroupIds = new Set<string>();
   if (data.activityGroups !== undefined) {
-    if (!Array.isArray(data.activityGroups) || data.activityGroups.length > 50)
+    if (!Array.isArray(data.activityGroups) || data.activityGroups.length > 300)
       invalid("活动组数量无效", "activityGroups");
     const symbolMap = new Map(
       data.symbols.map((symbol) => [symbol.id, symbol]),
@@ -524,6 +582,8 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
           "direct_access",
           "seated_work",
           "group_seated",
+          "group_sleep",
+          "group_cluster",
           "standalone",
         ].includes(group.type)
       )
@@ -601,6 +661,19 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
       )
         invalid("工作活动组的类别角色无效", `activityGroups.${index}`);
       if (
+        group.type === "group_sleep" &&
+        (!["bed", "crib"].includes(
+          symbolMap.get(group.primarySymbolId)?.categoryCode || "",
+        ) ||
+          group.memberSymbolIds.length < 2)
+      )
+        invalid(
+          "睡眠活动组需要床和至少一个附属对象",
+          `activityGroups.${index}`,
+        );
+      if (group.type === "group_cluster" && group.memberSymbolIds.length < 2)
+        invalid("组合活动组至少需要两个对象", `activityGroups.${index}`);
+      if (
         ["direct_occupancy", "direct_access", "standalone"].includes(
           group.type,
         ) &&
@@ -626,7 +699,7 @@ export function validateFloorplan(data: FloorplanData): FloorplanData {
     data.targetRoomIds.some((id) => !rooms.has(id)) ||
     new Set(data.targetRoomIds).size !== data.targetRoomIds.length
   )
-    invalid("目标客餐厅房间身份无效", "targetRoomIds");
+    invalid("目标房间身份无效", "targetRoomIds");
   for (const u of data.uncertainties) {
     object(
       u,
@@ -951,6 +1024,8 @@ export function compileFloorplan(
       name: r.name,
       mat: "oak",
       ceil: { type: "none" },
+      ...(r.roomType ? { roomType: r.roomType } : {}),
+      ...(r.functionalArea ? { functionalArea: r.functionalArea } : {}),
     });
   const regions = detectRooms(plan).regions;
   for (const r of plan.rooms)
@@ -971,7 +1046,7 @@ export function compileFloorplan(
       "rooms",
     );
   if (data.targetRoomIds.length === 0)
-    invalid("请选择需要复现家具的客厅和餐厅", "targetRoomIds");
+    invalid("请选择需要复现家具的房间", "targetRoomIds");
   const targetRoomIds = data.targetRoomIds.map((id) => `${seed}:r:${id}`);
   const symbols = data.symbols
     .filter(
@@ -985,8 +1060,8 @@ export function compileFloorplan(
       objectId: `${seed}:f:${s.id}`,
     }));
   if (!symbols.length)
-    invalid("目标客餐厅需要原图家具清单，请补齐或选择正确房间", "symbols");
-  if (symbols.length > 50) invalid("目标家具超过单事务 50 件上限", "symbols");
+    invalid("目标房间需要原图家具清单，请补齐或选择正确房间", "symbols");
+  if (symbols.length > 300) invalid("目标家具超过单事务 300 件上限", "symbols");
   const objectBySymbol = Object.fromEntries(
     symbols.map((symbol) => [symbol.id, symbol.objectId]),
   );
@@ -1016,6 +1091,9 @@ export function compileFloorplan(
     origin,
     ...binding,
     symbolObjects: objectBySymbol,
+    objectRooms: Object.fromEntries(
+      symbols.map((symbol) => [symbol.objectId, `${seed}:r:${symbol.roomId}`]),
+    ),
     ...(data.activityGroups?.length
       ? {
           activityGroups: data.activityGroups.map((group) => ({
@@ -1035,6 +1113,12 @@ export function compileFloorplan(
         }
       : {}),
     targetRoomIds,
+    ...(data.recognitionVersion
+      ? { recognitionVersion: data.recognitionVersion }
+      : {}),
+    ...(data.candidatePolicyVersion
+      ? { candidatePolicyVersion: data.candidatePolicyVersion }
+      : {}),
   };
   plan.source = source;
   const state = normalizeState({ plan, roomLabelArchive: [] });
@@ -1155,7 +1239,7 @@ export function checkFloorplanInitialization(
   report.coverage = [
     ...shell.coverage,
     "已确认原图布局逐项一致",
-    "限定目标客餐厅",
+    data.recognitionVersion === 4 ? "覆盖全部目标房间" : "限定目标客餐厅",
     ...report.coverage,
   ];
   return report;

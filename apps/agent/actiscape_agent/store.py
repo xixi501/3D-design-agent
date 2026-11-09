@@ -243,9 +243,16 @@ class TaskStore:
                             {
                                 "imageId": body["imageId"],
                                 "phase": "recognizing",
-                                "workflowVersion": 3,
-                                "recognitionVersion": 3,
-                                "floorplanVersion": "s2c-floorplan-v3-6-1",
+                                "workflowVersion": 4,
+                                "recognitionVersion": 4,
+                                "floorplanVersion": "s2c-floorplan-v4",
+                                "candidatePolicyVersion": "geometry-only",
+                                "floorplanScope": body.get("floorplanScope")
+                                or {
+                                    "roomSelection": "all_visible",
+                                    "functionalAreas": [],
+                                    "excludeFunctionalAreas": [],
+                                },
                             }
                         ),
                         id,

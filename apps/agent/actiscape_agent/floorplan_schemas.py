@@ -21,6 +21,38 @@ CategoryCode = Literal[
     "rug",
     "floorLamp",
     "decor",
+    "bench",
+    "bed",
+    "crib",
+    "nightstand",
+    "wardrobe",
+    "kitchenUnit",
+    "island",
+    "fridge",
+    "washer",
+    "dryer",
+    "toilet",
+    "vanity",
+    "shower",
+    "bathtub",
+    "lamp",
+    "art",
+    "other",
+]
+
+FunctionalArea = Literal[
+    "living",
+    "dining",
+    "kitchen",
+    "bedroom",
+    "bathroom",
+    "entry",
+    "balcony",
+    "storage",
+    "circulation",
+    "study",
+    "utility",
+    "multipurpose",
     "other",
 ]
 
@@ -29,6 +61,8 @@ ActivityUnitType = Literal[
     "direct_access",
     "seated_work",
     "group_seated",
+    "group_sleep",
+    "group_cluster",
     "standalone",
 ]
 ActivityRole = Literal["primary", "satellite", "floorCovering", "accessory"]
@@ -70,13 +104,17 @@ class ImageRoom(StrictModel):
     id: str
     at: PixelPoint
     name: str
-    functionalArea: (
-        Literal["living", "dining", "kitchen", "bedroom", "bathroom", "other"] | None
-    ) = None
+    functionalArea: FunctionalArea | None = None
+    roomType: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9]+(?:_[a-z0-9]+)*$",
+    )
 
 
 class ImageSymbol(StrictModel):
-    functionalArea: Literal["living", "dining", "kitchen", "other"] | None = None
+    functionalArea: FunctionalArea | None = None
     included: bool | None = None
     exclusionReason: str | None = None
     evidenceRefs: list[str] | None = None
@@ -142,8 +180,8 @@ class FloorplanRecognition(StrictModel):
     walls: list[ImageWall] = Field(default_factory=list, max_length=150)
     openings: list[ImageOpening] = Field(default_factory=list, max_length=100)
     rooms: list[ImageRoom] = Field(default_factory=list, max_length=60)
-    symbols: list[ImageSymbol] = Field(default_factory=list, max_length=100)
-    activityGroups: list[ActivityGroup] = Field(default_factory=list, max_length=50)
+    symbols: list[ImageSymbol] = Field(default_factory=list, max_length=300)
+    activityGroups: list[ActivityGroup] = Field(default_factory=list, max_length=300)
     targetRoomIds: list[str] = Field(default_factory=list, max_length=60)
     uncertainties: list[Uncertainty] = Field(default_factory=list, max_length=100)
 
@@ -206,7 +244,7 @@ class FurnitureSymbol(StrictModel):
     roomId: str
     categoryCode: CategoryCode
     sourceLabel: str = Field(min_length=1, max_length=100)
-    functionalArea: Literal["living", "dining", "kitchen", "other"] | None = None
+    functionalArea: FunctionalArea | None = None
     included: bool | None = None
     exclusionReason: str | None = None
     evidenceRefs: list[str] = Field(min_length=1, max_length=20)
@@ -220,7 +258,7 @@ class FurnitureSymbol(StrictModel):
 class FurnitureRecognition(StrictModel):
     status: Literal["draft", "unsupported"]
     question: str = ""
-    symbols: list[FurnitureSymbol] = Field(default_factory=list, max_length=100)
+    symbols: list[FurnitureSymbol] = Field(default_factory=list, max_length=300)
 
 
 class FurnitureContourSelection(StrictModel):
@@ -228,7 +266,7 @@ class FurnitureContourSelection(StrictModel):
     roomId: str
     categoryCode: CategoryCode
     sourceLabel: str = Field(min_length=1, max_length=100)
-    functionalArea: Literal["living", "dining", "kitchen", "other"] | None = None
+    functionalArea: FunctionalArea | None = None
     included: bool | None = None
     exclusionReason: str | None = None
     contourCandidateIds: list[str] = Field(min_length=1, max_length=20)
@@ -238,7 +276,7 @@ class FurnitureContourSelection(StrictModel):
 class FurnitureContourRecognition(StrictModel):
     status: Literal["draft", "unsupported"]
     question: str = ""
-    symbols: list[FurnitureContourSelection] = Field(default_factory=list, max_length=100)
+    symbols: list[FurnitureContourSelection] = Field(default_factory=list, max_length=300)
 
 
 class FurnitureObjectSelection(StrictModel):
@@ -246,7 +284,7 @@ class FurnitureObjectSelection(StrictModel):
     roomId: str
     categoryCode: CategoryCode
     sourceLabel: str = Field(min_length=1, max_length=100)
-    functionalArea: Literal["living", "dining", "kitchen", "other"] | None = None
+    functionalArea: FunctionalArea | None = None
     included: bool | None = None
     exclusionReason: str | None = None
     objectCandidateId: str
@@ -260,7 +298,7 @@ class FurnitureActivityGroupSelection(StrictModel):
     primarySymbolId: str
     memberSymbolIds: list[str] = Field(min_length=1, max_length=50)
     roles: dict[str, ActivityRole] = Field(default_factory=dict)
-    excludedObjectCandidateIds: list[str] = Field(default_factory=list, max_length=50)
+    excludedObjectCandidateIds: list[str] = Field(default_factory=list, max_length=300)
     exclusionReasons: dict[str, str] = Field(default_factory=dict)
 
 
@@ -272,12 +310,12 @@ class FurnitureObjectExclusion(StrictModel):
 class FurnitureActivityRecognition(StrictModel):
     status: Literal["draft", "unsupported"]
     question: str = ""
-    symbols: list[FurnitureObjectSelection] = Field(default_factory=list, max_length=100)
+    symbols: list[FurnitureObjectSelection] = Field(default_factory=list, max_length=300)
     activityGroups: list[FurnitureActivityGroupSelection] = Field(
-        default_factory=list, max_length=50
+        default_factory=list, max_length=300
     )
     excludedObjectCandidates: list[FurnitureObjectExclusion] = Field(
-        default_factory=list, max_length=100
+        default_factory=list, max_length=300
     )
 
 
@@ -320,7 +358,7 @@ def floorplan_recognition_schema(width: int, height: int):
         )
 
     class PixelFloorplanRecognition(FloorplanRecognition):
-        symbols: list[PixelSymbol] = Field(default_factory=list, max_length=100)
+        symbols: list[PixelSymbol] = Field(default_factory=list, max_length=300)
 
     return PixelFloorplanRecognition
 
@@ -337,7 +375,7 @@ class SymbolMatch(StrictModel):
 
 class ReconstructionProposal(StrictModel):
     summary: str = Field(max_length=200)
-    matches: list[SymbolMatch] = Field(min_length=1, max_length=50)
+    matches: list[SymbolMatch] = Field(min_length=1, max_length=300)
 
 
 class MeasurementFeature(StrictModel):
@@ -376,6 +414,12 @@ class RecognitionV2(FloorplanRecognition):
 
 class RecognitionV3(RecognitionV2):
     recognitionVersion: Literal[3] = 3
+    dimensionObservations: list[DimensionObservation] = Field(default_factory=list, max_length=20)
+
+
+class RecognitionV4(RecognitionV2):
+    recognitionVersion: Literal[4] = 4
+    candidatePolicyVersion: Literal["geometry-only"] = "geometry-only"
     dimensionObservations: list[DimensionObservation] = Field(default_factory=list, max_length=20)
 
 

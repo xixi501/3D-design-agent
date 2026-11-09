@@ -229,7 +229,7 @@ export class CandidateStore {
         ) {
           if (
             !Array.isArray(request.activityGroups) ||
-            request.activityGroups.length > 20
+            request.activityGroups.length > 100
           )
             throw new SceneError("INVALID_REQUEST", "活动组元数据无效");
           const furniture = new Set(

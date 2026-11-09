@@ -139,7 +139,11 @@ def completion_result(task: dict, state: dict, candidate: dict, revision: int):
             structure=candidate["structure"],
             focusIds=conversation_focus(candidate),
         )
-        result["message"] += " 整层结构及客餐厅原图布局已保留，可继续选择家具进行局部编辑。"
+        result["message"] += (
+            " 整层结构及全屋原图家具布局已保留，可继续选择家具进行局部编辑。"
+            if task["generation"].get("workflowVersion") == 4
+            else " 整层结构及客餐厅原图布局已保留，可继续选择家具进行局部编辑。"
+        )
     if candidate.get("kind") == "initialize":
         g = task.get("generation", {})
         result.update(

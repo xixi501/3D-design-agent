@@ -335,7 +335,14 @@ def process(payload):
             spec = args.get("spec", args)
             if not isinstance(spec, dict):
                 raise ValueError("家具轮廓候选缺少草稿")
-            result = contour_candidates(image, spec)
+            policy_version = args.get("policyVersion", "legacy-room-semantics")
+            if policy_version not in ("legacy-room-semantics", "geometry-only"):
+                raise ValueError("未知家具候选语义策略")
+            result = contour_candidates(
+                image,
+                spec,
+                policy_version=policy_version,
+            )
             result["overlay"].save(out / "contours.png")
             result["targetOverlay"].save(out / "target_contours.png")
             result["objectOverlay"].save(out / "objects.png")

@@ -339,3 +339,41 @@ def test_v36_reference_hash_is_frozen():
 
     manifest = json.loads(MANIFEST.read_text())
     assert hashlib.sha256(REFERENCE.read_bytes()).hexdigest() == manifest["referenceSha256"]
+
+
+@pytest.mark.skipif(
+    not IMAGE.exists() or not CAPTURE.exists(),
+    reason="frozen 92 image or captured source analysis is unavailable",
+)
+def test_v4_geometry_only_policy_removes_legacy_category_guesses():
+    reference = json.loads(REFERENCE.read_text())
+    candidate = structure_candidates_v4(
+        Image.open(IMAGE).convert("RGB"),
+        find_raw(json.loads(CAPTURE.read_text())),
+    )
+    candidate.pop("_mask")
+    draft = candidate_draft(candidate, reference)
+    draft.update(
+        recognitionVersion=4,
+        candidatePolicyVersion="geometry-only",
+        targetRoomIds=[room["id"] for room in reference["rooms"]],
+    )
+    graph = contour_candidates(
+        Image.open(IMAGE).convert("RGB"),
+        draft,
+        policy_version="geometry-only",
+    )
+    assert graph["objectCandidates"]
+    assert all(not item["categoryHints"] for item in graph["objectCandidates"])
+    assert all(
+        not {
+            tag.get("tag") for tag in item.get("contextTags") or []
+        }.intersection({"fixed_run", "fixed_entry"})
+        for item in graph["objectCandidates"]
+    )
+    allowed_rooms = set(draft["targetRoomIds"])
+    assert all(
+        item.get("roomIds")
+        and set(item["roomIds"]).issubset(allowed_rooms)
+        for item in graph["objectCandidates"]
+    )

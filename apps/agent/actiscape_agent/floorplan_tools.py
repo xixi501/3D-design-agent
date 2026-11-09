@@ -55,7 +55,8 @@ class FloorplanToolset:
         )
         adapter = (
             "hpd-adapter-6-1"
-            if floorplan_version == "s2c-floorplan-v3-6-1"
+            if floorplan_version
+            in ("s2c-floorplan-v3-6-1", "s2c-floorplan-v4")
             else "hpd-adapter-6"
             if floorplan_version == "s2c-floorplan-v3-6"
             else "hpd-adapter-5"
@@ -67,6 +68,8 @@ class FloorplanToolset:
             )
             else "hpd-adapter-4"
             if workflow_version == 3
+            else "hpd-adapter-6-1"
+            if workflow_version == 4
             else "hpd-adapter-3"
             if workflow_version == 2
             else "hpd-adapter-2"
@@ -105,7 +108,7 @@ class FloorplanToolset:
                 {"role": self.role, "tool": name, "record": record}
             )
             if (
-                generation.get("workflowVersion") in (2, 3)
+                generation.get("workflowVersion") in (2, 3, 4)
                 and record.get("id")
                 and not record.get("error")
             ):

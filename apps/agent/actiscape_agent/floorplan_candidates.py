@@ -925,7 +925,11 @@ def furniture_object_candidates(
     candidates: list[dict],
     image: Image.Image | None = None,
     target_bbox: list[int] | None = None,
+    policy_version: str = "legacy-room-semantics",
 ):
+    if policy_version not in ("legacy-room-semantics", "geometry-only"):
+        raise ValueError("未知家具候选语义策略")
+    legacy_semantics = policy_version == "legacy-room-semantics"
     contours = [dict(candidate) for candidate in candidates if candidate["shape"] == "contour"]
     by_id = {candidate["candidateId"]: candidate for candidate in contours}
     children = {candidate["candidateId"]: [] for candidate in contours}
@@ -955,10 +959,18 @@ def furniture_object_candidates(
 
     def append_object(members, kind):
         bbox = _union_bbox(members)
+        room_ids = sorted(
+            {
+                room_id
+                for member in members
+                for room_id in (member.get("roomIds") or [])
+            }
+        )
         objects.append(
             {
                 "bbox": bbox,
                 "kind": kind,
+                "roomIds": room_ids,
                 "contourCandidateIds": sorted(
                     {
                         candidate_id
@@ -998,6 +1010,13 @@ def furniture_object_candidates(
                 {
                     "bbox": quad["bbox"],
                     "kind": quad["kind"],
+                    "roomIds": sorted(
+                        {
+                            room_id
+                            for member in [candidate, *quad["satellites"]]
+                            for room_id in (member.get("roomIds") or [])
+                        }
+                    ),
                     "contourCandidateIds": sorted(quad["contourCandidateIds"]),
                 }
             )
@@ -1081,6 +1100,7 @@ def furniture_object_candidates(
             {
                 "bbox": _tight_long_group_bbox(group, image),
                 "kind": "composite",
+                "roomIds": list(group.get("roomIds") or []),
                 "contourCandidateIds": [group["candidateId"]],
                 "sourceGroupId": group["candidateId"],
                 "fillRatio": round(area / max(1, width * height), 4),
@@ -1143,17 +1163,21 @@ def furniture_object_candidates(
                 candidate["categoryHints"].append("diningTable")
             if satellite_ids.intersection(candidate["contourCandidateIds"]):
                 candidate["categoryHints"].append("chair")
-    fixed_runs = [
-        candidate
-        for candidate in candidates
-        if candidate.get("shape") == "group"
-        and candidate["candidateId"] not in used_group_ids
-        and max(
-            candidate["bbox"][2] / max(1, candidate["bbox"][3]),
-            candidate["bbox"][3] / max(1, candidate["bbox"][2]),
-        )
-        >= 3
-    ]
+    fixed_runs = (
+        [
+            candidate
+            for candidate in candidates
+            if candidate.get("shape") == "group"
+            and candidate["candidateId"] not in used_group_ids
+            and max(
+                candidate["bbox"][2] / max(1, candidate["bbox"][3]),
+                candidate["bbox"][3] / max(1, candidate["bbox"][2]),
+            )
+            >= 3
+        ]
+        if legacy_semantics
+        else []
+    )
     for candidate in objects:
         x, y = candidate["center"]["x"], candidate["center"]["y"]
         for run in fixed_runs:
@@ -1170,7 +1194,7 @@ def furniture_object_candidates(
             tag.get("tag") == "fixed_run" for tag in candidate["contextTags"]
         )
         width, depth = candidate["bbox"][2], candidate["bbox"][3]
-        if target_bbox:
+        if target_bbox and legacy_semantics:
             x0, y0, x1, y1 = target_bbox
             if (
                 candidate["center"]["x"] <= x0 + (x1 - x0) * 0.25
@@ -1256,6 +1280,15 @@ def furniture_object_candidates(
             ):
                 candidate["containsObjectCandidateIds"].append(other["objectCandidateId"])
                 other["containedByObjectCandidateIds"].append(candidate["objectCandidateId"])
+    if not legacy_semantics:
+        for candidate in objects:
+            candidate["categoryHints"] = []
+            candidate["contextTags"] = [
+                tag
+                for tag in candidate.get("contextTags") or []
+                if tag.get("tag") not in ("fixed_run", "fixed_entry")
+            ]
+            candidate["selectable"] = bool(candidate["requiredForCoverage"])
     selectable_ids = {
         candidate["objectCandidateId"] for candidate in objects if candidate["selectable"]
     }
@@ -1274,6 +1307,9 @@ def furniture_object_candidates(
                 candidate["categoryHints"].append("rug")
                 child["categoryHints"].append("coffeeTable")
         candidate["categoryHints"] = list(dict.fromkeys(candidate["categoryHints"]))
+    if not legacy_semantics:
+        for candidate in objects:
+            candidate["categoryHints"] = []
     contour_object = {
         contour_id: candidate["objectCandidateId"]
         for candidate in objects
@@ -1451,7 +1487,14 @@ def _activity_group_overlay(
     return overlay
 
 
-def contour_candidates(image: Image.Image, spec: dict):
+def contour_candidates(
+    image: Image.Image,
+    spec: dict,
+    policy_version: str = "legacy-room-semantics",
+):
+    if policy_version not in ("legacy-room-semantics", "geometry-only"):
+        raise ValueError("未知家具候选语义策略")
+    geometry_only = policy_version == "geometry-only"
     rgb = np.asarray(image.convert("RGB"))
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
     regions = _room_region(gray, spec)
@@ -1467,7 +1510,8 @@ def contour_candidates(image: Image.Image, spec: dict):
     for contour in contours:
         x, y, width, height = cv2.boundingRect(contour)
         area = float(abs(cv2.contourArea(contour)))
-        if not (6 <= width <= 300 and 5 <= height <= 300 and area >= 12):
+        max_side = 600 if geometry_only else 300
+        if not (6 <= width <= max_side and 5 <= height <= max_side and area >= 12):
             continue
         if not _inside_region(region, x + width / 2, y + height / 2):
             continue
@@ -1486,7 +1530,8 @@ def contour_candidates(image: Image.Image, spec: dict):
         count, _labels, stats, _ = cv2.connectedComponentsWithStats(grouped, 8)
         for index in range(1, count):
             x, y, width, height, area = [int(value) for value in stats[index]]
-            if not (8 <= width <= 320 and 6 <= height <= 260 and area >= 40):
+            max_width, max_height = (600, 500) if geometry_only else (320, 260)
+            if not (8 <= width <= max_width and 6 <= height <= max_height and area >= 40):
                 continue
             if not _inside_region(region, x + width / 2, y + height / 2):
                 continue
@@ -1499,7 +1544,18 @@ def contour_candidates(image: Image.Image, spec: dict):
                     "shape": "group",
                 }
             )
-    candidates = _dedupe_candidates(candidates)[:80]
+    candidates = _dedupe_candidates(candidates)
+    candidate_limit = 300 if geometry_only else 80
+    if len(candidates) > candidate_limit:
+        raise ValueError(f"家具原始轮廓候选超过 {candidate_limit} 个上限")
+    for candidate in candidates:
+        x, y, width, height = candidate["bbox"]
+        cx, cy = x + width / 2, y + height / 2
+        candidate["roomIds"] = [
+            room_id
+            for room_id, mask in regions.items()
+            if _inside_region(mask, cx, cy)
+        ]
     overlay = image.convert("RGB").copy()
     draw = ImageDraw.Draw(overlay, "RGBA")
     font = _font(10)
@@ -1535,7 +1591,14 @@ def contour_candidates(image: Image.Image, spec: dict):
         int(xs.max() + 1),
         int(ys.max() + 1),
     ]
-    graph = furniture_object_candidates(candidates, image, target_bbox)
+    graph = furniture_object_candidates(
+        candidates,
+        image,
+        target_bbox,
+        policy_version=policy_version,
+    )
+    if len(graph["objectCandidates"]) > 300:
+        raise ValueError("家具对象候选超过 300 个上限")
     selectable_objects = [
         candidate for candidate in graph["objectCandidates"] if candidate.get("selectable")
     ]

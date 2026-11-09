@@ -474,7 +474,12 @@ def manager_factory(directory):
                         ),
                     )
                 else:
-                    g["floorplanVersion"] = "s2c-floorplan-v3-6-1"
+                    g.update(
+                        workflowVersion=3,
+                        recognitionVersion=3,
+                        floorplanVersion="s2c-floorplan-v3-6-1",
+                        candidatePolicyVersion="legacy-room-semantics",
+                    )
                 manager.store.update(task["id"], generation=g)
                 task = manager.store.task(task["id"])
             return task

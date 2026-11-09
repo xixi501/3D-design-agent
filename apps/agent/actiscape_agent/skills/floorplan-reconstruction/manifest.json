@@ -2,14 +2,14 @@
   "schemaVersion": "actiscape.skill.v1",
   "id": "floorplan-reconstruction",
   "name": "单层户型图忠实复现",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "kind": "floorplan",
   "status": "verified",
   "activation": "active",
-  "summary": "确认单层正交户型结构，忠实复现指定客餐厅原图布局。",
+  "summary": "确认单层正交住宅结构，忠实复现全部可见房间及目录家具。",
   "appliesTo": {
     "modes": ["reconstruct_floorplan"],
-    "roomKinds": ["living_dining"],
+    "roomKinds": ["any"],
     "areaM2": [0, 1000],
     "projectState": "empty",
     "requiredInputs": ["floorplan_image"]

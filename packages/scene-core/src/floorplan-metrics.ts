@@ -52,6 +52,14 @@ function activityGroupQuality(data: FloorplanData) {
       if (group.memberSymbolIds.length !== 2)
         issues.push(`${group.id} requires one desk and one chair`);
     }
+    if (group.type === "group_sleep") {
+      if (!["bed", "crib"].includes(primary?.categoryCode || ""))
+        issues.push(`${group.id} primary is not a bed`);
+      if (group.memberSymbolIds.length < 2)
+        issues.push(`${group.id} has too few sleep-group members`);
+    }
+    if (group.type === "group_cluster" && group.memberSymbolIds.length < 2)
+      issues.push(`${group.id} has too few cluster members`);
   }
   return { passed: issues.length === 0, applicable: true, issues };
 }
@@ -311,11 +319,13 @@ export function scoreFloorplanRecognition(
     furniture,
     activityGroups: groups,
     thresholdVersion:
-      raw.activityGroups !== undefined
-        ? "s2c-5"
-        : raw.recognitionVersion === 3
-          ? "s2c-4"
-          : "s2c-1",
+      raw.recognitionVersion === 4
+        ? "s2c-6"
+        : raw.activityGroups !== undefined
+          ? "s2c-5"
+          : raw.recognitionVersion === 3
+            ? "s2c-4"
+            : "s2c-1",
   };
 }
 
@@ -502,13 +512,15 @@ export function scoreFloorplan(
       dimensionsPassed,
     },
     thresholdVersion:
-      raw.activityGroups !== undefined
-        ? "s2c-5"
-        : raw.recognitionVersion === 3
-          ? "s2c-4"
-          : measurement
-            ? "s2c-2"
-            : "s2c-1",
+      raw.recognitionVersion === 4
+        ? "s2c-6"
+        : raw.activityGroups !== undefined
+          ? "s2c-5"
+          : raw.recognitionVersion === 3
+            ? "s2c-4"
+            : measurement
+              ? "s2c-2"
+              : "s2c-1",
   };
 }
 

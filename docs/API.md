@@ -125,6 +125,20 @@ V3-5 新任务使用 `s2c-floorplan-v3-5`、Skill `0.5.4`、`activity-unit-1` �
 
 V3-6 新任务使用 `s2c-floorplan-v3-6-1`、Skill `0.5.6`、`structureSkeletonVersion=4`、`hpd-adapter-6-1` 和同一 `s2c-5` 门槛。复杂图的 `analyze` 不再用整图包围盒生成矩形四面墙，而是从真实低饱和灰墙掩膜提取定向连通段、吸附交点、保留分析断口并单独检测外部尺寸线；简单矩形图可回退到已验证的旧候选层。家具对象图新增上下各两椅的桌面合成、细长 group 柜体收纳、固定玄关柜排除和旋转前后宽深归一。外部尺寸候选携带 `unitHint=mm`，原图只写数字 `9700` 时仍可绑定；同一开放区域的客厅、餐厅、玄关标签由代码合并为单个客餐厅目标。分析响应增加 `wallmask.png` 和候选诊断字段，旧 V1 至 V3-5 任务继续使用各自冻结适配器与 Skill。
 
+V4 全屋开发任务使用 `workflowVersion=4`、`recognitionVersion=4`、`s2c-floorplan-v4`、Skill `0.7.0`、`hpd-adapter-6-1`、`candidatePolicyVersion=geometry-only` 和评分 `s2c-6`。任务可选携带 `floorplanScope`：
+
+```json
+{
+  "roomSelection": "all_visible",
+  "functionalAreas": [],
+  "excludeFunctionalAreas": []
+}
+```
+
+`roomSelection=functional_areas` 时只把 `functionalAreas` 中的房间作为家具目标，`excludeFunctionalAreas` 始终再做一次排除。结构始终保留全部可见封闭房间；代码在房间标签归并后重新计算 `targetRoomIds`，不信任模型自行缩小全屋范围。`contours` 的 V4 模式新增 `policyVersion=geometry-only`：候选只保留轮廓、嵌套、邻接、包含和 `roomIds`，不提前赋予 sofa、table、television 或固定玄关柜类别。全屋家具符号支持 `bed`、`crib`、`nightstand`、`wardrobe`、`kitchenUnit`、`island`、`fridge`、`washer`、`dryer`、`toilet`、`vanity`、`shower`、`bathtub`、`bench`、`lamp`、`art` 等目录类别。单场景上限为 300 件家具对象、300 个原始对象候选和单 patch 100 条命令。
+
+V4 代码接入和离线契约已实现，但还没有全屋参考、真实全屋零校正运行或第二张独立验证图；不得把本节解释为全屋自动验收通过。旧 V1/V2/V3 任务继续使用各自的提示词、适配器和冻结 Skill。
+
 V3-5 硬阻断错误包括 `UNKNOWN_OBJECT_CANDIDATE`、`OBJECT_CANDIDATE_REUSED`、`ACTIVITY_GROUP_INCOMPLETE`、`ACTIVITY_GROUP_ROLE_INVALID` 和 `UNRESOLVED_ACTIVITY_GROUP`。一次有界修复仍使用同一任务预算和请求上限。
 
 草稿可附 `dimensionObservations` 保存全部已读标注；只有最长外围外尺寸作为统一比例锚点，其余标注作为交叉核对证据，避免把示意墙厚和标注差值误当成多套比例。审核问题可附 `source`、`severity`、`evidenceRefs`、`bbox`。代码先执行确定性检查，无法由候选或诊断复现的模型问题记为 `advisory`；自动验收入口使用冻结参考和对应版本的 `s2c-4`／`s2c-5` 评分，不放宽 90% 与 1 mm 门槛。

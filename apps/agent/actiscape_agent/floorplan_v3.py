@@ -21,16 +21,19 @@ from .floorplan_schemas import (
     ActivityGroup,
     CategoryCode,
     FloorplanReview,
+    FunctionalArea,
     FurnitureActivityRecognition,
     FurnitureContourRecognition,
     FurnitureRecognition,
     MeasuredDraftProposal,
     MeasuredDraftUpdate,
     RecognitionV3,
+    RecognitionV4,
     StructureRecognition,
 )
 from .floorplan_tools import FloorplanToolset
 from .floorplan_v2 import FloorplanV2
+from .scene_registry import get_scene_registry
 from .skill_registry import get_registry
 from .store import TaskError, fingerprint
 from .vision_client import VisionModelClient, VisionModelFailure
@@ -255,6 +258,8 @@ def _uncertainty_resolved_by_code(uncertainty, data, checks, skeleton):
     if code == "ROOM_SCOPE_OPEN_KITCHEN":
         rooms = {room.get("id"): room for room in data.get("rooms") or []}
         targets = [rooms.get(room_id) for room_id in data.get("targetRoomIds") or []]
+        if data.get("recognitionVersion") == 4:
+            return bool(targets and all(targets))
         return bool(
             targets
             and all(targets)
@@ -327,7 +332,11 @@ def _code_review_issues(draft, diagnostics, skeleton):
                 "source": "code",
                 "severity": "blocking",
                 "object_ids": [],
-                "description": "目标客餐厅没有已确认家具",
+                "description": (
+                    "目标房间没有已确认家具"
+                    if data.get("recognitionVersion") == 4
+                    else "目标客餐厅没有已确认家具"
+                ),
                 "evidenceRefs": [diagnostics["id"]] if diagnostics.get("id") else [],
                 "bbox": None,
             }
@@ -523,9 +532,26 @@ def _assemble_contour_symbols(value, candidates, draft, evidence_id):
 
 
 def _automatic_activity_type(category_code):
-    if category_code in ("sofa", "armchair"):
+    if category_code in ("sofa", "armchair", "bed", "crib"):
         return "direct_occupancy"
-    if category_code in ("tvCabinet", "bookshelf", "sideboard", "cabinet", "desk"):
+    if category_code in (
+        "tvCabinet",
+        "bookshelf",
+        "sideboard",
+        "cabinet",
+        "desk",
+        "wardrobe",
+        "nightstand",
+        "kitchenUnit",
+        "island",
+        "fridge",
+        "washer",
+        "dryer",
+        "toilet",
+        "vanity",
+        "shower",
+        "bathtub",
+    ):
         return "direct_access"
     return "standalone"
 
@@ -560,6 +586,19 @@ def _wall_affinity_rotation(candidate, category_code, rotation, draft):
         "sideboard",
         "cabinet",
         "desk",
+        "wardrobe",
+        "nightstand",
+        "kitchenUnit",
+        "island",
+        "fridge",
+        "washer",
+        "dryer",
+        "toilet",
+        "vanity",
+        "shower",
+        "bathtub",
+        "bed",
+        "crib",
     ):
         return rotation
     x, y, width, depth = candidate["bbox"]
@@ -945,6 +984,10 @@ def _assemble_activity_symbols(
     }
     _repair_activity_object_bindings(value, group_candidates)
     targets = set(draft["data"]["targetRoomIds"])
+    legacy_semantics = (
+        draft["data"].get("candidatePolicyVersion", "legacy-room-semantics")
+        == "legacy-room-semantics"
+    )
     validation_errors = []
     seen_objects = {}
     for symbol in value["symbols"]:
@@ -971,6 +1014,26 @@ def _assemble_activity_symbols(
             )
         else:
             seen_objects[object_id] = symbol["id"]
+        candidate_rooms = set(candidate.get("roomIds") or [])
+        if not candidate_rooms and not legacy_semantics:
+            validation_errors.append(
+                {
+                    "code": "INVALID_FURNITURE",
+                    "message": f"{object_id} 缺少确定性房间归属证据",
+                    "objectIds": [symbol["id"], object_id],
+                }
+            )
+        if candidate_rooms and symbol["roomId"] not in candidate_rooms:
+            validation_errors.append(
+                {
+                    "code": "INVALID_FURNITURE",
+                    "message": (
+                        f"{symbol['id']} 声明房间 {symbol['roomId']}，"
+                        f"但对象证据位于 {sorted(candidate_rooms)}"
+                    ),
+                    "objectIds": [symbol["id"], object_id, *sorted(candidate_rooms)],
+                }
+            )
         width, depth = candidate["bbox"][2], candidate["bbox"][3]
         aspect = max(width / max(1, depth), depth / max(1, width))
         if symbol["categoryCode"] in (
@@ -996,9 +1059,14 @@ def _assemble_activity_symbols(
                     "objectIds": [symbol["id"], object_id],
                 }
             )
-        if any(
-            tag.get("tag") == "fixed_run" for tag in candidate.get("contextTags", [])
-        ) and symbol["categoryCode"] in ("cabinet", "sideboard", "tvCabinet"):
+        if (
+            legacy_semantics
+            and any(
+                tag.get("tag") == "fixed_run"
+                for tag in candidate.get("contextTags", [])
+            )
+            and symbol["categoryCode"] in ("cabinet", "sideboard", "tvCabinet")
+        ):
             validation_errors.append(
                 {
                     "code": "INVALID_FURNITURE",
@@ -1093,9 +1161,14 @@ def _assemble_activity_symbols(
                 f"边柜对象 {object_id} 的候选形状不是长条",
                 details={"objectIds": [symbol["id"], object_id]},
             )
-        if any(
-            tag.get("tag") == "fixed_run" for tag in candidate.get("contextTags", [])
-        ) and symbol["categoryCode"] in ("cabinet", "sideboard", "tvCabinet"):
+        if (
+            legacy_semantics
+            and any(
+                tag.get("tag") == "fixed_run"
+                for tag in candidate.get("contextTags", [])
+            )
+            and symbol["categoryCode"] in ("cabinet", "sideboard", "tvCabinet")
+        ):
             raise TaskError(
                 "INVALID_FURNITURE",
                 f"固定设备带对象 {object_id} 不能登记为 {symbol['categoryCode']}",
@@ -1104,7 +1177,7 @@ def _assemble_activity_symbols(
         used_objects.add(object_id)
         category_code = symbol["categoryCode"]
         hints = candidate.get("categoryHints") or []
-        if len(hints) == 1:
+        if legacy_semantics and len(hints) == 1:
             category_code = hints[0]
         desired_rotation = _wall_affinity_rotation(
             candidate,
@@ -1248,6 +1321,30 @@ def _assemble_activity_symbols(
                 raise TaskError(
                     "ACTIVITY_GROUP_ROLE_INVALID",
                     "seated_work 必须是一张书桌和一把椅子",
+                    details={"objectIds": [group["id"], *members]},
+                )
+        elif group["type"] == "group_sleep":
+            satellites = [
+                item for item in members if item != group["primarySymbolId"]
+            ]
+            if (
+                primary_category not in ("bed", "crib")
+                or not satellites
+                or any(
+                    symbols[symbol_id]["categoryCode"] not in ("nightstand", "bench")
+                    for symbol_id in satellites
+                )
+            ):
+                raise TaskError(
+                    "ACTIVITY_GROUP_ROLE_INVALID",
+                    "group_sleep 必须以床为主对象，附属对象只能是床头柜或床尾凳",
+                    details={"objectIds": [group["id"], *members]},
+                )
+        elif group["type"] == "group_cluster":
+            if len(members) < 2:
+                raise TaskError(
+                    "ACTIVITY_GROUP_INCOMPLETE",
+                    "group_cluster 至少需要两个对象",
                     details={"objectIds": [group["id"], *members]},
                 )
         elif len(members) != 1:
@@ -1634,7 +1731,15 @@ def _dimension_anchor(candidate, geometry, label):
     }
 
 
-def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
+def _consolidate_open_room_labels(
+    walls,
+    rooms,
+    target_ids,
+    width,
+    height,
+    *,
+    whole_home=False,
+):
     """Merge living/dining/foyer points that share one enclosed free region."""
     barrier = np.zeros((height, width), np.uint8)
     for wall in walls:
@@ -1665,7 +1770,11 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
             unplaced.append(room)
             continue
         grouped.setdefault(label, []).append(room)
-    allowed_areas = {"living", "dining", "other"}
+    allowed_areas = (
+        {"living", "dining", "entry", "circulation"}
+        if whole_home
+        else {"living", "dining", "other"}
+    )
     output = list(unplaced)
     targets = list(dict.fromkeys(target_ids))
     notes = []
@@ -1674,7 +1783,8 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
             room = members[0]
             if (
                 room["id"] in targets
-                and room.get("functionalArea") in allowed_areas
+                and room.get("functionalArea")
+                in ({"living", "dining"} if whole_home else allowed_areas)
                 and room.get("name") != "客餐厅"
             ):
                 canonical = {
@@ -1699,6 +1809,13 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
         if not (
             all(member.get("functionalArea") in allowed_areas for member in members)
             and any(member["id"] in targets for member in members)
+            and (
+                not whole_home
+                or any(
+                    member.get("functionalArea") in {"living", "dining"}
+                    for member in members
+                )
+            )
         ):
             output.extend(members)
             continue
@@ -1795,7 +1912,66 @@ def _consolidate_open_room_labels(walls, rooms, target_ids, width, height):
     return cleaned, targets, notes
 
 
-def _assemble_structure_v3(skeleton, recognition, evidence_index):
+ROOM_TYPE_FUNCTIONAL_AREA = {
+    "living_dining": "living",
+    "reading_lounge": "living",
+    "master_bedroom": "bedroom",
+    "guest_bedroom": "bedroom",
+    "kids_room": "bedroom",
+    "nursery": "bedroom",
+    "study": "study",
+    "kitchen": "kitchen",
+    "bathroom": "bathroom",
+    "entry": "entry",
+    "balcony": "balcony",
+    "utility": "utility",
+    "multipurpose": "multipurpose",
+    "circulation": "circulation",
+    "other": "other",
+}
+
+
+def _normalize_v4_rooms(rooms):
+    registry = get_scene_registry()
+    normalized = []
+    for room in rooms:
+        room_type = room.get("roomType")
+        if not room_type or registry.room(room_type) is None:
+            room_type = registry.room_type_for_label(room.get("name") or "")
+        inferred_area = ROOM_TYPE_FUNCTIONAL_AREA.get(room_type)
+        normalized.append(
+            {
+                **room,
+                "roomType": room_type,
+                "functionalArea": inferred_area
+                or room.get("functionalArea")
+                or "other",
+            }
+        )
+    return normalized
+
+
+def _v4_target_room_ids(rooms, scope):
+    scope = scope or {}
+    selection = scope.get("roomSelection", "all_visible")
+    include = set(scope.get("functionalAreas") or [])
+    exclude = set(scope.get("excludeFunctionalAreas") or [])
+    return [
+        room["id"]
+        for room in rooms
+        if room.get("functionalArea") not in exclude
+        and (selection == "all_visible" or room.get("functionalArea") in include)
+    ]
+
+
+def _assemble_structure_v3(
+    skeleton,
+    recognition,
+    evidence_index,
+    *,
+    recognition_version=3,
+    floorplan_scope=None,
+):
     candidate_by_id = {wall["candidateWallId"]: wall for wall in skeleton.get("candidateWalls", [])}
     candidate_owner = {}
     draft_walls = []
@@ -2070,11 +2246,26 @@ def _assemble_structure_v3(skeleton, recognition, evidence_index):
         recognition["targetRoomIds"],
         width,
         height,
+        whole_home=recognition_version >= 4,
     )
+    if recognition_version >= 4:
+        rooms = _normalize_v4_rooms(rooms)
+        target_room_ids = _v4_target_room_ids(rooms, floorplan_scope)
+        if not target_room_ids:
+            raise TaskError(
+                "TARGET_ROOM_MISSING",
+                "全屋模式没有形成可复现的封闭房间",
+                details={"objectIds": []},
+            )
     return {
         "status": "draft",
         "question": recognition.get("question", ""),
-        "recognitionVersion": 3,
+        "recognitionVersion": recognition_version,
+        **(
+            {"candidatePolicyVersion": "geometry-only"}
+            if recognition_version >= 4
+            else {}
+        ),
         "measurementVersion": 2,
         "name": recognition["name"],
         **{
@@ -2099,9 +2290,22 @@ def _assemble_structure_v3(skeleton, recognition, evidence_index):
     }
 
 
-def _assemble_structure(skeleton, recognition, evidence_index):
+def _assemble_structure(
+    skeleton,
+    recognition,
+    evidence_index,
+    *,
+    recognition_version=3,
+    floorplan_scope=None,
+):
     if skeleton.get("structureSkeletonVersion", 0) >= 3:
-        return _assemble_structure_v3(skeleton, recognition, evidence_index)
+        return _assemble_structure_v3(
+            skeleton,
+            recognition,
+            evidence_index,
+            recognition_version=recognition_version,
+            floorplan_scope=floorplan_scope,
+        )
     if recognition["status"] == "unsupported":
         return recognition
 
@@ -2300,7 +2504,12 @@ def _assemble_structure(skeleton, recognition, evidence_index):
     return {
         "status": "draft",
         "question": recognition.get("question", ""),
-        "recognitionVersion": 3,
+        "recognitionVersion": recognition_version,
+        **(
+            {"candidatePolicyVersion": "geometry-only"}
+            if recognition_version >= 4
+            else {}
+        ),
         "measurementVersion": 2,
         "name": recognition["name"],
         **{
@@ -2321,6 +2530,18 @@ def _assemble_structure(skeleton, recognition, evidence_index):
 
 
 class FloorplanV3(FloorplanV2):
+    def recognition_version(self, task):
+        return 3
+
+    def candidate_policy_version(self, task):
+        return "legacy-room-semantics"
+
+    def prompt(self, name, task):
+        return globals()[name]
+
+    def furniture_model_version(self, task):
+        return "activity-unit-1"
+
     def prompt_version(self, task):
         generation = self.store.task(task["id"], internal=True)["generation"]
         return generation.get("floorplanVersion") or VERSION
@@ -2378,13 +2599,27 @@ class FloorplanV3(FloorplanV2):
             "structureSkeleton": skeleton,
             "skill": skill_context(self.store.task(task["id"], internal=True)["generation"]),
         }
+        if self.recognition_version(task) >= 4:
+            payload.update(
+                functionalAreas=list(FunctionalArea.__args__),
+                roomCatalog=get_scene_registry().public_rooms(active_only=False),
+                floorplanScope=self.store.task(task["id"], internal=True)["generation"].get(
+                    "floorplanScope"
+                )
+                or {
+                    "roomSelection": "all_visible",
+                    "functionalAreas": [],
+                    "excludeFunctionalAreas": [],
+                },
+            )
         generation = self.store.task(task["id"], internal=True)["generation"]
+        floorplan_scope = generation.get("floorplanScope")
         repaired_value = generation.get("structureRepairResponse")
         pending_value = generation.get("pendingStructure")
         resuming_repair = bool(pending_value and generation.get("structureRepairAttempts", 0))
         value = repaired_value if repaired_value else pending_value if resuming_repair else None
         if value is None:
-            value = await invoke(STRUCTURE, payload)
+            value = await invoke(self.prompt("STRUCTURE", task), payload)
             value = StructureRecognition.model_validate(value).model_dump(
                 exclude_none=True, by_alias=True
             )
@@ -2405,7 +2640,13 @@ class FloorplanV3(FloorplanV2):
             )
             return value
         try:
-            assembled = _assemble_structure(skeleton, value, generation.get("evidenceIndex", {}))
+            assembled = _assemble_structure(
+                skeleton,
+                value,
+                generation.get("evidenceIndex", {}),
+                recognition_version=self.recognition_version(task),
+                floorplan_scope=floorplan_scope,
+            )
         except TaskError as error:
             allowed = {
                 "UNKNOWN_WALL_GROUP",
@@ -2459,7 +2700,7 @@ class FloorplanV3(FloorplanV2):
                 },
             )
             repaired = await invoke(
-                STRUCTURE_REPAIR,
+                self.prompt("STRUCTURE_REPAIR", task),
                 {
                     **payload,
                     "previousResult": value,
@@ -2503,6 +2744,8 @@ class FloorplanV3(FloorplanV2):
                     self.store.task(task["id"], internal=True)["generation"].get(
                         "evidenceIndex", {}
                     ),
+                    recognition_version=self.recognition_version(task),
+                    floorplan_scope=floorplan_scope,
                 )
                 value = repaired
             except TaskError as repaired_error:
@@ -2526,7 +2769,8 @@ class FloorplanV3(FloorplanV2):
                     structureRepairResponse=None,
                 )
                 raise
-        assembled = RecognitionV3.model_validate(assembled).model_dump(
+        schema = RecognitionV4 if self.recognition_version(task) >= 4 else RecognitionV3
+        assembled = schema.model_validate(assembled).model_dump(
             exclude_none=True, by_alias=True
         )
         self.patch(
@@ -2551,6 +2795,8 @@ class FloorplanV3(FloorplanV2):
 
     async def recognize_furniture(self, task, image, draft, diagnostics):
         generation = self.store.task(task["id"], internal=True)["generation"]
+        if self.recognition_version(task) >= 4:
+            return await self.recognize_furniture_activity(task, image, draft, diagnostics)
         if generation.get("floorplanVersion") in (
             "s2c-floorplan-v3-5",
             "s2c-floorplan-v3-6",
@@ -2580,7 +2826,7 @@ class FloorplanV3(FloorplanV2):
         images += [await self.client.image(file["path"]) for file in diagnostics.get("files", [])]
         value = await self.base.invoke(
             "main",
-            FURNITURE,
+            self.prompt("FURNITURE", task),
             FurnitureRecognition,
             [context, evidence.crop_tool()],
             {
@@ -2650,7 +2896,7 @@ class FloorplanV3(FloorplanV2):
         images += [await self.client.image(file["path"]) for file in diagnostics.get("files", [])]
         value = await self.base.invoke(
             "main",
-            FURNITURE_CONTOURS,
+            self.prompt("FURNITURE_CONTOURS", task),
             FurnitureContourRecognition,
             [context, evidence.crop_tool()],
             {
@@ -2956,7 +3202,7 @@ class FloorplanV3(FloorplanV2):
         }
         value, symbols = await self._vision_structured_call(
             task,
-            VISION_FURNITURE,
+            self.prompt("VISION_FURNITURE", task),
             payload,
             images,
             FurnitureContourRecognition,
@@ -2978,7 +3224,10 @@ class FloorplanV3(FloorplanV2):
 
     async def recognize_furniture_activity(self, task, image, draft, diagnostics):
         tools = FloorplanToolset(self.base, task, image, "main")
-        record = await tools.request("contours", {"spec": draft["data"]})
+        parameters = {"spec": draft["data"]}
+        if self.recognition_version(task) >= 4:
+            parameters["policyVersion"] = self.candidate_policy_version(task)
+        record = await tools.request("contours", parameters)
         if record.get("error"):
             raise TaskError(
                 record["error"],
@@ -2993,6 +3242,15 @@ class FloorplanV3(FloorplanV2):
         groups = record.get("activityGroupCandidates") or []
         if not objects:
             raise TaskError("FURNITURE_MISSING", "目标客餐厅没有家具对象候选")
+        if len(objects) > 300 or len(groups) > 300:
+            raise TaskError(
+                "CANDIDATE_LIMIT",
+                "家具对象候选超过单场景 300 件上限",
+                details={
+                    "objects": len(objects),
+                    "activityGroups": len(groups),
+                },
+            )
         await tools.result("furniture_contours", record, pictures=False)
         evidence, _context = await self.context(task, image, "main")
         evidence_context = await evidence.context()
@@ -3048,12 +3306,12 @@ class FloorplanV3(FloorplanV2):
         }
         value, assembled = await self._vision_structured_call(
             task,
-            VISION_ACTIVITY,
+            self.prompt("VISION_ACTIVITY", task),
             payload,
             images,
             FurnitureActivityRecognition,
             lambda parsed: _assemble_activity_symbols(parsed, objects, groups, draft, record["id"]),
-            "activity-unit-1",
+            self.furniture_model_version(task),
             {
                 "__required__": ["symbols", "activityGroups"],
                 "symbols": {
@@ -3193,7 +3451,7 @@ class FloorplanV3(FloorplanV2):
         images += [await self.client.image(f["path"]) for f in diagnostics.get("files", [])]
         value = await self.base.invoke(
             "design",
-            MEASURE,
+            self.prompt("MEASURE", task),
             MeasuredDraftProposal,
             [context, evidence.crop_tool(), fit_wall_candidates, axis],
             {
@@ -3232,7 +3490,7 @@ class FloorplanV3(FloorplanV2):
             {
                 "requestId": (
                     task["id"]
-                    + ":v3:rooms:"
+                    + f":v{self.recognition_version(task)}:rooms:"
                     + draft["hash"][:16]
                     + ":"
                     + str(diagnostics.get("id") or "diagnostics")[:16]
@@ -3269,7 +3527,7 @@ class FloorplanV3(FloorplanV2):
         )
         model_review = await self.base.invoke(
             "check",
-            CHECK,
+            self.prompt("CHECK", task),
             FloorplanReview,
             [context, evidence.crop_tool()],
             {
@@ -3348,7 +3606,7 @@ class FloorplanV3(FloorplanV2):
             {
                 "requestId": (
                     task["id"]
-                    + ":v3:uncertainty:"
+                    + f":v{self.recognition_version(task)}:uncertainty:"
                     + draft["hash"]
                     + ":"
                     + fingerprint([item["id"] for item in resolved])[:16]
@@ -3376,6 +3634,7 @@ class FloorplanV3(FloorplanV2):
         project = state["project"]
         task_id = task["id"]
         generation = self.store.task(task_id, internal=True)["generation"]
+        namespace = f"v{self.recognition_version(task)}"
         root = f"/projects/{task['projectId']}/floorplan-drafts"
         if generation.get("draftId"):
             draft = await self.client.request(root + "/" + generation["draftId"])
@@ -3457,7 +3716,7 @@ class FloorplanV3(FloorplanV2):
             draft = await self.client.request(
                 root,
                 {
-                    "requestId": task_id + ":v3:structure",
+                    "requestId": task_id + f":{namespace}:structure",
                     "imageId": image["id"],
                     "baseRevision": project["revision"],
                     "data": data,
@@ -3497,7 +3756,7 @@ class FloorplanV3(FloorplanV2):
             draft = await self.client.request(
                 root + "/" + draft["id"] + "/measurement-updates",
                 {
-                    "requestId": task_id + ":v3:furniture:" + draft["hash"],
+                    "requestId": task_id + f":{namespace}:furniture:" + draft["hash"],
                     "draftRevision": draft["revision"],
                     "draftHash": draft["hash"],
                     "commands": [
@@ -3571,7 +3830,7 @@ class FloorplanV3(FloorplanV2):
                 )
                 pending = await self.measure(task, image, draft, diagnostics, report)
                 self.patch(task_id, pendingMeasurement=pending)
-            action_id = task_id + ":v3:update:" + fingerprint(pending)[:32]
+            action_id = task_id + f":{namespace}:update:" + fingerprint(pending)[:32]
             body = {
                 "requestId": action_id,
                 "draftRevision": pending["baseDraftRevision"],
@@ -3608,7 +3867,7 @@ class FloorplanV3(FloorplanV2):
                     draft = await self.client.request(
                         root + "/" + draft["id"] + "/review",
                         {
-                            "requestId": task_id + ":v3:review:" + draft["hash"],
+                            "requestId": task_id + f":{namespace}:review:" + draft["hash"],
                             "draftRevision": draft["revision"],
                             "draftHash": draft["hash"],
                             "review": review,

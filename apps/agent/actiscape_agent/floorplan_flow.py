@@ -136,6 +136,12 @@ class FloorplanFlow:
         return recognized
 
     async def ground(self, state, task):
+        if task["generation"].get("workflowVersion") == 4:
+            from .floorplan_v4 import FloorplanV4
+
+            return await FloorplanV4(self.store, self.client, self.roles.base).ground(
+                state, task, self._ground_legacy
+            )
         if task["generation"].get("workflowVersion") == 3:
             from .floorplan_v3 import FloorplanV3
 
@@ -265,7 +271,11 @@ class FloorplanFlow:
         )
         if not draft.get("confirmed") or not preview["checks"]["passed"]:
             problems = [i["message"] for i in preview["checks"]["issues"] if i.get("blocking")]
-            message = "请核对原图叠加、比例尺、整层结构及客餐厅家具，再点击“确认结构与原图布局”。"
+            message = (
+                "请核对原图叠加、比例尺、整层结构及全屋家具，再点击“确认结构与原图布局”。"
+                if task["generation"].get("workflowVersion") == 4
+                else "请核对原图叠加、比例尺、整层结构及客餐厅家具，再点击“确认结构与原图布局”。"
+            )
             if problems:
                 message += " 待处理：" + "；".join(problems[:5])
             return {
@@ -287,7 +297,7 @@ class FloorplanFlow:
         for s in symbols:
             key = s.get("catalogKey") or s.get("categoryCode") or s["category"]
             groups.setdefault(key, []).append(s["id"])
-        if len(groups) > 30:
+        if len(groups) > 100:
             raise TaskError(
                 "FURNITURE_SCOPE", "目标家具类别超过本轮批量目录查询容量，请缩小目标区域"
             )
@@ -304,7 +314,11 @@ class FloorplanFlow:
             "layout_project": {**project, **preview["state"]},
             "intent": {
                 "status": "ready",
-                "summary": "复现已确认的客餐厅原图布局",
+                "summary": (
+                    "复现已确认的全屋原图布局"
+                    if task["generation"].get("workflowVersion") == 4
+                    else "复现已确认的客餐厅原图布局"
+                ),
                 "target_ids": [],
                 "reference_ids": [],
                 "delete_ids": [],

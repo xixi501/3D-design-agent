@@ -12,6 +12,7 @@ from actiscape_agent.scene_contracts import (
     SceneDraftPayload,
     contract_hash,
 )
+from actiscape_agent.scene_projection import plan_to_scene_program
 from actiscape_agent.scene_registry import SCENE_REGISTRY_PATH, SceneRegistry
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -159,3 +160,39 @@ def test_contracts_keep_evidence_intent_and_authority_separate():
                 },
             }
         )
+
+
+def test_scene_projection_prefers_compiled_object_room_ownership():
+    plan = {
+        "height": 2800,
+        "nodes": [],
+        "walls": [],
+        "openings": [],
+        "rooms": [
+            {"id": "s:r:living", "name": "客餐厅", "x": 0, "y": 0},
+            {"id": "s:r:bedroom", "name": "主卧", "x": 5000, "y": 0},
+        ],
+        "furniture": [
+            {
+                "id": "s:f:bed",
+                "key": "bed15",
+                "name": "双人床",
+                "x": 100,
+                "y": 0,
+                "w": 1500,
+                "d": 2000,
+                "h": 500,
+                "rot": 0,
+            }
+        ],
+        "source": {
+            "objectRooms": {"s:f:bed": "s:r:bedroom"},
+        },
+    }
+    program = plan_to_scene_program(
+        plan,
+        source_id="floorplan:test",
+        authority="observed",
+        room_type=None,
+    )
+    assert program["objects"][0]["roomSeedId"] == "s:r:bedroom"

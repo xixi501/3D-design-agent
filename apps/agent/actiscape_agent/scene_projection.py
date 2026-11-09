@@ -273,16 +273,23 @@ def plan_to_scene_program(
             "id": room["id"],
             "at": {"x": float(room["x"]), "y": float(room["y"])},
             "name": room.get("name") or room_type,
-            "roomType": room_type or registry.room_type_for_label(room.get("name") or ""),
+            "roomType": room.get("roomType")
+            or room_type
+            or registry.room_type_for_label(room.get("name") or ""),
             "included": True,
             "sourceRefs": source_refs,
         }
         for room in plan.get("rooms") or []
     ]
+    object_rooms = (plan.get("source") or {}).get("objectRooms") or {}
+    room_seed_ids = {room["id"] for room in room_seeds}
     objects = []
     for item in plan.get("furniture") or []:
+        deterministic_room = object_rooms.get(item["id"])
         room_id = (
-            min(
+            deterministic_room
+            if deterministic_room in room_seed_ids
+            else min(
                 room_seeds,
                 key=lambda room: (
                     (room["at"]["x"] - item["x"]) ** 2 + (room["at"]["y"] - item["y"]) ** 2

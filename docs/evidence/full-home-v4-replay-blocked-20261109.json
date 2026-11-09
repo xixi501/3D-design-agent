@@ -1,0 +1,107 @@
+{
+  "purpose": "Zero-model V4 stage evaluation against two reviewed full-home development references",
+  "generatedAt": "2026-11-09T20:55:00+08:00",
+  "implementationCommit": "db9aff2300789cefce3a7b168075223435371b8f",
+  "command": "npm run test:full-home:v4-replay -- --diagnose",
+  "status": "blocked",
+  "passed": false,
+  "modelCalls": 0,
+  "adapterVersion": "hpd-adapter-6-1",
+  "candidatePolicyVersion": "geometry-only",
+  "referenceUsage": "Evaluation-only room masks and scoring after candidate extraction; references never entered a model prompt",
+  "candidateLimitFix": {
+    "rawContourLimitV4": 3000,
+    "selectableObjectLimit": 300,
+    "exposure": "Only selectable objects are returned to the model-facing V4 object list; nested evidence is counted but suppressed"
+  },
+  "images": [
+    {
+      "id": "2bhk-bungalow",
+      "sourceImageSha256": "564fdfac6747c586b5078eea7151fff688b1e3eff61c0b08b987acba643ade69",
+      "referenceSha256": "63d37747cfad2b078a41d7366e2b3ec32c5d119ecbb676eb7453eef09963c4f0",
+      "rawContourCandidates": 969,
+      "selectableObjects": 280,
+      "suppressedObjects": 347,
+      "walls": {
+        "candidateCount": 45,
+        "referenceCount": 16,
+        "poolPrecision": 0.3475818223,
+        "coverageRecall": 0.6556076758,
+        "passed": false
+      },
+      "openings": {
+        "candidateCount": 149,
+        "referenceCount": 15,
+        "poolPrecision": 0,
+        "coverageRecall": 0,
+        "passed": false
+      },
+      "furnitureGeometry": {
+        "candidateCount": 280,
+        "referenceCount": 21,
+        "matchedCount": 1,
+        "precision": 0.0035714286,
+        "recall": 0.0476190476,
+        "passed": false
+      }
+    },
+    {
+      "id": "oak-ridge-c",
+      "sourceImageSha256": "26ea0490fb9bd14ab64d09029d20b33b51673d3f1c352107bdd5382d40042818",
+      "referenceSha256": "4f475e7b52efad3affb248030bb71a02f758523aab767ac491e515d8b9d65b09",
+      "rawContourCandidates": 1889,
+      "selectableObjects": 139,
+      "suppressedObjects": 861,
+      "walls": {
+        "candidateCount": 20,
+        "referenceCount": 18,
+        "poolPrecision": 0.1277812182,
+        "coverageRecall": 0.0223876453,
+        "passed": false
+      },
+      "openings": {
+        "candidateCount": 3,
+        "referenceCount": 14,
+        "poolPrecision": 0,
+        "coverageRecall": 0,
+        "passed": false
+      },
+      "furnitureGeometry": {
+        "candidateCount": 139,
+        "referenceCount": 15,
+        "matchedCount": 0,
+        "precision": 0,
+        "recall": 0,
+        "passed": false
+      }
+    }
+  ],
+  "unmeasuredStages": [
+    "Room label semantics from the structure model",
+    "Furniture category classification",
+    "Rotation correctness without a category hypothesis",
+    "Activity-group completeness"
+  ],
+  "conclusion": "The fixed candidate layer is not ready for a real V4 model run. Wall and opening availability is insufficient, and the furniture object graph over-generates selectable linework and does not reliably form reference-sized furniture objects.",
+  "nextRequiredWork": [
+    "Improve wall and opening candidate coverage on the two development references.",
+    "Collapse text, line fragments and nested furniture parts before exposing selectable objects.",
+    "Repeat the zero-model replay until measurable wall, opening and furniture geometry stages reach 0.9 precision/recall where applicable.",
+    "Only then run one real V4 task with the existing model and budget; no live task was started in this batch."
+  ],
+  "artifacts": {
+    "test-results/full-home-v4-replay/report.json": "3b4d85682c5caaa7fd230288a2a5f27eac3abd94fe912aee24d999accc54a654",
+    "test-results/full-home-v4-replay/2bhk-bungalow-report.json": "afbfd939d04ae4509bd2f40414d38999a7308ad6e00d67b2f440191da4b7cd04",
+    "test-results/full-home-v4-replay/oak-ridge-c-report.json": "8d11dd89edd4c36e756e38eba8816c2af2a13a90801387ff5e6b23dcce758a1e",
+    "test-results/full-home-v4-replay/2bhk-bungalow/candidates.png": "bca441258f63d732faefcffc9c13bd419305bb0ff842cc7d0f603b94a5baeb7e",
+    "test-results/full-home-v4-replay/oak-ridge-c/candidates.png": "28f7573e7f8aa7740eb3ce615bc7267be6237ab190a08b336ef5fa35a6621434",
+    "test-results/full-home-v4-replay/2bhk-bungalow-objects/objects.png": "6fa88084a28e73d521f1ba5b6e18a2f77e4de26122eda11b609f6bc33d705287",
+    "test-results/full-home-v4-replay/oak-ridge-c-objects/objects.png": "823c4b8eecf3cb4543906d23add4c17208c3a33c908eab613bfa4cbd03c2ba96"
+  },
+  "notClaimed": [
+    "Real V4 recognition",
+    "Room semantics or furniture classification",
+    "Automatic zero-correction acceptance",
+    "A candidate or formal project write"
+  ]
+}

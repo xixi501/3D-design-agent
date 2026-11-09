@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "actiscape.evidence-classification.v1",
+  "generatedAt": "2026-11-09T16:00:00Z",
+  "evidenceFile": "full-home-v4-replay-blocked-20261109.json",
+  "evidenceSha256": "27f60a1fb1d26139a6b6c840c68b328f82b70a5987848419447d2ca5a9b768ab",
+  "historicalCommit": "db9aff2300789cefce3a7b168075223435371b8f",
+  "classification": "oracle-assisted-diagnostic",
+  "preservedRawMetrics": true,
+  "authoritativeForBackendSelection": false,
+  "authoritativeForRecognitionPass": false,
+  "retractedClaims": [
+    "Evaluation-only room masks and scoring after candidate extraction",
+    "The reference was visible only after candidate extraction"
+  ],
+  "contamination": [
+    {
+      "file": "scripts/full-home-v4-replay.ts",
+      "line": 83,
+      "description": "Reference anchors, rooms and targetRoomIds were copied into the candidate structure."
+    },
+    {
+      "file": "scripts/full-home-v4-replay.ts",
+      "line": 283,
+      "description": "The complete evaluation reference was passed to contours as spec."
+    },
+    {
+      "file": "apps/agent/actiscape_agent/floorplan_candidates.py",
+      "line": 606,
+      "description": "The contour candidate tool reads room masks and seed points from spec."
+    }
+  ],
+  "interpretation": "The report remains useful as an optimistic failure diagnostic, especially because walls and openings still came from source-pixel candidates. It is invalid for provider selection, production-input recall claims, or V4 acceptance.",
+  "supersededBy": "floorplan-quality-batch1-20261109.json",
+  "notes": [
+    "Raw numbers and the original file hash are retained; no historical evidence file was rewritten.",
+    "The new quality plane isolates candidate capture from reference access and seals candidate output before scoring."
+  ]
+}

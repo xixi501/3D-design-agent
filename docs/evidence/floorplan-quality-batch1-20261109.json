@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "actiscape.floorplan-quality-evidence.v1",
+  "baseCommit": "63eec64",
+  "generatedAt": "2026-11-09T16:00:00Z",
+  "status": "baseline-blocked",
+  "passed": false,
+  "methodologyPassed": true,
+  "nextBatchAllowed": true,
+  "modelCalls": 0,
+  "command": "npm run quality:floorplan:batch",
+  "purpose": "Production-like zero-model candidate baseline with Oracle/reference isolation",
+  "isolation": {
+    "candidateUser": "65534:65534",
+    "mode": "unprivileged-user+directory-permission+python-audit-hook",
+    "referenceProbe": "denied",
+    "candidateReferenceRootAccess": "denied",
+    "auditAttemptCount": 0,
+    "candidateInputs": [
+      "image.bytes",
+      "image.sha256",
+      "scope",
+      "adapterVersion"
+    ]
+  },
+  "artifacts": {
+    "batchReport": {
+      "path": "test-results/floorplan-quality/batch-report.json",
+      "sha256": "cc00897f8ad818097ada02bf1f794e5a72a292c85570a961f1e9b0ed9cc44ceb"
+    },
+    "2bhk-bungalow": {
+      "artifactId": "hpd:564fdfac6747c586",
+      "artifactSha256": "354d53cf13bb6b81d9072b01bfed1ebb6b9687c87238c15e691401f901de853a",
+      "captureSha256": "8642b607b4f87f3a27253ee91802f9e6bc42f2edf84aeee0742e7a69d559e718",
+      "scoreSha256": "cae953aade4a734075680ca781d1c749744a536fa71a3e0b598818ddea203750"
+    },
+    "oak-ridge-c": {
+      "artifactId": "hpd:26ea0490fb9bd14a",
+      "artifactSha256": "1ee2bc525aa8d5fdc5100e8450c5ccd3b10129c4faedeab346cad9ac75a4e0d8",
+      "captureSha256": "62e35c29b1685344e656b2c29337d09186b9eb59972dcedbfc4a91cc7ca45edf",
+      "scoreSha256": "b0dfaab2a549ea5d347e748548861bb837807920d594b960226e5aa5531fe919"
+    }
+  },
+  "images": [
+    {
+      "id": "2bhk-bungalow",
+      "walls": {
+        "candidateCount": 45,
+        "referenceCount": 16,
+        "candidateCountRatio": 2.8125,
+        "precision": 0.2662799111615246,
+        "coverageRecall": 0.5709278884720208,
+        "duplicateRate": 0.08888888888888889
+      },
+      "openings": {
+        "candidateCount": 149,
+        "referenceCount": 15,
+        "precision": 0,
+        "recall": 0,
+        "duplicateRate": 0.006711409395973154,
+        "ambiguousReferenceRate": 0
+      },
+      "rooms": "not-measured",
+      "furniture": "not-measured",
+      "selection": "not-measured"
+    },
+    {
+      "id": "oak-ridge-c",
+      "walls": {
+        "candidateCount": 20,
+        "referenceCount": 18,
+        "candidateCountRatio": 1.1111111111111112,
+        "precision": 0.050421381328923195,
+        "coverageRecall": 0.010313280290636334,
+        "duplicateRate": 0
+      },
+      "openings": {
+        "candidateCount": 3,
+        "referenceCount": 14,
+        "precision": 0,
+        "recall": 0,
+        "duplicateRate": 0,
+        "ambiguousReferenceRate": 0
+      },
+      "rooms": "not-measured",
+      "furniture": "not-measured",
+      "selection": "not-measured"
+    }
+  ],
+  "conclusion": "Reference isolation and hash sealing passed on both images. The current HPD candidate layer remains far below the 95% candidate-coverage gate. This is a clean baseline failure, not a V4 model result.",
+  "verification": {
+    "nodeTests": 56,
+    "pythonTests": 141,
+    "typecheck": "passed",
+    "build": "passed",
+    "floorplanOfflineSuite": "passed",
+    "prettier": "passed",
+    "ruff": "passed"
+  },
+  "notClaimed": [
+    "room or furniture candidate recall",
+    "category classification",
+    "activity-group completeness",
+    "final selection precision or recall",
+    "real V4 acceptance",
+    "automatic zero-correction pass"
+  ]
+}

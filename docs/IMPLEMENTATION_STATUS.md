@@ -118,13 +118,17 @@ A separate four-image candidate pool now covers one modern colored two-bedroom p
 
 The reviewed reference batch passes Node `47`, Python `139` and typecheck. Detailed hashes and the two overlay artifacts are recorded in [full-home reference review](evidence/full-home-reference-review-20261109.json). This is still a development-reference gate, not an independent-review or real-model result.
 
-The first zero-model V4 replay is now implemented and has been executed against both reviewed references. It separated raw contour evidence from the model-facing object list and enforced the 300-selectable-object limit without changing V3. The result is **blocked**:
+The first zero-model V4 replay separated raw contour evidence from the model-facing object list and enforced the 300-selectable-object limit without changing V3. Later code review found that this replay was **oracle-assisted**: reference anchors, rooms and targetRoomIds entered the candidate structure, and the complete reference was passed to `contours` as `spec`. Its raw measurements are retained, but it is no longer authoritative for provider selection or recognition acceptance. The classification and original hash are recorded in [oracle-assisted evidence](evidence/full-home-v4-replay-oracle-assisted-20261109.json).
 
-- `2bhk-bungalow`: wall coverage recall `0.6556`; opening coverage recall `0`; 280 selectable object candidates, only 1 matched reference geometry, furniture geometry precision/recall `0.0036/0.0476`.
-- `oak-ridge-c`: wall coverage recall `0.0224`; opening coverage recall `0`; 139 selectable object candidates, 0 matched, furniture geometry precision/recall `0/0`.
-- Room-label semantics, category classification, rotation and activity-group completeness remain unmeasured because this replay calls no model.
+The replacement quality plane runs candidate capture and scoring in separate processes. The candidate process receives only image bytes, user scope and adapter version; it runs as `nobody`, the evaluation directory is unreadable, and a Python audit hook fails closed on any forbidden access. The artifact is written and hash-sealed before a separate scorer loads the reference. Wall coverage uses spatial union, while openings and future discrete objects use maximum-cardinality one-to-one matching so duplicate or merged candidates cannot inflate recall.
 
-The failure is in the fixed candidate layer, not DeepSeek or Qwen. The next work must improve wall/opening availability and collapse the furniture candidate graph before any real V4 run. No live task, draft, candidate or project write was started. Evidence is in [V4 zero-model blocked replay](evidence/full-home-v4-replay-blocked-20261109.json).
+The clean zero-model baseline is still **blocked**:
+
+- `2bhk-bungalow`: 45 wall candidates cover `0.5709` of reference wall length; 149 opening candidates match `0/15` reference openings.
+- `oak-ridge-c`: 20 wall candidates cover `0.0103`; 3 opening candidates match `0/14`.
+- Room regions, furniture candidates, final selection, categories and activity groups remain unmeasured because this profile does not claim those capabilities.
+
+Both reference-access probes and audit checks passed, so the quality plane is trustworthy enough to proceed. The failure remains in the fixed candidate layer, not DeepSeek or Qwen. The next architecture batch is the V4 single-authority switch; provider comparison must wait until the new draft path and its geometry checks are in place. No live task, draft, candidate or project write was started. Evidence is in [quality batch 1](evidence/floorplan-quality-batch1-20261109.json).
 
 ## Remaining scope
 

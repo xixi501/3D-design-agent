@@ -60,7 +60,7 @@ InputBundle
 
 这不等同于全屋验收。两张现有图仍缺少卧室、厨房、卫浴、书房等全屋家具参考；V4 目前只完成契约、候选策略、版本隔离、容量和离线测试，执行结果见 [V4 contract evidence](evidence/floorplan-v4-contract-20261109.json)。必须补齐真实全屋参考并通过同图真实零校正运行后，才能对外声明“全屋家具复现已支持”。
 
-两张开发参考已经存在，但首个零模型 V4 回放被阻断：固定墙体与洞口候选的覆盖不足，家具对象图过生成，2BHK 的 280 个可选对象只匹配 1 个参考，Oak Ridge C 的 139 个对象匹配 0 个。详见 [blocked replay evidence](evidence/full-home-v4-replay-blocked-20261109.json)。因此当前禁止启动真实 V4 模型任务，下一步只能先修 fixed candidate layer。
+旧的首个零模型 V4 回放已被重新分类为 `oracle-assisted-diagnostic`，因为参考房间和锚点进入了候选结构。新的质量平面把候选捕获和参考评分拆成独立进程，只有候选产物哈希封存后才读取参考；详见 [quality batch 1](evidence/floorplan-quality-batch1-20261109.json) 和 [通用质量平面](FLOORPLAN_QUALITY.md)。干净基线仍显示固定墙体与门窗候选严重不足，因此禁止启动真实 V4 模型任务。
 
 ## 预算与容量
 

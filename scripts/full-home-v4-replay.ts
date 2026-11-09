@@ -1,4 +1,10 @@
-/** Zero-model V4 stage diagnostic. References score candidates; they never enter a model prompt. */
+/**
+ * Deprecated oracle-assisted V4 stage diagnostic.
+ *
+ * Reference rooms, anchors and room masks enter candidate construction. This
+ * script is retained only to reproduce historical failure evidence. Use
+ * `scripts/quality/run-floorplan-quality-batch.ts` for production-like replay.
+ */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -19,6 +25,12 @@ const tool = path.join(
 const fixtureRoot = path.join(root, "fixtures/full-home-candidates");
 const outputRoot = path.join(root, "test-results/full-home-v4-replay");
 const diagnose = process.argv.includes("--diagnose");
+if (!process.argv.includes("--oracle-diagnostic")) {
+  console.error(
+    "This replay is oracle-assisted. Pass --oracle-diagnostic for historical reproduction only.",
+  );
+  process.exit(2);
+}
 fs.mkdirSync(outputRoot, { recursive: true });
 
 const candidates = ["2bhk-bungalow", "oak-ridge-c"];
@@ -28,8 +40,17 @@ const report = {
   modelCalls: 0,
   adapterVersion: "hpd-adapter-6-1",
   candidatePolicyVersion: "geometry-only",
+  assessmentType: "oracle-assisted-diagnostic",
+  productionLike: false,
+  authoritativeForProviderSelection: false,
   referenceUsage:
-    "Evaluation-only room masks and scoring after candidate extraction; never supplied to a model prompt",
+    "Deprecated: reference anchors, rooms and targetRoomIds entered candidate construction",
+  oracleInputs: [
+    "reference.anchors",
+    "reference.rooms",
+    "reference.targetRoomIds",
+    "reference passed to contours as spec",
+  ],
   controlled: true,
   passed: false,
   images: [],

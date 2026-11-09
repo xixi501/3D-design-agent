@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "actiscape.floorplan-scene-authority-evidence.v1",
+  "baseCommit": "489abe2",
+  "implementationCommit": "56edcef",
+  "status": "passed",
+  "scope": "V4 single SceneDraft authority; V1/V2/V3 legacy storage unchanged",
+  "schema": {
+    "draftVersion": "actiscape.scene-draft.v2",
+    "recognitionVersion": "actiscape.floorplan-recognition.v1",
+    "floorplanTaskVersion": "s2c-floorplan-v4-1"
+  },
+  "authority": {
+    "persistentDraft": "SceneDraft v2",
+    "millimetreGeometry": "SceneProgram",
+    "recognitionEvidence": "recognition.proposal plus anchors, measurements, review and confirmation metadata",
+    "legacyApi": "/api/projects/:id/floorplan-drafts remains a façade over SceneDraft v2 for V4",
+    "v4TaskIdentityRule": "draftId and sceneDraftId must identify the same record"
+  },
+  "storageProof": {
+    "v4FloorplanDraftRows": 0,
+    "v4SceneDraftRows": 1,
+    "v4SceneDraftRevisionRowsAfterCommand": 2,
+    "legacyFloorplanDraftRows": 1,
+    "legacySceneDraftRows": 0
+  },
+  "behaviorProof": [
+    "The old floorplan draft URL creates a SceneDraft v2 record and returns the legacy façade shape.",
+    "The same V4 draft is readable through the generic SceneDraft API.",
+    "The derived SceneProgram is rejected if it diverges from the recognition proposal.",
+    "Repeated legacy requests return the original hash without adding a revision.",
+    "Review and confirmation bind the current geometry hash without changing that hash.",
+    "Any geometry command invalidates confirmation and source review.",
+    "A candidate can be created from the same confirmed V4 draft.",
+    "The record, cancellation of review state and façade remain recoverable after service restart.",
+    "V1/V2/V3 floorplan drafts continue to use floorplan_drafts and do not write scene_program_drafts."
+  ],
+  "compatibility": {
+    "legacyEmptyAssetResolutionIds": "empty jobId, assetId and reason are treated as absent",
+    "legacySceneDraftRecognition": "v1 accepts an omitted or explicit null recognition field",
+    "oldFloorplanAdapters": "historical V4 and V3-6 adapter versions remain accepted"
+  },
+  "verification": {
+    "nodeTests": 59,
+    "pythonTests": 142,
+    "typecheck": "passed",
+    "build": "passed",
+    "prettier": "passed",
+    "ruff": "passed",
+    "fullFloorplanOfflineSuite": "passed",
+    "fullHomeReferenceGate": "passed",
+    "floorplanQualityTests": "passed",
+    "v3ControlledBrowserAcceptance": {
+      "passed": true,
+      "report": "test-results/floorplan-v3-tools/report.json",
+      "reportSha256": "fa47ce9c603d060f4cc16f7dd8bcde55e9308a7849f2034ef0ffb118f7363719"
+    }
+  },
+  "notClaimed": [
+    "V4 real model recognition",
+    "V4 automatic zero-correction pass",
+    "room or furniture candidate recall",
+    "provider selection",
+    "second-image or full S2 acceptance"
+  ]
+}

@@ -324,6 +324,7 @@ try {
   await step(
     "wall drawing, opening placement and structural updates commit atomically",
     async () => {
+      await page.click('#structural-toggle');
       await page.click('[data-tool="wall"]');
       const points = await page.evaluate(() =>
         [

@@ -159,6 +159,8 @@ export class ChatPanel {
     );
   }
   private renderMode() {
+    this.floorplanUpload.hidden =
+      !this.getContext().blank || !!this.current();
     this.floorplanUpload.disabled =
       this.sending || !this.getContext().blank || !!this.current();
     this.floorplanUpload.title = this.getContext().blank

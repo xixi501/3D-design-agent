@@ -712,3 +712,58 @@ dialog::backdrop {
   font: inherit;
   color: #243342;
 }
+
+/* Keep the primary toolbar quiet; structural editing is opt-in. */
+#structural-tools {
+  display: none;
+  gap: 3px;
+}
+.tools.open #structural-tools {
+  display: flex;
+}
+#structural-toggle.active {
+  background: #e7f2f1;
+  border-color: #9dc9c5;
+}
+#selection-actions {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 10px;
+  border: 1px solid #c6d8dc;
+  border-radius: 8px;
+  background: #fffffff2;
+  box-shadow: 0 4px 14px #1f3a3d22;
+  font-size: 12px;
+}
+#selection-actions[hidden] {
+  display: none;
+}
+#selection-actions #selection-name {
+  color: #315157;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#selection-actions button {
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: #147a78;
+  color: #fff;
+  border-color: #147a78;
+  cursor: pointer;
+}
+#walk.active {
+  background: #147a78;
+  color: #fff;
+  border-color: #147a78;
+}
+#openable-jump {
+  width: 180px;
+  max-width: 22vw;
+}

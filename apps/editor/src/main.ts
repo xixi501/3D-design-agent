@@ -13,6 +13,8 @@ import {
   type Plan,
   allDoorCabinetCommands,
   isSurfaceHost,
+  isOpenableFurniture,
+  isTogglableFurniture,
   rotatedAabb,
 } from "../../../packages/scene-core/src/index.js";
 import { PlanView, type Selection } from "./views/plan-view.js";
@@ -24,8 +26,8 @@ import { Fh } from "./modeling/furniture-2d.js";
 import * as THREE from "three";
 const root = document.querySelector("#app")!;
 root.innerHTML = `<header><div class="brand">演境 <span>ActiScape</span></div><input id="project-name" aria-label="项目名称"><span id="save-state" role="status">连接项目服务…</span><div class="header-actions"><button id="new-project">新建</button><button id="open-project">打开项目</button><button id="import-project">导入 JSON</button><button id="export-project">导出</button><button id="save-project" class="primary">保存</button></div></header>
-<div class="toolbar"><div class="tools"><button data-tool="select" class="active">选择</button><button data-tool="wall">墙体</button><button data-tool="opening:door">门</button><button data-tool="opening:window">窗</button><button data-tool="struct:column">柱</button><button data-tool="beam">梁</button><button data-tool="room">房间</button><button data-tool="measure">尺寸</button></div><div class="view-switch"><button data-view="2d" class="active">二维</button><button data-view="split">分屏</button><button data-view="3d">三维</button></div><button id="frame">适应视图</button><button id="source-image" hidden>显示原图</button><button id="walk">漫游</button><button id="open-all" data-testid="open-all">一键全开检验</button><button id="undo" title="Ctrl Z">撤销</button><button id="redo" title="Ctrl Shift Z">重做</button></div>
-<main><aside class="library"><div class="side-heading">家具与模型 <span id="catalog-count"></span></div><input id="catalog-search" placeholder="搜索家具 / 造型" aria-label="搜索家具"><button id="upload-model" class="wide primary subtle">＋ 导入 GLB 模型</button><button id="upload-photo" class="wide subtle" data-testid="upload-photo">＋ 上传物品照片转 3D</button><div id="catalog"></div></aside><div id="viewport" data-mode="2d"><div id="plan-view"></div><div id="three-view"></div><div class="view-caption">单层设计 · mm</div></div><aside class="inspector"><nav><button data-panel="properties" class="active">属性</button><button data-panel="history">历史</button><button data-panel="checks">检查</button><button data-panel="chat">对话</button></nav><div id="inspector-body"></div></aside></main><footer><span id="message" role="status">正在载入…</span><span id="revision"></span></footer><input id="json-file" type="file" accept=".json,application/json" hidden><input id="glb-file" type="file" accept=".glb" hidden><input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><dialog id="dialog"><div id="dialog-body"></div><button id="close-dialog">关闭</button></dialog>`;
+<div class="toolbar"><div class="tools"><button data-tool="select" class="active">选择</button><button id="structural-toggle" title="墙体、门窗、柱梁等结构工具">结构工具</button><span id="structural-tools"><button data-tool="wall">墙体</button><button data-tool="opening:door">门</button><button data-tool="opening:window">窗</button><button data-tool="struct:column">柱</button><button data-tool="beam">梁</button><button data-tool="room">房间</button><button data-tool="measure">尺寸</button></span></div><select id="openable-jump" title="定位可开启家具" aria-label="定位可开启家具"><option value="">可开启家具…</option></select><div class="view-switch"><button data-view="2d" class="active">二维</button><button data-view="split">分屏</button><button data-view="3d">三维</button></div><button id="frame">适应视图</button><button id="source-image" hidden>显示原图</button><button id="walk">漫游</button><button id="open-all" data-testid="open-all">一键全开检验</button><button id="undo" title="Ctrl Z">撤销</button><button id="redo" title="Ctrl Shift Z">重做</button></div>
+<main><aside class="library"><div class="side-heading">家具与模型 <span id="catalog-count"></span></div><input id="catalog-search" placeholder="搜索家具 / 造型" aria-label="搜索家具"><button id="upload-model" class="wide primary subtle">＋ 导入 GLB 模型</button><button id="upload-photo" class="wide subtle" data-testid="upload-photo">＋ 上传物品照片转 3D</button><div id="catalog"></div></aside><div id="viewport" data-mode="2d"><div id="plan-view"></div><div id="three-view"></div><div id="selection-actions" hidden><span id="selection-name"></span><button id="selection-toggle" hidden>打开柜门</button></div><div class="view-caption">单层设计 · mm</div></div><aside class="inspector"><nav><button data-panel="properties" class="active">属性</button><button data-panel="history">历史</button><button data-panel="checks">检查</button><button data-panel="chat">对话</button></nav><div id="inspector-body"></div></aside></main><footer><span id="message" role="status">正在载入…</span><span id="revision"></span></footer><input id="json-file" type="file" accept=".json,application/json" hidden><input id="glb-file" type="file" accept=".glb" hidden><input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><dialog id="dialog"><div id="dialog-body"></div><button id="close-dialog">关闭</button></dialog>`;
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
 let project: Project | undefined,
@@ -50,6 +52,10 @@ const three = new ThreeView(
     setSelection({ id, collection: collection as any }),
   message,
   commands,
+  (on) => {
+    $("#walk").textContent = on ? "退出漫游" : "漫游";
+    $("#walk").classList.toggle("active", on);
+  },
 );
 const planView = new PlanView(
   $("#plan-view"),
@@ -96,6 +102,42 @@ for (const event of ["pointerup", "pointercancel"])
         void refresh().catch(fail);
     }),
   );
+function updateSelectionActions() {
+  const host = $("#selection-actions");
+  const item = selection
+    ? project?.plan[selection.collection].find((o) => o.id === selection!.id)
+    : undefined;
+  if (!selection || !item || selection.collection === "walls") {
+    host.hidden = true;
+    return;
+  }
+  host.hidden = false;
+  $("#selection-name").textContent =
+    `${selection.collection === "openings" ? "门窗" : "已选"}：${(item as any).name || (item as any).type || "对象"}`;
+  const button = $<HTMLButtonElement>("#selection-toggle");
+  const furniture =
+    selection.collection === "furniture"
+      ? (item as import("../../../packages/scene-core/src/index.js").Furniture)
+      : undefined;
+  const openable = !!furniture && isOpenableFurniture(furniture);
+  const togglable =
+    !!furniture && !openable && isTogglableFurniture(furniture);
+  const canOpen = openable || togglable;
+  button.hidden = !canOpen;
+  if (canOpen) {
+    const isOpen = openable
+      ? !!furniture!.opt?.open
+      : (furniture!.opt as any)?.on !== false;
+    button.textContent = openable
+      ? isOpen
+        ? "关闭柜门"
+        : "打开柜门"
+      : isOpen
+        ? "关闭电器"
+        : "开启电器";
+    button.title = "也可以按 E";
+  }
+}
 function setSelection(s?: Selection) {
   selection = s;
   planView.selection = s;
@@ -106,6 +148,12 @@ function setSelection(s?: Selection) {
       ? { id: s.id, collection: s.collection }
       : undefined;
   three.highlight(s?.collection === "furniture" ? s.id : undefined);
+  updateSelectionActions();
+  if (s?.collection === "furniture") {
+    const f = project?.plan.furniture.find((x) => x.id === s.id);
+    if (f && isOpenableFurniture(f))
+      message(`${f.name}已选中。按 E 或点上方“${f.opt?.open ? "关闭柜门" : "打开柜门"}”开关柜门。`);
+  }
   void inspector().catch(fail);
 }
 async function inspector() {
@@ -167,6 +215,15 @@ async function display(next: Project, frame = false) {
     allDoorCabinetCommands(next.plan, "toggle").mode === "close"
       ? "复位门柜"
       : "一键全开检验";
+  const openables = next.plan.furniture.filter(
+    (f) => isOpenableFurniture(f) || isTogglableFurniture(f),
+  );
+  $("#openable-jump").innerHTML =
+    `<option value="">可开启家具…</option>` +
+    openables
+      .map((f) => `<option value="${esc(f.id)}">${esc(f.name)}</option>`)
+      .join("");
+  $("#openable-jump").hidden = openables.length === 0;
   $<HTMLButtonElement>("#undo").disabled = next.history.undo === 0;
   $<HTMLButtonElement>("#redo").disabled = next.history.redo === 0;
   if (
@@ -185,6 +242,7 @@ async function display(next: Project, frame = false) {
   three.highlight(
     selection?.collection === "furniture" ? selection.id : undefined,
   );
+  updateSelectionActions();
   await inspector();
   await assetLibrary();
   if (!lastFailure) saved("已保存到项目服务");
@@ -284,7 +342,7 @@ async function mutate(
   busy = true;
   lastFailure = false;
   document.body.classList.add("saving");
-  saved("正在保存…");
+  saved(kind === "undo" ? "正在撤销…" : kind === "redo" ? "正在重做…" : "正在保存…");
   const id = project.id,
     request = {
       operationId: newId(),
@@ -736,6 +794,32 @@ $("#source-image").onclick = () => {
 $("#frame").onclick = () => {
   planView.frame();
   three.frame();
+};
+$("#structural-toggle").onclick = () => {
+  const tools = $(".tools");
+  const open = tools.classList.toggle("open");
+  $("#structural-toggle").textContent = open ? "收起工具" : "结构工具";
+  $("#structural-toggle").classList.toggle("active", open);
+};
+$("#openable-jump").onchange = () => {
+  const id = $<HTMLSelectElement>("#openable-jump").value;
+  if (!id || !project) return;
+  const f = project.plan.furniture.find((x) => x.id === id);
+  if (!f) return;
+  setView("3d", false);
+  setSelection({ id, collection: "furniture" });
+  three.focusFurniture(id);
+  message(`已定位 ${f.name}；按 E 或点“打开柜门”即可操作。`);
+};
+$("#selection-toggle").onclick = () => {
+  if (
+    !selection ||
+    (selection.collection !== "furniture" &&
+      selection.collection !== "openings")
+  )
+    return;
+  const ok = three.toggleInteractive(selection.id, selection.collection);
+  if (!ok) message("该对象没有可开启的柜门、抽屉或电器状态");
 };
 $("#walk").onclick = () => {
   const entering = !three.walking;

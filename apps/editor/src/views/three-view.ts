@@ -87,6 +87,7 @@ export class ThreeView {
       summary: string,
       base?: EditBase,
     ) => Promise<void>,
+    public onWalkChange?: (on: boolean) => void,
   ) {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -300,10 +301,15 @@ export class ThreeView {
         }
       } else if (this.lastSelected) {
         e.preventDefault();
-        this.toggleInteractive(
-          this.lastSelected.id,
-          this.lastSelected.collection,
-        );
+        if (
+          !this.toggleInteractive(
+            this.lastSelected.id,
+            this.lastSelected.collection,
+          )
+        )
+          this.report("该对象没有可开启的柜门/抽屉；请先选中电视柜等可开启家具");
+      } else {
+        this.report("请先点击选中电视柜、柜门或抽屉，再按 E");
       }
     });
     this.renderer.setAnimationLoop(() => {
@@ -889,6 +895,25 @@ export class ThreeView {
       this.envelopeLayer.add(mesh, edges);
     }
   }
+  focusFurniture(id: string) {
+    const f = this.plan?.furniture.find((item) => item.id === id);
+    const group = this.furniture.get(id);
+    if (!f || !group) return;
+    const box = new THREE.Box3().setFromObject(group);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const r = Math.max(size.x, size.z, 1.2);
+    // Stand in front of the object (rot 0 faces south) instead of possibly
+    // ending up behind its back panel or inside a wall.
+    const radians = (f.rot * Math.PI) / 180;
+    const front = new THREE.Vector3(Math.sin(radians), 0, Math.cos(radians));
+    this.camera.position
+      .copy(center)
+      .add(front.multiplyScalar(Math.max(2.2, r * 1.4)))
+      .add(new THREE.Vector3(0, Math.max(1.5, r * 0.9), 0));
+    this.controls.target.copy(center).add(new THREE.Vector3(0, 0.25, 0));
+    this.controls.update();
+  }
   frame() {
     if (!this.plan) return;
     const b = new THREE.Box3().setFromObject(this.root),
@@ -996,6 +1021,7 @@ export class ThreeView {
       this.report("已退出漫游");
     }
     this.host.classList.toggle("walking", on);
+    this.onWalkChange?.(on);
   }
   walk(dt: number) {
     const turn =

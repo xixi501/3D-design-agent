@@ -1,0 +1,891 @@
+{
+  "schemaVersion": "actiscape.agentarts-live-verification.v1",
+  "startedAt": "2026-11-10T15:09:44.715Z",
+  "runtimeUrl": "http://127.0.0.1:8090",
+  "sceneUrl": "http://127.0.0.1:3013",
+  "tokenConfigured": true,
+  "modelKeyConfigured": false,
+  "steps": {
+    "ping": {
+      "status": 200,
+      "ok": true,
+      "headers": {
+        "content-length": "53",
+        "content-type": "application/json",
+        "date": "Tue, 10 Nov 2026 15:09:44 GMT",
+        "server": "uvicorn"
+      },
+      "body": {
+        "status": "Healthy",
+        "time_of_last_update": 1794323360
+      },
+      "ms": 28
+    },
+    "createProject": {
+      "status": 201,
+      "ok": true,
+      "headers": {
+        "connection": "keep-alive",
+        "content-length": "1948",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Tue, 10 Nov 2026 15:09:44 GMT",
+        "keep-alive": "timeout=72",
+        "set-cookie": "actiscape_token=live-token; Path=/; HttpOnly; SameSite=Lax"
+      },
+      "body": {
+        "plan": {
+          "version": 2,
+          "name": "文字生成 · AgentArts 云端验收测试主卧",
+          "height": 2800,
+          "phase": "renovate",
+          "nodes": [
+            {
+              "id": "agentarts-live:nodes:0",
+              "x": -100,
+              "y": -100
+            },
+            {
+              "id": "agentarts-live:nodes:1",
+              "x": 4100,
+              "y": -100
+            },
+            {
+              "id": "agentarts-live:nodes:2",
+              "x": 4100,
+              "y": 4100
+            },
+            {
+              "id": "agentarts-live:nodes:3",
+              "x": -100,
+              "y": 4100
+            }
+          ],
+          "walls": [
+            {
+              "id": "agentarts-live:walls:0",
+              "a": "agentarts-live:nodes:0",
+              "b": "agentarts-live:nodes:1",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            },
+            {
+              "id": "agentarts-live:walls:1",
+              "a": "agentarts-live:nodes:1",
+              "b": "agentarts-live:nodes:2",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            },
+            {
+              "id": "agentarts-live:walls:2",
+              "a": "agentarts-live:nodes:2",
+              "b": "agentarts-live:nodes:3",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            },
+            {
+              "id": "agentarts-live:walls:3",
+              "a": "agentarts-live:nodes:3",
+              "b": "agentarts-live:nodes:0",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            }
+          ],
+          "openings": [
+            {
+              "id": "agentarts-live:openings:0",
+              "wall": "agentarts-live:walls:2",
+              "type": "door",
+              "pos": 3150,
+              "width": 900,
+              "sill": 0,
+              "head": 2100,
+              "hinge": 0,
+              "side": 1,
+              "entry": true
+            }
+          ],
+          "furniture": [
+            {
+              "id": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+              "key": "wardrobe",
+              "type": "wardrobe",
+              "name": "衣柜",
+              "w": 2000,
+              "d": 600,
+              "h": 2400,
+              "color": "#ece7df",
+              "x": 2000,
+              "y": 400,
+              "rot": 0
+            },
+            {
+              "id": "3491a44a-4cbd-4a01-8f2d-e0f98eac5cbd",
+              "key": "coffeeTable",
+              "type": "coffeeTable",
+              "name": "茶几",
+              "w": 1200,
+              "d": 600,
+              "h": 400,
+              "color": "#a47a55",
+              "x": 2000,
+              "y": 2200,
+              "rot": 0
+            }
+          ],
+          "structs": [],
+          "beams": [],
+          "rooms": [
+            {
+              "id": "agentarts-live:rooms:0",
+              "x": 2000,
+              "y": 2000,
+              "name": "AgentArts 云端验收测试主卧",
+              "mat": "oak",
+              "wallMat": "latexWhite",
+              "ceil": {
+                "type": "none",
+                "drop": 0,
+                "edgeW": 400,
+                "cove": false
+              }
+            }
+          ],
+          "measures": [],
+          "elec": [],
+          "prices": {},
+          "voids": [],
+          "comments": []
+        },
+        "roomLabelArchive": [],
+        "formatVersion": 1,
+        "id": "522f250c-58c9-4c4e-abf7-fc8d9bffb2bf",
+        "revision": 0,
+        "updatedAt": "2026-11-10T15:09:44.815Z",
+        "assets": [],
+        "history": {
+          "undo": 0,
+          "redo": 0
+        }
+      },
+      "ms": 27
+    },
+    "action": {
+      "status": 200,
+      "ok": true,
+      "headers": {
+        "content-length": "2719",
+        "content-type": "application/json",
+        "date": "Tue, 10 Nov 2026 15:09:44 GMT",
+        "server": "uvicorn",
+        "x-hw-agentarts-session-id": ""
+      },
+      "body": {
+        "status": "completed",
+        "taskId": "a6f5ff8c-1504-4805-8a93-17d9e815756d",
+        "result": {
+          "status": "completed",
+          "message": "门/柜门/抽屉/电器的开启状态已提交，可撤销。",
+          "projectId": "522f250c-58c9-4c4e-abf7-fc8d9bffb2bf",
+          "candidateId": "21f6ec28-44ae-472e-84ae-cf7f72fd70bd",
+          "baseRevision": 0,
+          "committedRevision": 1,
+          "diff": {
+            "added": [],
+            "deleted": [],
+            "updated": [
+              "ce7303fe-1c7b-4d7a-a435-85ec86931c26"
+            ]
+          },
+          "changes": [
+            {
+              "action": "updated",
+              "id": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+              "name": "衣柜",
+              "fields": []
+            }
+          ],
+          "checks": {
+            "passed": true,
+            "issues": [],
+            "coverage": [
+              "授权对象与结构逐字段保护",
+              "需求数量",
+              "封闭房间占地包含（20 mm 容差）",
+              "有效高度与原版参数化轮廓 SAT",
+              "基准问题对照"
+            ],
+            "limitations": [
+              "GLB 使用矩形占地，不是精确网格碰撞",
+              "未验证支撑面、通道可达性、照明或法规"
+            ]
+          },
+          "review": {
+            "passed": true,
+            "summary": "快速动作/照片资产放置已通过确定性检查与两张证据渲染。",
+            "issues": []
+          },
+          "evidence": [
+            {
+              "view": "top",
+              "sha256": "6ad1b53dabf5c211ea328461eb1fcab5ad4cc5c9cef08a0cee49f7997f5f7160",
+              "candidateHash": "f1e325199c20463324eeecba269b49b396eddfc334d3679340f3be5a2c53ebf2",
+              "bytes": 162577,
+              "createdAt": "2026-11-10T15:09:46.934Z",
+              "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+              "url": "/api/projects/522f250c-58c9-4c4e-abf7-fc8d9bffb2bf/candidates/21f6ec28-44ae-472e-84ae-cf7f72fd70bd/evidence/top"
+            },
+            {
+              "view": "oblique",
+              "sha256": "f6af9626f61c0e5a6b58a0c691997ea0fe07db5ab4c482dadbabb5c5f19b0ffd",
+              "candidateHash": "f1e325199c20463324eeecba269b49b396eddfc334d3679340f3be5a2c53ebf2",
+              "bytes": 213331,
+              "createdAt": "2026-11-10T15:09:46.935Z",
+              "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+              "url": "/api/projects/522f250c-58c9-4c4e-abf7-fc8d9bffb2bf/candidates/21f6ec28-44ae-472e-84ae-cf7f72fd70bd/evidence/oblique"
+            }
+          ],
+          "repairs": 0,
+          "versionRetries": 0,
+          "policy": {
+            "route": "interactive_action",
+            "mode": "interactive_action",
+            "reason": "命中快速开关动作",
+            "question": "",
+            "targetId": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+            "collection": "furniture",
+            "action": "toggle_open",
+            "assetId": null,
+            "hostId": null,
+            "fastEdit": null
+          },
+          "skillsUsed": [],
+          "skillSelection": null
+        },
+        "error": null,
+        "generation": {
+          "policy": {
+            "route": "interactive_action",
+            "mode": "interactive_action",
+            "reason": "命中快速开关动作",
+            "question": "",
+            "targetId": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+            "collection": "furniture",
+            "action": "toggle_open",
+            "assetId": null,
+            "hostId": null,
+            "fastEdit": null
+          }
+        },
+        "mode": "interactive_action",
+        "cloud": true
+      },
+      "ms": 2411,
+      "result": {
+        "status": "completed",
+        "message": "门/柜门/抽屉/电器的开启状态已提交，可撤销。",
+        "projectId": "522f250c-58c9-4c4e-abf7-fc8d9bffb2bf",
+        "candidateId": "21f6ec28-44ae-472e-84ae-cf7f72fd70bd",
+        "baseRevision": 0,
+        "committedRevision": 1,
+        "diff": {
+          "added": [],
+          "deleted": [],
+          "updated": [
+            "ce7303fe-1c7b-4d7a-a435-85ec86931c26"
+          ]
+        },
+        "changes": [
+          {
+            "action": "updated",
+            "id": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+            "name": "衣柜",
+            "fields": []
+          }
+        ],
+        "checks": {
+          "passed": true,
+          "issues": [],
+          "coverage": [
+            "授权对象与结构逐字段保护",
+            "需求数量",
+            "封闭房间占地包含（20 mm 容差）",
+            "有效高度与原版参数化轮廓 SAT",
+            "基准问题对照"
+          ],
+          "limitations": [
+            "GLB 使用矩形占地，不是精确网格碰撞",
+            "未验证支撑面、通道可达性、照明或法规"
+          ]
+        },
+        "review": {
+          "passed": true,
+          "summary": "快速动作/照片资产放置已通过确定性检查与两张证据渲染。",
+          "issues": []
+        },
+        "evidence": [
+          {
+            "view": "top",
+            "sha256": "6ad1b53dabf5c211ea328461eb1fcab5ad4cc5c9cef08a0cee49f7997f5f7160",
+            "candidateHash": "f1e325199c20463324eeecba269b49b396eddfc334d3679340f3be5a2c53ebf2",
+            "bytes": 162577,
+            "createdAt": "2026-11-10T15:09:46.934Z",
+            "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+            "url": "/api/projects/522f250c-58c9-4c4e-abf7-fc8d9bffb2bf/candidates/21f6ec28-44ae-472e-84ae-cf7f72fd70bd/evidence/top"
+          },
+          {
+            "view": "oblique",
+            "sha256": "f6af9626f61c0e5a6b58a0c691997ea0fe07db5ab4c482dadbabb5c5f19b0ffd",
+            "candidateHash": "f1e325199c20463324eeecba269b49b396eddfc334d3679340f3be5a2c53ebf2",
+            "bytes": 213331,
+            "createdAt": "2026-11-10T15:09:46.935Z",
+            "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+            "url": "/api/projects/522f250c-58c9-4c4e-abf7-fc8d9bffb2bf/candidates/21f6ec28-44ae-472e-84ae-cf7f72fd70bd/evidence/oblique"
+          }
+        ],
+        "repairs": 0,
+        "versionRetries": 0,
+        "policy": {
+          "route": "interactive_action",
+          "mode": "interactive_action",
+          "reason": "命中快速开关动作",
+          "question": "",
+          "targetId": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+          "collection": "furniture",
+          "action": "toggle_open",
+          "assetId": null,
+          "hostId": null,
+          "fastEdit": null
+        },
+        "skillsUsed": [],
+        "skillSelection": null
+      }
+    },
+    "afterAction": {
+      "status": 200,
+      "ok": true,
+      "headers": {
+        "connection": "keep-alive",
+        "content-length": "1968",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Tue, 10 Nov 2026 15:09:47 GMT",
+        "keep-alive": "timeout=72",
+        "set-cookie": "actiscape_token=live-token; Path=/; HttpOnly; SameSite=Lax"
+      },
+      "body": {
+        "plan": {
+          "version": 2,
+          "name": "文字生成 · AgentArts 云端验收测试主卧",
+          "height": 2800,
+          "phase": "renovate",
+          "nodes": [
+            {
+              "id": "agentarts-live:nodes:0",
+              "x": -100,
+              "y": -100
+            },
+            {
+              "id": "agentarts-live:nodes:1",
+              "x": 4100,
+              "y": -100
+            },
+            {
+              "id": "agentarts-live:nodes:2",
+              "x": 4100,
+              "y": 4100
+            },
+            {
+              "id": "agentarts-live:nodes:3",
+              "x": -100,
+              "y": 4100
+            }
+          ],
+          "walls": [
+            {
+              "id": "agentarts-live:walls:0",
+              "a": "agentarts-live:nodes:0",
+              "b": "agentarts-live:nodes:1",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            },
+            {
+              "id": "agentarts-live:walls:1",
+              "a": "agentarts-live:nodes:1",
+              "b": "agentarts-live:nodes:2",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            },
+            {
+              "id": "agentarts-live:walls:2",
+              "a": "agentarts-live:nodes:2",
+              "b": "agentarts-live:nodes:3",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            },
+            {
+              "id": "agentarts-live:walls:3",
+              "a": "agentarts-live:nodes:3",
+              "b": "agentarts-live:nodes:0",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            }
+          ],
+          "openings": [
+            {
+              "id": "agentarts-live:openings:0",
+              "wall": "agentarts-live:walls:2",
+              "type": "door",
+              "pos": 3150,
+              "width": 900,
+              "sill": 0,
+              "head": 2100,
+              "hinge": 0,
+              "side": 1,
+              "entry": true
+            }
+          ],
+          "furniture": [
+            {
+              "id": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+              "key": "wardrobe",
+              "type": "wardrobe",
+              "name": "衣柜",
+              "w": 2000,
+              "d": 600,
+              "h": 2400,
+              "color": "#ece7df",
+              "x": 2000,
+              "y": 400,
+              "rot": 0,
+              "opt": {
+                "open": true
+              }
+            },
+            {
+              "id": "3491a44a-4cbd-4a01-8f2d-e0f98eac5cbd",
+              "key": "coffeeTable",
+              "type": "coffeeTable",
+              "name": "茶几",
+              "w": 1200,
+              "d": 600,
+              "h": 400,
+              "color": "#a47a55",
+              "x": 2000,
+              "y": 2200,
+              "rot": 0
+            }
+          ],
+          "structs": [],
+          "beams": [],
+          "rooms": [
+            {
+              "id": "agentarts-live:rooms:0",
+              "x": 2000,
+              "y": 2000,
+              "name": "AgentArts 云端验收测试主卧",
+              "mat": "oak",
+              "wallMat": "latexWhite",
+              "ceil": {
+                "type": "none",
+                "drop": 0,
+                "edgeW": 400,
+                "cove": false
+              }
+            }
+          ],
+          "measures": [],
+          "elec": [],
+          "prices": {},
+          "voids": [],
+          "comments": []
+        },
+        "roomLabelArchive": [],
+        "formatVersion": 1,
+        "id": "522f250c-58c9-4c4e-abf7-fc8d9bffb2bf",
+        "revision": 1,
+        "updatedAt": "2026-11-10T15:09:47.199Z",
+        "assets": [],
+        "history": {
+          "undo": 1,
+          "redo": 0
+        }
+      },
+      "ms": 3
+    },
+    "duplicate": {
+      "status": 200,
+      "ok": true,
+      "headers": {
+        "content-length": "2719",
+        "content-type": "application/json",
+        "date": "Tue, 10 Nov 2026 15:09:46 GMT",
+        "server": "uvicorn",
+        "x-hw-agentarts-session-id": ""
+      },
+      "body": {
+        "status": "completed",
+        "taskId": "a6f5ff8c-1504-4805-8a93-17d9e815756d",
+        "result": {
+          "status": "completed",
+          "message": "门/柜门/抽屉/电器的开启状态已提交，可撤销。",
+          "projectId": "522f250c-58c9-4c4e-abf7-fc8d9bffb2bf",
+          "candidateId": "21f6ec28-44ae-472e-84ae-cf7f72fd70bd",
+          "baseRevision": 0,
+          "committedRevision": 1,
+          "diff": {
+            "added": [],
+            "deleted": [],
+            "updated": [
+              "ce7303fe-1c7b-4d7a-a435-85ec86931c26"
+            ]
+          },
+          "changes": [
+            {
+              "action": "updated",
+              "id": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+              "name": "衣柜",
+              "fields": []
+            }
+          ],
+          "checks": {
+            "passed": true,
+            "issues": [],
+            "coverage": [
+              "授权对象与结构逐字段保护",
+              "需求数量",
+              "封闭房间占地包含（20 mm 容差）",
+              "有效高度与原版参数化轮廓 SAT",
+              "基准问题对照"
+            ],
+            "limitations": [
+              "GLB 使用矩形占地，不是精确网格碰撞",
+              "未验证支撑面、通道可达性、照明或法规"
+            ]
+          },
+          "review": {
+            "passed": true,
+            "summary": "快速动作/照片资产放置已通过确定性检查与两张证据渲染。",
+            "issues": []
+          },
+          "evidence": [
+            {
+              "view": "top",
+              "sha256": "6ad1b53dabf5c211ea328461eb1fcab5ad4cc5c9cef08a0cee49f7997f5f7160",
+              "candidateHash": "f1e325199c20463324eeecba269b49b396eddfc334d3679340f3be5a2c53ebf2",
+              "bytes": 162577,
+              "createdAt": "2026-11-10T15:09:46.934Z",
+              "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+              "url": "/api/projects/522f250c-58c9-4c4e-abf7-fc8d9bffb2bf/candidates/21f6ec28-44ae-472e-84ae-cf7f72fd70bd/evidence/top"
+            },
+            {
+              "view": "oblique",
+              "sha256": "f6af9626f61c0e5a6b58a0c691997ea0fe07db5ab4c482dadbabb5c5f19b0ffd",
+              "candidateHash": "f1e325199c20463324eeecba269b49b396eddfc334d3679340f3be5a2c53ebf2",
+              "bytes": 213331,
+              "createdAt": "2026-11-10T15:09:46.935Z",
+              "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+              "url": "/api/projects/522f250c-58c9-4c4e-abf7-fc8d9bffb2bf/candidates/21f6ec28-44ae-472e-84ae-cf7f72fd70bd/evidence/oblique"
+            }
+          ],
+          "repairs": 0,
+          "versionRetries": 0,
+          "policy": {
+            "route": "interactive_action",
+            "mode": "interactive_action",
+            "reason": "命中快速开关动作",
+            "question": "",
+            "targetId": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+            "collection": "furniture",
+            "action": "toggle_open",
+            "assetId": null,
+            "hostId": null,
+            "fastEdit": null
+          },
+          "skillsUsed": [],
+          "skillSelection": null
+        },
+        "error": null,
+        "generation": {
+          "policy": {
+            "route": "interactive_action",
+            "mode": "interactive_action",
+            "reason": "命中快速开关动作",
+            "question": "",
+            "targetId": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+            "collection": "furniture",
+            "action": "toggle_open",
+            "assetId": null,
+            "hostId": null,
+            "fastEdit": null
+          }
+        },
+        "mode": "interactive_action",
+        "cloud": true
+      },
+      "ms": 4,
+      "result": {
+        "status": "completed",
+        "message": "门/柜门/抽屉/电器的开启状态已提交，可撤销。",
+        "projectId": "522f250c-58c9-4c4e-abf7-fc8d9bffb2bf",
+        "candidateId": "21f6ec28-44ae-472e-84ae-cf7f72fd70bd",
+        "baseRevision": 0,
+        "committedRevision": 1,
+        "diff": {
+          "added": [],
+          "deleted": [],
+          "updated": [
+            "ce7303fe-1c7b-4d7a-a435-85ec86931c26"
+          ]
+        },
+        "changes": [
+          {
+            "action": "updated",
+            "id": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+            "name": "衣柜",
+            "fields": []
+          }
+        ],
+        "checks": {
+          "passed": true,
+          "issues": [],
+          "coverage": [
+            "授权对象与结构逐字段保护",
+            "需求数量",
+            "封闭房间占地包含（20 mm 容差）",
+            "有效高度与原版参数化轮廓 SAT",
+            "基准问题对照"
+          ],
+          "limitations": [
+            "GLB 使用矩形占地，不是精确网格碰撞",
+            "未验证支撑面、通道可达性、照明或法规"
+          ]
+        },
+        "review": {
+          "passed": true,
+          "summary": "快速动作/照片资产放置已通过确定性检查与两张证据渲染。",
+          "issues": []
+        },
+        "evidence": [
+          {
+            "view": "top",
+            "sha256": "6ad1b53dabf5c211ea328461eb1fcab5ad4cc5c9cef08a0cee49f7997f5f7160",
+            "candidateHash": "f1e325199c20463324eeecba269b49b396eddfc334d3679340f3be5a2c53ebf2",
+            "bytes": 162577,
+            "createdAt": "2026-11-10T15:09:46.934Z",
+            "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+            "url": "/api/projects/522f250c-58c9-4c4e-abf7-fc8d9bffb2bf/candidates/21f6ec28-44ae-472e-84ae-cf7f72fd70bd/evidence/top"
+          },
+          {
+            "view": "oblique",
+            "sha256": "f6af9626f61c0e5a6b58a0c691997ea0fe07db5ab4c482dadbabb5c5f19b0ffd",
+            "candidateHash": "f1e325199c20463324eeecba269b49b396eddfc334d3679340f3be5a2c53ebf2",
+            "bytes": 213331,
+            "createdAt": "2026-11-10T15:09:46.935Z",
+            "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+            "url": "/api/projects/522f250c-58c9-4c4e-abf7-fc8d9bffb2bf/candidates/21f6ec28-44ae-472e-84ae-cf7f72fd70bd/evidence/oblique"
+          }
+        ],
+        "repairs": 0,
+        "versionRetries": 0,
+        "policy": {
+          "route": "interactive_action",
+          "mode": "interactive_action",
+          "reason": "命中快速开关动作",
+          "question": "",
+          "targetId": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+          "collection": "furniture",
+          "action": "toggle_open",
+          "assetId": null,
+          "hostId": null,
+          "fastEdit": null
+        },
+        "skillsUsed": [],
+        "skillSelection": null
+      }
+    },
+    "afterDuplicate": {
+      "status": 200,
+      "ok": true,
+      "headers": {
+        "connection": "keep-alive",
+        "content-length": "1968",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Tue, 10 Nov 2026 15:09:47 GMT",
+        "keep-alive": "timeout=72",
+        "set-cookie": "actiscape_token=live-token; Path=/; HttpOnly; SameSite=Lax"
+      },
+      "body": {
+        "plan": {
+          "version": 2,
+          "name": "文字生成 · AgentArts 云端验收测试主卧",
+          "height": 2800,
+          "phase": "renovate",
+          "nodes": [
+            {
+              "id": "agentarts-live:nodes:0",
+              "x": -100,
+              "y": -100
+            },
+            {
+              "id": "agentarts-live:nodes:1",
+              "x": 4100,
+              "y": -100
+            },
+            {
+              "id": "agentarts-live:nodes:2",
+              "x": 4100,
+              "y": 4100
+            },
+            {
+              "id": "agentarts-live:nodes:3",
+              "x": -100,
+              "y": 4100
+            }
+          ],
+          "walls": [
+            {
+              "id": "agentarts-live:walls:0",
+              "a": "agentarts-live:nodes:0",
+              "b": "agentarts-live:nodes:1",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            },
+            {
+              "id": "agentarts-live:walls:1",
+              "a": "agentarts-live:nodes:1",
+              "b": "agentarts-live:nodes:2",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            },
+            {
+              "id": "agentarts-live:walls:2",
+              "a": "agentarts-live:nodes:2",
+              "b": "agentarts-live:nodes:3",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            },
+            {
+              "id": "agentarts-live:walls:3",
+              "a": "agentarts-live:nodes:3",
+              "b": "agentarts-live:nodes:0",
+              "t": 200,
+              "bearing": true,
+              "status": "existing",
+              "bearingFrom": "inferred"
+            }
+          ],
+          "openings": [
+            {
+              "id": "agentarts-live:openings:0",
+              "wall": "agentarts-live:walls:2",
+              "type": "door",
+              "pos": 3150,
+              "width": 900,
+              "sill": 0,
+              "head": 2100,
+              "hinge": 0,
+              "side": 1,
+              "entry": true
+            }
+          ],
+          "furniture": [
+            {
+              "id": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+              "key": "wardrobe",
+              "type": "wardrobe",
+              "name": "衣柜",
+              "w": 2000,
+              "d": 600,
+              "h": 2400,
+              "color": "#ece7df",
+              "x": 2000,
+              "y": 400,
+              "rot": 0,
+              "opt": {
+                "open": true
+              }
+            },
+            {
+              "id": "3491a44a-4cbd-4a01-8f2d-e0f98eac5cbd",
+              "key": "coffeeTable",
+              "type": "coffeeTable",
+              "name": "茶几",
+              "w": 1200,
+              "d": 600,
+              "h": 400,
+              "color": "#a47a55",
+              "x": 2000,
+              "y": 2200,
+              "rot": 0
+            }
+          ],
+          "structs": [],
+          "beams": [],
+          "rooms": [
+            {
+              "id": "agentarts-live:rooms:0",
+              "x": 2000,
+              "y": 2000,
+              "name": "AgentArts 云端验收测试主卧",
+              "mat": "oak",
+              "wallMat": "latexWhite",
+              "ceil": {
+                "type": "none",
+                "drop": 0,
+                "edgeW": 400,
+                "cove": false
+              }
+            }
+          ],
+          "measures": [],
+          "elec": [],
+          "prices": {},
+          "voids": [],
+          "comments": []
+        },
+        "roomLabelArchive": [],
+        "formatVersion": 1,
+        "id": "522f250c-58c9-4c4e-abf7-fc8d9bffb2bf",
+        "revision": 1,
+        "updatedAt": "2026-11-10T15:09:47.199Z",
+        "assets": [],
+        "history": {
+          "undo": 1,
+          "redo": 0
+        }
+      },
+      "ms": 2
+    },
+    "probe": {
+      "skipped": true,
+      "reason": "no model key; pass --with-probe to force"
+    }
+  },
+  "passed": true,
+  "projectId": "522f250c-58c9-4c4e-abf7-fc8d9bffb2bf",
+  "wardrobeId": "ce7303fe-1c7b-4d7a-a435-85ec86931c26",
+  "initialRevision": 0,
+  "finalRevision": 1,
+  "finishedAt": "2026-11-10T15:09:47.240Z"
+}

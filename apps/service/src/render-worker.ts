@@ -49,6 +49,12 @@ export class RenderWorker {
       });
       try {
         const page = await browser.newPage();
+        const token = process.env.ACTISCAPE_TOOL_TOKEN?.trim();
+        if (token)
+          await page.setExtraHTTPHeaders({
+            Authorization: `Bearer ${token}`,
+            "x-actiscape-token": token,
+          });
         await page.setViewport({
           width: 960,
           height: 720,

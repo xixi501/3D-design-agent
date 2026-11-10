@@ -11,6 +11,26 @@ from pathlib import Path
 from actiscape_agent.manager import TaskManager
 
 TERMINAL = {"completed", "failed", "waiting_input", "cancelled", "conflict"}
+_RUNTIME_MANAGER: TaskManager | None = None
+_RUNTIME_LOCK: asyncio.Lock | None = None
+
+
+async def _runtime_manager() -> TaskManager:
+    """One process-local TaskStore so requestId remains idempotent.
+
+    The AgentArts container is intentionally stateless across restarts; within a
+    warm process, repeated requests must not create a second project revision.
+    """
+    global _RUNTIME_MANAGER, _RUNTIME_LOCK
+    if _RUNTIME_LOCK is None:
+        _RUNTIME_LOCK = asyncio.Lock()
+    async with _RUNTIME_LOCK:
+        if _RUNTIME_MANAGER is None:
+            _RUNTIME_MANAGER = TaskManager(
+                Path(tempfile.mkdtemp(prefix="agentarts-task-"))
+            )
+            await _RUNTIME_MANAGER.start()
+        return _RUNTIME_MANAGER
 
 
 def _body(payload: dict) -> dict:
@@ -43,38 +63,36 @@ async def run_task(
         if timeout is not None
         else __import__("os").environ.get("AGENTARTS_TASK_TIMEOUT", "240")
     )
-    owns = manager is None
     if manager is None:
-        manager = TaskManager(Path(tempfile.mkdtemp(prefix="agentarts-task-")))
-    started = time.monotonic()
-    try:
+        manager = await _runtime_manager()
+    elif manager.worker is None:
         await manager.start()
-        conversation = manager.store.create_conversation(payload["projectId"])
-        task = manager.store.create_task(conversation["id"], body)
-        manager.enqueue(task["id"])
-        while time.monotonic() - started < timeout:
-            current = manager.store.task(task["id"], internal=True)
-            if current["status"] in TERMINAL:
-                return {
-                    "status": current["status"],
-                    "taskId": current["id"],
-                    "result": current.get("result"),
-                    "error": current.get("error"),
-                    "generation": current.get("generation"),
-                    "mode": current.get("mode"),
-                    "cloud": True,
-                }
-            await asyncio.sleep(0.2)
+    started = time.monotonic()
+    # A process-level manager is intentionally kept warm; its temp SQLite is
+    # lost only when the stateless container itself exits.
+    conversation = manager.store.conversation_for_project(payload["projectId"])
+    task = manager.store.create_task(conversation["id"], body)
+    manager.enqueue(task["id"])
+    while time.monotonic() - started < timeout:
         current = manager.store.task(task["id"], internal=True)
-        return {
-            "status": "timeout",
-            "taskId": current["id"],
-            "result": current.get("result"),
-            "error": f"task exceeded {timeout:g}s",
-            "generation": current.get("generation"),
-            "mode": current.get("mode"),
-            "cloud": True,
-        }
-    finally:
-        if owns:
-            await manager.close()
+        if current["status"] in TERMINAL:
+            return {
+                "status": current["status"],
+                "taskId": current["id"],
+                "result": current.get("result"),
+                "error": current.get("error"),
+                "generation": current.get("generation"),
+                "mode": current.get("mode"),
+                "cloud": True,
+            }
+        await asyncio.sleep(0.2)
+    current = manager.store.task(task["id"], internal=True)
+    return {
+        "status": "timeout",
+        "taskId": current["id"],
+        "result": current.get("result"),
+        "error": f"task exceeded {timeout:g}s",
+        "generation": current.get("generation"),
+        "mode": current.get("mode"),
+        "cloud": True,
+    }

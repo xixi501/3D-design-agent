@@ -152,6 +152,15 @@ class TaskStore:
             )
         return self.conversation(id)
 
+    def conversation_for_project(self, project: str):
+        """Reuse one conversation per project so requestId remains idempotent."""
+        with self.lock:
+            row = self.db.execute(
+                "SELECT id FROM conversations WHERE project_id=? ORDER BY created LIMIT 1",
+                (project,),
+            ).fetchone()
+        return self.conversation(row["id"]) if row else self.create_conversation(project)
+
     def task(self, id: str, internal=False):
         with self.lock:
             row = self.db.execute("SELECT * FROM tasks WHERE id=?", (id,)).fetchone()

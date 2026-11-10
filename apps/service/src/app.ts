@@ -95,7 +95,27 @@ export async function createApp(options: {
       return;
     const authorization = request.headers.authorization;
     const headerToken = request.headers["x-actiscape-token"];
-    if (authorization === `Bearer ${token}` || headerToken === token) return;
+    const queryToken = new URL(request.url, "http://service").searchParams.get(
+      "token",
+    );
+    const cookieToken = (request.headers.cookie || "")
+      .split(";")
+      .map((part) => part.trim())
+      .find((part) => part.startsWith("actiscape_token="))
+      ?.slice("actiscape_token=".length);
+    const allowed =
+      authorization === `Bearer ${token}` ||
+      headerToken === token ||
+      queryToken === token ||
+      cookieToken === token;
+    if (allowed) {
+      if (cookieToken !== token)
+        reply.header(
+          "set-cookie",
+          `actiscape_token=${token}; Path=/; HttpOnly; SameSite=Lax`,
+        );
+      return;
+    }
     return reply.code(401).send({
       error: "UNAUTHORIZED",
       message: "缺少或错误的 ACTISCAPE_TOOL_TOKEN Bearer 令牌",

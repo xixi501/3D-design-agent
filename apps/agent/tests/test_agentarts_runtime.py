@@ -95,3 +95,26 @@ def test_runtime_preserves_floorplan_scope():
     )
     assert body["floorplanScope"]["functionalAreas"] == ["kitchen"]
     assert body["imageId"] == "image-1"
+
+
+@pytest.mark.asyncio
+async def test_agentarts_run_task_is_idempotent_for_same_project_request(tmp_path):
+    client = FlowScene()
+    manager = TaskManager(tmp_path, client, NoopRoles)
+    payload = {
+        "action": "run_task",
+        "projectId": "p",
+        "requestId": "agentarts-idempotent-1",
+        "mode": "interactive_action",
+        "input": "打开衣柜门",
+        "selectedIds": ["w1"],
+    }
+    try:
+        first = await task_runtime.run_task(payload, manager=manager, timeout=10)
+        revision = client.project["revision"]
+        second = await task_runtime.run_task(payload, manager=manager, timeout=10)
+        assert first["status"] == "completed" and second["status"] == "completed"
+        assert first["taskId"] == second["taskId"]
+        assert client.project["revision"] == revision == 1
+    finally:
+        await manager.close()

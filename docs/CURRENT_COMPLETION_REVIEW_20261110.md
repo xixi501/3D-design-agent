@@ -2,7 +2,7 @@
 
 > 给验收 Agent：本文件是截至 2026-11-10 的**当前状态**，不是阶段计划。  
 > 仓库：`/workspace/3D-design-agent` · 分支 `dev/core`  
-> P4 代码交付提交：`a1d2857`；本轮走查修复提交：`2f8c70e`；本文档更新另建 docs commit，当前 HEAD 以 `git log -1` 为准。
+> P4 代码交付提交：`a1d2857`；本轮走查修复提交：`2f8c70e`；冻结前收尾（Token/live/幂等）另建 commit，当前 HEAD 以 `git log -1` 为准。
 > 工作区：提交后**干净**（`git status --short` 为空）。  
 > 结论：文档 P0/P3/P4 已完成；P1/P2 主体完成但各留 1 项明确缺口；P4 为**本地模拟验收**，真实华为云未部署。
 
@@ -87,6 +87,12 @@
 
 详见 [AGENTARTS_DEPLOYMENT_DECISION_20261110.md](AGENTARTS_DEPLOYMENT_DECISION_20261110.md)。
 
+### 4.5 冻结前 2 项收尾
+
+- `?token=` / Cookie / Header 三通道鉴权；编辑器 localStorage 自动带 `x-actiscape-token`；render-worker 带 token，截图/GLB/SSE 可用。
+- `npm run verify:agentarts:live`：ping → 测试项目 → `run_task` 开门 → 重复 requestId 幂等 → 可选 probe；输出 `test-results/agentarts-live-verification.json`。
+- 受保护服务实测：`passed=true`，revision 0→1，重复仍为 1。
+
 ## 5. 本轮收口的 4 项技术债
 
 | 缺口 | 处理 | 结果 |
@@ -113,7 +119,7 @@
 | 命令 | 结果 |
 | --- | --- |
 | `npm test` | **82 passed / 0 failed** |
-| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **186 passed** |
+| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **187 passed** |
 | `npm run test:all` | **exit 0**（baseline / browser / parity / catalog / visual） |
 | `npm run test:skill-pool:v1` | **exit 0**（13 Skills / 26 cases，modelCalls=0） |
 | `npm test -w @actiscape/scene-core` | **23 passed** |

@@ -9,7 +9,7 @@
 - 路径：`/workspace/3D-design-agent`
 - 分支：`dev/core`
 - 本交付以 `git log -1` 为准；工作区应在提交后保持干净。
-- 当前测试基线：**Node 82、Python 186、`npm run test:all` exit 0**。
+- 当前测试基线：**Node 82、Python 187、`npm run test:all` exit 0**。
 - 真实 V100 缓存仍为 0 案例（P2.1 外部依赖）；`apps/asset-service` 仍未合入。
 - 真实华为云 AgentArts 未部署；P4 在本地模拟 `/invocations` 验收，`cloudDeploymentVerified=false`。
 
@@ -108,7 +108,7 @@
 - 为 `rectangular-living-reading`、`style-coherence`、`lighting-color`、`photo-object-import` 等补齐阶段提示；
 - 修复 `**第 N 步 …** [J-…]` 带尾注时无法解析步骤的问题；
 - 新增 `test_active_stage_slices_have_no_fallback`：active primary/modifier 在 asset/layout/check/repair 均 `fallback=false`；
-- 结果：`pytest` 186 passed。
+- 结果：`pytest` 187 passed。
 
 ### 3.3 G2/G3/G5/G6：本轮追加关闭
 
@@ -137,7 +137,7 @@
 | 命令 | 当前结果 |
 | --- | --- |
 | `npm test` | **82 passed / 0 failed** |
-| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **186 passed** |
+| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **187 passed** |
 | `npm run build` | 通过（typecheck + vite） |
 | `npm run test:all` | **exit 0**（baseline/browser/parity/catalog/visual） |
 | `npm run test:skill-pool:v1` | **exit 0**（13 Skills / 26 cases） |
@@ -198,7 +198,7 @@ node scripts/platform-probe.mjs --prepare-only
 
 预期：
 
-- Node 82；Python 186；build 通过；`test:all` exit 0；replay exit 0；scene-core 23；probe prepare 通过；
+- Node 82；Python 187；build 通过；`test:all` exit 0；replay exit 0；scene-core 23；probe prepare 通过；
 - `git status --short` 为空（本交付提交后）。
 
 关键抽查：

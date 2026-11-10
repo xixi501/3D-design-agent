@@ -49,6 +49,31 @@ test("ACTISCAPE_TOOL_TOKEN protects /api/* but keeps health and local mode open"
       ).status,
       200,
     );
+    const query = await fetch(`${base}/api/projects?token=test-token`);
+    assert.equal(query.status, 200);
+    assert.match(query.headers.get("set-cookie") || "", /actiscape_token=test-token/);
+    assert.equal(
+      (
+        await fetch(`${base}/api/projects`, {
+          headers: { cookie: "actiscape_token=test-token" },
+        })
+      ).status,
+      200,
+    );
+    assert.equal(
+      (
+        await fetch(`${base}/api/projects?token=wrong`)
+      ).status,
+      401,
+    );
+    assert.equal(
+      (
+        await fetch(`${base}/api/projects`, {
+          headers: { cookie: "actiscape_token=wrong" },
+        })
+      ).status,
+      401,
+    );
   } finally {
     if (previous === undefined) delete process.env.ACTISCAPE_TOOL_TOKEN;
     else process.env.ACTISCAPE_TOOL_TOKEN = previous;

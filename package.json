@@ -59,7 +59,8 @@
     "test:floorplan:live": "node --import tsx scripts/floorplan-live.mjs",
     "test:floorplan:tools:live": "node --import tsx scripts/floorplan-tools-live.mjs",
     "pretest": "node scripts/image-runtime.mjs",
-    "build:agentarts-bundle": "node scripts/prepare-agentarts-bundle.mjs"
+    "build:agentarts-bundle": "node scripts/prepare-agentarts-bundle.mjs",
+    "verify:agentarts:live": "node --import tsx scripts/verify-agentarts-live.mjs"
   },
   "dependencies": {
     "@fastify/multipart": "10.1.7",

@@ -1,7 +1,7 @@
 # AgentArts 上云前置改造审核交接（2026-11-10）
 
 > 给审核 Agent：  
-> 本轮完成了 **4 项上云前置代码改造**，仓库已达到“拷到 ARM64 机器即可执行 `agentarts launch` 或 `docker build`”的产物就绪状态。  
+> 本轮完成了 **4 项上云前置代码改造 + 2 项冻结前收尾**，仓库已达到“拷到 ARM64 机器即可执行 `agentarts launch` 或 `docker build`”的产物就绪状态。
 > 但**还没有在真实 ARM64 Docker/华为云 AgentArts 中构建和部署**。请把本文件与 `docs/AGENTARTS_DEPLOYMENT_DECISION_20261110.md`、实际代码一起审核，再给出下一步计划。
 
 ---
@@ -11,6 +11,7 @@
 - 路径：`/workspace/3D-design-agent`
 - 分支：`dev/core`
 - 代码基线：`716c696 feat(agentarts): add self-contained ARM64 bundle and cloud auth`
+- 冻结前收尾（Token 闭环 / live 脚本 / 幂等运行时）另建 commit
 - 本文档另建 docs-only commit；当前 HEAD 以 `git log -1` 为准
 - 工作区：提交后干净
 - 关键前置提交：
@@ -28,6 +29,8 @@
 | 2. MaaS 环境变量兼容 | **完成** | `model_settings()` 支持 `MODEL_API_KEY/MODEL_URL/MODEL_NAME`；非 DeepSeek base 默认不发 `extra_body.thinking`；health 识别两个 Key | `test_model_config.py` 3 项；`create_model()` 用 MaaS 配置构造通过 |
 | 3. 服务端 Bearer 鉴权 | **完成** | `apps/service` 可选 `ACTISCAPE_TOOL_TOKEN` Hook；支持 Bearer 与 `x-actiscape-token`；健康检查/公开文档放行 | `tests/agent-auth.test.ts` 覆盖开启/关闭、错误/正确 token |
 | 4. 自包含 Bundle | **完成** | `scripts/prepare-agentarts-bundle.mjs`；根命令 `npm run build:agentarts-bundle`；生成 326 文件 Bundle | Bundle 测试通过；33 个 Skills；`requirements.txt` 无本地 editable 路径；`DEPLOY_RUNBOOK.md` 完整 |
+| 5. 浏览器 Token 闭环 | **完成** | 服务端支持 `?token=`、Cookie、Header；编辑器 localStorage + `x-actiscape-token`；render-worker 带 token | 查询/Cookie 鉴权测试；受保护服务 live 验证通过 |
+| 6. 云端一键取证 | **完成** | `scripts/verify-agentarts-live.mjs` + `verify:agentarts:live` | 受保护场景服务上 ping/action/duplicate 通过，revision 0→1 |
 
 ### 1.1 任务 1 细节
 
@@ -91,6 +94,18 @@ dist/agentarts-bundle/
 
 ---
 
+### 1.5 冻结前 2 项收尾
+
+- **浏览器 Token 闭环**：
+  - `?token=` 或 Cookie `actiscape_token=` 或 Header 均可放行；查询/首次 Header 请求会种 `HttpOnly` Cookie；
+  - 编辑器从 URL 读取 token 存 localStorage，每次 `api()` 带 `x-actiscape-token`；
+  - 截图/GLB/EventSource 通过 Cookie 工作；
+  - `render-worker` 的 Chromium 也注入 Bearer token，避免受保护服务下候选截图 401。
+- **一键云端取证**：
+  - `npm run verify:agentarts:live` 自动 ping、创建衣柜+茶几项目、`run_task` 开门、重复 requestId 幂等、可选 probe；
+  - 输出 `test-results/agentarts-live-verification.json`；
+  - 在受保护的本地运行时上实测 `passed=true`，revision 0→1，重复后仍为 1。
+
 ## 2. 验证结果
 
 在代码基线 `716c696` 上执行：
@@ -98,7 +113,7 @@ dist/agentarts-bundle/
 | 命令 | 结果 |
 | --- | --- |
 | `npm test` | **82 passed / 0 failed** |
-| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **186 passed** |
+| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **187 passed** |
 | `npm run build:agentarts-bundle` | 通过，326 files |
 | `npm run test:all` | **exit 0**（baseline/browser/parity/catalog/visual） |
 | `npm run test:skill-pool:v1` | **exit 0**（13 Skills / 26 cases） |

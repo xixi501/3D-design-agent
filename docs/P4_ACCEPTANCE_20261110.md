@@ -128,6 +128,12 @@ P4 已完成并通过本地模拟验收：
 - `npm run build:agentarts-bundle`：生成自包含 `dist/agentarts-bundle/`（33 Skills、requirements、Dockerfile、runbook、config example）。
 - 详细决策：[AGENTARTS_DEPLOYMENT_DECISION_20261110.md](AGENTARTS_DEPLOYMENT_DECISION_20261110.md)。
 
+### 4.7 冻结前收尾（2026-11-10 追加）
+
+- 浏览器三通道 token：`?token=` / Cookie / Header；编辑器 localStorage + `x-actiscape-token`；render-worker 注入 token，受保护服务下截图正常。
+- `npm run verify:agentarts:live` 已实现；受保护本地运行时实测 `passed=true`，revision 0→1，重复 requestId 不重复提交。
+- 证据：[agentarts-live-verification.json](evidence/p4-agentarts-20261110/agentarts-live-verification.json)。
+
 ## 5. 验收命令
 
 ```bash
@@ -135,7 +141,7 @@ npm test
 # 82 passed / 0 failed
 
 PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q
-# 186 passed
+# 187 passed
 
 npm run build
 # typecheck + vite build 通过

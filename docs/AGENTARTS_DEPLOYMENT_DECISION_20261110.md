@@ -11,9 +11,10 @@
 1. **部署产物**：采用**同时兼容官方 `agentarts configure && agentarts launch` 与手动 `docker build` 的自包含 Bundle**。`npm run build:agentarts-bundle` 生成 `dist/agentarts-bundle/`，根目录直接含 `app.py`、`agent.py`、`task_runtime.py`、`actiscape_agent/`、`requirements.txt`、`Dockerfile`、`.agentarts_config.yaml.example`、`DEPLOY_RUNBOOK.md`。
 2. **构建/部署路径**：优先 **华为云 `cn-southwest-2` 鲲鹏 ARM64 Ubuntu 22.04 ECS（路径 A）**，其次 **Mac M 系列 ARM64（路径 B）**；不在当前受限 x86 容器内硬跑 Docker，也不把 Windows x86 作为主构建机。
 3. **入口兼容**：`agent.py` 同时支持 `AGENT_RUN_PORT` / `RUNTIME_PORT`；新增 `app.py` 别名，官方 CLI 使用 `app:app`，旧手动入口仍可用 `agent:app`。
-4. **场景网关安全**：`apps/service` 已增加可选 `ACTISCAPE_TOOL_TOKEN` Bearer 鉴权；未设置时保持本地免密，设置后保护 `/api/*`（`/api/health`、`/api/openapi.json` 除外），支持 `Authorization: Bearer <token>` 与 `x-actiscape-token`。
+4. **场景网关安全**：`apps/service` 已增加可选 `ACTISCAPE_TOOL_TOKEN` Bearer 鉴权；未设置时保持本地免密，设置后保护 `/api/*`（`/api/health`、`/api/openapi.json` 除外），支持 `Authorization: Bearer <token>`、`x-actiscape-token`、`?token=` 与 `actiscape_token` Cookie；浏览器编辑器从 URL token 写入 localStorage，render-worker 也带 token。
 5. **模型兼容**：`model_settings()` 支持 `DEEPSEEK_*` 与 AgentArts 标准 `MODEL_API_KEY` / `MODEL_URL` / `MODEL_NAME`；非 DeepSeek 官方 base_url 默认不发送 `extra_body.thinking`，可用 `DEEPSEEK_THINKING=enabled` 显式开启。
 6. **当前环境限制**：本服务器无 Docker/CAP_SYS_ADMIN，不能构建 ARM64 镜像；本地无 Node 运行时和 cloud proxy 已通过，但真实 ARM64 镜像/华为云部署仍未完成。
+7. **一键取证**：`npm run verify:agentarts:live` 会对 Runtime 执行 ping → 创建测试项目 → `run_task` → 重复 requestId 幂等 → 可选 probe，并写出 `test-results/agentarts-live-verification.json`。
 
 ---
 
@@ -22,7 +23,7 @@
 - 路径：`/workspace/3D-design-agent`
 - 分支：`dev/core`
 - 代码基线：`b8dfcaf`
-- 本次上云前置改造（双入口 / MaaS / 鉴权 / Bundle）另建提交
+- 本次上云前置改造（双入口 / MaaS / 鉴权 / Bundle）与冻结前收尾（Token/live/幂等）另建提交
 - 当前 HEAD 以 `git log -1` 为准；工作区提交后干净
 - 关键历史：
   - `a1d2857`：P0–P4 主体交付
@@ -280,6 +281,22 @@ Bundle 中 `requirements.txt` 已移除本地 editable 依赖，`actiscape_agent
 9. **日志/证据**：记录 Runtime ID、镜像 digest、架构、`/ping`、`/invocations`、revision、失败回滚。
 
 ---
+
+## 7.2 一键取证脚本（已实现）
+
+```bash
+AGENTARTS_RUNTIME_URL=http://127.0.0.1:8080 \
+ACTISCAPE_SCENE_URL=http://127.0.0.1:3001 \
+ACTISCAPE_TOOL_TOKEN=... \
+npm run verify:agentarts:live
+```
+
+- ping；
+- 创建带衣柜+茶几的测试项目；
+- `run_task` 开门，revision +1；
+- 相同 requestId 重复调用，revision 不变；
+- `--with-probe` 或检测到模型 Key 时调用 `platform-probe`；
+- 输出 `test-results/agentarts-live-verification.json`。
 
 ## 8. 建议的验收流程
 

@@ -2,6 +2,27 @@ export interface EditBase {
   projectId: string;
   revision: number;
 }
+const TOOL_TOKEN_KEY = "actiscape-tool-token";
+
+function toolToken(): string {
+  try {
+    return localStorage.getItem(TOOL_TOKEN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function rememberQueryToken() {
+  try {
+    const query = new URL(window.location.href).searchParams.get("token");
+    if (query) localStorage.setItem(TOOL_TOKEN_KEY, query);
+  } catch {
+    // localStorage may be unavailable in restricted browser contexts.
+  }
+}
+
+rememberQueryToken();
+
 export class ApiError extends Error {
   constructor(
     public code: string,
@@ -16,12 +37,15 @@ export async function api<T = any>(
   url: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const token = toolToken();
   const response = await fetch(`/api${url}`, {
     ...options,
-    headers:
-      options.body instanceof FormData
+    headers: {
+      ...(options.body instanceof FormData
         ? options.headers
-        : { "content-type": "application/json", ...options.headers },
+        : { "content-type": "application/json", ...options.headers }),
+      ...(token ? { "x-actiscape-token": token } : {}),
+    },
   });
   const result = await response.json();
   if (!response.ok)

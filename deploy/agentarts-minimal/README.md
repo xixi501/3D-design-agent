@@ -1,8 +1,50 @@
-# 成员三：AgentArts 最小真实工具联通
+# 成员三：AgentArts 运行时联通与完整 Workflow
 
-这是独立平台验收入口。完整四 Agent 业务在 `apps/agent`；本包用 AgentArts SDK 0.1.10 包装一个小型 LangGraph，验证模型真实读工具、移动测试对象、回读和撤销。本机 SDK 验证通过不代表已在 AgentArts 云端部署。
+这是 AgentArts 平台验收入口。当前入口同时支持：
 
-当前交接业务版本 `e002051` 已含 S2-C 图片、草稿、确认与整层初始化工程；两张真实图片及完整 S2 仍待验收，见 [S2-C 状态](../../docs/S2C_STATUS.md)。本最小应用继续只验工具联通，不默认部署完整图片编排。后续完整编排需要外部持久检查点，以及可访问的原图、处理图和证据文件服务，不能只复制 SQLite 而遗漏文件。
+- `action="probe"`：原平台冒烟/工具联通逻辑；
+- `action="run_task"`：在容器内运行完整 `apps/agent` 多智能体 `Workflow`；
+- `agent:app` 与 `app:app` 双入口，兼容手动 Docker 与官方 `agentarts configure`；
+- `AGENT_RUN_PORT` / `RUNTIME_PORT` 双端口环境变量。
+
+完整、自包含、带 33 个 Skills 的部署包由根目录生成：
+
+```bash
+npm run build:agentarts-bundle
+# 产物：dist/agentarts-bundle/
+```
+
+Bundle 内含 `DEPLOY_RUNBOOK.md`、`app.py`、`agent.py`、`task_runtime.py`、`actiscape_agent/`、`requirements.txt`、`Dockerfile` 与 `.agentarts_config.yaml.example`，可直接拷到 **ARM64 Ubuntu 22.04** 机器执行官方 CLI 或手动 Docker。
+
+## 本机复核
+
+```bash
+RUNTIME_PORT=3080 .venv/bin/python deploy/agentarts-minimal/app.py
+node scripts/platform-probe.mjs
+```
+
+默认访问 `http://127.0.0.1:3080/invocations`。probe 使用真实模型和场景工具；`run_task` 动作任务不依赖模型 Key。
+
+## 云端步骤
+
+1. 在 **ARM64** Ubuntu 22.04（华为云 `cn-southwest-2` 鲲鹏 ECS 或 Mac M）构建；X86 镜像会在 AgentArts 调用失败。
+2. 使用 `dist/agentarts-bundle/DEPLOY_RUNBOOK.md` 的官方 CLI 或手动 Docker 路径。
+3. 配置 `MODEL_API_KEY` / `MODEL_URL` / `MODEL_NAME`（MaaS）或 `DEEPSEEK_*`。
+4. 配置 `ACTISCAPE_SCENE_URL` 与 `ACTISCAPE_TOOL_TOKEN`；网关启用 Bearer 鉴权。
+5. 云端验证 `/ping`、`probe`、`run_task`，并记录镜像 digest、Runtime ID、项目 revision。
+
+## 当前状态
+
+- 本地无 Node 宿主运行时：`/ping` 健康、`run_task` 动作任务 completed；
+- 工作台 → 本地运行时 → 场景服务 cloud proxy：completed；
+- **真实 ARM64 镜像与华为云部署仍未完成**；
+- 当前环境没有 Docker/CAP_SYS_ADMIN，不能在本服务器构建 ARM64 镜像。
+
+## 与 S5 的关系
+
+完整对话任务已接入主编排入口；正式云端验收仍需 ARM64 镜像、可达 HTTPS 场景网关、模型 Key 与平台账号。当前云端状态维持“待实际部署验收”。
+
+<!-- 以下为历史最小 probe 说明，保留供对照 -->
 
 ## 已提供内容
 

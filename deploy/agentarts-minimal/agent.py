@@ -217,6 +217,10 @@ async def handler(payload: dict, context: RequestContext = None) -> dict:
 
 if __name__ == "__main__":
     app.run(
-        host=os.environ.get("RUNTIME_HOST", "127.0.0.1"),
-        port=int(os.environ.get("RUNTIME_PORT", "8080")),
+        host=os.environ.get("RUNTIME_HOST", "0.0.0.0"),
+        port=int(
+            os.environ.get("AGENT_RUN_PORT")
+            or os.environ.get("RUNTIME_PORT")
+            or "8080"
+        ),
     )

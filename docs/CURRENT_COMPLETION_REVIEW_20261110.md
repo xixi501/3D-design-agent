@@ -78,6 +78,15 @@
 
 **仍不是真实容器/华为云验收。**
 
+### 4.4 上云前置改造
+
+- `app.py` 别名 + `AGENT_RUN_PORT`/`RUNTIME_PORT` 双端口；
+- MaaS `MODEL_API_KEY/MODEL_URL/MODEL_NAME` 回退；
+- `apps/service` 可选 Bearer 鉴权；
+- 自包含 Bundle：`npm run build:agentarts-bundle` → `dist/agentarts-bundle/`（33 Skills + Dockerfile + runbook）。
+
+详见 [AGENTARTS_DEPLOYMENT_DECISION_20261110.md](AGENTARTS_DEPLOYMENT_DECISION_20261110.md)。
+
 ## 5. 本轮收口的 4 项技术债
 
 | 缺口 | 处理 | 结果 |
@@ -103,8 +112,8 @@
 
 | 命令 | 结果 |
 | --- | --- |
-| `npm test` | **80 passed / 0 failed** |
-| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **183 passed** |
+| `npm test` | **82 passed / 0 failed** |
+| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **186 passed** |
 | `npm run test:all` | **exit 0**（baseline / browser / parity / catalog / visual） |
 | `npm run test:skill-pool:v1` | **exit 0**（13 Skills / 26 cases，modelCalls=0） |
 | `npm test -w @actiscape/scene-core` | **23 passed** |

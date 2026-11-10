@@ -6,13 +6,24 @@
 
 ---
 
+## 0. 最终拍板（2026-11-10）
+
+1. **部署产物**：采用**同时兼容官方 `agentarts configure && agentarts launch` 与手动 `docker build` 的自包含 Bundle**。`npm run build:agentarts-bundle` 生成 `dist/agentarts-bundle/`，根目录直接含 `app.py`、`agent.py`、`task_runtime.py`、`actiscape_agent/`、`requirements.txt`、`Dockerfile`、`.agentarts_config.yaml.example`、`DEPLOY_RUNBOOK.md`。
+2. **构建/部署路径**：优先 **华为云 `cn-southwest-2` 鲲鹏 ARM64 Ubuntu 22.04 ECS（路径 A）**，其次 **Mac M 系列 ARM64（路径 B）**；不在当前受限 x86 容器内硬跑 Docker，也不把 Windows x86 作为主构建机。
+3. **入口兼容**：`agent.py` 同时支持 `AGENT_RUN_PORT` / `RUNTIME_PORT`；新增 `app.py` 别名，官方 CLI 使用 `app:app`，旧手动入口仍可用 `agent:app`。
+4. **场景网关安全**：`apps/service` 已增加可选 `ACTISCAPE_TOOL_TOKEN` Bearer 鉴权；未设置时保持本地免密，设置后保护 `/api/*`（`/api/health`、`/api/openapi.json` 除外），支持 `Authorization: Bearer <token>` 与 `x-actiscape-token`。
+5. **模型兼容**：`model_settings()` 支持 `DEEPSEEK_*` 与 AgentArts 标准 `MODEL_API_KEY` / `MODEL_URL` / `MODEL_NAME`；非 DeepSeek 官方 base_url 默认不发送 `extra_body.thinking`，可用 `DEEPSEEK_THINKING=enabled` 显式开启。
+6. **当前环境限制**：本服务器无 Docker/CAP_SYS_ADMIN，不能构建 ARM64 镜像；本地无 Node 运行时和 cloud proxy 已通过，但真实 ARM64 镜像/华为云部署仍未完成。
+
+---
+
 ## 1. 当前仓库状态
 
 - 路径：`/workspace/3D-design-agent`
 - 分支：`dev/core`
-- 代码交付：`b8dfcaf`
-- 本文档另建 docs commit；当前 HEAD 以 `git log -1` 为准
-- 工作区：提交后干净（`git status --short` 为空）
+- 代码基线：`b8dfcaf`
+- 本次上云前置改造（双入口 / MaaS / 鉴权 / Bundle）另建提交
+- 当前 HEAD 以 `git log -1` 为准；工作区提交后干净
 - 关键历史：
   - `a1d2857`：P0–P4 主体交付
   - `9e31dbe`：当前完成情况交接
@@ -25,8 +36,8 @@
 
 | 项目 | 结果 |
 | --- | --- |
-| Node 测试 | **80 passed** |
-| Python 测试 | **183 passed** |
+| Node 测试 | **82 passed** |
+| Python 测试 | **186 passed** |
 | `npm run test:all` | **exit 0** |
 | `npm run test:skill-pool:v1` | **exit 0**（13 Skills / 26 cases） |
 | `npm test -w @actiscape/scene-core` | **23 passed** |
@@ -178,6 +189,42 @@ docker buildx build \
 
 ---
 
+## 4.4 自包含 Bundle（已实现）
+
+```bash
+cd /workspace/3D-design-agent
+npm run build:agentarts-bundle
+```
+
+生成：
+
+```text
+dist/agentarts-bundle/
+  app.py
+  agent.py
+  task_runtime.py
+  actiscape_agent/         # 33 Skills + schemas + vendor
+  requirements.txt
+  Dockerfile
+  .dockerignore
+  .agentarts_config.yaml.example
+  DEPLOY_RUNBOOK.md
+  BUNDLE_MANIFEST.json
+```
+
+在 ARM64 机器上：
+
+```bash
+cd agentarts-bundle
+export DOCKER_BUILDKIT=0
+docker buildx build --platform linux/arm64 -t <image> --load .
+# 或官方 CLI
+agentarts configure --entrypoint app:app
+agentarts launch
+```
+
+Bundle 中 `requirements.txt` 已移除本地 editable 依赖，`actiscape_agent` 已在同级目录；`Dockerfile` 是 `COPY . /app`，不再引用父目录。
+
 ## 5. 可选的构建/部署路径
 
 | 路径 | 构建机 | 优点 | 缺点/风险 |
@@ -188,7 +235,7 @@ docker buildx build \
 | **D. 华为云 CodeArts/SWR 云端构建** | 云端 | 不依赖个人电脑 | 平台是否支持、配置成本未知，需核实 |
 | **E. 当前服务器** | 本服务器 | 代码已在此 | **不可行**：无 Docker、无 CAP_SYS_ADMIN、x86；不要在此装 Docker 硬跑 |
 
-**推荐决策顺序：A（首选）→ B（有 Mac M 时）→ D（云构建）→ C（仅兜底）。当前服务器不作为构建机。**
+**推荐决策顺序：A（首选）→ B（有 Mac M 时）→ D（云构建）→ C（仅兜底）。当前服务器不作为构建机。Bundle 已按此路径生成，可直接拷到 ARM64 机器。**
 
 ---
 

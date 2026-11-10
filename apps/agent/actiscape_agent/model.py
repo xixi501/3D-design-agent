@@ -44,4 +44,10 @@ class ActiDeepSeek(ChatDeepSeek):
 
 
 def create_model(**overrides: Any) -> ActiDeepSeek:
-    return ActiDeepSeek(**{**model_settings(), **overrides})
+    settings = model_settings()
+    # MODEL_URL/MODEL_API_KEY are the AgentArts standard names. Passing the
+    # resolved key explicitly avoids relying on ChatDeepSeek's DEEPSEEK_* env
+    # lookup when only MODEL_API_KEY is present.
+    if "api_key" not in overrides and not settings.get("api_key"):
+        settings.pop("api_key", None)
+    return ActiDeepSeek(**{**settings, **overrides})

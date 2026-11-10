@@ -83,6 +83,24 @@ export async function createApp(options: {
     });
     if (status >= 500) app.log.error(error);
   });
+  app.addHook("onRequest", async (request, reply) => {
+    const token = process.env.ACTISCAPE_TOOL_TOKEN?.trim();
+    if (!token) return;
+    const pathname = (request.raw.url || "").split("?")[0];
+    if (
+      !pathname.startsWith("/api/") ||
+      pathname === "/api/health" ||
+      pathname === "/api/openapi.json"
+    )
+      return;
+    const authorization = request.headers.authorization;
+    const headerToken = request.headers["x-actiscape-token"];
+    if (authorization === `Bearer ${token}` || headerToken === token) return;
+    return reply.code(401).send({
+      error: "UNAUTHORIZED",
+      message: "缺少或错误的 ACTISCAPE_TOOL_TOKEN Bearer 令牌",
+    });
+  });
   app.get(
     "/api/health",
     { schema: { description: "Service and database readiness" } },

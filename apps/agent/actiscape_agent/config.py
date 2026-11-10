@@ -48,16 +48,53 @@ def scene_url() -> str:
     return os.environ.get("ACTISCAPE_SCENE_URL", "http://127.0.0.1:3001").rstrip("/")
 
 
+def model_api_key() -> str:
+    """DeepSeek first, official AgentArts MODEL_API_KEY fallback."""
+    return (
+        os.environ.get("DEEPSEEK_API_KEY")
+        or os.environ.get("MODEL_API_KEY")
+        or ""
+    )
+
+
+def _thinking_enabled(base_url: str) -> bool:
+    explicit = os.environ.get("DEEPSEEK_THINKING", "").strip().lower()
+    if explicit in ("enabled", "true", "1", "yes"):
+        return True
+    if explicit in ("disabled", "false", "0", "no"):
+        return False
+    # MaaS/OpenAI-compatible endpoints do not accept DeepSeek's private
+    # thinking field; only enable it for the DeepSeek official host.
+    return "deepseek.com" in base_url.lower()
+
+
 def model_settings() -> dict:
-    return {
-        "model": os.environ.get("DEEPSEEK_MODEL", "deepseek-flash"),
-        "base_url": os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+    base_url = (
+        os.environ.get("DEEPSEEK_BASE_URL")
+        or os.environ.get("MODEL_URL")
+        or "https://api.deepseek.com"
+    ).rstrip("/")
+    settings = {
+        "model": (
+            os.environ.get("DEEPSEEK_MODEL")
+            or os.environ.get("MODEL_NAME")
+            or "deepseek-flash"
+        ),
+        "base_url": base_url,
         "reasoning_effort": os.environ.get("DEEPSEEK_REASONING_EFFORT", "high"),
         "timeout": 120,
         "max_retries": 0,
         "max_tokens": 8192,
-        "extra_body": {"thinking": {"type": "enabled"}},
+        "extra_body": (
+            {"thinking": {"type": "enabled"}}
+            if _thinking_enabled(base_url)
+            else {}
+        ),
     }
+    key = model_api_key()
+    if key:
+        settings["api_key"] = key
+    return settings
 
 
 def vision_model_settings() -> dict:

@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from .capability_registry import capability_document
-from .config import model_settings, state_directory
+from .config import model_api_key, model_settings, state_directory
 from .floorplan_vision import get_provider_registry
 from .manager import TaskManager
 from .schemas import ResumeInput, TaskInput
@@ -116,7 +116,7 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
         return {
             "ok": True,
             "service": "ActiScape agents",
-            "modelConfigured": bool(os.environ.get("DEEPSEEK_API_KEY")),
+            "modelConfigured": bool(model_api_key()),
             "visionConfigured": vision["configured"],
             "visionAvailable": vision["available"],
             "visionModel": vision["model"],

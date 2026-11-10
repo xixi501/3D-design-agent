@@ -62,7 +62,7 @@ P4 已完成并通过本地模拟验收：
 - 网关 fixture 实测：`hpd-adapter-6-1`，1000×800，6 段墙、2 个洞口，artifact hash `46777b75…`；
 - `test_floorplan_vision_provider.py::test_remote_runner_uses_gateway_envelope_and_never_spawns_node` 通过；
 - `tests/floorplan-candidate.test.ts` 通过；
-- `npm test` 80 passed。
+- `npm test` 82 passed。
 
 ## 4. P4.2 AgentArts 完整 Workflow 与工作台转发
 
@@ -120,14 +120,22 @@ P4 已完成并通过本地模拟验收：
 
 **这不是完整容器验收**：Dockerfile 构建、容器网络、平台 `/ping` 生命周期仍需在有 Docker/华为云的环境复跑。真实华为云部署仍未完成。
 
+### 4.6 上云前置改造（2026-11-10 追加）
+
+- `deploy/agentarts-minimal/app.py`：官方 CLI `app:app` 别名；`agent.py` 同时读取 `AGENT_RUN_PORT` / `RUNTIME_PORT`。
+- `config.py` / `model.py`：兼容 `MODEL_API_KEY` / `MODEL_URL` / `MODEL_NAME`；MaaS 非 DeepSeek 地址默认不发送 `extra_body.thinking`。
+- `apps/service`：可选 `ACTISCAPE_TOOL_TOKEN` Bearer 鉴权，未设置时本地免密；保护 `/api/*`，健康检查例外。
+- `npm run build:agentarts-bundle`：生成自包含 `dist/agentarts-bundle/`（33 Skills、requirements、Dockerfile、runbook、config example）。
+- 详细决策：[AGENTARTS_DEPLOYMENT_DECISION_20261110.md](AGENTARTS_DEPLOYMENT_DECISION_20261110.md)。
+
 ## 5. 验收命令
 
 ```bash
 npm test
-# 80 passed / 0 failed
+# 82 passed / 0 failed
 
 PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q
-# 183 passed
+# 186 passed
 
 npm run build
 # typecheck + vite build 通过

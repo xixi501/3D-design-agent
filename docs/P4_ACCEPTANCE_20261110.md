@@ -25,6 +25,10 @@ P4 已完成并通过本地模拟验收：
 - [AgentArts runtime 全流程结果](evidence/p4-agentarts-20261110/runtime-run.json)
 - [platform-probe 输入](evidence/p4-agentarts-20261110/platform-probe-input.json)
 - [G3 地面开启包络线框](evidence/p4-agentarts-20261110/g3-open-envelope.png)
+- [无 Node 运行时动作任务](evidence/p4-agentarts-20261110/no-node-runtime-run.json)
+- [无 Node 运行时照片任务](evidence/p4-agentarts-20261110/no-node-photo-run.json)
+- [无 Node 运行时 ping/PATH](evidence/p4-agentarts-20261110/no-node-runtime-ping.txt)
+- [工作台 → 云端运行时转发](evidence/p4-agentarts-20261110/cloud-proxy-run.json)
 
 ## 3. P4.1 去 Node 依赖与远程视觉候选
 
@@ -103,6 +107,18 @@ P4 已完成并通过本地模拟验收：
 4. **G3 包络线框**：`three-view.ts` 在柜体开启或选中时绘制地面半透明包络；冲突显示橙红，正常显示青绿。
 5. **G5/G6 FastExec + 最小避让**：策略支持单件平移/旋转/改色；`OPENABLE_FRONT_BLOCKED` 时按 `clearance - remaining + 50mm` 移开阻挡物并重新走 Candidate → CheckScene → Commit。
 6. **G2 确定性布局**：`deterministic_layout.py` 复用 6 类房间的 positive L3 模板，模型失败时缩放坐标生成候选；过道使用通用安全布局；fake-model 测试覆盖。
+
+### 4.5 无 Node 运行时实测（本环境无 Docker）
+
+本环境没有 Docker/Podman，无法真正构建 `python:3.13-slim` 镜像；采用**等效无 Node 宿主进程**验证：
+
+- 运行时进程 `PATH=/tmp/no-node-bin:/usr/bin:/bin`，其中没有 `node`；
+- `GET /ping` → `{"status":"Healthy"}`；
+- `POST /invocations` `run_task` 动作任务 → **completed**，revision 2→3；
+- 照片任务 → **waiting_input**（真实台面碰撞，未写正式项目），证明照片路径也进入完整 Workflow；
+- `cloud-proxy-run.json`：工作台网关 3014 → AgentArts 运行时 8090 → 场景服务 3013，cloud task **completed**，revision 4→5。
+
+**这不是完整容器验收**：Dockerfile 构建、容器网络、平台 `/ping` 生命周期仍需在有 Docker/华为云的环境复跑。真实华为云部署仍未完成。
 
 ## 5. 验收命令
 

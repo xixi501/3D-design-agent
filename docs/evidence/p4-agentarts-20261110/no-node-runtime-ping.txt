@@ -1,0 +1,5 @@
+{"status":"Healthy","time_of_last_update":1794319800}
+PID 414077 PATH:
+PATH=/tmp/no-node-bin:/usr/bin:/bin
+node lookup:
+absent

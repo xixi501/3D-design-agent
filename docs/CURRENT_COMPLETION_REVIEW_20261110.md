@@ -2,7 +2,7 @@
 
 > 给验收 Agent：本文件是截至 2026-11-10 的**当前状态**，不是阶段计划。  
 > 仓库：`/workspace/3D-design-agent` · 分支 `dev/core`  
-> P4 代码交付提交：`a1d2857`；本轮走查修复（G2/G3/G5/G6 + 代理 Bug）另建提交，当前 HEAD 以 `git log -1` 为准。
+> P4 代码交付提交：`a1d2857`；本轮走查修复提交：`2f8c70e`；本文档更新另建 docs commit，当前 HEAD 以 `git log -1` 为准。
 > 工作区：提交后**干净**（`git status --short` 为空）。  
 > 结论：文档 P0/P3/P4 已完成；P1/P2 主体完成但各留 1 项明确缺口；P4 为**本地模拟验收**，真实华为云未部署。
 
@@ -63,6 +63,20 @@
   - `AGENTARTS_INVOCATIONS_URL` 配置时，带 `projectId` 的任务创建转换为同步 cloud task；
   - 本地模式自动剥离 `projectId`。
 - 证据：[runtime 全流程](evidence/p4-agentarts-20261110/runtime-run.json)、[P4 总览](evidence/p4-agentarts-20261110/contact-sheet.png)。
+
+### 4.3 本环境无 Docker 的运行时实测
+
+本环境没有 Docker/Podman，不能构建真实容器镜像；使用**无 node 的宿主 Python 运行时**做等效验证：
+
+- 运行时 `PATH=/tmp/no-node-bin:/usr/bin:/bin`，`which node` 为空；
+- `/ping` 健康；
+- `/invocations` `run_task` 动作任务 completed，revision 2→3；
+- 照片任务进入完整 Workflow 并因真实台面碰撞返回 waiting_input；
+- 网关 3014 → 运行时 8090 → 场景 3013 的 cloud task completed，revision 4→5。
+
+证据：[无 Node 动作](evidence/p4-agentarts-20261110/no-node-runtime-run.json)、[无 Node 照片](evidence/p4-agentarts-20261110/no-node-photo-run.json)、[PATH/ping](evidence/p4-agentarts-20261110/no-node-runtime-ping.txt)、[云端转发](evidence/p4-agentarts-20261110/cloud-proxy-run.json)。
+
+**仍不是真实容器/华为云验收。**
 
 ## 5. 本轮收口的 4 项技术债
 

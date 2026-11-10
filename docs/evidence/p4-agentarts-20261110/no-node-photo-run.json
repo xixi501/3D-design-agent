@@ -1,0 +1,81 @@
+{
+  "request": {
+    "action": "run_task",
+    "projectId": "285b314d-8e06-47bb-a4d0-f38ce1826844",
+    "requestId": "p4-runtime-photo-1",
+    "mode": "photo_to_scene",
+    "input": "把照片花瓶放到茶几上",
+    "selectedIds": [
+      "ac492096-a42c-4b6d-a94c-f3ddaa2cfe64"
+    ],
+    "assetId": "asset-82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1",
+    "hostId": "ac492096-a42c-4b6d-a94c-f3ddaa2cfe64"
+  },
+  "response": {
+    "status": "waiting_input",
+    "taskId": "d3c05046-2ab8-4be7-902a-37ff185fbaad",
+    "result": {
+      "status": "waiting_input",
+      "message": "照片资产落位检查未通过，正式场景未改变。 照片花瓶 与 照片花瓶 在同一台面上相互重叠",
+      "candidateId": "ba074fc5-e115-40fd-b54b-49f682c70aa2",
+      "report": {
+        "passed": false,
+        "issues": [
+          {
+            "code": "SURFACE_ITEM_COLLISION",
+            "objectIds": [
+              "06887496-83d5-4359-81fe-8f3ff76434fc",
+              "3aabdc94-5169-428a-975d-3b2e6013b648"
+            ],
+            "message": "照片花瓶 与 照片花瓶 在同一台面上相互重叠",
+            "level": "error",
+            "blocking": true
+          }
+        ],
+        "coverage": [
+          "授权对象与结构逐字段保护",
+          "需求数量",
+          "封闭房间占地包含（20 mm 容差）",
+          "有效高度与原版参数化轮廓 SAT",
+          "基准问题对照"
+        ],
+        "limitations": [
+          "GLB 使用矩形占地，不是精确网格碰撞",
+          "未验证支撑面、通道可达性、照明或法规"
+        ]
+      },
+      "policy": {
+        "route": "photo_to_scene",
+        "mode": "photo_to_scene",
+        "reason": "已有照片资产，进入资产入场子流程",
+        "question": "",
+        "targetId": null,
+        "collection": null,
+        "action": null,
+        "assetId": "asset-82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1",
+        "hostId": "ac492096-a42c-4b6d-a94c-f3ddaa2cfe64",
+        "fastEdit": null
+      }
+    },
+    "error": "照片资产落位检查未通过，正式场景未改变。 照片花瓶 与 照片花瓶 在同一台面上相互重叠",
+    "generation": {
+      "assetId": "asset-82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1",
+      "hostId": "ac492096-a42c-4b6d-a94c-f3ddaa2cfe64",
+      "phase": "reading",
+      "policy": {
+        "route": "photo_to_scene",
+        "mode": "photo_to_scene",
+        "reason": "已有照片资产，进入资产入场子流程",
+        "question": "",
+        "targetId": null,
+        "collection": null,
+        "action": null,
+        "assetId": "asset-82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1",
+        "hostId": "ac492096-a42c-4b6d-a94c-f3ddaa2cfe64",
+        "fastEdit": null
+      }
+    },
+    "mode": "photo_to_scene",
+    "cloud": true
+  }
+}

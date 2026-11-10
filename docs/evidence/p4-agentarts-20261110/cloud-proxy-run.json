@@ -1,0 +1,109 @@
+{
+  "id": "e852994e-7f46-496f-9f69-672f805e0d5e",
+  "conversationId": "c1",
+  "projectId": "285b314d-8e06-47bb-a4d0-f38ce1826844",
+  "requestId": "p4-cloud-e2e-1",
+  "input": "关闭衣柜门",
+  "selectedIds": [
+    "97b0bb2f-6f68-4202-80f8-6675bc549d8e"
+  ],
+  "mode": "interactive_action",
+  "status": "completed",
+  "result": {
+    "status": "completed",
+    "message": "门/柜门/抽屉/电器的开启状态已提交，可撤销。",
+    "projectId": "285b314d-8e06-47bb-a4d0-f38ce1826844",
+    "candidateId": "540146bc-a1f9-4698-83ff-d1d3d4ab77cd",
+    "baseRevision": 4,
+    "committedRevision": 5,
+    "diff": {
+      "added": [],
+      "deleted": [],
+      "updated": [
+        "97b0bb2f-6f68-4202-80f8-6675bc549d8e"
+      ]
+    },
+    "changes": [
+      {
+        "action": "updated",
+        "id": "97b0bb2f-6f68-4202-80f8-6675bc549d8e",
+        "name": "衣柜",
+        "fields": []
+      }
+    ],
+    "checks": {
+      "passed": true,
+      "issues": [],
+      "coverage": [
+        "授权对象与结构逐字段保护",
+        "需求数量",
+        "封闭房间占地包含（20 mm 容差）",
+        "有效高度与原版参数化轮廓 SAT",
+        "基准问题对照"
+      ],
+      "limitations": [
+        "GLB 使用矩形占地，不是精确网格碰撞",
+        "未验证支撑面、通道可达性、照明或法规"
+      ]
+    },
+    "review": {
+      "passed": true,
+      "summary": "快速动作/照片资产放置已通过确定性检查与两张证据渲染。",
+      "issues": []
+    },
+    "evidence": [
+      {
+        "view": "top",
+        "sha256": "e2833fa8c4e2ec08b86378e4071425783cb15121fd8ece8dcd043f602fb766c9",
+        "candidateHash": "746089b4b00dfca4f08dc92f85f502b73c1afccab2c73276dd464e3f12e4a9fc",
+        "bytes": 153638,
+        "createdAt": "2026-11-10T14:10:24.527Z",
+        "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+        "url": "/api/projects/285b314d-8e06-47bb-a4d0-f38ce1826844/candidates/540146bc-a1f9-4698-83ff-d1d3d4ab77cd/evidence/top"
+      },
+      {
+        "view": "oblique",
+        "sha256": "e1c212f16f0832c3bfa615242adc23bbdff3776cf30d680e20281331f9cf5b2e",
+        "candidateHash": "746089b4b00dfca4f08dc92f85f502b73c1afccab2c73276dd464e3f12e4a9fc",
+        "bytes": 217054,
+        "createdAt": "2026-11-10T14:10:24.528Z",
+        "presentation": "检查视图：墙体 15% 不透明度、吊顶隐藏；对象网格和变换保持候选数据",
+        "url": "/api/projects/285b314d-8e06-47bb-a4d0-f38ce1826844/candidates/540146bc-a1f9-4698-83ff-d1d3d4ab77cd/evidence/oblique"
+      }
+    ],
+    "repairs": 0,
+    "versionRetries": 0,
+    "policy": {
+      "route": "interactive_action",
+      "mode": "interactive_action",
+      "reason": "命中快速开关动作",
+      "question": "",
+      "targetId": "97b0bb2f-6f68-4202-80f8-6675bc549d8e",
+      "collection": "furniture",
+      "action": "toggle_open",
+      "assetId": null,
+      "hostId": null,
+      "fastEdit": null
+    },
+    "skillsUsed": [],
+    "skillSelection": null
+  },
+  "error": null,
+  "generation": {
+    "policy": {
+      "route": "interactive_action",
+      "mode": "interactive_action",
+      "reason": "命中快速开关动作",
+      "question": "",
+      "targetId": "97b0bb2f-6f68-4202-80f8-6675bc549d8e",
+      "collection": "furniture",
+      "action": "toggle_open",
+      "assetId": null,
+      "hostId": null,
+      "fastEdit": null
+    }
+  },
+  "createdAt": "2026-11-10T14:10:25.017Z",
+  "updatedAt": "2026-11-10T14:10:25.017Z",
+  "cloud": true
+}

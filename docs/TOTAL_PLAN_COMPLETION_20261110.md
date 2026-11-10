@@ -71,6 +71,19 @@
 
 **边界**：云端转发是同步的；真实生产建议用 AgentArts 异步任务/轮询。`node scripts/platform-probe.mjs --prepare-only` 通过，但完整 probe 需要真实 SDK 运行时/模型。
 
+### 2.3 无 Node 运行时与云端转发实测
+
+本环境没有 Docker/Podman，无法构建容器镜像；使用无 `node` 的宿主 Python 运行时验证：
+
+- `/ping` 健康；
+- `/invocations` `run_task` 动作任务 completed（revision 2→3）；
+- 照片任务进入完整 Workflow，因真实台面碰撞 waiting_input；
+- 网关 3014 → AgentArts 运行时 8090 → 场景 3013，cloud task completed（revision 4→5）。
+
+证据：[无 Node 动作](evidence/p4-agentarts-20261110/no-node-runtime-run.json)、[无 Node 照片](evidence/p4-agentarts-20261110/no-node-photo-run.json)、[PATH/ping](evidence/p4-agentarts-20261110/no-node-runtime-ping.txt)、[云端转发](evidence/p4-agentarts-20261110/cloud-proxy-run.json)。
+
+**这不是真实容器/华为云验收**；Docker 构建、容器网络与平台 `/ping` 生命周期仍需在具备 Docker/华为云的环境中复跑。
+
 ## 3. 本轮收口的 4 项技术债
 
 ### 3.1 G7：Skill 池 replay 100% 变绿（已关闭）

@@ -16,6 +16,15 @@ def scene():
                     "opt": {"open": False},
                 },
                 {
+                    "id": "t1",
+                    "key": "coffeeTable",
+                    "type": "coffeeTable",
+                    "name": "茶几",
+                    "x": 1800,
+                    "y": 2200,
+                    "rot": 0,
+                },
+                {
                     "id": "l1",
                     "key": "floorLamp",
                     "type": "floorLamp",
@@ -95,7 +104,7 @@ def test_generation_is_detected_only_with_room_and_dimensions():
     controller = PolicyController()
     assert controller.decide(task("生成一个主卧，宽3600毫米深4200毫米"), scene()).route == "generate_rectangular"
     assert controller.decide(task("把主卧的衣柜打开"), scene()).route == "waiting"  # two wardrobes
-    assert controller.decide(task("把茶几往左移200毫米"), scene()).route == "edit"
+    assert controller.decide(task("把墙上的挂画换个位置"), scene()).route == "edit"
 
 
 def test_repair_router_maps_action_and_surface_codes():
@@ -134,9 +143,10 @@ def test_repair_router_maps_action_and_surface_codes():
 def test_fast_edit_parses_move_rotate_and_color():
     controller = PolicyController()
     move = controller.decide(task("把茶几往左移200毫米", selected=["w1"]), scene())
-    # selected w1 is a wardrobe, but fast-edit still targets the selected object
+    # Explicit object name outranks the current wardrobe selection.
     assert move.route == "interactive_action"
-    assert move.fastEdit["values"]["x"] == scene()["plan"]["furniture"][0]["x"] - 200
+    assert move.targetId == "t1"
+    assert move.fastEdit["values"]["x"] == 1600
 
     rotate = controller.decide(task("顺时针旋转90度", selected=["w1"]), scene())
     assert rotate.route == "interactive_action"

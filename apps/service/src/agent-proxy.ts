@@ -37,7 +37,13 @@ export function agentProxy(app: FastifyInstance) {
         }
       }
       const localBody = { ...body };
-      delete localBody.projectId;
+      // projectId is a service-only routing hint for task creation/resume.
+      // /agent/conversations still requires projectId in its FastAPI schema.
+      if (
+        taskCreate ||
+        /^\/api\/agent\/tasks\/[^/]+\/resume$/.test(pathname)
+      )
+        delete localBody.projectId;
       const abort = new AbortController();
       pending.add(abort);
       const target = new URL(

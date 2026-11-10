@@ -1,0 +1,13 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;background:#f3f1ec;color:#24211d;font-family:"Noto Sans CJK SC","Source Han Sans SC",system-ui,sans-serif}
+.page{width:1600px;padding:36px 44px 30px}h1{margin:0;font-size:32px}.sub{margin:8px 0 20px;color:#6b645b;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 5px 16px rgba(40,35,28,.08)}
+.card img{display:block;width:100%;height:300px;object-fit:cover;object-position:center}.cap{padding:10px 12px 12px}.cap b{display:block;font-size:14px;margin-bottom:3px}.cap span{display:block;color:#6b645b;font-size:11.5px;line-height:1.45}
+.wide{grid-column:span 3}.wide img{height:420px;object-fit:contain;background:#e9e7e2}
+.foot{display:flex;justify-content:space-between;margin-top:14px;color:#7a7369;font-size:12px}
+</style></head><body><div class="page">
+<h1>A 客餐厅 + B 全屋：本地工作台演示</h1>
+<div class="sub">真实 DeepSeek 生成 · Candidate → CheckScene → Commit · 动作包络 · 照片演示资产 · 对话快速编辑 · 冻结 2BHK 全屋 · 2026-11-11</div>
+<div class="grid"><figure class="card "><img src="a1-generating.png"><figcaption class="cap"><b>① 生成过程</b><span>工作台显示任务阶段：理解需求 → 生成房间 → 核对需求与截图</span></figcaption></figure><figure class="card "><img src="a2-generated.png"><figcaption class="cap"><b>② 实时生成完成</b><span>6000×4200 客餐厅，8 件家具，版本 1，检查通过</span></figcaption></figure><figure class="card "><img src="a3-open-all.png"><figcaption class="cap"><b>③ 一键全开检验</b><span>3D 视图；版本 2，检查 0 项提示</span></figcaption></figure><figure class="card "><img src="a13b-tv-open-envelope.png"><figcaption class="cap"><b>④ 电视柜开启包络</b><span>开启状态 + 地面青绿包络线框，检查面板可见</span></figcaption></figure><figure class="card "><img src="a6-photo-placed.png"><figcaption class="cap"><b>⑤ 照片资产落位</b><span>演示花瓶落到茶几台面，版本 3，9 件家具</span></figcaption></figure><figure class="card "><img src="a11-fast-fixed-chat.png"><figcaption class="cap"><b>⑥ 对话快速编辑</b><span>“把茶几往左移200毫米” → 局部快速编辑，版本 5</span></figcaption></figure><figure class="card "><img src="a14-final-workbench-chat.png"><figcaption class="cap"><b>⑦ 最终工作台</b><span>版本 5，茶几 X 1720→1520，照片与动作状态保留</span></figcaption></figure><figure class="card "><img src="b1-whole-home-3d.png"><figcaption class="cap"><b>⑧ B 全屋 2BHK</b><span>9 房间 / 21 件家具，3D 整体浏览</span></figcaption></figure><figure class="card wide"><img src="b2-whole-home-full.png"><figcaption class="cap"><b>⑨ B 全屋工作台</b><span>冻结全屋样例，非本次实时 VLM 识别</span></figcaption></figure></div>
+<div class="foot"><span>服务：apps/service + apps/agent（本地 3013/3004） · 项目 aaeb728a…（A）/ 41bbc02d…（B）</span><span>所有写入均经过 Candidate → CheckScene → Commit；照片为 demo 资产，非真实 V100。</span></div>
+</div></body></html>

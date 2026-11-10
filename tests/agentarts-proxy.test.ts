@@ -102,6 +102,12 @@ test("local agent forwarding strips projectId from tasks and resume", async () =
   await service.app.listen({ port: 0, host: "127.0.0.1" });
   try {
     const base = baseUrl(service.app.server);
+    const conversation = await fetch(`${base}/api/agent/conversations`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ projectId: "project-1" }),
+    });
+    assert.equal(conversation.status, 200);
     const task = await fetch(`${base}/api/agent/conversations/c1/tasks`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -124,13 +130,15 @@ test("local agent forwarding strips projectId from tasks and resume", async () =
       }),
     });
     assert.equal(resume.status, 200);
-    assert.equal(seen.length, 2);
-    assert.equal(seen[0].url, "/conversations/c1/tasks");
-    assert.equal(seen[0].body.projectId, undefined);
-    assert.equal(seen[0].body.requestId, "request-1");
-    assert.equal(seen[1].url, "/tasks/t1/resume");
+    assert.equal(seen.length, 3);
+    assert.equal(seen[0].url, "/conversations");
+    assert.equal(seen[0].body.projectId, "project-1");
+    assert.equal(seen[1].url, "/conversations/c1/tasks");
     assert.equal(seen[1].body.projectId, undefined);
-    assert.equal(seen[1].body.requestId, "request-2");
+    assert.equal(seen[1].body.requestId, "request-1");
+    assert.equal(seen[2].url, "/tasks/t1/resume");
+    assert.equal(seen[2].body.projectId, undefined);
+    assert.equal(seen[2].body.requestId, "request-2");
   } finally {
     await service.app.close();
     fs.rmSync(dataDir, { recursive: true, force: true });

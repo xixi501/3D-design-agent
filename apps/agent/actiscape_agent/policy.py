@@ -236,13 +236,8 @@ class PolicyController:
 
     def _target_furniture(self, text: str, task: dict, project: dict):
         plan = project["plan"]
-        selected = list(task.get("selectedIds") or [])
-        if len(selected) == 1:
-            item = next(
-                (f for f in plan.get("furniture", []) if f["id"] == selected[0]),
-                None,
-            )
-            return item
+        # An explicit object name outranks the current selection; only fall back
+        # to selection for "它/这把" style commands.
         matches = [
             f
             for f in plan.get("furniture", [])
@@ -251,6 +246,12 @@ class PolicyController:
         unique = {f["id"]: f for f in matches}
         if len(unique) == 1:
             return next(iter(unique.values()))
+        selected = list(task.get("selectedIds") or [])
+        if len(selected) == 1:
+            return next(
+                (f for f in plan.get("furniture", []) if f["id"] == selected[0]),
+                None,
+            )
         return None
 
     def _fast_edit(

@@ -845,8 +845,12 @@ class Workflow:
         result = completion_result(task, state, c, committed["project"]["revision"])
         generation = task.get("generation", {})
         if task.get("mode") == "interactive_action":
-            result["message"] = "门/柜门/抽屉/电器的开启状态已提交，可撤销。"
-            result["policy"] = generation.get("policy")
+            policy = generation.get("policy") or {}
+            if policy.get("fastEdit"):
+                result["message"] = "局部快速编辑已提交，可撤销。"
+            else:
+                result["message"] = "门/柜门/抽屉/电器的开启状态已提交，可撤销。"
+            result["policy"] = policy
         elif task.get("mode") == "photo_to_scene":
             added = [
                 f

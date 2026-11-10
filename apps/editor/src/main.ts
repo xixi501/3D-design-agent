@@ -293,8 +293,14 @@ async function mutate(
       ...(summary ? { summary } : {}),
     };
   try {
-    await post(`/projects/${id}/${kind}`, request);
-    await refresh();
+    const result = await post<{ project?: Project }>(
+      `/projects/${id}/${kind}`,
+      request,
+    );
+    // The mutation response already contains the authoritative project. Using
+    // it avoids a second GET round-trip and removes the visible undo/redo lag.
+    if (result.project) await display(result.project);
+    else await refresh();
     message(summary || `${kind === "undo" ? "撤销" : "重做"}完成`);
   } catch (error) {
     try {
@@ -311,7 +317,7 @@ async function mutate(
 async function commands(items: Command[], summary: string, base?: EditBase) {
   await mutate("commands", items, summary, base);
 }
-function setView(mode: string) {
+function setView(mode: string, shouldFrame = true) {
   $("#viewport").dataset.mode = mode;
   document
     .querySelectorAll<HTMLButtonElement>("[data-view]")
@@ -320,7 +326,7 @@ function setView(mode: string) {
     planView.resize();
     planView.frame();
     three.resize();
-    three.frame();
+    if (shouldFrame) three.frame();
   });
 }
 function renderCatalog(query = "") {
@@ -732,8 +738,11 @@ $("#frame").onclick = () => {
   three.frame();
 };
 $("#walk").onclick = () => {
-  setView("3d");
-  three.setWalking(!three.walking);
+  const entering = !three.walking;
+  // Do not let the normal view framing overwrite the walk camera on the next
+  // animation frame; that made the button look unresponsive.
+  setView("3d", false);
+  three.setWalking(entering);
 };
 $("#open-all").onclick = async () => {
   if (!project || busy) return;

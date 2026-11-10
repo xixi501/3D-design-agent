@@ -1,0 +1,59 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;background:#f4f2ee;color:#24211d;font-family:"Noto Sans CJK SC","Source Han Sans SC",system-ui,sans-serif}
+.page{width:1600px;padding:40px 48px}h1{margin:0;font-size:34px}.sub{margin:8px 0 24px;color:#6b645b;font-size:16px}
+.grid{display:grid;grid-template-columns:1.35fr .65fr;gap:18px}.panel{background:#fff;border-radius:14px;padding:20px 22px;box-shadow:0 6px 18px rgba(40,35,28,.08)}
+h2{margin:0 0 14px;font-size:19px}.flow{display:grid;grid-template-columns:1fr 52px 1fr 52px 1fr;align-items:center;gap:0;margin:10px 0 16px}
+.box{border:1px solid #d9d2c7;border-radius:10px;padding:14px;min-height:92px;background:#fbfaf7}.box b{display:block;font-size:15px;margin-bottom:4px}.box span{display:block;color:#6b645b;font-size:12.5px;line-height:1.5}
+.arrow{text-align:center;color:#2c6b56;font-size:26px}.note{font-size:13px;color:#6b645b;line-height:1.7}.badge{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:99px;background:#e9f3ef;color:#2c6b56;margin-right:6px;margin-bottom:4px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px}.metric{border:1px solid #e4ddd3;border-radius:10px;padding:12px;background:#fbfaf7}.metric b{display:block;font-size:24px;color:#2c6b56}.metric span{font-size:12.5px;color:#6b645b}
+pre{margin:8px 0 0;background:#25221e;color:#e8e1d6;padding:12px;border-radius:9px;font-size:11.5px;line-height:1.55;overflow:hidden;max-height:190px;white-space:pre-wrap}
+.footer{display:flex;justify-content:space-between;margin-top:16px;color:#7a7369;font-size:12.5px}
+</style></head><body><div class="page">
+<h1>P4 AgentArts 无状态容器化验收</h1>
+<div class="sub">双模式 /invocations · 网关远程视觉候选 · 工作台云端任务转发 · 2026-11-10</div>
+<div class="grid">
+<div class="panel"><h2>运行拓扑</h2>
+<div class="flow">
+<div class="box"><b>Editor 工作台</b><span>projectId + mode + input<br>同源 /api/*</span></div><div class="arrow">→</div>
+<div class="box"><b>apps/service 网关</b><span>场景/候选/资产/视觉工具<br>AGENTARTS_INVOCATIONS_URL</span></div><div class="arrow">⇄</div>
+<div class="box"><b>AgentArts 容器</b><span>probe 兼容<br>run_task 完整 Workflow</span></div>
+</div>
+<div class="flow">
+<div class="box"><b>SceneClient</b><span>唯一 ACTISCAPE_SCENE_URL<br>无本地 Node/GPU</span></div><div class="arrow">→</div>
+<div class="box"><b>POST /api/tools/<br>floorplan-candidate</b><span>HPD 像素候选 → ArtifactEnvelopeV1</span></div><div class="arrow">→</div>
+<div class="box"><b>HPD adapter</b><span>网关主机执行<br>候选只读，不写项目</span></div>
+</div>
+<div class="note"><span class="badge">P4.1</span>runner 自动 remote 或显式 ACTISCAPE_VISION_RUNNER=remote；Node 缺失时不再本地起子进程。<br>
+<span class="badge">P4.2</span>冒烟载荷保持 platform_probe；标准载荷 action="run_task" 在容器内跑真实 TaskManager/Workflow。<br>
+<span class="badge">P4.2</span>工作台任务体携带 projectId；网关配置云端地址时转换为同步 cloud task，本地地址时自动剥离 projectId。</div>
+</div>
+<div class="panel"><h2>验收读数</h2>
+<div class="metrics">
+<div class="metric"><b>79</b><span>Node tests passed</span></div><div class="metric"><b>169</b><span>Python tests passed</span></div>
+<div class="metric"><b>6 / 2</b><span>候选墙 / 洞口（fixture）</span></div><div class="metric"><b>1</b><span>runtime 动作任务 revision</span></div>
+</div>
+<pre>{
+  "schemaVersion": "actiscape.artifact-envelope.v1",
+  "providerId": "hpd-adapter-6-1",
+  "artifactSha256": "46777b755fa416dd…",
+  "candidates": { "walls": 6, "openings": 2 },
+  "audit": { "referenceAccess": "denied-and-audited" }
+}</pre>
+<pre>{
+  "status": "completed",
+  "policy": { "route": "interactive_action" },
+  "committedRevision": 1,
+  "cloudDeploymentVerified": false
+}</pre>
+</div>
+</div>
+<div class="panel" style="margin-top:18px"><h2>已落地契约</h2>
+<div class="note">
+<b>apps/service/src/floorplan-candidate.ts</b>：imageId / imageBase64 / imagePath（限制目录）→ HPD → 严格 ArtifactEnvelopeV1；<br>
+<b>floorplan_vision/runner.py</b>：local / remote 双模式，校验 provider/input/scope/artifact hash；<br>
+<b>deploy/agentarts-minimal/task_runtime.py</b>：临时 SQLite + TaskManager，完整 Workflow，超时/终止状态如实返回；<br>
+<b>apps/service/src/agentarts-proxy.ts</b>：/api/agentarts/status、/api/agentarts/run、任务创建云端转发；<br>
+<b>回归</b>：candidate envelope、path traversal、cloud 转发、runtime 全流程、G7 replay、G4 无 fallback、G8 scene-core script。
+</div></div>
+<div class="footer"><span>P4 已在本地模拟 /invocations 跑通；真实华为云部署凭证与网络未在本环境验证。</span><span>AgentArts 容器只配置 SCENE_URL / TOOL_TOKEN / DEEPSEEK_API_KEY。</span></div>
+</div></body></html>

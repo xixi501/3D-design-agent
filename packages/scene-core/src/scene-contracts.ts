@@ -1,17 +1,21 @@
 import { SceneError } from "./index.js";
 import {
   CURRENT_SCENE_PROGRAM_POLICY,
+  assertRoomCoverage,
+  includedRoomSeeds,
   validateSceneProgram,
   type SceneAuthority,
   type SceneProgram,
   type SceneProgramPolicy,
 } from "./scene-program.js";
+import { sceneRoomKind, type SceneRoomKind } from "./room-kinds.js";
 import {
   FLOORPLAN_RECOGNITION_SCHEMA,
   assertFloorplanProgram,
   validateFloorplanRecognition,
   type FloorplanRecognition,
 } from "./floorplan-scene-draft.js";
+import { resolveTargetRoomIds } from "./floorplan.js";
 
 export const INPUT_BUNDLE_SCHEMA = "actiscape.input-bundle.v1";
 export const EVIDENCE_GRAPH_SCHEMA = "actiscape.evidence-graph.v1";
@@ -372,7 +376,22 @@ export function validateSceneDraftPayload(
     value.program,
     options.policy ?? CURRENT_SCENE_PROGRAM_POLICY,
   );
-  if (recognition) assertFloorplanProgram(program, recognition);
+  if (recognition) {
+    assertFloorplanProgram(program, recognition);
+    // Whole-home contract: the program's included room seeds are exactly the
+    // rooms selected by this recognition. V4 drafts with an empty legacy target
+    // list resolve to every recognised room, never only living/dining.
+    const selected = new Set(resolveTargetRoomIds(recognition.proposal));
+    const included = new Set(includedRoomSeeds(program).map((room) => room.id));
+    if (
+      selected.size !== included.size ||
+      [...selected].some((roomId) => !included.has(roomId))
+    )
+      invalid(
+        "场景草稿纳入房间与识别目标房间不一致",
+        "program.levels.roomSeeds",
+      );
+  }
   const assetResolutions = validateAssetResolutions(value.assetResolutions);
   const budgetLedger = object(value.budgetLedger, "draft.budgetLedger");
   const sourceIds = new Set(
@@ -530,5 +549,27 @@ export function validateSceneDraftPayload(
       ),
     },
     fieldAuthorities,
+  };
+}
+
+/** Whole-home room scope carried by one scene draft. */
+export interface SceneRoomScope {
+  roomIds: string[];
+  kinds: SceneRoomKind[];
+  wholeHome: boolean;
+}
+
+/**
+ * Describe which rooms a scene program includes and how they resolve spatially.
+ * `wholeHome` is true when more than one distinct room kind is present, which
+ * is the normal case for a floorplan-derived whole-home draft.
+ */
+export function sceneRoomScope(program: SceneProgram): SceneRoomScope {
+  const rooms = assertRoomCoverage(program);
+  const kinds = [...new Set(rooms.map((room) => sceneRoomKind(room.roomType)))];
+  return {
+    roomIds: rooms.map((room) => room.id),
+    kinds,
+    wholeHome: kinds.filter((kind) => kind !== "other").length > 1,
   };
 }

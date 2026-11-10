@@ -1,0 +1,43 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;background:#f4f2ee;color:#24211d;font-family:"Noto Sans CJK SC","Source Han Sans SC",system-ui,sans-serif}
+.page{width:1600px;padding:38px 46px 42px}
+h1{margin:0;font-size:33px;letter-spacing:.02em}.sub{margin:8px 0 22px;color:#6b645b;font-size:16px}
+.top{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+figure{margin:0;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(40,35,28,.09)}
+figure img{display:block;width:100%;height:430px;object-fit:cover}
+figcaption{padding:11px 14px 13px;font-size:15px;display:flex;flex-direction:column;gap:3px}figcaption span{color:#6b645b;font-size:13px}
+.wide{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:16px}
+.chat img{display:block;width:100%;height:470px;object-fit:cover}
+.slices{background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 6px 18px rgba(40,35,28,.08)}
+.slices h2{margin:0 0 10px;font-size:18px}.slice{padding:8px 0;border-bottom:1px solid #eee9e1}.slice:last-child{border-bottom:0}
+.stage{font-weight:600;font-size:13.5px;color:#2c6b56;margin-bottom:3px}.parts{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:#5d564d}
+.parts span{color:#8a8177}
+.foot{display:flex;justify-content:space-between;margin-top:16px;color:#7a7369;font-size:12.5px}
+.badge{display:inline-block;font-size:11.5px;padding:2px 7px;border-radius:99px;background:#e9f3ef;color:#2c6b56;margin-right:6px}
+</style></head><body><div class="page">
+<h1>P3 SkillDispatcher + PolicyController 验收</h1>
+<div class="sub">双维 Skill 切片 · 四路径动态路由 · 动作/照片候选门禁 · 2026-11-10</div>
+<div class="top">
+<figure><img src="action-oblique.png"><figcaption><b>① 动作路径：打开衣柜门</b><span>PolicyController → interactive_action · Candidate action → CheckScene → Render → Review → Commit · revision 1</span></figcaption></figure>
+<figure><img src="photo-oblique.png"><figcaption><b>② 照片路径：花瓶放到茶几</b><span>PolicyController → photo_to_scene · placeAsset Candidate · parentObjectId=茶几 · z=400 · revision 2</span></figcaption></figure>
+</div>
+<div class="wide">
+<figure class="chat"><img src="p3-chat-tasks.png"><figcaption><b>③ 对话侧闭环</b><span>“打开衣柜门”“把照片花瓶放到茶几上”均自动保存；无需手工切换模式。</span></figcaption></figure>
+<div class="slices"><h2>SkillDispatcher 阶段切片</h2><div class="slice"><div class="stage">intake 进场</div><div class="parts"><b>universal-spatial-base</b><span>适用边界 / 坐标与尺寸 / 提交门禁</span></div></div><div class="slice"><div class="stage">asset 选品</div><div class="parts"><b>universal-spatial-base</b><span>坐标与尺寸 / 选品与体量 / 提交门禁</span><b>master-bedroom</b><span>怎么做</span><b>style-coherence</b><span>怎么做</span></div></div><div class="slice"><div class="stage">layout 排布</div><div class="parts"><b>universal-spatial-base</b><span>坐标与尺寸 / 排布与净空 / 提交门禁</span><b>master-bedroom</b><span>怎么做</span><b>style-coherence</b><span>怎么做 · fallback</span></div></div><div class="slice"><div class="stage">check 检查</div><div class="parts"><b>universal-spatial-base</b><span>坐标与尺寸 / 检查与报错码 / 提交门禁</span><b>master-bedroom</b><span>依赖什么 / 怎么验证</span><b>style-coherence</b><span>依赖什么 / 怎么验证</span></div></div><div class="slice"><div class="stage">repair 修复</div><div class="parts"><b>universal-spatial-base</b><span>坐标与尺寸 / 修复顺序 / 提交门禁</span><b>master-bedroom</b><span>怎么做 / 依赖什么 / 怎么验证</span><b>style-coherence</b><span>怎么做 / 依赖什么 / 怎么验证 · fallback</span></div></div><p style="margin:10px 0 0;color:#8a8177;font-size:12px">同一份 bundle：universal + master-bedroom + style-coherence；每个 Agent 只拿本阶段章节，未命中时显式 fallback。</p></div>
+</div>
+<div class="top" style="margin-top:16px;grid-template-columns:1fr 1fr">
+<figure><img src="p3-blocked-chat.png" style="height:360px"><figcaption><b>④ 动作包络拦截</b><span>床正对衣柜：等待补充说明，OPENABLE_FRONT_BLOCKED，正式项目 revision 0 不变。</span></figcaption></figure>
+<figure style="background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 6px 18px rgba(40,35,28,.08)">
+<h2 style="margin:0 0 8px;font-size:18px">Policy 四路径</h2>
+<p style="margin:0;font-size:13.5px;line-height:1.8;color:#5d564d">
+<span class="badge">interactive_action</span> 开门/开柜/拉抽屉/开关灯<br>
+<span class="badge">photo_to_scene</span> 单张照片资产 → 台面/地面<br>
+<span class="badge">generate_rectangular</span> 文字生成全屋单房间<br>
+<span class="badge">reconstruct_floorplan</span> 户型图全屋复现<br>
+<span class="badge">edit</span> 复杂局部编辑的兜底路由
+</p>
+<p style="margin:10px 0 0;font-size:13px;color:#8a8177">歧义直接 waiting_input；显式 mode 永远优先；所有写路径仍走 Candidate → CheckScene → Commit。</p>
+</figure>
+</div>
+<div class="foot"><span>L0 universal-spatial-base 自动挂载；asset/layout/check/repair 按阶段注入。</span><span>动作/照片候选均通过确定性检查 + 两张证据视图 + 独立 review 后提交。</span></div>
+</div></body></html>

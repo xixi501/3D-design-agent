@@ -29,7 +29,7 @@ MEMBER3_ACTIVE = {
 def test_pool_is_strict_v1_and_active_allowlist_is_exact():
     registry = SkillRegistry(ROOT)
     snapshots = registry.all()
-    assert len(snapshots) == 32
+    assert len(snapshots) == 33
     assert all(item["schemaVersion"] == "actiscape.skill.v1" for item in snapshots)
     assert all(set(item["capabilities"]).issubset(ALLOWED_CAPABILITIES) for item in snapshots)
     active = {
@@ -37,17 +37,27 @@ def test_pool_is_strict_v1_and_active_allowlist_is_exact():
         for item in snapshots
         if item["activation"] == "active" and item["status"] == "verified"
     }
+    whole_home = {
+        "master-bedroom",
+        "guest-bedroom",
+        "home-office",
+        "kitchen-line-l-u",
+        "bathroom-standard",
+        "entry-storage",
+    }
     assert active == MEMBER3_ACTIVE | {
         "rectangular-living-reading",
         "floorplan-reconstruction",
-    }
+        "photo-object-import",
+        "universal-spatial-base",
+    } | whole_home
     reserved = {item["id"] for item in snapshots if item["activation"] == "reserved"}
-    assert len(reserved) == 23
-    assert "photo-object-import" in reserved
+    assert len(reserved) == 16
+    assert "photo-object-import" in active
     summary = registry.pool_summary()
-    assert summary["skills"] == 32
-    assert summary["active"] == 9
-    assert summary["reserved"] == 23
+    assert summary["skills"] == 33
+    assert summary["active"] == 17
+    assert summary["reserved"] == 16
     judgements = json.loads((ROOT / "_framework" / "judgements.v1.json").read_text())
     assert judgements["schemaVersion"] == "actiscape.judgements.v1"
     assert len(judgements["judgements"]) == 69
@@ -120,6 +130,46 @@ def test_shortlist_uses_mode_room_area_and_verified_status():
         area_m2=20,
     )
     assert [item["id"] for item in reading["primary"]] == ["rectangular-living-reading"]
+    for room_kind, skill_id, area in (
+        ("bedroom", "master-bedroom", 14),
+        ("bedroom", "guest-bedroom", 9),
+        ("study", "home-office", 8),
+        ("kitchen", "kitchen-line-l-u", 6),
+        ("bathroom", "bathroom-standard", 4),
+        ("entry", "entry-storage", 3),
+    ):
+        shortlist = registry.candidates(
+            "generate_rectangular",
+            project_state="empty",
+            room_kind=room_kind,
+            area_m2=area,
+        )
+        assert skill_id in {item["id"] for item in shortlist["primary"]}
+    # Small service rooms (kitchen / bathroom / entry / hallway) must still
+    # receive the general style and lighting modifiers; otherwise a model that
+    # selects them is rejected even though the advice applies.
+    for room_kind, area in (
+        ("kitchen", 7.2),
+        ("bathroom", 4.5),
+        ("entry", 3.8),
+    ):
+        small = registry.candidates(
+            "generate_rectangular",
+            project_state="empty",
+            room_kind=room_kind,
+            area_m2=area,
+        )
+        assert {"style-coherence", "lighting-color"} <= {
+            item["id"] for item in small["modifiers"]
+        }, room_kind
+    asset = registry.candidates(
+        "asset_import",
+        project_state="existing",
+        room_kind="any",
+        area_m2=20,
+    )
+    assert [item["id"] for item in asset["primary"]] == ["photo-object-import"]
+    assert asset["modifiers"] == []
     edit = registry.candidates(
         "edit",
         project_state="existing",
@@ -197,6 +247,7 @@ def test_bundle_pins_content_judgements_and_public_view_hides_body():
     assert len(bundle["contentHash"]) == 64
     context = registry.context(bundle)
     assert [item["role"] for item in context["instructions"]] == [
+        "universal",
         "intake",
         "primary",
         "modifier",
@@ -235,10 +286,12 @@ def test_repair_is_loaded_from_the_task_snapshot_after_files_change(tmp_path):
     )
     assert bundle["repair"] is None
     assert [item["role"] for item in registry.context(bundle)["instructions"]] == [
+        "universal",
         "intake",
         "primary",
     ]
     pinned = {
+        "universal": bundle["universal"],
         "primary": bundle["primary"],
         "intake": bundle["intake"],
         "repair": bundle["pendingRepair"],
@@ -250,11 +303,13 @@ def test_repair_is_loaded_from_the_task_snapshot_after_files_change(tmp_path):
 
     resumed = SkillRegistry(root)
     repaired = resumed.with_repair(bundle, "generate_rectangular")
+    assert repaired["universal"] == pinned["universal"]
     assert repaired["primary"] == pinned["primary"]
     assert repaired["intake"] == pinned["intake"]
     assert repaired["repair"] == pinned["repair"]
     context = resumed.context(repaired)
     assert [item["role"] for item in context["instructions"]] == [
+        "universal",
         "intake",
         "primary",
         "repair",
@@ -297,3 +352,115 @@ def test_legacy_snapshot_reader_still_accepts_historical_floorplan_skill():
     snapshot = load_legacy_floorplan_skill()
     assert snapshot["id"] == "floorplan-reconstruction"
     assert len(snapshot["contentHash"]) == 64
+
+
+def test_photo_asset_skill_is_composable_for_asset_import():
+    registry = SkillRegistry(ROOT)
+    candidates = registry.candidates(
+        "asset_import",
+        project_state="existing",
+        room_kind="any",
+        area_m2=20,
+    )
+    selection = registry.validate_selection(
+        {"primarySkillId": "photo-object-import", "modifierSkillIds": []},
+        candidates,
+        mode="asset_import",
+    )
+    bundle = registry.compose(mode="asset_import", selection=selection)
+    assert bundle["primary"]["id"] == "photo-object-import"
+    assert bundle["primary"]["status"] == "verified"
+    assert bundle["primary"]["activation"] == "active"
+    assert bundle["primary"]["appliesTo"]["modes"] == ["asset_import"]
+
+
+def test_universal_base_is_auto_mounted_and_sliced_by_stage():
+    registry = SkillRegistry(ROOT)
+    selection = registry.validate_selection(
+        {"primarySkillId": "master-bedroom", "modifierSkillIds": []},
+        registry.candidates(
+            "generate_rectangular",
+            project_state="empty",
+            room_kind="bedroom",
+            area_m2=14,
+        ),
+        mode="generate_rectangular",
+    )
+    bundle = registry.compose(
+        mode="generate_rectangular",
+        selection=selection,
+        include_intake=False,
+    )
+    assert bundle["universal"]["id"] == "universal-spatial-base"
+    assert bundle["universal"]["priors"]["defaults"]["doorClearanceMm"] == 800
+    assert bundle["intake"] is None
+
+    asset = registry.slice_for_stage(bundle, "asset")
+    layout = registry.slice_for_stage(bundle, "layout")
+    check = registry.slice_for_stage(bundle, "check")
+    repair = registry.slice_for_stage(bundle, "repair")
+    assert asset["stage"] == "asset" and layout["stage"] == "layout"
+    assert asset["contentHash"] != layout["contentHash"]
+    asset_text = "\n".join(item["content"] for item in asset["instructions"])
+    layout_text = "\n".join(item["content"] for item in layout["instructions"])
+    check_text = "\n".join(item["content"] for item in check["instructions"])
+    repair_text = "\n".join(item["content"] for item in repair["instructions"])
+    assert "选品与体量" in asset_text
+    assert "排布与净空" in layout_text
+    assert "OPENABLE_FRONT_BLOCKED" in check_text
+    assert "修复顺序" in repair_text
+    assert asset_text != layout_text
+    assert all(item["id"] for item in asset["instructions"])
+    with pytest.raises(TaskError, match="未知 Skill 阶段"):
+        registry.slice_for_stage(bundle, "unknown")
+
+
+def test_active_stage_slices_have_no_fallback():
+    registry = SkillRegistry(ROOT)
+    primaries = [
+        "living-dining-small",
+        "living-dining-open",
+        "rectangular-living-reading",
+        "master-bedroom",
+        "guest-bedroom",
+        "home-office",
+        "kitchen-line-l-u",
+        "bathroom-standard",
+        "entry-storage",
+        "social-reading-zone",
+        "photo-object-import",
+    ]
+    for skill_id in primaries:
+        manifest = json.loads((ROOT / skill_id / "manifest.json").read_text())
+        mode = manifest["appliesTo"]["modes"][0]
+        selection = {"primarySkillId": skill_id, "modifierSkillIds": []}
+        bundle = registry.compose(mode=mode, selection=selection, include_intake=False)
+        for stage in ("asset", "layout", "check", "repair"):
+            sliced = registry.slice_for_stage(bundle, stage)
+            assert sliced is not None
+            for instruction in sliced["instructions"]:
+                assert instruction["fallback"] is False, (
+                    skill_id,
+                    stage,
+                    instruction["id"],
+                    instruction["headings"],
+                )
+
+    for modifier in ("style-coherence", "lighting-color"):
+        bundle = registry.compose(
+            mode="generate_rectangular",
+            selection={
+                "primarySkillId": "master-bedroom",
+                "modifierSkillIds": [modifier],
+            },
+            include_intake=False,
+        )
+        for stage in ("asset", "layout", "check", "repair"):
+            sliced = registry.slice_for_stage(bundle, stage)
+            for instruction in sliced["instructions"]:
+                assert instruction["fallback"] is False, (
+                    modifier,
+                    stage,
+                    instruction["id"],
+                    instruction["headings"],
+                )

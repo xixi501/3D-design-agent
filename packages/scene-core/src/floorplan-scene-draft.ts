@@ -1,8 +1,10 @@
 import {
   floorplanScale,
+  resolveTargetRoomIds,
   validateFloorplan,
   type FloorplanData,
 } from "./floorplan.js";
+import { sceneRoomKind } from "./room-kinds.js";
 import {
   SCENE_PROGRAM_SCHEMA,
   validateSceneProgram,
@@ -79,7 +81,7 @@ export function floorplanToSceneProgram(
   const proposal = validateFloorplan(input as FloorplanData);
   const scale = floorplanScale(proposal);
   const sourceRefs = [{ sourceId, authority: "observed" as const }];
-  const targetRoomIds = new Set(proposal.targetRoomIds);
+  const targetRoomIds = new Set(resolveTargetRoomIds(proposal));
   const roomIds = new Set(proposal.rooms.map((room) => room.id));
   const wallThickness =
     proposal.wallThickness ??
@@ -261,4 +263,18 @@ export function assertFloorplanProgram(
   );
   if (stable(program) !== stable(expected))
     invalid("SceneProgram 与识别提案不派生一致", "program");
+}
+
+/**
+ * Spatial kind for one recognised room. Used by whole-home editors and later
+ * asset/layout stages so a bedroom, kitchen, bathroom or hallway never falls
+ * back to the legacy living/dining scope.
+ */
+export function floorplanRoomKind(
+  proposal: FloorplanData,
+  roomId: string,
+): ReturnType<typeof sceneRoomKind> {
+  const room = proposal.rooms.find((item) => item.id === roomId);
+  if (!room) return "other";
+  return sceneRoomKind(room.roomType, room.functionalArea);
 }

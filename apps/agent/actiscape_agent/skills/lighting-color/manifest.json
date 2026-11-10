@@ -8,9 +8,17 @@
   "activation": "active",
   "summary": "按环境/任务/重点三层定比例，按房间给照度与色温，再把灯位落到家具上（餐桌吊灯对中、阅读角落地灯、镜前灯垂直照面），配色落到可采购的材质。",
   "appliesTo": {
-    "modes": ["generate_rectangular", "edit"],
-    "roomKinds": ["any"],
-    "areaM2": [8, 200],
+    "modes": [
+      "generate_rectangular",
+      "edit"
+    ],
+    "roomKinds": [
+      "any"
+    ],
+    "areaM2": [
+      1.0,
+      200.0
+    ],
     "projectState": "any",
     "requiredInputs": [
       "已定稿的平面布局",
@@ -25,7 +33,11 @@
     "智能家居协议与品牌选型",
     "需要实测照度报告"
   ],
-  "capabilities": ["scene.read", "catalog.search", "candidate.review"],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.review"
+  ],
   "judgements": [
     "J-ASSET-02",
     "J-COL-01",
@@ -52,5 +64,24 @@
     "structure": true,
     "dryRun": true,
     "realCore": true
+  },
+  "stageHints": {
+    "asset": [
+      "第 1 步",
+      "第 2 步",
+      "第 7 步",
+      "第 8 步"
+    ],
+    "layout": [
+      "第 5 步",
+      "第 6 步",
+      "第 7 步"
+    ],
+    "check": [
+      "怎么验证"
+    ],
+    "repair": [
+      "第 8 步"
+    ]
   }
 }

@@ -28,6 +28,13 @@ def test_scene_registry_is_versioned_data_and_catalogue_keys_are_real():
     assert {item["id"] for item in registry.public_rooms()} == {
         "living_dining",
         "reading_lounge",
+        "master_bedroom",
+        "guest_bedroom",
+        "study",
+        "kitchen",
+        "bathroom",
+        "entry",
+        "circulation",
     }
     catalogue = json.loads((ROOT / "fixtures/catalog.json").read_text())
     unknown = {
@@ -37,6 +44,18 @@ def test_scene_registry_is_versioned_data_and_catalogue_keys_are_real():
         if key not in catalogue
     }
     assert unknown == set()
+    # Every active room's default furniture query must resolve to a real
+    # recipe; otherwise full-home generation would ask the asset agent for an
+    # impossible catalogue search.
+    for room in registry.document.roomTypes:
+        if room.status != "active":
+            continue
+        for request in room.defaultFurniture:
+            assert any(
+                request.query.casefold()
+                in (item["key"] + " " + item["name"] + " " + item["type"]).casefold()
+                for item in catalogue.values()
+            ), (room.id, request.query)
 
 
 def test_new_room_and_category_are_data_only_extensions(tmp_path):
@@ -70,24 +89,55 @@ def test_new_room_and_category_are_data_only_extensions(tmp_path):
     assert registry.category("craftTable").catalogKeys == ["workbench"]
 
 
-def test_reserved_room_is_not_presented_as_generation_support():
-    text = "设计一间主卧，宽4米，深3.6米，南墙门居中，有窗"
-    requested = {
+def _requested(purpose: str, label: str, text: str) -> dict:
+    return {
         "status": "ready",
-        "purpose": "master_bedroom",
+        "purpose": purpose,
         "width": {"value": 4, "unit": "m"},
         "depth": {"value": 3.6, "unit": "m"},
         "doors": [{"side": "south", "position": "center"}],
         "windows": [{"side": "north", "position": "center"}],
         "evidence": {
-            "purpose": "主卧",
+            "purpose": label,
             "width": "宽4米",
             "depth": "深3.6米",
             "doors": "南墙门居中",
             "windows": "有窗",
         },
     }
-    result = resolve_request(requested, text)
+
+
+def test_whole_home_room_types_are_generation_support():
+    text = "设计一间主卧，宽4米，深3.6米，南墙门居中，有窗"
+    result = resolve_request(_requested("master_bedroom", "主卧", text), text)
+    assert result["unsupported"] is False
+    assert result["brief"]["roomType"] == "master_bedroom"
+    assert result["brief"]["roomName"] == "主卧"
+    assert result["furniture"][0] == {"query": "双人床", "count": 1}
+
+    # The registry label is accepted as an alias of the stable room-type ID.
+    by_label = resolve_request(_requested("主卧", "主卧", text), text)
+    assert by_label["unsupported"] is False
+    assert by_label["brief"]["roomType"] == "master_bedroom"
+
+    for room_type, label, query in (
+        ("guest_bedroom", "次卧", "双人床"),
+        ("study", "书房", "书桌"),
+        ("kitchen", "厨房", "橱柜"),
+        ("bathroom", "卫生间", "马桶"),
+        ("entry", "玄关", "鞋柜"),
+        ("circulation", "过道", "玄关桌"),
+    ):
+        room_text = f"设计一间{label}，宽4米，深3.6米，南墙门居中，有窗"
+        resolved = resolve_request(_requested(room_type, label, room_text), room_text)
+        assert resolved["unsupported"] is False, (room_type, resolved)
+        assert resolved["brief"]["roomType"] == room_type
+        assert resolved["furniture"][0]["query"] == query
+
+
+def test_reserved_room_is_not_presented_as_generation_support():
+    text = "设计一间儿童房，宽4米，深3.6米，南墙门居中，有窗"
+    result = resolve_request(_requested("kids_room", "儿童房", text), text)
     assert result["unsupported"] is True
     assert "reserved" in result["question"]
 

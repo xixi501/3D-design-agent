@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -13,7 +14,16 @@ SKILL_SCHEMA = "actiscape.skill.v1"
 BUNDLE_SCHEMA = "actiscape.skill-bundle.v1"
 JUDGEMENT_SCHEMA = "actiscape.judgements.v1"
 
-SKILL_KINDS = {"intake", "layout", "edit", "floorplan", "modifier", "repair", "asset"}
+SKILL_KINDS = {
+    "intake",
+    "layout",
+    "edit",
+    "floorplan",
+    "modifier",
+    "repair",
+    "asset",
+    "universal",
+}
 SKILL_STATUSES = {"draft", "conformant", "verified", "deprecated"}
 ACTIVATIONS = {"active", "reserved"}
 PROJECT_STATES = {"empty", "existing", "any"}
@@ -39,6 +49,7 @@ MODE_PRIMARY_KIND = {
     "generate_rectangular": "layout",
     "edit": "edit",
     "reconstruct_floorplan": "floorplan",
+    "asset_import": "asset",
 }
 
 # Compatibility names for callers that still expose logical tool groups.
@@ -54,6 +65,7 @@ FLOORPLAN_TOOLS = GENERATION_TOOLS | {"floorplan.analyze", "floorplan.measure"}
 CURRENT_CAPABILITIES = GENERATION_TOOLS | {
     "floorplan.analyze",
     "floorplan.measure",
+    "asset.job",
 }
 
 
@@ -104,10 +116,20 @@ class SkillManifest(BaseModel):
     id: str = Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=64)
     name: str = Field(min_length=1, max_length=120)
     version: str = Field(pattern=r"^\d+\.\d+\.\d+$")
-    kind: Literal["intake", "layout", "edit", "floorplan", "modifier", "repair", "asset"]
+    kind: Literal[
+        "intake",
+        "layout",
+        "edit",
+        "floorplan",
+        "modifier",
+        "repair",
+        "asset",
+        "universal",
+    ]
     status: Literal["draft", "conformant", "verified", "deprecated"]
     activation: Literal["active", "reserved"]
     summary: str = Field(min_length=1, max_length=500)
+    stageHints: dict[str, list[str]] = Field(default_factory=dict)
     appliesTo: SkillAppliesTo
     notApplicable: list[str] = Field(default_factory=list, max_length=30)
     capabilities: list[str] = Field(min_length=1, max_length=20)
@@ -155,6 +177,7 @@ class SkillBundle(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     schemaVersion: Literal["actiscape.skill-bundle.v1"] = BUNDLE_SCHEMA
+    universal: dict | None = None
     primary: dict | None = None
     modifiers: list[dict] = Field(default_factory=list, max_length=2)
     intake: dict | None = None
@@ -277,12 +300,22 @@ class SkillRegistry:
             license_text = license_path.read_text(encoding="utf-8")
         except OSError as exc:
             raise TaskError("SKILL_POOL_INVALID", f"Skill {skill_id} 缺少许可证文本") from exc
+        priors_path = directory / "priors.json"
+        priors = None
+        if priors_path.is_file():
+            try:
+                priors = json.loads(priors_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                raise TaskError(
+                    "SKILL_POOL_INVALID", f"Skill {skill_id} priors.json 无效"
+                ) from exc
         judgments = [self._judgements[jid] for jid in manifest.judgements]
         payload = {
             "manifest": manifest.model_dump(mode="json"),
             "content": content,
             "judgements": judgments,
             "licenseText": license_text,
+            **({"priors": priors} if priors is not None else {}),
         }
         digest = hashlib.sha256(_canonical(payload)).hexdigest()
         return {
@@ -290,6 +323,7 @@ class SkillRegistry:
             "content": content,
             "judgementsData": judgments,
             "licenseText": license_text,
+            **({"priors": priors} if priors is not None else {}),
             "contentHash": digest,
         }
 
@@ -297,7 +331,7 @@ class SkillRegistry:
         return [self.load(skill_id) for skill_id in sorted(self._manifests)]
 
     def public_record(self, snapshot: dict) -> dict:
-        return {
+        record = {
             key: snapshot[key]
             for key in (
                 "id",
@@ -315,6 +349,9 @@ class SkillRegistry:
                 "contentHash",
             )
         }
+        if "priors" in snapshot:
+            record["priors"] = snapshot["priors"]
+        return record
 
     def candidates(
         self,
@@ -453,6 +490,7 @@ class SkillRegistry:
                     "SKILL_CAPABILITY_MISSING",
                     f"Skill {manifest.id} 缺少能力：{sorted(missing)}",
                 )
+        universal = self.load("universal-spatial-base")
         primary = self.load(value.primarySkillId) if value.primarySkillId else None
         modifiers = [self.load(skill_id) for skill_id in value.modifierSkillIds]
         intake = self.load("floorplan-intake") if include_intake else None
@@ -460,7 +498,7 @@ class SkillRegistry:
         # persisted task with Skill files changed during the run.
         pending_repair = self.load("layout-check-repair")
         repair = pending_repair if include_repair else None
-        for snapshot in (intake, pending_repair):
+        for snapshot in (universal, intake, pending_repair):
             if snapshot is None:
                 continue
             if snapshot["activation"] != "active" or snapshot["status"] != "verified":
@@ -474,12 +512,13 @@ class SkillRegistry:
                 )
         referenced = []
         seen = set()
-        for snapshot in [primary, *modifiers, intake, repair]:
+        for snapshot in [universal, primary, *modifiers, intake, repair]:
             for item in (snapshot or {}).get("judgementsData", []):
                 if item["id"] not in seen:
                     seen.add(item["id"])
                     referenced.append(item)
         bundle_payload = {
+            "universal": universal,
             "primary": primary,
             "modifiers": modifiers,
             "intake": intake,
@@ -514,6 +553,7 @@ class SkillRegistry:
                 seen.add(item["id"])
                 judgements.append(item)
         payload = {
+            "universal": current.universal,
             "primary": current.primary,
             "modifiers": current.modifiers,
             "intake": current.intake,
@@ -525,6 +565,301 @@ class SkillRegistry:
         digest = hashlib.sha256(_canonical(payload)).hexdigest()
         return SkillBundle.model_validate({**payload, "contentHash": digest}).model_dump()
 
+    STAGE_RULES = {
+        "intake": (
+            "什么时候用",
+            "适用",
+            "开工前",
+            "只问",
+            "输入",
+            "待确认",
+            "清单",
+            "不适用",
+        ),
+        "asset": (
+            "选品",
+            "体量",
+            "规格",
+            "取舍",
+            "材质",
+            "风格",
+            "面积",
+            "家具",
+            "尺寸",
+            "预算",
+            "柜",
+            "冰箱",
+            "设备",
+            "收纳",
+            "灯",
+            "桌",
+            "椅",
+            "床",
+            "台面",
+        ),
+        "layout": (
+            "主墙",
+            "排布",
+            "动线",
+            "分步",
+            "摆放",
+            "定位",
+            "朝向",
+            "净空",
+            "通道",
+            "床",
+            "柜",
+            "桌",
+            "沙发",
+            "步骤",
+            "怎么做",
+            "分区",
+            "环线",
+            "焦点",
+            "留白",
+            "灯位",
+            "光",
+            "呼应",
+            "比例",
+            "家具",
+        ),
+        "check": (
+            "检查",
+            "验收",
+            "判据",
+            "净空",
+            "错误",
+            "避坑",
+            "报错",
+            "后检",
+            "核对",
+        ),
+        "repair": (
+            "修复",
+            "错误码",
+            "排序",
+            "预算",
+            "取舍",
+            "回退",
+            "最小",
+            "错误",
+            "检查",
+            "提交",
+            "对策",
+            "让步",
+            "冲突",
+            "优先",
+            "复核",
+        ),
+    }
+    UNIVERSAL_STAGE_HEADINGS = {
+        "intake": ("适用边界", "坐标与尺寸", "提交门禁"),
+        "asset": ("坐标与尺寸", "选品与体量", "提交门禁"),
+        "layout": ("坐标与尺寸", "排布与净空", "提交门禁"),
+        "check": ("坐标与尺寸", "检查与报错码", "提交门禁"),
+        "repair": ("坐标与尺寸", "修复顺序", "提交门禁"),
+    }
+
+    @staticmethod
+    def _sections(content: str) -> list[dict]:
+        sections = []
+        heading = None
+        body = []
+        for line in content.splitlines():
+            if line.startswith("## "):
+                if heading is not None:
+                    sections.append(
+                        {"heading": heading, "content": "\n".join(body).strip()}
+                    )
+                heading = line[3:].strip()
+                body = []
+            elif heading is not None:
+                body.append(line)
+        if heading is not None:
+            sections.append({"heading": heading, "content": "\n".join(body).strip()})
+        return [item for item in sections if item["content"]]
+
+    @staticmethod
+    def _step_blocks(content: str) -> list[dict]:
+        """Split a `## 怎么做` body into `**第 N 步 · …**` blocks."""
+        blocks = []
+        title = None
+        body = []
+        for line in content.splitlines():
+            stripped = line.strip()
+            match = re.match(r"^\*\*(第\s*\d+\s*步[^*]*)\*\*(.*)$", stripped)
+            if match:
+                if title is not None:
+                    blocks.append({"title": title, "content": "\n".join(body).strip()})
+                title = match.group(1)
+                body = []
+            elif title is not None:
+                body.append(line)
+        if title is not None:
+            blocks.append({"title": title, "content": "\n".join(body).strip()})
+        return [item for item in blocks if item["content"]]
+
+    def _slice_snapshot(
+        self,
+        snapshot: dict | None,
+        *,
+        role: str,
+        stage: str,
+        headings: tuple[str, ...] | None = None,
+    ) -> dict | None:
+        if not snapshot:
+            return None
+        sections = self._sections(snapshot["content"])
+        fallback = False
+        if headings is not None:
+            selected = [item for item in sections if item["heading"] in headings]
+            content = "\n\n".join(
+                f"## {item['heading']}\n{item['content']}" for item in selected
+            )
+            chosen_headings = [item["heading"] for item in selected]
+        else:
+            hints = (snapshot.get("stageHints") or {}).get(stage) or []
+            if hints:
+                hinted_steps = []
+                hinted_sections = []
+                for item in sections:
+                    if item["heading"] == "怎么做":
+                        for step in self._step_blocks(item["content"]):
+                            if any(hint in step["title"] for hint in hints):
+                                hinted_steps.append(step)
+                    elif any(hint in item["heading"] for hint in hints):
+                        hinted_sections.append(item)
+                if hinted_steps or hinted_sections:
+                    chosen_headings = [
+                        *(["怎么做"] if hinted_steps else []),
+                        *[item["heading"] for item in hinted_sections],
+                    ]
+                    content = "\n\n".join(
+                        [
+                            *(
+                                [
+                                    "\n\n".join(
+                                        f"**{step['title']}**\n{step['content']}"
+                                        for step in hinted_steps
+                                    )
+                                ]
+                                if hinted_steps
+                                else []
+                            ),
+                            *[
+                                f"## {item['heading']}\n{item['content']}"
+                                for item in hinted_sections
+                            ],
+                        ]
+                    )
+                    return {
+                        "role": role,
+                        "id": snapshot["id"],
+                        "version": snapshot["version"],
+                        "headings": chosen_headings,
+                        "content": content,
+                        "fallback": False,
+                        "priors": snapshot.get("priors"),
+                    }
+            rules = self.STAGE_RULES[stage]
+            chosen_headings = []
+            parts = []
+            for item in sections:
+                if item["heading"] == "怎么做" and stage in ("asset", "layout", "repair"):
+                    steps = self._step_blocks(item["content"])
+                    matched = [
+                        step
+                        for step in steps
+                        if any(rule in step["title"] for rule in rules)
+                    ]
+                    if matched:
+                        chosen_headings.append(item["heading"])
+                        parts.append(
+                            "\n\n".join(
+                                f"**{step['title']}**\n{step['content']}"
+                                for step in matched
+                            )
+                        )
+                    else:
+                        chosen_headings.append(item["heading"])
+                        parts.append(item["content"])
+                        fallback = True
+                elif (
+                    item["heading"] in ("怎么验证", "依赖什么")
+                    and stage in ("check", "repair")
+                ):
+                    chosen_headings.append(item["heading"])
+                    parts.append(f"## {item['heading']}\n{item['content']}")
+                elif item["heading"] == "怎么验证" and stage == "repair":
+                    chosen_headings.append(item["heading"])
+                    parts.append(f"## {item['heading']}\n{item['content']}")
+            content = "\n\n".join(parts)
+            if not chosen_headings:
+                # No structured match: keep the whole skill, but mark it so the
+                # caller/trace can see that stage slicing was not precise.
+                fallback = True
+                chosen_headings = [item["heading"] for item in sections]
+                content = "\n\n".join(
+                    f"## {item['heading']}\n{item['content']}" for item in sections
+                )
+        if not content:
+            return None
+        return {
+            "role": role,
+            "id": snapshot["id"],
+            "version": snapshot["version"],
+            "headings": chosen_headings,
+            "content": content,
+            "fallback": fallback,
+            "priors": snapshot.get("priors"),
+        }
+
+    def slice_for_stage(self, bundle: dict | None, stage: str) -> dict | None:
+        """Return only the section of each Skill that matches one Agent stage."""
+        if stage not in self.STAGE_RULES:
+            raise TaskError("SKILL_SLICE_INVALID", f"未知 Skill 阶段：{stage}")
+        if not bundle:
+            return None
+        try:
+            current = SkillBundle.model_validate(bundle)
+        except Exception as exc:
+            raise TaskError("SKILL_SNAPSHOT_INVALID", "Skill bundle 快照无效") from exc
+        instructions = []
+        universal = self._slice_snapshot(
+            current.universal,
+            role="universal",
+            stage=stage,
+            headings=self.UNIVERSAL_STAGE_HEADINGS[stage],
+        )
+        if universal:
+            instructions.append(universal)
+        if stage == "intake":
+            intake = self._slice_snapshot(current.intake, role="intake", stage=stage)
+            if intake:
+                instructions.append(intake)
+        else:
+            primary = self._slice_snapshot(current.primary, role="primary", stage=stage)
+            if primary:
+                instructions.append(primary)
+            for modifier in current.modifiers:
+                sliced = self._slice_snapshot(modifier, role="modifier", stage=stage)
+                if sliced:
+                    instructions.append(sliced)
+            if stage == "repair":
+                repair = self._slice_snapshot(current.repair, role="repair", stage=stage)
+                if repair:
+                    instructions.append(repair)
+        return {
+            "schemaVersion": "actiscape.skill-slice.v1",
+            "stage": stage,
+            "contentHash": hashlib.sha256(
+                f"{current.contentHash}:{stage}".encode()
+            ).hexdigest(),
+            "instructions": instructions,
+            "judgements": current.judgements,
+            "selection": current.selection,
+        }
+
     def context(self, bundle: dict | None) -> dict | None:
         if not bundle:
             return None
@@ -534,6 +869,7 @@ class SkillRegistry:
             raise TaskError("SKILL_SNAPSHOT_INVALID", "Skill bundle 快照无效") from exc
         sections = []
         for role, value in (
+            ("universal", current.universal),
             ("intake", current.intake),
             ("primary", current.primary),
             *(("modifier", item) for item in current.modifiers),
@@ -546,6 +882,7 @@ class SkillRegistry:
                         "id": value["id"],
                         "version": value["version"],
                         "content": value["content"],
+                        **({"priors": value["priors"]} if "priors" in value else {}),
                     }
                 )
         return {
@@ -567,6 +904,7 @@ class SkillRegistry:
             "schemaVersion": current.schemaVersion,
             "contentHash": current.contentHash,
             "selection": current.selection,
+            "universal": self.public_record(current.universal) if current.universal else None,
             "primary": self.public_record(current.primary) if current.primary else None,
             "modifiers": [self.public_record(item) for item in current.modifiers],
             "intake": self.public_record(current.intake) if current.intake else None,
@@ -586,6 +924,7 @@ class SkillRegistry:
                 "role": role,
             }
             for role, item in (
+                ("universal", current.universal),
                 ("primary", current.primary),
                 *(("modifier", value) for value in current.modifiers),
                 ("intake", current.intake),
@@ -676,3 +1015,10 @@ def load_legacy_floorplan_skill():
     if digest != snapshot["contentHash"]:
         raise TaskError("SKILL_INVALID", "旧工作流快照校验失败")
     return snapshot
+
+
+def stage_skill(bundle: dict | None, stage: str, fallback: dict | None = None):
+    """Return a stage slice for a bundle, or the legacy frozen snapshot."""
+    if not bundle:
+        return fallback
+    return get_registry().slice_for_stage(bundle, stage)

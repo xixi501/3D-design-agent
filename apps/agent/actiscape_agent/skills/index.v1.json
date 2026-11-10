@@ -1,6 +1,6 @@
 {
   "schemaVersion": "actiscape.skill-pool.v1",
-  "poolVersion": "2026-11-09",
+  "poolVersion": "2026-11-10-p3",
   "sourceCommit": "d547afd3e07deb8dab06fea31d482f0ffc0ed9bb",
   "skills": [
     {
@@ -19,10 +19,10 @@
     },
     {
       "id": "bathroom-standard",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "dining-island",
@@ -33,10 +33,10 @@
     },
     {
       "id": "entry-storage",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "floorplan-intake",
@@ -61,10 +61,10 @@
     },
     {
       "id": "guest-bedroom",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "home-gym",
@@ -75,10 +75,10 @@
     },
     {
       "id": "home-office",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "kids-room",
@@ -89,14 +89,14 @@
     },
     {
       "id": "kitchen-line-l-u",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "layout-check-repair",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "repair",
       "status": "verified",
       "activation": "active"
@@ -124,10 +124,10 @@
     },
     {
       "id": "master-bedroom",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "media-room",
@@ -159,10 +159,10 @@
     },
     {
       "id": "photo-object-import",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "kind": "asset",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "rectangular-living-reading",
@@ -214,6 +214,13 @@
       "activation": "reserved"
     },
     {
+      "id": "universal-spatial-base",
+      "version": "0.1.0",
+      "kind": "universal",
+      "status": "verified",
+      "activation": "active"
+    },
+    {
       "id": "utility-storage",
       "version": "0.2.0",
       "kind": "layout",
@@ -229,34 +236,35 @@
     }
   ],
   "active": [
+    "bathroom-standard",
+    "entry-storage",
     "floorplan-intake",
     "floorplan-reconstruction",
+    "guest-bedroom",
+    "home-office",
+    "kitchen-line-l-u",
     "layout-check-repair",
     "lighting-color",
     "living-dining-open",
     "living-dining-small",
+    "master-bedroom",
+    "photo-object-import",
     "rectangular-living-reading",
     "social-reading-zone",
-    "style-coherence"
+    "style-coherence",
+    "universal-spatial-base"
   ],
   "reserved": [
     "aging-friendly",
     "balcony-laundry",
-    "bathroom-standard",
     "dining-island",
-    "entry-storage",
     "gaming-room",
-    "guest-bedroom",
     "home-gym",
-    "home-office",
     "kids-room",
-    "kitchen-line-l-u",
-    "master-bedroom",
     "media-room",
     "nursery",
     "office-workstation",
     "pet-friendly",
-    "photo-object-import",
     "rental-makeover",
     "studio-micro",
     "tatami-multipurpose",

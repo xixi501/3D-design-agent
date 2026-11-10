@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "actiscape.artifact-envelope.v1",
+  "kind": "floorplan-vision",
+  "providerId": "hpd-adapter-6-1",
+  "providerVersion": "hpd-adapter-6-1",
+  "inputSha256": "7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+  "scopeHash": "540d22efeaf3a585890e092a3ace8daf4c426d75dc5040d424b4c36510611ae6",
+  "artifact": {
+    "schemaVersion": "actiscape.floorplan-vision-artifact.v1",
+    "artifactId": "hpd:7d3760037e784b0d",
+    "provider": {
+      "id": "hpd-adapter-6-1",
+      "version": "hpd-adapter-6-1",
+      "repository": "https://github.com/ZWD11/house-plan-designer",
+      "commit": "b94183f9ce2215db9a178da89a90d2ecefb18497",
+      "license": "MIT"
+    },
+    "input": {
+      "imageSha256": "7d3760037e784b0d851e91510fb385ba02da7d81c2d0d639776491b627d888dd",
+      "width": 1000,
+      "height": 800,
+      "coordinateSpace": "exif-oriented-original-pixels"
+    },
+    "scope": {
+      "roomSelection": "all_visible",
+      "functionalAreas": [],
+      "excludeFunctionalAreas": []
+    },
+    "capabilities": {
+      "walls": true,
+      "openings": true,
+      "dimensions": true,
+      "rooms": false,
+      "symbols": false
+    },
+    "candidates": {
+      "walls": [
+        {
+          "id": "cw_top",
+          "orientation": "h",
+          "line": 50.5,
+          "start": 49.5,
+          "end": 950.5,
+          "thickness": 20,
+          "evidenceRefs": [
+            "provider:wall:cw_top",
+            "artifact:wallmask.png"
+          ]
+        },
+        {
+          "id": "cw_left",
+          "orientation": "v",
+          "line": 49.5,
+          "start": 50.5,
+          "end": 749.5,
+          "thickness": 20,
+          "evidenceRefs": [
+            "provider:wall:cw_left",
+            "artifact:wallmask.png"
+          ]
+        },
+        {
+          "id": "cw_bottom",
+          "orientation": "h",
+          "line": 749.5,
+          "start": 49.5,
+          "end": 950.5,
+          "thickness": 20,
+          "evidenceRefs": [
+            "provider:wall:cw_bottom",
+            "artifact:wallmask.png"
+          ]
+        },
+        {
+          "id": "cw_right",
+          "orientation": "v",
+          "line": 950.5,
+          "start": 50.5,
+          "end": 749.5,
+          "thickness": 20,
+          "evidenceRefs": [
+            "provider:wall:cw_right",
+            "artifact:wallmask.png"
+          ]
+        },
+        {
+          "id": "cw_int_h_0",
+          "orientation": "h",
+          "line": 400.5,
+          "start": 650.5,
+          "end": 950.5,
+          "thickness": 20,
+          "evidenceRefs": [
+            "provider:wall:cw_int_h_0",
+            "artifact:wallmask.png"
+          ]
+        },
+        {
+          "id": "cw_int_v_0",
+          "orientation": "v",
+          "line": 650.5,
+          "start": 50.5,
+          "end": 749.5,
+          "thickness": 20,
+          "evidenceRefs": [
+            "provider:wall:cw_int_v_0",
+            "artifact:wallmask.png"
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "op_0",
+          "wallCandidateId": "cw_top",
+          "orientation": "h",
+          "line": 50.5,
+          "start": 275,
+          "end": 425,
+          "typeHint": "door",
+          "confidence": 0.99,
+          "evidenceRefs": [
+            "provider:opening:op_0",
+            "artifact:candidates.png"
+          ]
+        },
+        {
+          "id": "op_1",
+          "wallCandidateId": "cw_bottom",
+          "orientation": "h",
+          "line": 749.5,
+          "start": 155,
+          "end": 245,
+          "typeHint": "door",
+          "confidence": 0.99,
+          "evidenceRefs": [
+            "provider:opening:op_1",
+            "artifact:candidates.png"
+          ]
+        }
+      ],
+      "dimensions": [],
+      "rooms": [],
+      "symbols": []
+    },
+    "evidenceFiles": [],
+    "limitations": [
+      "不是完整结构识别；家具边框可能误检，门窗类型仍需视觉判断",
+      "未提供真实比例时只使用像素字段；不采用脚本的毫米草稿或承重推测",
+      "V3-6 使用真实墙掩膜连通段、凹形外轮廓、分析断口与外部尺寸线；语义仍需原图复核",
+      "家具轮廓候选只提供像素证据，最终类别与组合由受控模型选择",
+      "远端候选证据文件由网关隔离保存；此 envelope 只返回像素候选，不写正式项目"
+    ],
+    "audit": {
+      "modelCalls": 0,
+      "referenceAccess": "denied-and-audited",
+      "candidateInputs": [
+        "image.bytes",
+        "scope",
+        "adapterVersion"
+      ],
+      "runtimeGuard": {
+        "referenceAccess": "denied-and-audited",
+        "forbiddenRootCount": 0,
+        "attemptCount": 0
+      }
+    }
+  },
+  "artifactSha256": "46777b755fa416dd134372ac8f9979ae169a14e722e2cc5da4d1a85165bc8d6c"
+}

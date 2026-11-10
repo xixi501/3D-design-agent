@@ -1,0 +1,50 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<style>
+  *{box-sizing:border-box} body{margin:0;background:#f4f2ee;color:#24211d;font-family:"Noto Sans CJK SC","Source Han Sans SC",system-ui,sans-serif}
+  .page{width:1600px;padding:40px 48px 46px}
+  h1{margin:0;font-size:34px;letter-spacing:.02em} .sub{margin:8px 0 24px;color:#6b645b;font-size:16px}
+  .hero{position:relative;border-radius:14px;overflow:hidden;background:#eef2f6;box-shadow:0 10px 28px rgba(40,35,28,.12)}
+  .hero img{display:block;width:100%;height:620px;object-fit:contain;background:#eef2f6}
+  .hero .cap{position:absolute;left:22px;bottom:18px;background:rgba(255,255,255,.92);padding:12px 18px;border-radius:10px;font-size:16px;line-height:1.55}
+  .hero .cap b{font-size:18px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:20px}
+  figure{margin:0;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(40,35,28,.09)}
+  figure img{display:block;width:100%;height:300px;object-fit:cover}
+  figcaption{padding:12px 14px 14px;font-size:15px;display:flex;flex-direction:column;gap:3px}
+  figcaption span{color:#6b645b;font-size:13px}
+  .foot{display:flex;justify-content:space-between;margin-top:18px;color:#7a7369;font-size:13px}
+</style></head><body><div class="page">
+  <h1>ActiScape P0 全屋房间生成验收</h1>
+  <div class="sub">7 类全屋房间 · DeepSeek 实时生成 · Candidate → CheckScene → Commit · 2026-11-10</div>
+  <div class="hero"><img src="whole-home-2bhk-canvas.png"><div class="cap"><b>全屋 2BHK 户型 · 9 房间</b><br>21 件家具 · 32 段墙 · 15 个门窗 · 整体导入</div></div>
+  <div class="grid">
+  <figure>
+    <img src="master-bedroom-top.png">
+    <figcaption><b>主卧</b><span>15.1㎡ · 1.8m 双人床 · 双床头柜 · 衣柜</span></figcaption>
+  </figure>
+  <figure>
+    <img src="guest-bedroom-top.png">
+    <figcaption><b>次卧</b><span>11.9㎡ · 1.5m 双人床 · 床头柜 · 衣柜</span></figcaption>
+  </figure>
+  <figure>
+    <img src="study-top.png">
+    <figcaption><b>书房</b><span>10.9㎡ · 书桌 · 办公椅 · 书架</span></figcaption>
+  </figure>
+  <figure>
+    <img src="kitchen-top.png">
+    <figcaption><b>厨房</b><span>7.7㎡ · 一字橱柜 · 冰箱</span></figcaption>
+  </figure>
+  <figure>
+    <img src="bathroom-top.png">
+    <figcaption><b>卫生间</b><span>4.5㎡ · 马桶 · 浴室柜 · 淋浴房</span></figcaption>
+  </figure>
+  <figure>
+    <img src="entry-top.png">
+    <figcaption><b>玄关</b><span>3.8㎡ · 鞋柜 · 换鞋凳</span></figcaption>
+  </figure>
+  <figure>
+    <img src="circulation-top.png">
+    <figcaption><b>过道</b><span>4.2㎡ · 玄关桌 · 绿植</span></figcaption>
+  </figure></div>
+  <div class="foot"><span>每间房均通过确定性几何检查与独立视觉复核（passed=true, issues=[]）</span><span>房间图为检查视图：墙体 15% 不透明度、隐藏吊顶</span></div>
+</div></body></html>

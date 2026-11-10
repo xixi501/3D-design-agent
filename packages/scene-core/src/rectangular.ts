@@ -102,13 +102,7 @@ export function compileRectangular(brief: RectangularBrief, seed: string) {
   const roomType: string = brief.roomType ?? brief.purpose ?? "";
   if (!/^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(roomType))
     invalid("房间类型缺失或无效", "roomType");
-  const roomName =
-    brief.roomName ??
-    (roomType === "living_dining"
-      ? "客餐厅"
-      : roomType === "reading_lounge"
-        ? "阅读会客间"
-        : roomType);
+  const roomName = brief.roomName ?? roomType;
   if (roomName.length > 100) invalid("房间名称最多 100 字", "roomName");
   const floorMaterial = brief.floorMaterial || "oak";
   const wallMaterial = brief.wallMaterial || "latexWhite";

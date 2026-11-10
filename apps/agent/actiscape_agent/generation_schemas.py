@@ -63,7 +63,15 @@ def resolve_request(value: dict, user_input: str) -> dict:
     """Preserve raw units; geometry and conversion remain in TypeScript."""
     request = GenerationRequest.model_validate(value)
     room = get_scene_registry().room(request.purpose) if request.purpose else None
+    if room is None and request.purpose:
+        # Accept the registry's human label as well as its stable room-type ID.
+        label_id = get_scene_registry().room_type_for_label(request.purpose)
+        if label_id != "other":
+            room = get_scene_registry().room(label_id)
     if request.purpose and room is None:
+        supported = "、".join(
+            item["label"] for item in get_scene_registry().public_rooms()
+        )
         return {
             "brief": {},
             "furniture": [],
@@ -72,7 +80,7 @@ def resolve_request(value: dict, user_input: str) -> dict:
             "defaults": [],
             "evidence": request.evidence,
             "unsupported": True,
-            "question": f"未知房间类型：{request.purpose}",
+            "question": f"未知房间类型：{request.purpose}；当前支持：{supported}",
             "skillSelection": request.skillSelection.model_dump(),
         }
     if room is not None and room.status != "active":

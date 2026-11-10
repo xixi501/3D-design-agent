@@ -36,7 +36,11 @@
           "type": "array"
         },
         "projectState": {
-          "enum": ["empty", "existing", "any"],
+          "enum": [
+            "empty",
+            "existing",
+            "any"
+          ],
           "title": "Projectstate",
           "type": "string"
         },
@@ -49,7 +53,12 @@
           "type": "array"
         }
       },
-      "required": ["modes", "roomKinds", "areaM2", "projectState"],
+      "required": [
+        "modes",
+        "roomKinds",
+        "areaM2",
+        "projectState"
+      ],
       "title": "SkillAppliesTo",
       "type": "object"
     },
@@ -71,7 +80,9 @@
           "type": "array"
         }
       },
-      "required": ["maxPerTask"],
+      "required": [
+        "maxPerTask"
+      ],
       "title": "SkillComposition",
       "type": "object"
     },
@@ -91,7 +102,10 @@
           "type": "string"
         }
       },
-      "required": ["spdx", "attribution"],
+      "required": [
+        "spdx",
+        "attribution"
+      ],
       "title": "SkillLicense",
       "type": "object"
     },
@@ -111,7 +125,11 @@
           "type": "boolean"
         }
       },
-      "required": ["structure", "dryRun", "realCore"],
+      "required": [
+        "structure",
+        "dryRun",
+        "realCore"
+      ],
       "title": "SkillValidation",
       "type": "object"
     }
@@ -154,12 +172,20 @@
       "type": "string"
     },
     "status": {
-      "enum": ["draft", "conformant", "verified", "deprecated"],
+      "enum": [
+        "draft",
+        "conformant",
+        "verified",
+        "deprecated"
+      ],
       "title": "Status",
       "type": "string"
     },
     "activation": {
-      "enum": ["active", "reserved"],
+      "enum": [
+        "active",
+        "reserved"
+      ],
       "title": "Activation",
       "type": "string"
     },
@@ -223,6 +249,18 @@
     },
     "validation": {
       "$ref": "#/$defs/SkillValidation"
+    },
+    "stageHints": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "maxItems": 20
+      }
     }
   },
   "required": [

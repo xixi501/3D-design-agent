@@ -20,17 +20,26 @@ import {
 } from "../../../packages/scene-core/src/index.js";
 import { ProjectStore } from "./store.js";
 import { inspectGlb } from "./assets.js";
+import { AssetProvider } from "./asset-provider.js";
 import { candidateRoutes } from "./candidate-routes.js";
 import { floorplanRoutes } from "./floorplan-routes.js";
 import { SceneDraftStore } from "./scene-drafts.js";
 import { sceneDraftRoutes } from "./scene-draft-routes.js";
 import { RoutedFloorplanStore } from "./scene-floorplan-drafts.js";
 import { agentProxy } from "./agent-proxy.js";
+import { agentArtsProxy } from "./agentarts-proxy.js";
 
 export async function createApp(options: {
   dataDir: string;
   staticDir?: string;
   logger?: boolean;
+  asset?: {
+    cacheDir?: string;
+    serviceUrl?: string;
+    apiKey?: string;
+    demoAssetPath?: string;
+    timeoutMs?: number;
+  };
 }) {
   const app = Fastify({
     logger: options.logger ?? true,
@@ -39,6 +48,12 @@ export async function createApp(options: {
   });
   const store = new ProjectStore(options.dataDir),
     streams = new Map<string, Set<ServerResponse>>();
+  const assetProvider = new AssetProvider({
+    store,
+    dataDir: options.dataDir,
+    logger: app.log,
+    ...(options.asset || {}),
+  });
   const notify = (id: string, revision: number) => {
     for (const stream of streams.get(id) || [])
       stream.write(
@@ -84,6 +99,7 @@ export async function createApp(options: {
   floorplanRoutes(app, floorplans);
   sceneDraftRoutes(app, sceneDrafts);
   agentProxy(app);
+  agentArtsProxy(app);
   app.get(
     "/api/catalog",
     {
@@ -234,6 +250,78 @@ export async function createApp(options: {
       if (!set.size) streams.delete(id);
     });
   });
+  app.get("/api/assets/providers", async () => assetProvider.providers());
+  app.get("/api/assets/jobs", async () => ({ jobs: assetProvider.listJobs() }));
+  app.get("/api/assets/jobs/:id", async (req, reply) => {
+    try {
+      return await assetProvider.poll((req.params as any).id);
+    } catch (error) {
+      throw new SceneError(
+        "ASSET_JOB_NOT_FOUND",
+        error instanceof Error ? error.message : "资产任务不存在",
+        404,
+      );
+    }
+  });
+  const generateFromImage = async (req: any, reply: any) => {
+    let image: Buffer | undefined,
+      filename: string | undefined;
+    const fields: Record<string, string> = {};
+    for await (const part of req.parts()) {
+      if (part.type === "file") {
+        image = await part.toBuffer();
+        filename = part.filename;
+      } else fields[part.fieldname] = String(part.value);
+    }
+    if (!image?.length)
+      throw new SceneError("MISSING_IMAGE", "需要一张物品照片", 400);
+    if (image.length > 10 * 1024 * 1024)
+      throw new SceneError("IMAGE_TOO_LARGE", "物品照片不能超过 10 MB", 413);
+    const target = fields.targetHeightMm || fields.target_height_mm;
+    const targetHeightMm = target ? Number(target) : undefined;
+    try {
+      const result = await assetProvider.generate({
+        image,
+        filename,
+        name: fields.name,
+        category: fields.category,
+        targetHeightMm:
+          targetHeightMm && Number.isFinite(targetHeightMm)
+            ? targetHeightMm
+            : undefined,
+      });
+      return reply
+        .code(result.job.status === "succeeded" ? 201 : 202)
+        .send(result);
+    } catch (error) {
+      throw new SceneError(
+        "ASSET_GENERATION_FAILED",
+        error instanceof Error ? error.message : "资产生成失败",
+        422,
+      );
+    }
+  };
+  app.post("/api/assets/generate-from-image", generateFromImage);
+  app.post("/api/assets/jobs", generateFromImage);
+  app.post("/api/assets/:assetId/calibrate", async (req) => {
+    const body = req.body as any;
+    if (!body || typeof body.targetHeightMm !== "number")
+      throw new SceneError(
+        "INVALID_CALIBRATION",
+        "需要 targetHeightMm（毫米）",
+        400,
+      );
+    try {
+      return { asset: assetProvider.calibrate((req.params as any).assetId, body.targetHeightMm) };
+    } catch (error) {
+      if (error instanceof SceneError) throw error;
+      throw new SceneError(
+        "ASSET_NOT_FOUND",
+        error instanceof Error ? error.message : "资产不存在",
+        404,
+      );
+    }
+  });
   app.get("/api/assets", async () => store.assets());
   app.post(
     "/api/assets",
@@ -287,5 +375,5 @@ export async function createApp(options: {
     for (const set of streams.values()) for (const stream of set) stream.end();
   });
   app.addHook("onClose", async () => store.close());
-  return { app, store, candidates, floorplans, sceneDrafts };
+  return { app, store, candidates, floorplans, sceneDrafts, assetProvider };
 }

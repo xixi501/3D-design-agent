@@ -1,0 +1,85 @@
+{
+  "result": {
+    "status": "completed",
+    "taskId": "d26bb00c-9bdd-4932-a77e-4ae0859d9e17",
+    "result": {
+      "status": "completed",
+      "message": "门/柜门/抽屉/电器的开启状态已提交，可撤销。",
+      "projectId": "p",
+      "candidateId": "d26bb00c-9bdd-4932-a77e-4ae0859d9e17:action:579b0570f3721fbf2aa0",
+      "baseRevision": 0,
+      "committedRevision": 1,
+      "diff": {
+        "added": [],
+        "deleted": [],
+        "updated": [
+          "w1"
+        ]
+      },
+      "changes": [
+        {
+          "action": "updated",
+          "id": "w1",
+          "name": "衣柜",
+          "fields": []
+        }
+      ],
+      "checks": {
+        "passed": true,
+        "issues": [],
+        "coverage": [],
+        "limitations": []
+      },
+      "review": {
+        "passed": true,
+        "summary": "快速动作/照片资产放置已通过确定性检查与两张证据渲染。",
+        "issues": []
+      },
+      "evidence": [
+        {
+          "view": "top",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "url": "/api/projects/p/candidates/d26bb00c-9bdd-4932-a77e-4ae0859d9e17:action:579b0570f3721fbf2aa0/evidence/top"
+        },
+        {
+          "view": "oblique",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "url": "/api/projects/p/candidates/d26bb00c-9bdd-4932-a77e-4ae0859d9e17:action:579b0570f3721fbf2aa0/evidence/oblique"
+        }
+      ],
+      "repairs": 0,
+      "versionRetries": 0,
+      "policy": {
+        "route": "interactive_action",
+        "mode": "interactive_action",
+        "reason": "命中快速开关动作",
+        "question": "",
+        "targetId": "w1",
+        "collection": "furniture",
+        "action": "toggle_open",
+        "assetId": null,
+        "hostId": null
+      },
+      "skillsUsed": [],
+      "skillSelection": null
+    },
+    "error": null,
+    "generation": {
+      "policy": {
+        "route": "interactive_action",
+        "mode": "interactive_action",
+        "reason": "命中快速开关动作",
+        "question": "",
+        "targetId": "w1",
+        "collection": "furniture",
+        "action": "toggle_open",
+        "assetId": null,
+        "hostId": null
+      }
+    },
+    "mode": "interactive_action",
+    "cloud": true
+  },
+  "projectRevision": 1,
+  "wardrobeOpen": true
+}

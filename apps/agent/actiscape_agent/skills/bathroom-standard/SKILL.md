@@ -4,12 +4,12 @@ description: 给 1.2–6㎡ 的单卫做干湿分离与洁具排布：按排水�
 license: MIT
 compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: "0.3.0"
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
+  activation: active
   judgement_refs: "J-BATH-01,J-BATH-02,J-BATH-03,J-BATH-04,J-CIR-01,J-DOOR-02,J-LIGHT-02,J-VER-01,J-VER-02"
 ---
 

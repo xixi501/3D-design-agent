@@ -2,15 +2,25 @@
   "schemaVersion": "actiscape.skill.v1",
   "id": "layout-check-repair",
   "name": "检查与有限修复",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "kind": "repair",
   "status": "verified",
   "activation": "active",
   "summary": "对已有布置跑 check.run，按严重度与影响对象数排序，一次只修一类，每轮重跑，3 轮预算用完即停，修不动的写进未解决清单并如实报告。",
   "appliesTo": {
-    "modes": ["edit", "generate_rectangular", "reconstruct_floorplan"],
-    "roomKinds": ["any"],
-    "areaM2": [5, 200],
+    "modes": [
+      "edit",
+      "generate_rectangular",
+      "reconstruct_floorplan",
+      "asset_import"
+    ],
+    "roomKinds": [
+      "any"
+    ],
+    "areaM2": [
+      5,
+      200
+    ],
     "projectState": "existing",
     "requiredInputs": [
       "已有布置的场景",

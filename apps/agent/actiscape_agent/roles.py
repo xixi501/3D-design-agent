@@ -17,7 +17,7 @@ from .config import model_settings
 from .model import create_model
 from .role_contracts import StageResultV1
 from .schemas import AssetSelection, Edit, Intent, Proposal, Review
-from .skill_registry import get_registry
+from .skill_registry import get_registry, stage_skill
 from .store import TaskError, TaskStore, fingerprint
 
 PROMPT_VERSION = "s2a-local-edit-3"
@@ -46,6 +46,7 @@ ASSET_PROMPT = (
     COMMON
     + """你是资产 Agent。必须调用 search_catalogue 搜索真实目录，并按每项新增请求返回唯一 key。
 choices 必须一一对应 additions 的 request_index；不能用相近但用途不同的家具凑数。优先选名称直接符合请求的配方。
+若 repairDirective 存在，优先按它要求的 replace_catalog_key / downsize 方向换选，不扩大尺寸。
 你只选择资产，不决定正式场景修改，不调用生成模型。
 """
 )
@@ -58,6 +59,7 @@ create 必须用 scope.allowAddKeys 里的真实 key，提供 x/y；可省略尺
 新家具放在阅读椅或指定参考物附近，留出原家具占地，禁止穿墙或超出房间。已有家具也要避免移动进别的家具。
 如果用户只说调整阅读椅且没有精确方向，可在阅读区域内做小幅有理由的移动/旋转；精确数值要求必须精确执行。
 若用户明确要求组成“阅读组”等功能组，activityGroups 只引用已存在的真实家具 ID，作为元数据保存；不能请求成组移动、旋转或删除权限。
+若 repairDirective 存在，优先执行其中的 action 与 objectIds，只做最小必要移动；没有安全动作时保持原方案并说明。
 上一候选检查失败时，使用 lastReport 与实际坐标修复，不要重复同一无效位置。不要为了修复而扩大授权。
 """
 )
@@ -386,12 +388,22 @@ class Roles:
                 for f in matches[:25]
             ]
 
+        generation = self.store.task(task["id"], internal=True)["generation"]
         return await self.invoke(
             "assets",
             ASSET_PROMPT,
             AssetSelection,
             [search_catalogue],
-            {"userRequest": task["input"], "additions": intent["additions"]},
+            {
+                "userRequest": task["input"],
+                "additions": intent["additions"],
+                "skill": stage_skill(
+                    generation.get("skillBundle"),
+                    "asset",
+                    generation.get("skillSnapshot"),
+                ),
+                "repairDirective": generation.get("repairDirective"),
+            },
             task["id"],
         )
 
@@ -438,7 +450,11 @@ class Roles:
                 }
 
         generation = self.store.task(task["id"], internal=True)["generation"]
-        skill_context = get_registry().context(generation.get("skillBundle"))
+        skill_context = stage_skill(
+            generation.get("skillBundle"),
+            "layout",
+            generation.get("skillSnapshot"),
+        )
         result = await self.invoke(
             "design",
             DESIGN_PROMPT,
@@ -451,6 +467,12 @@ class Roles:
                 "project": objects_summary(project),
                 "lastReport": last_report,
                 "skill": skill_context,
+                "repairDirective": generation.get("repairDirective"),
+                "repairSkill": (
+                    stage_skill(generation.get("skillBundle"), "repair")
+                    if generation.get("repairDirective")
+                    else None
+                ),
             },
             task["id"],
         )
@@ -471,7 +493,11 @@ class Roles:
             for e in evidence
         ]
         generation = self.store.task(task["id"], internal=True)["generation"]
-        skill_context = get_registry().context(generation.get("skillBundle"))
+        skill_context = stage_skill(
+            generation.get("skillBundle"),
+            "check",
+            generation.get("skillSnapshot"),
+        )
         return await self.invoke(
             "check",
             CHECK_PROMPT,

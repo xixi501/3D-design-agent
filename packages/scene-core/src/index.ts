@@ -4,6 +4,13 @@ import { Gb, xd } from "./inherited/house-spec.js";
 import { Wc, D4, nM, F0, Ls } from "./inherited/topology.js";
 import { validateDetails } from "./validation.js";
 import { furnitureElevation } from "./placement.js";
+import {
+  openEnvelope,
+  rotatedAabb,
+  surfaceElevation,
+  surfaceHostFor,
+  surfaceOverhang,
+} from "./actions.js";
 export { furnitureElevation } from "./placement.js";
 import {
   collections,
@@ -16,6 +23,8 @@ import {
   type SceneState,
 } from "./types.js";
 export * from "./types.js";
+export * from "./room-kinds.js";
+export * from "./actions.js";
 export {
   Wc as wallGeometry,
   F0 as projectToWall,
@@ -250,6 +259,13 @@ export function validatePlan(plan: Plan) {
     finite(f.x, "家具 x");
     finite(f.y, "家具 y");
     finite(f.rot, "家具旋转");
+    if (f.parentObjectId !== undefined && typeof f.parentObjectId !== "string")
+      throw new SceneError("INVALID_DOCUMENT", "家具台面宿主身份必须为字符串");
+    if (
+      f.placement !== undefined &&
+      !["floor", "wall", "surface", "ceiling"].includes(f.placement)
+    )
+      throw new SceneError("INVALID_DOCUMENT", "家具放置类型无效");
     if (f.type === "model" && (typeof f.modelId !== "string" || !f.modelId))
       throw new SceneError("MISSING_ASSET", "外部模型缺少资产身份");
     if (f.type !== "model" && !Object.hasOwn(catalog, f.key))
@@ -585,7 +601,12 @@ export function checkScene(plan: Plan) {
       p = polygons.flat();
     return {
       f,
-      z: furnitureElevation(f, plan, regions),
+      z:
+        f.parentObjectId ||
+        f.placement === "surface" ||
+        f.opt?.surface === true
+          ? surfaceElevation(plan, f)
+          : furnitureElevation(f, plan, regions),
       polygons,
       x0: Math.min(...p.map((p) => p.x)),
       x1: Math.max(...p.map((p) => p.x)),
@@ -599,6 +620,9 @@ export function checkScene(plan: Plan) {
         b = boxes[j];
       if (
         !KU(a.f.type, b.f.type) &&
+        a.f.parentObjectId !== b.f.id &&
+        b.f.parentObjectId !== a.f.id &&
+        !(a.f.parentObjectId && a.f.parentObjectId === b.f.parentObjectId) &&
         Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 20 &&
         Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 20 &&
         Math.min(a.z + a.f.h, b.z + b.f.h) - Math.max(a.z, b.z) > 20 &&
@@ -638,6 +662,129 @@ export function checkScene(plan: Plan) {
           message: `${f.name} 的轮廓进入墙体`,
           level: "error",
           metric: Ts(polygons, wallPolygons),
+        });
+    }
+  // Action envelopes: a closed door/drawer still needs clear space in front
+  // when opened. The envelope is checked regardless of the current open state.
+  const wallSolids = geo.active.flatMap((w: any) =>
+    w.solids.map((solid: any) => ({
+      id: w.w.id,
+      polygon: [
+        [solid.s0, -w.ht],
+        [solid.s1, -w.ht],
+        [solid.s1, w.ht],
+        [solid.s0, w.ht],
+      ].map(([along, side]) => ({
+        x: w.a.x + w.u.x * along + w.n.x * side,
+        y: w.a.y + w.u.y * along + w.n.y * side,
+      })),
+    })),
+  );
+  const remainingFront = (f: Furniture, other: (typeof boxes)[number]) => {
+    const rot = ((Math.round(f.rot / 90) * 90) % 360 + 360) % 360;
+    if (rot === 0) return Math.max(0, Math.round(other.y0 - (f.y + f.d / 2)));
+    if (rot === 180) return Math.max(0, Math.round(f.y - f.d / 2 - other.y1));
+    if (rot === 90) return Math.max(0, Math.round(other.x0 - (f.x + f.d / 2)));
+    return Math.max(0, Math.round(f.x - f.d / 2 - other.x1));
+  };
+  for (const { f, z } of boxes) {
+    const envelope = openEnvelope(f);
+    if (!envelope) continue;
+    const wallHit = wallSolids.find(
+      (wall) => Ts([envelope.polygon], [wall.polygon]) > 20,
+    );
+    if (wallHit) {
+      issues.push({
+        code: "OPENABLE_FRONT_BLOCKED",
+        objectIds: [f.id, wallHit.id],
+        message: `${f.name} 正前方 ${envelope.spec.clearance} mm 开启包络撞墙，柜门/抽屉无法完全打开`,
+        level: "error",
+        metric: 0,
+      });
+      continue;
+    }
+    const blockers = boxes
+      .filter(
+        (other) =>
+          other.f.id !== f.id &&
+          other.f.parentObjectId !== f.id &&
+          f.parentObjectId !== other.f.id &&
+          !["curtain", "sheer", "rug", "roundRug"].includes(other.f.key) &&
+          // A desk chair is movable and is normally tucked into the desk; it
+          // must not turn a normal positive office layout into a drawer block.
+          !(
+            /desk/i.test(f.key) &&
+            /chair|stool/i.test(other.f.key)
+          ) &&
+          z < other.z + other.f.h &&
+          z + f.h > other.z &&
+          Ts([envelope.polygon], other.polygons) > 20,
+      )
+      .map((other) => ({ other, remaining: remainingFront(f, other) }))
+      .sort((a, b) => a.remaining - b.remaining);
+    if (blockers.length) {
+      const { other, remaining } = blockers[0];
+      issues.push({
+        code: "OPENABLE_FRONT_BLOCKED",
+        objectIds: [f.id, other.f.id],
+        message: `${f.name} 正前方开启净空仅 ${remaining} mm（需 ${envelope.spec.clearance} mm），被 ${other.f.name} 占用`,
+        level: "error",
+        metric: remaining,
+      });
+    }
+  }
+  // Surface support graph: a tabletop item must sit on its host top face and
+  // must not overhang the host or collide with a sibling on the same host.
+  const surfaceItems = plan.furniture.filter(
+    (f) =>
+      f.parentObjectId ||
+      f.placement === "surface" ||
+      f.opt?.surface === true,
+  );
+  for (const item of surfaceItems) {
+    const host = surfaceHostFor(plan, item);
+    if (!host) {
+      issues.push({
+        code: "SURFACE_ITEM_HOST_MISSING",
+        objectIds: [item.id],
+        message: `${item.name} 声明为台面物品，但没有找到可承载的桌面/台面宿主`,
+        level: "error",
+      });
+      continue;
+    }
+    const overhang = surfaceOverhang(item, host);
+    if (overhang > 20)
+      issues.push({
+        code: "SURFACE_ITEM_OVERHANG",
+        objectIds: [item.id, host.id],
+        message: `${item.name} 超出 ${host.name} 台面 ${Math.round(overhang)} mm（允许 20 mm 容差）`,
+        level: "error",
+        metric: Math.round(overhang),
+      });
+  }
+  for (let i = 0; i < surfaceItems.length; i++)
+    for (let j = i + 1; j < surfaceItems.length; j++) {
+      const a = surfaceItems[i],
+        b = surfaceItems[j],
+        hostA = surfaceHostFor(plan, a),
+        hostB = surfaceHostFor(plan, b);
+      if (!hostA || hostA.id !== hostB?.id) continue;
+      const za = surfaceElevation(plan, a),
+        zb = surfaceElevation(plan, b);
+      if (
+        Math.min(za + a.h, zb + b.h) - Math.max(za, zb) > 20 &&
+        Math.min(rotatedAabb(a).x1, rotatedAabb(b).x1) -
+          Math.max(rotatedAabb(a).x0, rotatedAabb(b).x0) >
+          20 &&
+        Math.min(rotatedAabb(a).y1, rotatedAabb(b).y1) -
+          Math.max(rotatedAabb(a).y0, rotatedAabb(b).y0) >
+          20
+      )
+        issues.push({
+          code: "SURFACE_ITEM_COLLISION",
+          objectIds: [a.id, b.id],
+          message: `${a.name} 与 ${b.name} 在同一台面上相互重叠`,
+          level: "error",
         });
     }
   // Project layout heuristic: reserve 800 mm in each valid interior side of a doorway.
@@ -787,6 +934,9 @@ export function checkScene(plan: Plan) {
           y: w.a.y + w.u.y * along + w.n.y * normal,
         }));
         for (const { f, polygons, z } of boxes) {
+          // Curtains, sheers and rugs are wall/floor coverings, not freestanding
+          // obstacles; their own clearance rules are checked above (CUR-01).
+          if (["curtain", "sheer", "rug", "roundRug"].includes(f.key)) continue;
           const penetration = Ts(polygons, [zone]);
           if (z < op.o.head && z + f.h > 20 && penetration > 20)
             issues.push({
@@ -799,6 +949,66 @@ export function checkScene(plan: Plan) {
         }
       }
     }
+  // Door-leaf swing versus openable cabinet fronts. This is the dedicated
+  // DOOR_CABINET_CONFLICT check; the door swing is approximated by a quarter
+  // circle polygon (8 segments), not a rigid-body simulation.
+  const doorCabinetSeen = new Set<string>();
+  for (const w of geo.active)
+    for (const op of w.ops) {
+      if (!doorTypes.has(op.o.type) || (op.o.sill ?? 0) > 20) continue;
+      const doorWidth = op.s1 - op.s0;
+      if (doorWidth < 100) continue;
+      for (const side of [-1, 1]) {
+        if (op.o.side && op.o.side !== side) continue;
+        const middle = (op.s0 + op.s1) / 2,
+          probe = {
+            x: w.a.x + w.u.x * middle + w.n.x * side * (w.ht + 1),
+            y: w.a.y + w.u.y * middle + w.n.y * side * (w.ht + 1),
+          };
+        const room = regions.find((r: any) =>
+          r.rects.some(
+            (b: any) =>
+              probe.x >= b.x &&
+              probe.x <= b.x + b.w &&
+              probe.y >= b.y &&
+              probe.y <= b.y + b.h,
+          ),
+        );
+        if (!room) continue;
+        const hingeAt = op.o.hinge ? op.s1 : op.s0,
+          direction = op.o.hinge ? -1 : 1,
+          hinge = {
+            x: w.a.x + w.u.x * hingeAt + w.n.x * side * (w.ht + 1),
+            y: w.a.y + w.u.y * hingeAt + w.n.y * side * (w.ht + 1),
+          },
+          swing = [hinge];
+        for (let k = 1; k <= 8; k++) {
+          const angle = (k / 8) * (Math.PI / 2),
+            along = hingeAt + direction * doorWidth * Math.cos(angle),
+            normal = side * (w.ht + 1 + doorWidth * Math.sin(angle));
+          swing.push({
+            x: w.a.x + w.u.x * along + w.n.x * normal,
+            y: w.a.y + w.u.y * along + w.n.y * normal,
+          });
+        }
+        for (const { f, z } of boxes) {
+          const envelope = openEnvelope(f);
+          if (!envelope) continue;
+          if (!(z < (op.o.head ?? 2100) && z + f.h > 20)) continue;
+          const key = `${op.o.id}:${f.id}`;
+          if (doorCabinetSeen.has(key)) continue;
+          if (Ts([envelope.polygon], [swing]) > 20) {
+            doorCabinetSeen.add(key);
+            issues.push({
+              code: "DOOR_CABINET_CONFLICT",
+              objectIds: [op.o.id, f.id],
+              message: `${op.o.id} 的门扇扫掠区与 ${f.name} 的开启包络冲突`,
+              level: "error",
+            });
+          }
+        }
+      }
+    }
   return {
     issues,
     coverage: [
@@ -808,10 +1018,14 @@ export function checkScene(plan: Plan) {
       "窗帘前 150 mm 与窗前 400 mm 净空",
       "门洞内侧 800 mm 局部净空（项目布局规则）",
       "门内 700 mm 宽连续可达区（近似栅格）",
+      "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+      "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+      "台面宿主 z = host.z + host.h、越界与同台面碰撞",
     ],
     limitations: [
       "不等同于精确网格碰撞检测；GLB 使用矩形占地",
-      "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查支撑面、照明或法规",
+      "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+      "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似",
     ],
   };
 }

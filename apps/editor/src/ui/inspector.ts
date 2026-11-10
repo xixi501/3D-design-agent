@@ -11,6 +11,7 @@ import {
   clone,
   newId,
   wallGeometry,
+  isOpenableFurniture,
   type Plan,
   type Command,
   type Furniture,
@@ -99,7 +100,7 @@ export function renderInspector(
       ? commit([{ type: "update", ...selection, patch }], summary)
       : commit([{ type: "project", patch }], summary);
   if (!object) {
-    host.innerHTML = `<h2>项目属性</h2><p class="muted">选择平面或三维中的对象进行编辑。长度单位为 mm。</p>${section("当前项目", text("name", plan.name) + num("height", plan.height, "层高", 100, 20000))}<p class="muted">拖动移动 · 滚轮缩放 · 右键平移<br>R 旋转 · Ctrl/Cmd D 复制<br>Ctrl/Cmd Z 撤销 · Shift Z 重做</p>`;
+    host.innerHTML = `<h2>项目属性</h2><p class="muted">选择平面或三维中的对象进行编辑。长度单位为 mm。</p>${section("当前项目", text("name", plan.name) + num("height", plan.height, "层高", 100, 20000))}${section("照片物品", '<button data-photo-import class="wide">上传单张物品照片 → 3D</button><p class="muted">生成后可确认毫米高度，并吸附到茶几/餐桌/书桌或地面。</p>')}<p class="muted">拖动移动 · 滚轮缩放 · 右键平移<br>R 旋转 · Ctrl/Cmd D 复制<br>Ctrl/Cmd Z 撤销 · Shift Z 重做</p>`;
   } else if (selection!.collection === "furniture") {
     const f = object as Furniture;
     let body = section(
@@ -124,6 +125,13 @@ export function renderInspector(
           "color",
         ),
     );
+    if (f.parentObjectId) {
+      const host = plan.furniture.find((item) => item.id === f.parentObjectId);
+      body += section(
+        "支撑关系",
+        `<p class="muted">台面宿主：${esc(host?.name || f.parentObjectId)} · 底面高程 ${Math.round(f.z || 0)} mm</p>`,
+      );
+    }
     if (styleTypes.includes(f.type))
       body += section(
         "风格",
@@ -375,6 +383,15 @@ export function renderInspector(
       body += section(
         "显示状态",
         check("opt.on", f.opt?.on !== false, "开启 / 点亮"),
+      );
+    if (isOpenableFurniture(f))
+      body += section(
+        "开启检验",
+        check(
+          "opt.open",
+          !!f.opt?.open,
+          "打开柜门 / 拉出抽屉（检验开启净空）",
+        ),
       );
     const defaults: Record<string, number> = {
       steps: 12,

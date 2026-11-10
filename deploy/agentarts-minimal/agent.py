@@ -6,6 +6,7 @@ from typing import TypedDict
 
 from actiscape_agent.client import SceneClient
 from actiscape_agent.model import create_model
+from task_runtime import run_task
 from agentarts.sdk import AgentArtsRuntimeApp, RequestContext
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ToolStrategy
@@ -202,6 +203,13 @@ graph = builder.compile()
 
 @app.entrypoint
 async def handler(payload: dict, context: RequestContext = None) -> dict:
+    if payload.get("action") == "run_task" or (
+        "projectId" in payload
+        and "input" in payload
+        and "originalX" not in payload
+        and "targetX" not in payload
+    ):
+        return await run_task(payload)
     request = Input.model_validate(payload).model_dump()
     result = await graph.ainvoke({"payload": request})
     return result["result"]

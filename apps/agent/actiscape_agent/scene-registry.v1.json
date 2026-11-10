@@ -1,6 +1,6 @@
 {
   "schemaVersion": "actiscape.scene-registry.v1",
-  "version": "2026-11-09",
+  "version": "2026-11-10",
   "roomTypes": [
     {
       "id": "living_dining",
@@ -39,7 +39,7 @@
     {
       "id": "master_bedroom",
       "label": "主卧",
-      "status": "reserved",
+      "status": "active",
       "skillRoomKind": "bedroom",
       "skillIds": ["master-bedroom"],
       "floorMaterial": "oak",
@@ -54,7 +54,7 @@
     {
       "id": "guest_bedroom",
       "label": "次卧",
-      "status": "reserved",
+      "status": "active",
       "skillRoomKind": "bedroom",
       "skillIds": ["guest-bedroom"],
       "floorMaterial": "oak",
@@ -99,7 +99,7 @@
     {
       "id": "study",
       "label": "书房",
-      "status": "reserved",
+      "status": "active",
       "skillRoomKind": "study",
       "skillIds": ["home-office"],
       "floorMaterial": "oak",
@@ -114,21 +114,21 @@
     {
       "id": "kitchen",
       "label": "厨房",
-      "status": "reserved",
+      "status": "active",
       "skillRoomKind": "kitchen",
       "skillIds": ["kitchen-line-l-u"],
       "floorMaterial": "bath",
       "wallMaterial": "wallTile",
       "policy": { "geometry": "rectangular_v1", "checks": ["counter_clearance", "appliance_access"] },
       "defaultFurniture": [
-        { "query": "整体橱柜", "count": 1 },
+        { "query": "橱柜", "count": 1 },
         { "query": "冰箱", "count": 1 }
       ]
     },
     {
       "id": "bathroom",
       "label": "卫生间",
-      "status": "reserved",
+      "status": "active",
       "skillRoomKind": "bathroom",
       "skillIds": ["bathroom-standard"],
       "floorMaterial": "bath",
@@ -143,7 +143,7 @@
     {
       "id": "entry",
       "label": "玄关",
-      "status": "reserved",
+      "status": "active",
       "skillRoomKind": "entry",
       "skillIds": ["entry-storage"],
       "floorMaterial": "tile",
@@ -193,13 +193,16 @@
     {
       "id": "circulation",
       "label": "过道",
-      "status": "reserved",
-      "skillRoomKind": "any",
-      "skillIds": [],
+      "status": "active",
+      "skillRoomKind": "entry",
+      "skillIds": ["entry-storage"],
       "floorMaterial": "tile",
       "wallMaterial": "latexWhite",
       "policy": { "geometry": "rectangular_v1", "checks": ["circulation_width"] },
-      "defaultFurniture": []
+      "defaultFurniture": [
+        { "query": "玄关桌", "count": 1 },
+        { "query": "绿植", "count": 1 }
+      ]
     },
     {
       "id": "other",

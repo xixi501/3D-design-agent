@@ -796,12 +796,27 @@ export function floorplanScale(data: FloorplanData) {
     );
   return values[0];
 }
+/**
+ * Resolve the rooms whose furniture must be reproduced. V4 whole-home drafts
+ * created before the explicit target list existed may carry an empty list; in
+ * that case every recognised room is a target instead of silently falling back
+ * to the legacy living/dining scope. V3 keeps its explicit (possibly empty)
+ * selection so frozen replays are unchanged.
+ */
+export function resolveTargetRoomIds(data: FloorplanData): string[] {
+  if (data.targetRoomIds.length) return [...data.targetRoomIds];
+  if ((data.recognitionVersion ?? 0) >= 4)
+    return data.rooms.map((room) => room.id);
+  return [];
+}
+
 export function compileFloorplan(
   input: FloorplanData,
   seed: string,
   binding?: FloorplanBinding,
 ) {
   const data = validateFloorplan(input);
+  const resolvedTargetRoomIds = resolveTargetRoomIds(data);
   if (!/^[\w-]{1,100}$/.test(seed)) invalid("初始化身份无效", "taskId");
   if (data.walls.length < 4 || !data.rooms.length)
     invalid("请补齐整层墙体和房间标签", "walls");
@@ -1045,12 +1060,12 @@ export function compileFloorplan(
       "每个封闭区域需要一个准确房间标签；请核对漏墙、重复标签或缺失房间",
       "rooms",
     );
-  if (data.targetRoomIds.length === 0)
+  if (resolvedTargetRoomIds.length === 0)
     invalid("请选择需要复现家具的房间", "targetRoomIds");
-  const targetRoomIds = data.targetRoomIds.map((id) => `${seed}:r:${id}`);
+  const targetRoomIds = resolvedTargetRoomIds.map((id) => `${seed}:r:${id}`);
   const symbols = data.symbols
     .filter(
-      (s) => data.targetRoomIds.includes(s.roomId) && s.included !== false,
+      (s) => resolvedTargetRoomIds.includes(s.roomId) && s.included !== false,
     )
     .map((s) => ({
       ...s,

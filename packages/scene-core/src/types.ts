@@ -17,6 +17,9 @@ export interface Furniture extends Entity, Point {
   rot: number;
   z?: number;
   color: string;
+  /** Whole-home support relation; surface items sit on a host top face. */
+  placement?: "floor" | "wall" | "surface" | "ceiling";
+  parentObjectId?: string;
   opt?: RecordData;
   cab?: RecordData;
   kit?: RecordData;
@@ -97,6 +100,16 @@ export interface AssetRecord {
   d: number;
   h: number;
   normalization: { scale: number; center: [number, number, number] };
+  /** Optional provenance and placement hints for photo-generated assets. */
+  category?: string;
+  sourceImageSha256?: string;
+  provider?: "upload" | "real-cache" | "remote-gpu" | "demo";
+  isRealGeneration?: boolean;
+  scaleCalibrated?: boolean;
+  scaleSource?: "user_confirmed" | "category_prior" | "raw_uncalibrated" | "demo";
+  defaultPlacement?: "floor" | "surface";
+  jobId?: string;
+  generatedAt?: string;
 }
 export class SceneError extends Error {
   constructor(

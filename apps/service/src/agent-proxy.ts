@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { agentArtsConfigured, cloudTask, forwardAgentArts } from "./agentarts-proxy.js";
 
 /** Same-origin façade; provider credentials and orchestration stay on the server. */
 export function agentProxy(app: FastifyInstance) {
@@ -11,6 +12,32 @@ export function agentProxy(app: FastifyInstance) {
         "Conversation/task API proxy to the Python LangGraph service",
     },
     handler: async (req, reply) => {
+      const pathname = new URL(req.url, "http://service").pathname;
+      const body = (req.body || {}) as Record<string, any>;
+      const taskCreate = /^\/api\/agent\/conversations\/[^/]+\/tasks$/.test(
+        pathname,
+      );
+      if (
+        req.method === "POST" &&
+        taskCreate &&
+        agentArtsConfigured() &&
+        body.projectId
+      ) {
+        try {
+          const upstream = await forwardAgentArts(body);
+          return reply
+            .code(201)
+            .send(cloudTask(upstream, body, pathname.split("/")[4]));
+        } catch (error: any) {
+          return reply.code(error.statusCode || 502).send({
+            error: "AGENTARTS_UNAVAILABLE",
+            message: error.message || "AgentArts 云端不可用",
+            ...(error.details ? { details: error.details } : {}),
+          });
+        }
+      }
+      const localBody = { ...body };
+      delete localBody.projectId;
       const abort = new AbortController();
       pending.add(abort);
       const target = new URL(

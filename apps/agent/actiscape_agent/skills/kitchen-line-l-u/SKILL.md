@@ -4,12 +4,12 @@ description: 给 3–10㎡ 的独立厨房选形（一字 / L / U / 双排）并
 license: MIT
 compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径走（文字坐标方案 + 人工量尺），状态仍为 pending_adaptation。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: "0.3.0"
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
+  activation: active
   judgement_refs: "J-KIT-01,J-KIT-02,J-KIT-03,J-KIT-04,J-CIR-01,J-WIN-01,J-VER-01,J-VER-02"
 ---
 

@@ -1,19 +1,26 @@
 {
   "schemaVersion": "actiscape.skill.v1",
   "id": "entry-storage",
-  "name": "玄关与入户收纳",
-  "version": "0.2.0",
+  "name": "玄关/过道与入户收纳",
+  "version": "0.3.0",
   "kind": "layout",
-  "status": "conformant",
-  "activation": "reserved",
-  "summary": "1.5–6㎡ 玄关：按「开门→落尘→换鞋→挂衣→镜」排动线，按人数估鞋柜容量，控换鞋凳前净空与门扇开启区，并给出地方不够时的保住顺序。",
+  "status": "verified",
+  "activation": "active",
+  "summary": "1.5–20㎡ 玄关或过道：按「开门→落尘→换鞋→挂衣→镜」排动线，按人数估鞋柜容量，控换鞋凳前净空与门扇开启区；过道只保留不挡通行的一侧浅柜或端景。",
   "appliesTo": {
-    "modes": ["generate_rectangular"],
-    "roomKinds": ["entry"],
-    "areaM2": [1.5, 6],
+    "modes": [
+      "generate_rectangular"
+    ],
+    "roomKinds": [
+      "entry"
+    ],
+    "areaM2": [
+      1.5,
+      20
+    ],
     "projectState": "empty",
     "requiredInputs": [
-      "含入户门与墙体门窗的场景或实测尺寸",
+      "含入户门或过道墙体门窗的场景或实测尺寸",
       "常住人口（可选）",
       "强弱电箱位置（可选）"
     ]
@@ -21,9 +28,9 @@
   "notApplicable": [
     "需要拆改墙体、扩大门洞或移动入户门",
     "整墙定制柜体的结构与板材深化",
-    "玄关与客餐厅完全打通（转 living-dining-open）",
     "适老化入户改造（转 aging-friendly）",
-    "需要改强弱电点位"
+    "需要改强弱电点位",
+    "过道宽度不足以保留 900 mm 连续通行时，只做端景不摆柜"
   ],
   "capabilities": [
     "scene.read",
@@ -52,6 +59,6 @@
   "validation": {
     "structure": true,
     "dryRun": true,
-    "realCore": false
+    "realCore": true
   }
 }

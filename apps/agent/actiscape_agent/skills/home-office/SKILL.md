@@ -4,12 +4,12 @@ description: 布置书房或居家办公位：书桌对窗但离窗墙留出窗�
 license: MIT
 compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: "0.3.0"
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
+  activation: active
   judgement_refs: "J-CIR-01,J-CIR-05,J-CUR-01,J-OVER-01,J-DOOR-02,J-ASSET-02,J-LIGHT-02,J-LIGHT-03,J-STY-03,J-VER-01,J-VER-02"
 ---
 

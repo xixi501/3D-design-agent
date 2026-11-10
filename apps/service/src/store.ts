@@ -104,6 +104,12 @@ export class ProjectStore {
     this.asset(id);
     return path.join(this.directory, "assets", `${id}.glb`);
   }
+  updateAsset(record: AssetRecord) {
+    this.db
+      .prepare("UPDATE assets SET record=? WHERE id=?")
+      .run(JSON.stringify(record), record.id);
+    return this.asset(record.id);
+  }
   saveAsset(record: AssetRecord, buffer: Buffer) {
     const destination = path.join(this.directory, "assets", `${record.id}.glb`);
     if (!fs.existsSync(destination)) {

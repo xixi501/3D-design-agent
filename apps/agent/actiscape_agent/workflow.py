@@ -4,6 +4,9 @@ from langgraph.graph import END, START, StateGraph
 
 from .client import SceneClient, SceneFailure
 from .floorplan_flow import FloorplanFlow
+from .interactive_flow import InteractiveFlow
+from .photo_flow import PhotoFlow
+from .policy import PolicyController, RepairPolicyRouter
 from .floorplan_roles import FloorplanRoles
 from .generation_flow import COLLECTIONS, GenerationFlow
 from .generation_roles import GenerationRoles
@@ -36,6 +39,7 @@ class State(TypedDict, total=False):
     final: dict | None
     generation: dict
     layout_project: dict
+    policy: dict
 
 
 def ambiguous_name(task: dict, project: dict, conversation: dict) -> str | None:
@@ -263,8 +267,52 @@ class Workflow:
             "candidate": None,
             "review": None,
             "evidence": [],
-            "route": "ground",
+            "route": "policy",
         }
+
+    async def policy(self, state: State):
+        task = self.task(state, "policy")
+        conversation = self.store.conversation(task["conversationId"])
+        decision = PolicyController().decide(
+            task,
+            state["project"],
+            conversation,
+        ).model_dump()
+        generation = dict(task.get("generation") or {})
+        generation["policy"] = decision
+        self.store.update(
+            task["id"],
+            generation=generation,
+            mode=decision["mode"],
+        )
+        self.store.event(task["id"], "policy", decision)
+        if decision["route"] == "waiting":
+            return {
+                "policy": decision,
+                "route": "end",
+                "final": {
+                    "status": "waiting_input",
+                    "message": decision["question"],
+                    "policy": decision,
+                },
+            }
+        return {"policy": decision, "route": decision["route"]}
+
+    async def interactive(self, state: State):
+        task = self.task(state, "acting")
+        return await InteractiveFlow(self.store, self.client).candidate(
+            task,
+            state["project"],
+            state["policy"],
+        )
+
+    async def photo(self, state: State):
+        task = self.task(state, "acting")
+        return await PhotoFlow(self.store, self.client).candidate(
+            task,
+            state["project"],
+            state["policy"],
+        )
 
     async def ground(self, state: State):
         task = self.task(state, "understanding")
@@ -492,17 +540,32 @@ class Workflow:
 
     async def inspect(self, state: State):
         task = self.task(state, "checking")
-        review = (
-            await FloorplanRoles(self.roles).inspect(task, state["candidate"], state["evidence"])
-            if task.get("mode") == "reconstruct_floorplan"
-            else await GenerationRoles(self.roles).inspect(
-                task, state["candidate"], state["evidence"]
+        if task.get("mode") in ("interactive_action", "photo_to_scene"):
+            # Fast action/photo paths have no user-facing design intent to
+            # review; the deterministic candidate checks + two rendered views
+            # are the evidence. This keeps the same commit/review protocol
+            # without spending a model call.
+            review = {
+                "passed": bool(state["candidate"]["checks"]["passed"]),
+                "summary": (
+                    "快速动作/照片资产放置已通过确定性检查与两张证据渲染。"
+                ),
+                "issues": [],
+            }
+        else:
+            review = (
+                await FloorplanRoles(self.roles).inspect(
+                    task, state["candidate"], state["evidence"]
+                )
+                if task.get("mode") == "reconstruct_floorplan"
+                else await GenerationRoles(self.roles).inspect(
+                    task, state["candidate"], state["evidence"]
+                )
+                if task.get("mode") == "generate_rectangular"
+                else await self.roles.inspect(
+                    task, state["intent"], state["candidate"], state["evidence"]
+                )
             )
-            if task.get("mode") == "generate_rectangular"
-            else await self.roles.inspect(
-                task, state["intent"], state["candidate"], state["evidence"]
-            )
-        )
         valid_ids = {
             o["id"] for k in COLLECTIONS for o in state["candidate"]["state"]["plan"].get(k, [])
         } | set(state["candidate"]["diff"]["deleted"])
@@ -570,6 +633,68 @@ class Workflow:
         )
         task = self.store.task(state["task_id"], internal=True)
         generation = task.get("generation", {})
+        if (
+            task["mode"] not in ("reconstruct_floorplan", "interactive_action", "photo_to_scene")
+            and generation.get("skillBundle")
+            and not generation["skillBundle"].get("repair")
+        ):
+            registry = get_registry()
+            bundle = registry.with_repair(generation["skillBundle"], task["mode"])
+            generation.update(
+                skillBundle=bundle,
+                skillsUsed=registry.records(bundle),
+            )
+            self.store.update(task["id"], generation=generation)
+            self.store.event(
+                task["id"],
+                "skill_repair_loaded",
+                {
+                    "id": bundle["repair"]["id"],
+                    "contentHash": bundle["repair"]["contentHash"],
+                    "bundleHash": bundle["contentHash"],
+                },
+            )
+            task = self.store.task(state["task_id"], internal=True)
+            generation = task.get("generation", {})
+        if task["mode"] in ("interactive_action", "photo_to_scene"):
+            return {
+                "route": "end",
+                "final": {
+                    "status": "waiting_input",
+                    "message": "快速动作/照片资产候选未通过确定性检查，正式场景未改变。",
+                    "candidateId": (state.get("candidate") or {}).get("id"),
+                    "report": state.get("last_report"),
+                },
+            }
+        if task["mode"] != "reconstruct_floorplan":
+            directive = RepairPolicyRouter().route(state.get("last_report"))
+            if directive is not None:
+                generation["repairDirective"] = directive.model_dump()
+                self.store.update(task["id"], generation=generation)
+                self.store.event(
+                    task["id"],
+                    "repair_routed",
+                    directive.model_dump(),
+                )
+                if directive.targetRole == "coordinator" or directive.action == "stop":
+                    return {
+                        "route": "end",
+                        "final": {
+                            "status": "waiting_input",
+                            "message": (
+                                f"检查问题需要人工确认：{directive.message}；"
+                                "正式项目未改变。"
+                            ),
+                            "candidateId": (state.get("candidate") or {}).get("id"),
+                            "report": state.get("last_report"),
+                            "repairDirective": directive.model_dump(),
+                        },
+                    }
+                return {
+                    "repairs": count + 1,
+                    "route": directive.targetRole,
+                    "repairDirective": directive.model_dump(),
+                }
         if generation.get("floorplanVersion") == "s2c-floorplan-v4-2":
             raw_issues = (state.get("last_report") or {}).get("visualReview", {}).get(
                 "issues"
@@ -719,6 +844,18 @@ class Workflow:
             raise
         result = completion_result(task, state, c, committed["project"]["revision"])
         generation = task.get("generation", {})
+        if task.get("mode") == "interactive_action":
+            result["message"] = "门/柜门/抽屉/电器的开启状态已提交，可撤销。"
+            result["policy"] = generation.get("policy")
+        elif task.get("mode") == "photo_to_scene":
+            added = [
+                f
+                for f in c["state"]["plan"]["furniture"]
+                if f["id"] in (c.get("diff") or {}).get("added", [])
+            ]
+            label = added[0]["name"] if added else "照片物品"
+            result["message"] = f"已把 {label} 放入场景并提交，可撤销。"
+            result["policy"] = generation.get("policy")
         result["skillsUsed"] = generation.get("skillsUsed", [])
         result["skillSelection"] = generation.get("skillSelection")
         self.store.event(
@@ -737,7 +874,10 @@ class Workflow:
         builder = StateGraph(State)
         for name in (
             "snapshot",
+            "policy",
             "ground",
+            "interactive",
+            "photo",
             "assets",
             "scope",
             "design",
@@ -749,7 +889,30 @@ class Workflow:
         ):
             builder.add_node(name, getattr(self, name))
         builder.add_edge(START, "snapshot")
-        builder.add_edge("snapshot", "ground")
+        builder.add_edge("snapshot", "policy")
+        builder.add_conditional_edges(
+            "policy",
+            lambda s: s["route"],
+            {
+                "ground": "ground",
+                "interactive_action": "interactive",
+                "photo_to_scene": "photo",
+                "edit": "ground",
+                "generate_rectangular": "ground",
+                "reconstruct_floorplan": "ground",
+                "end": END,
+            },
+        )
+        builder.add_conditional_edges(
+            "interactive",
+            lambda s: s["route"],
+            {"render": "render", "end": END},
+        )
+        builder.add_conditional_edges(
+            "photo",
+            lambda s: s["route"],
+            {"render": "render", "end": END},
+        )
         builder.add_conditional_edges(
             "ground",
             lambda s: s["route"],

@@ -8,13 +8,28 @@
   "activation": "active",
   "summary": "保留真实净尺寸和门窗，在矩形客餐厅或阅读会客间生成可检查的目录家具布局。",
   "appliesTo": {
-    "modes": ["generate_rectangular"],
-    "roomKinds": ["living_dining", "reading_lounge"],
-    "areaM2": [5, 1000],
+    "modes": [
+      "generate_rectangular"
+    ],
+    "roomKinds": [
+      "living_dining",
+      "reading_lounge"
+    ],
+    "areaM2": [
+      5,
+      1000
+    ],
     "projectState": "empty",
-    "requiredInputs": ["dimensions", "openings"]
+    "requiredInputs": [
+      "dimensions",
+      "openings"
+    ]
   },
-  "notApplicable": ["structural_change", "irregular_outline", "multi_room"],
+  "notApplicable": [
+    "structural_change",
+    "irregular_outline",
+    "multi_room"
+  ],
   "capabilities": [
     "scene.read",
     "catalog.search",
@@ -26,7 +41,10 @@
   "judgements": [],
   "composition": {
     "maxPerTask": 1,
-    "conflictsWith": ["living-dining-small", "living-dining-open"]
+    "conflictsWith": [
+      "living-dining-small",
+      "living-dining-open"
+    ]
   },
   "license": {
     "spdx": "MIT",
@@ -40,5 +58,23 @@
     "structure": true,
     "dryRun": true,
     "realCore": true
+  },
+  "stageHints": {
+    "asset": [
+      "共同规则",
+      "客餐厅",
+      "阅读会客间"
+    ],
+    "layout": [
+      "共同规则",
+      "客餐厅",
+      "阅读会客间"
+    ],
+    "check": [
+      "独立检查"
+    ],
+    "repair": [
+      "独立检查"
+    ]
   }
 }

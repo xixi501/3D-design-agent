@@ -63,7 +63,8 @@ class GenerationFlow:
                     "route": "end",
                     "final": {
                         "status": "failed",
-                        "message": generation["question"] or "当前仅支持单个矩形客餐厅或阅读会客间",
+                        "message": generation["question"]
+                        or "当前房间用途不在已启用范围，或输入包含多房间/不规则轮廓",
                         "generation": {k: v for k, v in generation.items() if k != "skillSnapshot"},
                     },
                 }
@@ -79,6 +80,10 @@ class GenerationFlow:
         brief = generation["brief"]
         room_type = brief.get("roomType") or brief.get("purpose")
         room = get_scene_registry().room(room_type)
+        if room is None and room_type:
+            label_id = get_scene_registry().room_type_for_label(str(room_type))
+            if label_id != "other":
+                room = get_scene_registry().room(label_id)
         if room is None:
             raise TaskError("ROOM_TYPE_UNRESOLVED", "任务房间类型不在场景注册表中")
         generation = await ensure_text_scene_draft(
@@ -149,7 +154,7 @@ class GenerationFlow:
             bundle = registry.compose(
                 mode="generate_rectangular",
                 selection=selection,
-                include_intake=True,
+                include_intake=False,
             )
             snapshot = bundle["primary"]
             if (

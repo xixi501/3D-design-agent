@@ -7,10 +7,14 @@ import hashlib
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import tempfile
 import time
 
+import httpx
+
+from ..config import scene_url
 from ..store import fingerprint
 from .contracts import (
     ArtifactEnvelopeV1,
@@ -175,6 +179,109 @@ def _normalize_response(manifest: ProviderManifest, raw: dict, scope: dict) -> d
     }
 
 
+def _remote_enabled() -> bool:
+    """Containers without Node use the gateway; explicit local/remote wins."""
+    mode = os.environ.get("ACTISCAPE_VISION_RUNNER", "auto").strip().lower()
+    if mode == "remote":
+        return True
+    if mode == "local":
+        return False
+    return shutil.which("node") is None
+
+
+def _remote_run(
+    manifest: ProviderManifest,
+    image: bytes,
+    scope: dict,
+    parameters: dict | None,
+    *,
+    output_dir: pathlib.Path | None,
+    timeout: float,
+    input_sha: str,
+    scope_hash: str,
+) -> ProviderRunRecord:
+    started = time.monotonic()
+    base = scene_url()
+    token = os.environ.get("ACTISCAPE_TOOL_TOKEN")
+    try:
+        with httpx.Client(timeout=timeout, trust_env=False) as client:
+            response = client.post(
+                base + "/api/tools/floorplan-candidate",
+                headers=(
+                    {"Authorization": "Bearer " + token} if token else {}
+                ),
+                json={
+                    "imageBase64": base64.b64encode(image).decode(),
+                    "scope": scope,
+                    "adapterVersion": manifest.id,
+                    "parameters": parameters or {},
+                },
+            )
+    except httpx.HTTPError as error:
+        return ProviderRunRecord(
+            provider=manifest,
+            status="failed",
+            inputSha256=input_sha,
+            scopeHash=scope_hash,
+            seconds=round(time.monotonic() - started, 3),
+            error={"message": f"remote candidate unavailable: {error}"},
+        )
+    elapsed = round(time.monotonic() - started, 3)
+    if not response.is_success:
+        try:
+            detail = response.json()
+        except ValueError:
+            detail = {"message": response.text[-1000:]}
+        return ProviderRunRecord(
+            provider=manifest,
+            status="failed",
+            inputSha256=input_sha,
+            scopeHash=scope_hash,
+            seconds=elapsed,
+            error={"status": response.status_code, **detail},
+        )
+    try:
+        value = response.json()
+        envelope = ArtifactEnvelopeV1.model_validate(value)
+    except Exception as error:  # noqa: BLE001 - provider boundary
+        return ProviderRunRecord(
+            provider=manifest,
+            status="failed",
+            inputSha256=input_sha,
+            scopeHash=scope_hash,
+            seconds=elapsed,
+            error={"message": f"invalid remote envelope: {error}"},
+        )
+    if (
+        envelope.providerId != manifest.id
+        or envelope.inputSha256 != input_sha
+        or envelope.scopeHash != scope_hash
+        or fingerprint(envelope.artifact) != envelope.artifactSha256
+    ):
+        return ProviderRunRecord(
+            provider=manifest,
+            status="failed",
+            inputSha256=input_sha,
+            scopeHash=scope_hash,
+            seconds=elapsed,
+            error={"message": "remote envelope identity/hash mismatch"},
+        )
+    if output_dir is not None:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        (output_dir / "candidate-envelope.json").write_text(
+            json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    return ProviderRunRecord(
+        provider=manifest,
+        status="completed",
+        inputSha256=input_sha,
+        scopeHash=scope_hash,
+        seconds=elapsed,
+        envelope=envelope,
+    )
+
+
 def run_floorplan_provider(
     provider_id: str,
     image: bytes,
@@ -196,6 +303,17 @@ def run_floorplan_provider(
     }
     input_sha = sha256_bytes(image)
     scope_hash = fingerprint(scope)
+    if _remote_enabled():
+        return _remote_run(
+            manifest,
+            image,
+            scope,
+            parameters,
+            output_dir=output_dir,
+            timeout=timeout,
+            input_sha=input_sha,
+            scope_hash=scope_hash,
+        )
     started = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="actiscape-provider-") as temporary:
         try:

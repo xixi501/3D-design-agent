@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "actiscape.skill-priors.v1",
+  "id": "universal-spatial-base",
+  "updatedAt": "2026-11-10",
+  "defaults": {
+    "coordinateUnit": "mm",
+    "doorClearanceMm": 800,
+    "passageWidthMm": 900,
+    "cabinetClearanceMm": {
+      "hingeWardrobe": 600,
+      "slidingWardrobe": 500,
+      "cabinet": 450,
+      "drawer": 450
+    },
+    "surfaceOverhangToleranceMm": 20,
+    "surfaceCollisionToleranceMm": 20,
+    "wallOffsetMm": 20
+  },
+  "notes": [
+    "This file is the structured prior slot for future GEPA search; code remains authoritative.",
+    "Do not put free-form instructions here; use SKILL.md for prose and rules."
+  ]
+}

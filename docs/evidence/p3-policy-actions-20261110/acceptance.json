@@ -1,0 +1,229 @@
+{
+  "phase": "P3",
+  "date": "2026-11-10",
+  "skills": {
+    "total": 33,
+    "active": 17,
+    "reserved": 16,
+    "universal": "universal-spatial-base",
+    "bundle": {
+      "universal": "universal-spatial-base",
+      "primary": "master-bedroom",
+      "modifiers": [
+        "style-coherence"
+      ],
+      "intake": null,
+      "contentHash": "928ac3981d5d3a4dbe8e74465b61627c1a8bb3bce4b0760e95fd9c7ecbe4ea9d"
+    },
+    "stages": {
+      "intake": {
+        "contentHash": "be6d3fe092706af1888a0a6374cc7778c743235a9d59d82c7933b5b255f3a06d",
+        "instructions": [
+          {
+            "role": "universal",
+            "id": "universal-spatial-base",
+            "headings": [
+              "适用边界",
+              "坐标与尺寸",
+              "提交门禁"
+            ],
+            "fallback": false
+          }
+        ]
+      },
+      "asset": {
+        "contentHash": "2833fc140cba3d495f5b7484ee784f6107ac63400351616c0abda8ea675e6ed9",
+        "instructions": [
+          {
+            "role": "universal",
+            "id": "universal-spatial-base",
+            "headings": [
+              "坐标与尺寸",
+              "选品与体量",
+              "提交门禁"
+            ],
+            "fallback": false
+          },
+          {
+            "role": "primary",
+            "id": "master-bedroom",
+            "headings": [
+              "怎么做"
+            ],
+            "fallback": false
+          },
+          {
+            "role": "modifier",
+            "id": "style-coherence",
+            "headings": [
+              "怎么做"
+            ],
+            "fallback": false
+          }
+        ]
+      },
+      "layout": {
+        "contentHash": "e2ae98af3f647f60c711e9cc45080a149dafa559e8a72e439777f9935f1dba3c",
+        "instructions": [
+          {
+            "role": "universal",
+            "id": "universal-spatial-base",
+            "headings": [
+              "坐标与尺寸",
+              "排布与净空",
+              "提交门禁"
+            ],
+            "fallback": false
+          },
+          {
+            "role": "primary",
+            "id": "master-bedroom",
+            "headings": [
+              "怎么做"
+            ],
+            "fallback": false
+          },
+          {
+            "role": "modifier",
+            "id": "style-coherence",
+            "headings": [
+              "怎么做"
+            ],
+            "fallback": true
+          }
+        ]
+      },
+      "check": {
+        "contentHash": "c12a301d3c875a12d1ce09197b1933d9167ca95cba34949babcb3b23097f217e",
+        "instructions": [
+          {
+            "role": "universal",
+            "id": "universal-spatial-base",
+            "headings": [
+              "坐标与尺寸",
+              "检查与报错码",
+              "提交门禁"
+            ],
+            "fallback": false
+          },
+          {
+            "role": "primary",
+            "id": "master-bedroom",
+            "headings": [
+              "依赖什么",
+              "怎么验证"
+            ],
+            "fallback": false
+          },
+          {
+            "role": "modifier",
+            "id": "style-coherence",
+            "headings": [
+              "依赖什么",
+              "怎么验证"
+            ],
+            "fallback": false
+          }
+        ]
+      },
+      "repair": {
+        "contentHash": "2ac6792f53c195c191881489c2c310ab13c46c25fe21e20a17f9924e9573a956",
+        "instructions": [
+          {
+            "role": "universal",
+            "id": "universal-spatial-base",
+            "headings": [
+              "坐标与尺寸",
+              "修复顺序",
+              "提交门禁"
+            ],
+            "fallback": false
+          },
+          {
+            "role": "primary",
+            "id": "master-bedroom",
+            "headings": [
+              "怎么做",
+              "依赖什么",
+              "怎么验证"
+            ],
+            "fallback": false
+          },
+          {
+            "role": "modifier",
+            "id": "style-coherence",
+            "headings": [
+              "怎么做",
+              "依赖什么",
+              "怎么验证"
+            ],
+            "fallback": true
+          }
+        ]
+      }
+    }
+  },
+  "policy": {
+    "routes": [
+      "interactive_action",
+      "photo_to_scene",
+      "generate_rectangular",
+      "reconstruct_floorplan",
+      "edit"
+    ],
+    "explicitModeWins": true,
+    "ambiguousStops": true,
+    "repairRouter": [
+      "OPENABLE_FRONT_BLOCKED",
+      "DOOR_CABINET_CONFLICT",
+      "SURFACE_ITEM_OVERHANG",
+      "SURFACE_ITEM_COLLISION",
+      "DOORWAY_BLOCKED",
+      "POSSIBLE_OVERLAP",
+      "FURNITURE_IN_WALL"
+    ],
+    "candidateEdits": [
+      "action",
+      "placeAsset"
+    ]
+  },
+  "live": {
+    "action": {
+      "projectId": "285b314d-8e06-47bb-a4d0-f38ce1826844",
+      "taskId": "2a6623d7-40bb-4e9f-8cb4-5328a89bae42",
+      "status": "completed",
+      "revision": 2,
+      "route": "interactive_action"
+    },
+    "photo": {
+      "projectId": "285b314d-8e06-47bb-a4d0-f38ce1826844",
+      "taskId": "ddec6a42-be39-4fe6-a813-8595f069d9e4",
+      "status": "completed",
+      "revision": 2,
+      "route": "photo_to_scene",
+      "assetId": "asset-82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1",
+      "parentObjectId": "ac492096-a42c-4b6d-a94c-f3ddaa2cfe64",
+      "z": 400
+    },
+    "blockedAction": {
+      "projectId": "6e984d4e-d6ca-4765-9811-34791b5c5c21",
+      "taskId": "957a3eef-4968-4cbb-857b-73412506c580",
+      "status": "waiting_input",
+      "revision": 0,
+      "code": "OPENABLE_FRONT_BLOCKED"
+    }
+  },
+  "tests": {
+    "node": 76,
+    "python": 165,
+    "build": "pass",
+    "testAll": "pass",
+    "testAllExit": 0
+  },
+  "limits": [
+    "stage slicing is heading/step heuristic; unmatched sections fall back to the full Skill and are marked fallback=true",
+    "repair router produces bounded role-scoped directives; automatic geometric movement is limited to the Design/Asset repair loop",
+    "action/photo candidates stop with waiting_input on a blocking conflict rather than silently moving furniture",
+    "photo demo asset is the fixed P2 sample until member 2 V100 artifacts are cached"
+  ]
+}

@@ -4,12 +4,12 @@ description: 把用户拍的单件物品照片变成场景里的独立家具对�
 license: MIT
 compatibility: 需要 asset.job / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review / candidate.render；资产服务未就绪时按第 4 节降级（只出资产规格与落位建议，不落位）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: "0.3.0"
+  status: verified
   level: structure
   owner: member3
   kind: asset
-  activation: reserved
+  activation: active
   judgement_refs: "J-ASSET-01,J-ASSET-02,J-CIR-01,J-OVER-01,J-VER-01,J-VER-02"
 ---
 

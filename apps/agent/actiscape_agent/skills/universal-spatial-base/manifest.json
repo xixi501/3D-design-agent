@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "actiscape.skill.v1",
+  "id": "universal-spatial-base",
+  "name": "L0 通用空间底座",
+  "version": "0.1.0",
+  "kind": "universal",
+  "status": "verified",
+  "activation": "active",
+  "summary": "所有房间、所有 Agent 阶段默认挂载的物理与交互公理：毫米坐标、rot 宽深互换、门洞 800 mm、柜门 450–600 mm 开启包络、台面 z=host.z+host.h、支撑关系与 Candidate 门禁。",
+  "appliesTo": {
+    "modes": ["generate_rectangular", "edit", "reconstruct_floorplan", "asset_import"],
+    "roomKinds": ["any"],
+    "areaM2": [0, 1000],
+    "projectState": "any",
+    "requiredInputs": []
+  },
+  "notApplicable": [
+    "需要引入刚体动力学、重力自由落体或地震模拟",
+    "需要绕过 Candidate -> CheckScene -> Commit 直接写正式项目",
+    "需要修改建筑规范、结构安全或水电点位"
+  ],
+  "capabilities": ["scene.read", "candidate.preflight", "candidate.review"],
+  "judgements": [
+    "J-CIR-01",
+    "J-CIR-06",
+    "J-ASSET-02",
+    "J-OVER-01",
+    "J-DOOR-02",
+    "J-VER-01",
+    "J-VER-02"
+  ],
+  "composition": { "maxPerTask": 1, "conflictsWith": [] },
+  "license": { "spdx": "MIT", "attribution": "repository:ATTRIBUTIONS.md" },
+  "provenance": [
+    "1110计划.md 第 1.2 / 3.3 / 3.4 节",
+    "house-plan-designer 参数化构件与碰撞规则",
+    "ACRScene 动作包络思想（仅轻量几何）"
+  ],
+  "validation": { "structure": true, "dryRun": true, "realCore": true }
+}

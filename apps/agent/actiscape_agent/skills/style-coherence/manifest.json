@@ -8,9 +8,17 @@
   "activation": "active",
   "summary": "把口头风格翻成硬装—软装—材质—五金四件套，用 60-30-10、主材 ≤3、焦点 ≤1 把整屋拉齐；硬装不可改时只换软装。",
   "appliesTo": {
-    "modes": ["generate_rectangular", "edit"],
-    "roomKinds": ["any"],
-    "areaM2": [8, 200],
+    "modes": [
+      "generate_rectangular",
+      "edit"
+    ],
+    "roomKinds": [
+      "any"
+    ],
+    "areaM2": [
+      1.0,
+      200.0
+    ],
     "projectState": "any",
     "requiredInputs": [
       "已有硬装信息（门/地板/墙色）",
@@ -24,7 +32,11 @@
     "只调家具位置、不做风格判断",
     "出效果图替代方案评审"
   ],
-  "capabilities": ["scene.read", "catalog.search", "candidate.review"],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.review"
+  ],
   "judgements": [
     "J-CIR-01",
     "J-COL-01",
@@ -51,5 +63,25 @@
     "structure": true,
     "dryRun": true,
     "realCore": true
+  },
+  "stageHints": {
+    "asset": [
+      "第 1 步",
+      "第 2 步",
+      "第 3 步",
+      "第 4 步"
+    ],
+    "layout": [
+      "第 4 步",
+      "第 5 步",
+      "第 7 步"
+    ],
+    "check": [
+      "怎么验证"
+    ],
+    "repair": [
+      "第 6 步",
+      "第 7 步"
+    ]
   }
 }

@@ -197,7 +197,13 @@ class TaskStore:
     def create_task(self, conversation: str, body: dict):
         c = self.conversation(conversation)
         mode = body.get("mode", "edit")
-        if mode not in ("edit", "generate_rectangular", "reconstruct_floorplan"):
+        if mode not in (
+            "edit",
+            "interactive_action",
+            "photo_to_scene",
+            "generate_rectangular",
+            "reconstruct_floorplan",
+        ):
             raise TaskError("INVALID_MODE", "未知任务模式")
         if mode == "reconstruct_floorplan" and not body.get("imageId"):
             raise TaskError("MISSING_IMAGE", "户型复现需要上传原图")
@@ -235,6 +241,32 @@ class TaskStore:
                 raise TaskError(
                     "PROJECT_BUSY", "此项目已有任务，请先完成澄清或取消该任务", 409
                 ) from e
+            extra = {
+                key: body[key]
+                for key in ("assetId", "hostId")
+                if body.get(key) is not None
+            }
+            if extra:
+                # Persist photo hints for every mode so PolicyController can
+                # auto-route an ordinary edit request that carries an assetId.
+                self.db.execute(
+                    "UPDATE tasks SET generation=? WHERE id=?",
+                    (json.dumps(extra), id),
+                )
+            if mode == "photo_to_scene":
+                self.db.execute(
+                    "UPDATE tasks SET generation=? WHERE id=?",
+                    (
+                        json.dumps(
+                            {
+                                "assetId": body.get("assetId"),
+                                "hostId": body.get("hostId"),
+                                "phase": "reading",
+                            }
+                        ),
+                        id,
+                    ),
+                )
             if mode == "reconstruct_floorplan":
                 self.db.execute(
                     "UPDATE tasks SET generation=? WHERE id=?",
@@ -297,6 +329,7 @@ class TaskStore:
             "input",
             "selected",
             "generation",
+            "mode",
         }
         if set(fields) - allowed:
             raise ValueError("Unknown task fields")

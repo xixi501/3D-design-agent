@@ -21,6 +21,12 @@ const active = [
   "lighting-color",
   "floorplan-intake",
   "layout-check-repair",
+  "master-bedroom",
+  "guest-bedroom",
+  "home-office",
+  "kitchen-line-l-u",
+  "bathroom-standard",
+  "entry-storage",
 ];
 
 const mappedCodes = {
@@ -30,7 +36,7 @@ const mappedCodes = {
   "DOOR-02": ["DOORWAY_BLOCKED"],
   "OVER-01": ["POSSIBLE_OVERLAP"],
   "WALL-01": ["FURNITURE_IN_WALL"],
-  "ASSET-02": [],
+  "ASSET-02": ["SURFACE_ITEM_OVERHANG", "SURFACE_ITEM_COLLISION", "SURFACE_ITEM_HOST_MISSING"],
   "CIR-02": ["CIR-02", "DOORWAY_BLOCKED", "OUTSIDE_ROOM"],
 };
 
@@ -208,6 +214,9 @@ function candidateEdits(value, project) {
           d: object.d,
           h: object.h,
           color: object.color,
+          ...(object.on
+            ? { parentObjectId: object.on, placement: "surface" }
+            : {}),
         },
       });
     } else if (edit.op === "move") {
@@ -334,7 +343,7 @@ for (const skillId of active) {
       );
       assert.ok(
         expected.must_not_trigger.every((code) => !triggered(code, got)),
-        `${skillId}/${caseName} triggered forbidden code: ${got}`,
+        `${skillId}/${caseName} triggered forbidden code: ${got}; issues=${JSON.stringify(candidate.checks.issues)}`,
       );
       const evidence = await json(
         `/api/projects/${project.id}/candidates/${candidate.id}/render`,
@@ -360,7 +369,7 @@ for (const skillId of active) {
         (expected.must_not_trigger || []).every(
           (code) => !triggered(code, got),
         ),
-        `${skillId}/${caseName} triggered forbidden code: ${got}`,
+        `${skillId}/${caseName} triggered forbidden code: ${got}; issues=${JSON.stringify(candidate.checks.issues)}`,
       );
     }
     results.push({

@@ -2,15 +2,22 @@
   "schemaVersion": "actiscape.skill.v1",
   "id": "kitchen-line-l-u",
   "name": "一字/L/U 形厨房布置",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "kind": "layout",
-  "status": "conformant",
-  "activation": "reserved",
+  "status": "verified",
+  "activation": "active",
   "summary": "3–10㎡ 独立厨房：先按开间选形（单排/L/U/双排），再压操作三角与备餐顺序，吊柜避窗、冰箱留开门侧，通道按判据复核。",
   "appliesTo": {
-    "modes": ["generate_rectangular"],
-    "roomKinds": ["kitchen"],
-    "areaM2": [3, 10],
+    "modes": [
+      "generate_rectangular"
+    ],
+    "roomKinds": [
+      "kitchen"
+    ],
+    "areaM2": [
+      3,
+      10
+    ],
     "projectState": "empty",
     "requiredInputs": [
       "含墙体与门窗的厨房场景或实测尺寸",
@@ -54,6 +61,6 @@
   "validation": {
     "structure": true,
     "dryRun": true,
-    "realCore": false
+    "realCore": true
   }
 }

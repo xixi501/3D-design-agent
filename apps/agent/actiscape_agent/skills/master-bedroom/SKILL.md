@@ -4,12 +4,12 @@ description: 为主卧定"床头墙 + 床侧通道 + 衣柜前净空"的骨架�
 license: MIT
 compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: "0.3.0"
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
+  activation: active
   judgement_refs: "J-CIR-04,J-CIR-06,J-CIR-08,J-CUR-01,J-PROP-01,J-STA-01,J-LIGHT-02,J-DOOR-02,J-OVER-01,J-ASSET-02,J-VER-01,J-VER-02"
 ---
 

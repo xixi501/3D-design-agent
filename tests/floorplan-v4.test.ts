@@ -5,9 +5,13 @@ import {
   compileFloorplan,
   imageCategoryCodes,
   imageFunctionalAreas,
+  resolveTargetRoomIds,
   validateFloorplan,
   type FloorplanData,
 } from "../packages/scene-core/src/floorplan.js";
+import { floorplanToSceneProgram } from "../packages/scene-core/src/floorplan-scene-draft.js";
+import { sceneRoomScope } from "../packages/scene-core/src/scene-contracts.js";
+import { sceneRoomKind } from "../packages/scene-core/src/room-kinds.js";
 
 function allHouseDraft(): FloorplanData {
   const data = JSON.parse(
@@ -143,4 +147,47 @@ test("V3 drafts remain valid without V4 policy fields", () => {
     symbol.sourceLabel = symbol.category;
   }
   assert.doesNotThrow(() => validateFloorplan(data));
+});
+
+test("V4 empty target list defaults to every recognised whole-home room", () => {
+  const data = allHouseDraft();
+  data.targetRoomIds = [];
+  data.symbols = symbols(3);
+  assert.deepEqual(resolveTargetRoomIds(data), [
+    "living",
+    "bedroom",
+    "kitchen",
+  ]);
+  const compiled = compileFloorplan(data, "v4-whole-home");
+  assert.deepEqual(compiled.targetRoomIds, [
+    "v4-whole-home:r:living",
+    "v4-whole-home:r:bedroom",
+    "v4-whole-home:r:kitchen",
+  ]);
+  const program = floorplanToSceneProgram(data, "plan-whole-home");
+  assert.deepEqual(
+    program.levels[0].roomSeeds
+      .filter((room) => room.included)
+      .map((room) => room.id),
+    ["living", "bedroom", "kitchen"],
+  );
+  assert.deepEqual(sceneRoomScope(program).kinds, [
+    "living_dining",
+    "bedroom",
+    "kitchen",
+  ]);
+  assert.equal(sceneRoomScope(program).wholeHome, true);
+});
+
+test("whole-home spatial kinds cover bedrooms, service rooms and circulation", () => {
+  assert.equal(sceneRoomKind("master_bedroom", "bedroom"), "bedroom");
+  assert.equal(sceneRoomKind("guest_bedroom", "bedroom"), "bedroom");
+  assert.equal(sceneRoomKind("study", "study"), "study");
+  assert.equal(sceneRoomKind("kitchen", "kitchen"), "kitchen");
+  assert.equal(sceneRoomKind("bathroom", "bathroom"), "bathroom");
+  assert.equal(sceneRoomKind("entry", "entry"), "entry");
+  assert.equal(sceneRoomKind("circulation", "circulation"), "circulation");
+  assert.equal(sceneRoomKind(undefined, "circulation"), "circulation");
+  assert.equal(sceneRoomKind("unknown_type", "bedroom"), "bedroom");
+  assert.equal(sceneRoomKind("unknown_type", "unknown_area"), "other");
 });

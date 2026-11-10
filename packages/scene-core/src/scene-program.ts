@@ -1,4 +1,5 @@
 import { SceneError } from "./index.js";
+import { sceneRoomKind, type SceneRoomKind } from "./room-kinds.js";
 
 export const SCENE_PROGRAM_SCHEMA = "actiscape.scene-program.v1";
 export const MAX_SCENE_LEVELS = 20;
@@ -539,4 +540,42 @@ export function validateSceneProgram(
     unknowns,
     authority: authorityEntries,
   };
+}
+
+/** Rooms explicitly selected for the current whole-home scene. */
+export function includedRoomSeeds(program: SceneProgram): SceneRoomSeed[] {
+  return program.levels.flatMap((level) =>
+    level.roomSeeds.filter((room) => room.included),
+  );
+}
+
+/**
+ * Spatial kind of a room seed. Floorplan recognition stores the registry room
+ * type (for example `master_bedroom`); older programs may only carry a label,
+ * so unknown values resolve to `other` rather than the legacy living/dining.
+ */
+export function roomKindOf(room: SceneRoomSeed): SceneRoomKind {
+  return sceneRoomKind(room.roomType);
+}
+
+/**
+ * Whole-home contract: included room identities are unique and available to
+ * downstream asset/layout stages. This mirrors the `requireIncludedRoom` scene
+ * policy without forcing every room to have furniture (hallways and storage
+ * rooms may legitimately be empty).
+ */
+export function assertRoomCoverage(program: SceneProgram) {
+  const included = includedRoomSeeds(program);
+  const ids = new Set<string>();
+  for (const room of included) {
+    if (ids.has(room.id))
+      throw new SceneError(
+        "SCENE_PROGRAM_INVALID",
+        `纳入房间身份重复：${room.id}`,
+        422,
+        { field: "program.levels.roomSeeds" },
+      );
+    ids.add(room.id);
+  }
+  return included;
 }

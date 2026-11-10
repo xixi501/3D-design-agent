@@ -399,6 +399,33 @@ export class FloorplanPanel {
     );
     const target = el("div");
     target.append(el("strong", "复现家具的区域"));
+    const quick = el("div");
+    const selectAll = el("button", "全选全屋");
+    selectAll.onclick = () =>
+      void this.change([
+        { type: "targets", roomIds: d.rooms.map((room) => room.id) },
+      ]);
+    const selectLiving = el("button", "仅选客餐厅");
+    selectLiving.onclick = () =>
+      void this.change([
+        {
+          type: "targets",
+          roomIds: d.rooms
+            .filter(
+              (room) =>
+                ["living", "dining"].includes(room.functionalArea ?? "") ||
+                ["living_dining", "reading_lounge"].includes(
+                  room.roomType ?? "",
+                ),
+            )
+            .map((room) => room.id),
+        },
+      ]);
+    const clear = el("button", "清空");
+    clear.onclick = () =>
+      void this.change([{ type: "targets", roomIds: [] }]);
+    quick.append(selectAll, selectLiving, clear);
+    target.append(quick);
     for (const room of d.rooms) {
       const label = el("label"),
         box = el("input");

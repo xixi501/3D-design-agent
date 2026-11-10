@@ -1,0 +1,171 @@
+{
+  "bundle": {
+    "universal": "universal-spatial-base",
+    "primary": "master-bedroom",
+    "modifiers": [
+      "style-coherence"
+    ],
+    "intake": null,
+    "contentHash": "928ac3981d5d3a4dbe8e74465b61627c1a8bb3bce4b0760e95fd9c7ecbe4ea9d"
+  },
+  "stages": {
+    "intake": {
+      "contentHash": "be6d3fe092706af1888a0a6374cc7778c743235a9d59d82c7933b5b255f3a06d",
+      "instructions": [
+        {
+          "role": "universal",
+          "id": "universal-spatial-base",
+          "headings": [
+            "适用边界",
+            "坐标与尺寸",
+            "提交门禁"
+          ],
+          "fallback": false,
+          "preview": "## 适用边界\n- 适用于单层住宅的矩形/全屋房间、局部编辑、动作检验和照片资产入场。\n- 不做刚体动力学、重力自由落体、地震模拟、施工图或结构安全计算。\n- 不直接写正式项目；任何写入必须形成 Candidate，经 CheckScene，再提交。\n\n## 坐标与尺寸\n- 场景内部统一毫米；Three.js 渲染层用米，且 +Y 为高程轴。\n- 平面坐标 `x` 向右、`y` 向下；`rot` 为角度，0=背向北、90=背向东、180"
+        }
+      ]
+    },
+    "asset": {
+      "contentHash": "2833fc140cba3d495f5b7484ee784f6107ac63400351616c0abda8ea675e6ed9",
+      "instructions": [
+        {
+          "role": "universal",
+          "id": "universal-spatial-base",
+          "headings": [
+            "坐标与尺寸",
+            "选品与体量",
+            "提交门禁"
+          ],
+          "fallback": false,
+          "preview": "## 坐标与尺寸\n- 场景内部统一毫米；Three.js 渲染层用米，且 +Y 为高程轴。\n- 平面坐标 `x` 向右、`y` 向下；`rot` 为角度，0=背向北、90=背向东、180=背向南、270=背向西。\n- `rot=90/270` 时家具的宽与深互换；判断占地、门前净空和台面尺寸时必须先交换 `w/d`。\n- 家具中心点 `x/y` 是占地中心；`z` 是底面高程，不是中心高度。\n- 不允许为了塞下家具而擅自缩小用户家具尺寸"
+        },
+        {
+          "role": "primary",
+          "id": "master-bedroom",
+          "headings": [
+            "怎么做"
+          ],
+          "fallback": false,
+          "preview": "**第 4 步 · 梳妆 / 电视的取舍（本技能的核心判断）**\n| 取舍         | 选衣柜               | 选梳妆台               | 选电视                    |\n| ------------ | -------------------- | ---------------------- | ------------------------- |\n| 需要的内宽   | 柜"
+        },
+        {
+          "role": "modifier",
+          "id": "style-coherence",
+          "headings": [
+            "怎么做"
+          ],
+          "fallback": false,
+          "preview": "**第 1 步 · 先读硬装，再谈风格**\n`scene.read` 取已有对象的材质与颜色（门、地板、墙色、已固定的柜体）。\n硬装是三件\"不可谈判项\"，风格只能服从它 [J-STY-02]。判断口径：\n\n| 硬装                | 能配                           | 不要配                       |\n| ------------------- | ------------"
+        }
+      ]
+    },
+    "layout": {
+      "contentHash": "e2ae98af3f647f60c711e9cc45080a149dafa559e8a72e439777f9935f1dba3c",
+      "instructions": [
+        {
+          "role": "universal",
+          "id": "universal-spatial-base",
+          "headings": [
+            "坐标与尺寸",
+            "排布与净空",
+            "提交门禁"
+          ],
+          "fallback": false,
+          "preview": "## 坐标与尺寸\n- 场景内部统一毫米；Three.js 渲染层用米，且 +Y 为高程轴。\n- 平面坐标 `x` 向右、`y` 向下；`rot` 为角度，0=背向北、90=背向东、180=背向南、270=背向西。\n- `rot=90/270` 时家具的宽与深互换；判断占地、门前净空和台面尺寸时必须先交换 `w/d`。\n- 家具中心点 `x/y` 是占地中心；`z` 是底面高程，不是中心高度。\n- 不允许为了塞下家具而擅自缩小用户家具尺寸"
+        },
+        {
+          "role": "primary",
+          "id": "master-bedroom",
+          "headings": [
+            "怎么做"
+          ],
+          "fallback": false,
+          "preview": "**第 1 步 · 选床头墙**\n`scene.read` 取墙与洞口，按三条筛床头墙：\n\n1. 连续实墙、长度够\"床宽 + 两侧床头柜 + 余量\"；\n2. 不正对卧室门（进门先看到床尾或衣柜侧面，而不是床头正面）；\n3. 床头墙尽量不要是窗墙——床头压在窗下会让窗帘、窗台、暖气三件事同时失效。\n   三条冲突时，优先\"不正对门\"，其次\"是实墙\"，最后才妥协窗墙（并在交付里写明代价）。\n\n**第 2 步 · 床与两侧通道**\n- 床居中"
+        },
+        {
+          "role": "modifier",
+          "id": "style-coherence",
+          "headings": [
+            "怎么做"
+          ],
+          "fallback": true,
+          "preview": "**第 1 步 · 先读硬装，再谈风格**\n`scene.read` 取已有对象的材质与颜色（门、地板、墙色、已固定的柜体）。\n硬装是三件\"不可谈判项\"，风格只能服从它 [J-STY-02]。判断口径：\n\n| 硬装                | 能配                           | 不要配                       |\n| ------------------- | ------------"
+        }
+      ]
+    },
+    "check": {
+      "contentHash": "c12a301d3c875a12d1ce09197b1933d9167ca95cba34949babcb3b23097f217e",
+      "instructions": [
+        {
+          "role": "universal",
+          "id": "universal-spatial-base",
+          "headings": [
+            "坐标与尺寸",
+            "检查与报错码",
+            "提交门禁"
+          ],
+          "fallback": false,
+          "preview": "## 坐标与尺寸\n- 场景内部统一毫米；Three.js 渲染层用米，且 +Y 为高程轴。\n- 平面坐标 `x` 向右、`y` 向下；`rot` 为角度，0=背向北、90=背向东、180=背向南、270=背向西。\n- `rot=90/270` 时家具的宽与深互换；判断占地、门前净空和台面尺寸时必须先交换 `w/d`。\n- 家具中心点 `x/y` 是占地中心；`z` 是底面高程，不是中心高度。\n- 不允许为了塞下家具而擅自缩小用户家具尺寸"
+        },
+        {
+          "role": "primary",
+          "id": "master-bedroom",
+          "headings": [
+            "依赖什么",
+            "怎么验证"
+          ],
+          "fallback": false,
+          "preview": "## 依赖什么\n| 工具                                      | 用途                                      | 状态    |\n| ----------------------------------------- | ----------------------------------------- | ------- |\n| `catalog.search`"
+        },
+        {
+          "role": "modifier",
+          "id": "style-coherence",
+          "headings": [
+            "依赖什么",
+            "怎么验证"
+          ],
+          "fallback": false,
+          "preview": "## 依赖什么\n| 工具               | 用途                                          | 状态    |\n| ------------------ | --------------------------------------------- | ------- |\n| `catalog.search`   | 按 `style` 字段筛同风格家具，取材质与默认尺寸 | 可 m"
+        }
+      ]
+    },
+    "repair": {
+      "contentHash": "2ac6792f53c195c191881489c2c310ab13c46c25fe21e20a17f9924e9573a956",
+      "instructions": [
+        {
+          "role": "universal",
+          "id": "universal-spatial-base",
+          "headings": [
+            "坐标与尺寸",
+            "修复顺序",
+            "提交门禁"
+          ],
+          "fallback": false,
+          "preview": "## 坐标与尺寸\n- 场景内部统一毫米；Three.js 渲染层用米，且 +Y 为高程轴。\n- 平面坐标 `x` 向右、`y` 向下；`rot` 为角度，0=背向北、90=背向东、180=背向南、270=背向西。\n- `rot=90/270` 时家具的宽与深互换；判断占地、门前净空和台面尺寸时必须先交换 `w/d`。\n- 家具中心点 `x/y` 是占地中心；`z` 是底面高程，不是中心高度。\n- 不允许为了塞下家具而擅自缩小用户家具尺寸"
+        },
+        {
+          "role": "primary",
+          "id": "master-bedroom",
+          "headings": [
+            "怎么做",
+            "依赖什么",
+            "怎么验证"
+          ],
+          "fallback": false,
+          "preview": "**第 4 步 · 梳妆 / 电视的取舍（本技能的核心判断）**\n| 取舍         | 选衣柜               | 选梳妆台               | 选电视                    |\n| ------------ | -------------------- | ---------------------- | ------------------------- |\n| 需要的内宽   | 柜"
+        },
+        {
+          "role": "modifier",
+          "id": "style-coherence",
+          "headings": [
+            "怎么做",
+            "依赖什么",
+            "怎么验证"
+          ],
+          "fallback": true,
+          "preview": "**第 1 步 · 先读硬装，再谈风格**\n`scene.read` 取已有对象的材质与颜色（门、地板、墙色、已固定的柜体）。\n硬装是三件\"不可谈判项\"，风格只能服从它 [J-STY-02]。判断口径：\n\n| 硬装                | 能配                           | 不要配                       |\n| ------------------- | ------------"
+        }
+      ]
+    }
+  }
+}

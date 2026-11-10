@@ -1,1 +1,10 @@
-{"name":"@actiscape/scene-core","version":"0.1.0","private":true,"type":"module","exports":"./src/index.ts"}
+{
+  "name": "@actiscape/scene-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "test": "cd ../.. && tsx --test tests/core.test.ts tests/actions.test.ts tests/candidate-contracts.test.ts tests/floorplan-v4.test.ts"
+  }
+}

@@ -10,8 +10,10 @@ import pytest
 from test_workflow import CHAIR, FIXTURE, FakeScene, finished
 
 from actiscape_agent.client import SceneFailure
+from actiscape_agent.generation_roles import GenerationRoles
 from actiscape_agent.manager import TaskManager
 from actiscape_agent.skill_registry import GENERATION_TOOLS, load_design_skill
+from actiscape_agent.store import TaskStore
 
 COLLECTIONS = (
     "nodes",
@@ -213,13 +215,18 @@ async def test_generation_clarifies_then_resumes_same_task_without_changing_proj
         assert result["generation"]["sceneDraftId"] == "scene-draft-1"
         assert result["generation"]["sceneDraftRevision"] >= 2
         assert result["result"]["skillSelection"]["primarySkillId"] == "rectangular-living-reading"
+        primary = next(
+            item
+            for item in result["result"]["skillsUsed"]
+            if item["role"] == "primary"
+        )
         assert (
-            result["result"]["skillsUsed"][0]["contentHash"]
+            primary["contentHash"]
             == load_design_skill(GENERATION_TOOLS)["contentHash"]
         )
         assert [item["role"] for item in result["result"]["skillsUsed"]] == [
+            "universal",
             "primary",
-            "intake",
         ]
         assert "content" not in result["generation"]["skillBundle"]["primary"]
     finally:
@@ -302,3 +309,74 @@ async def test_generation_budget_failure_keeps_specific_candidate_problem(tmp_pa
         assert client.project["revision"] == 0 and not client.ledger
     finally:
         await manager.close()
+
+
+class PatchRecordingScene(GenerationScene):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.patch_request_ids = []
+
+    async def request(self, path, body=None):
+        if path.endswith("/patches") and body is not None:
+            self.patch_request_ids.append(body["requestId"])
+            return {
+                "id": "scene-draft-1",
+                "revision": len(self.patch_request_ids),
+                "hash": f"{len(self.patch_request_ids):064x}",
+            }
+        return await super().request(path, body)
+
+
+@pytest.mark.asyncio
+async def test_scene_patch_identity_is_candidate_bound_not_round_bound(tmp_path):
+    client = PatchRecordingScene()
+    store = TaskStore(tmp_path)
+    try:
+        class Base:
+            pass
+
+        base = Base()
+        base.store = store
+        base.client = client
+        roles = GenerationRoles(base)
+        conversation = store.create_conversation("p")
+        task = store.create_task(
+            conversation["id"],
+            {
+                "requestId": "candidate-patch-identity",
+                "input": "生成主卧",
+                "selectedIds": [],
+                "mode": "generate_rectangular",
+            },
+        )
+        store.update(
+            task["id"],
+            generation={
+                "sceneDraftId": "scene-draft-1",
+                "sceneDraftRevision": 0,
+                "frozenBrief": {"roomType": "master_bedroom"},
+            },
+        )
+        task = store.task(task["id"], internal=True)
+        scope = {"allowAddKeys": ["armchair"], "requirements": []}
+        for x in (100, 200):
+            await roles.candidate(
+                task,
+                {"revision": 0},
+                scope,
+                {
+                    "summary": f"candidate at {x}",
+                    "edits": [
+                        {
+                            "type": "create",
+                            "key": "armchair",
+                            "values": {"x": x, "y": x},
+                        }
+                    ],
+                },
+                0,
+            )
+        assert len(client.patch_request_ids) == 2
+        assert len(set(client.patch_request_ids)) == 2
+    finally:
+        store.close()

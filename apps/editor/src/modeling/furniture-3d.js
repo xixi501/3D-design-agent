@@ -26,6 +26,7 @@ import {
   TorusGeometry as Zs,
   LatheGeometry as of,
   Box3 as Bx,
+  Quaternion as Bn,
   Vector2 as pe,
   PointLight as uo,
   CanvasTexture as gs,
@@ -968,8 +969,111 @@ export function SD(n, e) {
       Qs(n, e, M, k - 50, 1.6, "bar", !0, 0.2));
   }
 }
+const OPEN_ANGLE = (75 * Math.PI) / 180;
+
+function rotateDoorMeshes(meshes, hingeX, hingeZ, angle) {
+  if (!meshes.length) return;
+  const pivot = new H(hingeX, 0, hingeZ),
+    q = new Bn().setFromAxisAngle(new H(0, 1, 0), angle);
+  for (const mesh of meshes) {
+    mesh.position.sub(pivot).applyQuaternion(q).add(pivot);
+    mesh.quaternion.premultiply(q);
+  }
+}
+
+/** Rotate one cabinet door leaf around its hinge without rebuilding the box. */
+function openCabinetDoor(n, e, run, start, hingeAlong, hingeAtStart) {
+  const meshes = n.children.slice(start);
+  if (!meshes.length) return;
+  if (run.dir === "x") {
+    const hingeX = -e.w / 2000 + hingeAlong / 1000,
+      hingeZ = -e.d / 2000 + (run.depth + 9) / 1000,
+      angle = (hingeAtStart ? -1 : 1) * OPEN_ANGLE;
+    rotateDoorMeshes(meshes, hingeX, hingeZ, angle);
+  } else {
+    const hingeZ = -e.d / 2000 + hingeAlong / 1000,
+      hingeX = -e.d / 2000 + (run.depth + 9) / 1000,
+      angle = (hingeAtStart ? 1 : -1) * OPEN_ANGLE;
+    rotateDoorMeshes(meshes, hingeX, hingeZ, angle);
+  }
+}
+
+/** Pull a drawer bank forward by 55% of the cabinet depth. */
+function openDrawer(n, e, run, start) {
+  const shift = (0.55 * e.d) / 1000;
+  for (const mesh of n.children.slice(start)) {
+    if (run.dir === "x") mesh.position.z += shift;
+    else mesh.position.x += shift;
+  }
+}
+
+/** Shift a sliding wardrobe panel sideways to reveal the opening. */
+function openSlidingPanel(n, run, start, direction) {
+  const shift = 0.24 * direction;
+  for (const mesh of n.children.slice(start)) {
+    if (run.dir === "x") mesh.position.x += shift;
+    else mesh.position.z += shift;
+  }
+}
+
+/**
+ * Lightweight open-state overlays for standalone wardrobe / TV cabinet /
+ * nightstand / desk / fridge builders whose closed geometry has no separate
+ * leaf meshes. They are only added when opt.open is true.
+ */
+function openStandaloneOverlay(n, e, w, d, h, color, halfW, halfD) {
+  const panel = L(color, 0.45),
+    front = halfD + 0.012,
+    leaves = (count, width, height, y, center = 0) => {
+      const leafW = width / count;
+      for (let index = 0; index < count; index++) {
+        const left = index % 2 === 0,
+          x = center - width / 2 + leafW * (index + 0.5),
+          group = new ht();
+        group.position.set(left ? x - leafW / 2 : x + leafW / 2, y, front);
+        group.rotation.y = (left ? -1 : 1) * OPEN_ANGLE;
+        N(
+          group,
+          leafW - 0.006,
+          height,
+          0.022,
+          (left ? 1 : -1) * leafW * 0.5,
+          0,
+          0,
+          panel,
+        );
+        n.add(group);
+      }
+    };
+  if (e.type === "wardrobe")
+    leaves(2, w, h * 0.94, 0.03, 0);
+  else if (e.type === "tvCabinet") leaves(2, w, h * 0.82, 0.04, 0);
+  else if (e.type === "shoeCabinet") leaves(2, w, h * 0.9, 0.05, 0);
+  else if (e.type === "fridge") {
+    const group = new ht();
+    group.position.set(-halfW + 0.02, 0.02, front);
+    group.rotation.y = -OPEN_ANGLE;
+    N(group, w * 0.96, h * 0.94, 0.03, (w * 0.96) / 2, 0, 0, panel);
+    n.add(group);
+  } else if (e.type === "nightstand" || e.type === "desk") {
+    const y = e.type === "desk" ? h * 0.62 : h * 0.48,
+      box = N(
+        n,
+        w * 0.78,
+        Math.min(0.16, h * 0.18),
+        0.3,
+        0,
+        y,
+        front + 0.15,
+        L(color, 0.35),
+      );
+    box.userData.drawer = true;
+  }
+}
+
 export function TD(n, e) {
-  const t = e.cab,
+  const isOpen = !!(e.opt && e.opt.open),
+    t = e.cab,
     i = e.h / 1e3,
     s = e.color,
     o = L(s, 0.55),
@@ -1036,6 +1140,7 @@ export function TD(n, e) {
           const _ = g + k * E - 15,
             A = g + k * (E + 1) + 15,
             P = E % 2 ? 4 : 26;
+          const slidingStart = n.children.length;
           (pn(
             n,
             e,
@@ -1049,6 +1154,7 @@ export function TD(n, e) {
             P,
           ),
             Qs(n, e, p, E % 2 ? _ + 60 : A - 60, (x + b) * 0.45, f, !0, 0.5));
+          isOpen && openSlidingPanel(n, p, slidingStart, E % 2 ? -1 : 1);
         }
         c && pn(n, e, p, g, v, b + 0.003, i - 0.003, r);
         let S = g;
@@ -1081,7 +1187,8 @@ export function TD(n, e) {
       x0(n, Pt(e, p, p.s0, p.s1, 0, p.depth + 20), i, 0.03, L("#e5e2dc", 0.25));
 }
 export function _D(n, e, t, i, s, o, a, r, l, c, f, u, h, p) {
-  const d = L(h, 0.45),
+  const isOpen = !!(e.opt && e.opt.open),
+    d = L(h, 0.45),
     y = l - r,
     m = c % 2 ? s + 50 : o - 50,
     g = (x, b) => {
@@ -1096,6 +1203,8 @@ export function _D(n, e, t, i, s, o, a, r, l, c, f, u, h, p) {
         );
     },
     v = (x, b, M = d) => {
+      const doorStart = n.children.length,
+        hingeAtStart = c % 2 === 0;
       (pn(n, e, t, s, o, x + 0.003, b - 0.003, M),
         Qs(
           n,
@@ -1107,9 +1216,19 @@ export function _D(n, e, t, i, s, o, a, r, l, c, f, u, h, p) {
           !0,
           f === "tall" ? 0.4 : 0.12,
         ));
+      isOpen &&
+        openCabinetDoor(
+          n,
+          e,
+          t,
+          doorStart,
+          hingeAtStart ? s : o,
+          hingeAtStart,
+        );
     },
     w = (x, b) => {
-      const M = Math.max(1, Math.round((b - x) / (f === "wall" ? 0.35 : 0.22)));
+      const drawerStart = n.children.length,
+        M = Math.max(1, Math.round((b - x) / (f === "wall" ? 0.35 : 0.22)));
       for (let T = 0; T < M; T++) {
         const k = x + ((b - x) * T) / M;
         (pn(n, e, t, s, o, k + 0.003, k + (b - x) / M - 0.003, d),
@@ -1124,6 +1243,7 @@ export function _D(n, e, t, i, s, o, a, r, l, c, f, u, h, p) {
             Math.min(0.3, ((o - s) * 0.45) / 1e3),
           ));
       }
+      isOpen && openDrawer(n, e, t, drawerStart);
     };
   switch (i) {
     case "open":
@@ -5817,6 +5937,7 @@ export function Ov(n, e) {
     default:
       N(t, i, o, s, 0, 0, 0, L(a));
   }
+  n.opt?.open && openStandaloneOverlay(t, n, i, s, o, a, r, l);
   return (D7(t), t.traverse((u) => (u.userData.fid = n.id)), t);
 }
 export function D7(n, e = 0.003) {

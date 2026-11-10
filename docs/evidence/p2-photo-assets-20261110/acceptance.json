@@ -1,0 +1,76 @@
+{
+  "phase": "P2",
+  "date": "2026-11-10",
+  "scope": "photo-to-3D gateway interfaces, three-tier asset provider, editor placement loop",
+  "endpoints": [
+    "POST /api/assets/generate-from-image",
+    "POST /api/assets/jobs",
+    "GET /api/assets/jobs",
+    "GET /api/assets/jobs/:id",
+    "POST /api/assets/:assetId/calibrate",
+    "GET /api/assets/providers"
+  ],
+  "tiers": {
+    "real-cache": {
+      "implemented": true,
+      "cacheDir": "data/real-generated-assets",
+      "cases": 0
+    },
+    "remote-gpu": {
+      "implemented": true,
+      "configured": false,
+      "contract": "POST /api/v1/jobs; GET /api/v1/jobs/:id; GET .../model"
+    },
+    "demo": {
+      "implemented": true,
+      "asset": "fixtures/textured-vase.glb",
+      "isRealGeneration": false
+    }
+  },
+  "demoFlow": {
+    "projectId": "aa83d206-1e24-4926-9626-b7c51e3a4b14",
+    "revision": 1,
+    "sourceImageSha256": "2315398e8e2f13a24541eef1c077f0fbdf9b831e6e035bad1be0139db6a5d43f",
+    "assetId": "asset-82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1",
+    "assetProvider": "demo",
+    "isRealGeneration": false,
+    "calibrated": {
+      "w": 224,
+      "d": 224,
+      "h": 280,
+      "scaleCalibrated": true,
+      "scaleSource": "user_confirmed"
+    },
+    "placement": {
+      "placement": "surface",
+      "parentObjectId": "0a96c0e7-62df-45ad-8f5a-19d47ef0f4b9",
+      "x": 3020,
+      "y": 2200,
+      "z": 400
+    },
+    "editorCommands": "single add-furniture command; formal project revision 1",
+    "checks": "issues=[]"
+  },
+  "tested": {
+    "demoFallback": true,
+    "realCacheHit": true,
+    "remoteAsyncPolling": true,
+    "remoteFailureFallback": true,
+    "calibration": true,
+    "editorPlacement": true,
+    "chatEntry": true,
+    "inspectorEntry": true,
+    "libraryEntry": true
+  },
+  "tests": {
+    "node": 73,
+    "python": 154,
+    "build": "pass",
+    "testAll": "pass"
+  },
+  "pending": [
+    "Real V100 artifacts from member 2: place under data/real-generated-assets/<input_sha256>/",
+    "Member 2 /api/v1/assets/:id/calibrate: gateway endpoint already exposes a stable local contract",
+    "Agent photo_to_scene Policy route: deferred to P3 (SkillDispatcher/PolicyController)"
+  ]
+}

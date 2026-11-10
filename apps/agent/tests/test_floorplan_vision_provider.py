@@ -69,3 +69,91 @@ def test_hpd_provider_returns_sealed_pixel_artifact(tmp_path):
     assert "evaluation-only" not in rendered
     assert "targetroomids" not in rendered
     assert "'anchors'" not in rendered
+
+
+def test_remote_runner_uses_gateway_envelope_and_never_spawns_node(monkeypatch):
+    import base64
+    import json
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    from actiscape_agent.store import fingerprint
+
+    scope = {
+        "roomSelection": "all_visible",
+        "functionalAreas": [],
+        "excludeFunctionalAreas": [],
+    }
+    image = b"remote-png-bytes"
+    input_sha = __import__("hashlib").sha256(image).hexdigest()
+    artifact = {
+        "schemaVersion": "actiscape.floorplan-vision-artifact.v1",
+        "artifactId": "remote:test",
+        "provider": {
+            "id": "hpd-adapter-6-1",
+            "version": "hpd-adapter-6-1",
+            "repository": "test",
+            "commit": "test",
+            "license": "MIT",
+        },
+        "input": {
+            "imageSha256": input_sha,
+            "width": 100,
+            "height": 100,
+            "coordinateSpace": "exif-oriented-original-pixels",
+        },
+        "scope": scope,
+        "capabilities": {
+            "walls": True,
+            "openings": True,
+            "dimensions": True,
+            "rooms": False,
+            "symbols": False,
+        },
+        "candidates": {"walls": [], "openings": [], "dimensions": [], "rooms": [], "symbols": []},
+        "evidenceFiles": [],
+        "limitations": [],
+        "audit": {"modelCalls": 0, "referenceAccess": "denied-and-audited", "candidateInputs": ["image.bytes"]},
+    }
+    envelope = {
+        "schemaVersion": "actiscape.artifact-envelope.v1",
+        "kind": "floorplan-vision",
+        "providerId": "hpd-adapter-6-1",
+        "providerVersion": "hpd-adapter-6-1",
+        "inputSha256": input_sha,
+        "scopeHash": fingerprint(scope),
+        "artifact": artifact,
+        "artifactSha256": fingerprint(artifact),
+    }
+    seen = {}
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            seen["path"] = self.path
+            seen["body"] = json.loads(self.rfile.read(int(self.headers["content-length"])))
+            payload = json.dumps(envelope).encode()
+            self.send_response(200)
+            self.send_header("content-type", "application/json")
+            self.send_header("content-length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def log_message(self, *_args):
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        monkeypatch.setenv("ACTISCAPE_VISION_RUNNER", "remote")
+        monkeypatch.setenv("ACTISCAPE_SCENE_URL", f"http://127.0.0.1:{server.server_port}")
+        result = run_floorplan_provider("hpd-adapter-6-1", image, scope=scope, timeout=10)
+    finally:
+        server.shutdown()
+        thread.join(timeout=2)
+    assert result.status == "completed", result.error
+    assert result.envelope is not None
+    assert seen["path"] == "/api/tools/floorplan-candidate"
+    assert seen["body"]["imageBase64"] == base64.b64encode(image).decode()
+    assert seen["body"]["adapterVersion"] == "hpd-adapter-6-1"
+    assert seen["body"]["scope"] == scope

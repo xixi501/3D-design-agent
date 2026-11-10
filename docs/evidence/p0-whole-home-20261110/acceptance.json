@@ -1,0 +1,274 @@
+{
+  "phase": "P0",
+  "date": "2026-11-10",
+  "provider": "DeepSeek official deepseek-flash",
+  "live": true,
+  "rooms": [
+    {
+      "room": "master-bedroom",
+      "projectId": "52b977ec-c254-42cf-bb0f-fa88a5cbb0be",
+      "taskId": "0a9e0fe4-ad63-4d6b-b442-f58a64d638f5",
+      "status": "completed",
+      "error": null,
+      "revision": 1,
+      "furniture": [
+        {
+          "key": "bed18",
+          "name": "双人床 1.8m",
+          "x": 1800,
+          "y": 1050,
+          "rot": 0
+        },
+        {
+          "key": "nightstand",
+          "name": "床头柜（台灯可点亮）",
+          "x": 600,
+          "y": 210,
+          "rot": 0
+        },
+        {
+          "key": "nightstand",
+          "name": "床头柜（台灯可点亮）",
+          "x": 3000,
+          "y": 210,
+          "rot": 0
+        },
+        {
+          "key": "wardrobe",
+          "name": "衣柜",
+          "x": 2300,
+          "y": 3900,
+          "rot": 180
+        }
+      ],
+      "checksPassed": true,
+      "reviewPassed": true,
+      "modelCalls": 9,
+      "candidateId": "cbe0b6f0-a6e1-4e2b-924e-4c50a9af0da3",
+      "message": "已保存：床头靠北墙（连续实墙、不正对南门），1.8m 床居中，两侧各留约 900 通道，床头柜离床 50；衣柜沿南墙东段背南放置，柜前 1500 净空，避开门口 800 净空与东窗窗帘带；中性暖白+浅木+浅灰配色。本次修改作为一个事务提交，可撤销。"
+    },
+    {
+      "room": "guest-bedroom",
+      "projectId": "a143c411-8391-450f-8a24-880662ec7bdc",
+      "taskId": "aa85da61-e532-451f-9ecf-933046c043e8",
+      "status": "completed",
+      "error": null,
+      "revision": 1,
+      "furniture": [
+        {
+          "key": "bed15",
+          "name": "双人床 1.5m",
+          "x": 1025,
+          "y": 1900,
+          "rot": 270
+        },
+        {
+          "key": "nightstand",
+          "name": "床头柜（台灯可点亮）",
+          "x": 210,
+          "y": 900,
+          "rot": 270
+        },
+        {
+          "key": "wardrobe",
+          "name": "衣柜",
+          "x": 3000,
+          "y": 1200,
+          "rot": 90
+        }
+      ],
+      "checksPassed": true,
+      "reviewPassed": true,
+      "modelCalls": 10,
+      "candidateId": "fed790f9-84b4-4e4a-8ffa-066489603c43",
+      "message": "已保存：3300×3600 次卧：1.5m 床头靠西墙（避开北窗窗帘区），床尾正对东墙 2m 衣柜，床侧留床头柜；南墙门内 800 区域全空，通道由门直达床侧。中性暖灰床＋浅木柜＋哑光白衣柜。本次修改作为一个事务提交，可撤销。"
+    },
+    {
+      "room": "study",
+      "projectId": "3ca433d9-c661-4a46-8b2b-75c5a494fc17",
+      "taskId": "322711e9-5388-4e6e-a39c-501be939dde4",
+      "status": "completed",
+      "error": null,
+      "revision": 1,
+      "furniture": [
+        {
+          "key": "desk",
+          "name": "书桌",
+          "x": 1600,
+          "y": 300,
+          "rot": 0
+        },
+        {
+          "key": "officeChair",
+          "name": "办公椅",
+          "x": 1600,
+          "y": 950,
+          "rot": 180
+        },
+        {
+          "key": "bookshelf",
+          "name": "书架",
+          "x": 1750,
+          "y": 3225,
+          "rot": 180
+        }
+      ],
+      "checksPassed": true,
+      "reviewPassed": true,
+      "modelCalls": 9,
+      "candidateId": "a81bf4ed-8a00-493a-9654-a9166f18e2c2",
+      "message": "已保存：书桌居中靠北墙，人面向北、东窗作侧光；办公椅位于桌前、椅后留出大片空地作视频背景，书柜靠南墙偏东避开门口800区域，与门、窗均不冲突。本次修改作为一个事务提交，可撤销。"
+    },
+    {
+      "room": "kitchen",
+      "projectId": "63e2070b-55c2-4316-a99b-cc0039047a00",
+      "taskId": "95a9ceb5-655f-4f22-ae5b-26e30237f52f",
+      "status": "completed",
+      "error": null,
+      "revision": 1,
+      "furniture": [
+        {
+          "key": "counter",
+          "name": "一字橱柜（可定制）",
+          "x": 300,
+          "y": 1250,
+          "rot": 270
+        },
+        {
+          "key": "fridge",
+          "name": "冰箱",
+          "x": 2050,
+          "y": 2850,
+          "rot": 90
+        }
+      ],
+      "checksPassed": true,
+      "reviewPassed": true,
+      "modelCalls": 10,
+      "candidateId": "48909128-06f0-416d-96d9-bdda29b98e7b",
+      "message": "已保存：2400×3200 厨房按单排一字形：2100 长橱柜沿西墙（背朝西，北端退 200 避窗），冰箱置东南角背靠东墙，门内 800 与窗前 150 区全空，柜前通道 1800。配色暖白柜体+浅灰冰箱。本次修改作为一个事务提交，可撤销。"
+    },
+    {
+      "room": "bathroom",
+      "projectId": "abcc5495-bbe9-4827-8146-561fd88d7d95",
+      "taskId": "dc6fcf3a-fb14-4190-86a8-f56ebc5d08c6",
+      "status": "completed",
+      "error": null,
+      "revision": 1,
+      "furniture": [
+        {
+          "key": "shower",
+          "name": "淋浴房",
+          "x": 450,
+          "y": 650,
+          "rot": 0
+        },
+        {
+          "key": "vanity",
+          "name": "浴室柜（含镜）",
+          "x": 1550,
+          "y": 1300,
+          "rot": 90
+        },
+        {
+          "key": "toilet",
+          "name": "马桶",
+          "x": 200,
+          "y": 2150,
+          "rot": 180
+        }
+      ],
+      "checksPassed": true,
+      "reviewPassed": true,
+      "modelCalls": 12,
+      "candidateId": "fb5b6421-d6e2-48e1-92da-d9b0fa82f99f",
+      "message": "已保存：1.8×2.5m 卫生间：淋浴房居西北、离北窗退让以免占窗帘区；浴室柜贴东墙成干区；马桶置西南墙角面北。门内 800mm 扫掠区全空，淋浴与浴室柜沿墙分区、干湿分离，配色为白+暖灰+浅木的中性三色。本次修改作为一个事务提交，可撤销。"
+    },
+    {
+      "room": "entry",
+      "projectId": "11008499-be3c-4887-ace0-042bdaf24df5",
+      "taskId": "4825f1b5-28b6-4623-88ef-ee7b07a2e52d",
+      "status": "completed",
+      "error": null,
+      "revision": 1,
+      "furniture": [
+        {
+          "key": "shoeCabinet",
+          "name": "鞋柜",
+          "x": 800,
+          "y": 175,
+          "rot": 0
+        },
+        {
+          "key": "entryBench",
+          "name": "换鞋凳",
+          "x": 175,
+          "y": 1150,
+          "rot": 270
+        }
+      ],
+      "checksPassed": true,
+      "reviewPassed": true,
+      "modelCalls": 9,
+      "candidateId": "90e01679-4c84-4564-aa46-d23a84adc043",
+      "message": "已保存：1600×2400 玄关：鞋柜 1200×350 贴北墙端头成落尘收纳主面；换鞋凳 900×350 贴西墙、凳前留 1250 净宽；南门内 800 门扇区全空，中性米白+浅木配色。本次修改作为一个事务提交，可撤销。"
+    },
+    {
+      "room": "circulation",
+      "projectId": "c1650f03-4800-45fb-98c3-43aa5e3f80b2",
+      "taskId": "32878cf1-4931-4284-8883-f52d3c95fe10",
+      "status": "completed",
+      "error": null,
+      "revision": 1,
+      "furniture": [
+        {
+          "key": "consoleTable",
+          "name": "玄关桌 / 边桌",
+          "x": 700,
+          "y": 175,
+          "rot": 0
+        },
+        {
+          "key": "plant",
+          "name": "绿植",
+          "x": 1150,
+          "y": 1700,
+          "rot": 90
+        }
+      ],
+      "checksPassed": true,
+      "reviewPassed": true,
+      "modelCalls": 9,
+      "candidateId": "811b2da6-670d-4ceb-b07d-9e9764fb95eb",
+      "message": "已保存：1.4×3.0m 过道北端设端景：玄关桌 1200×350 贴北墙居中（前净 350），绿植靠东墙中段，南门 900 开启区与主通行净宽 900 全部保留，中性木色＋绿植点色。本次修改作为一个事务提交，可撤销。"
+    }
+  ],
+  "wholeHome": {
+    "projectId": "41bbc02d-c4e1-49a8-a2e5-4cae4b112170",
+    "name": "Evaluation only: 2BHK bungalow development reference",
+    "rooms": 9,
+    "furniture": 21,
+    "walls": 32,
+    "openings": 15,
+    "source": "fixtures/full-home-candidates/2bhk-bungalow.evaluation-only.json",
+    "screenshot": "whole-home-2bhk-3d.png"
+  },
+  "fixes": [
+    "scene-draft patch requestId now bound to candidate id (precheck vs final candidate)",
+    "style-coherence/lighting-color modifier area floor lowered to 1 sqm for small service rooms",
+    "BRIEF_PROMPT requires verbatim, continuous evidence quotes for doors/windows",
+    "door clearance ignores curtains/sheers/rugs while still blocking furniture"
+  ],
+  "tests": {
+    "node": 63,
+    "python": 153,
+    "build": "pass",
+    "testAll": "pass"
+  },
+  "knownGaps": [
+    "deterministic room layout fallback not implemented yet",
+    "L3 replay still covers the original 7 active skills only",
+    "live VLM floorplan recognition not run in this acceptance; 2BHK visual uses a frozen reference fixture",
+    "text generation remains one rectangular room per task"
+  ]
+}

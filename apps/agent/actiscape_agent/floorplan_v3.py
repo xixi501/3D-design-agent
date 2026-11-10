@@ -1913,6 +1913,22 @@ def _consolidate_open_room_labels(
     return cleaned, targets, notes
 
 
+FUNCTIONAL_AREA_ROOM_TYPE = {
+    "living": "living_dining",
+    "dining": "living_dining",
+    "bedroom": "guest_bedroom",
+    "study": "study",
+    "kitchen": "kitchen",
+    "bathroom": "bathroom",
+    "entry": "entry",
+    "circulation": "circulation",
+    "balcony": "balcony",
+    "storage": "utility",
+    "utility": "utility",
+    "multipurpose": "multipurpose",
+    "other": "other",
+}
+
 ROOM_TYPE_FUNCTIONAL_AREA = {
     "living_dining": "living",
     "reading_lounge": "living",
@@ -1939,6 +1955,12 @@ def _normalize_v4_rooms(rooms):
         room_type = room.get("roomType")
         if not room_type or registry.room(room_type) is None:
             room_type = registry.room_type_for_label(room.get("name") or "")
+        if room_type == "other":
+            # Keep the recognised functional area (bedroom / kitchen / circulation
+            # ...) instead of collapsing every unnamed room into "other".
+            room_type = FUNCTIONAL_AREA_ROOM_TYPE.get(
+                room.get("functionalArea") or "", "other"
+            )
         inferred_area = ROOM_TYPE_FUNCTIONAL_AREA.get(room_type)
         normalized.append(
             {

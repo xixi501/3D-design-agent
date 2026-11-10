@@ -286,3 +286,31 @@ def test_v4_activity_group_can_model_bed_and_nightstands():
     )
     with pytest.raises(TaskError, match="房间"):
         _assemble_activity_symbols(wrong, objects, groups, draft, "objects")
+
+
+def test_v4_room_normalization_keeps_functional_area_when_type_is_missing():
+    normalized = _normalize_v4_rooms(
+        [
+            {
+                "id": "bed",
+                "name": "卧室",
+                "functionalArea": "bedroom",
+                "at": {"x": 300, "y": 300},
+            },
+            {
+                "id": "hall",
+                "name": "过道",
+                "functionalArea": "circulation",
+                "at": {"x": 500, "y": 300},
+            },
+        ]
+    )
+    assert next(room for room in normalized if room["id"] == "bed")[
+        "roomType"
+    ] == "guest_bedroom"
+    assert next(room for room in normalized if room["id"] == "bed")[
+        "functionalArea"
+    ] == "bedroom"
+    assert next(room for room in normalized if room["id"] == "hall")[
+        "roomType"
+    ] == "circulation"

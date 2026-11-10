@@ -1,0 +1,128 @@
+{
+  "phase": "P1",
+  "date": "2026-11-10",
+  "scope": "3D interactive actions, action-envelope clearance, surface snap",
+  "interactiveDemo": {
+    "projectId": "b43df4ad-e581-4835-b42d-006eb19d35d8",
+    "furniture": [
+      {
+        "key": "wardrobe",
+        "name": "衣柜",
+        "open": true
+      },
+      {
+        "key": "cabWardrobe",
+        "name": "定制衣柜",
+        "open": false
+      },
+      {
+        "key": "cabTV",
+        "name": "悬空电视柜",
+        "open": false
+      },
+      {
+        "key": "desk",
+        "name": "书桌",
+        "open": false
+      },
+      {
+        "key": "fridge",
+        "name": "冰箱",
+        "open": false
+      },
+      {
+        "key": "floorLamp",
+        "name": "落地灯（可点亮）",
+        "open": null
+      },
+      {
+        "key": "coffeeTable",
+        "name": "茶几",
+        "open": null
+      },
+      {
+        "key": "plant",
+        "name": "绿植",
+        "open": null
+      }
+    ],
+    "openable": [
+      "wardrobe",
+      "cabWardrobe",
+      "cabTV",
+      "desk",
+      "fridge"
+    ],
+    "checks": {
+      "passed": true,
+      "issues": []
+    },
+    "oneClickOpen": "revision 0 → 1, 5 cabinets/drawers + 1 door opened",
+    "oneClickReset": "revision 1 → 2, all closed, button label restored",
+    "note": "Screenshots captured at revision 0 (closed) and revision 1 (open-all). The current project state was later changed by interactive E/double-click checks; see interactionChecks."
+  },
+  "conflictDemo": {
+    "projectId": "2717aca1-9460-460e-b3c4-b4aa9bfb9b33",
+    "issues": [
+      {
+        "code": "POSSIBLE_OVERLAP",
+        "message": "衣柜 与 双人床 1.8m 的参数化轮廓及高度区间重叠，请检查实际形状",
+        "objectIds": [
+          "e0125858-0f4b-48b4-b682-2e86ab31a211",
+          "1e109908-fdd2-4e46-98e1-9d2a9bb9608b"
+        ]
+      },
+      {
+        "code": "OPENABLE_FRONT_BLOCKED",
+        "message": "衣柜 正前方开启净空仅 0 mm（需 600 mm），被 双人床 1.8m 占用",
+        "objectIds": [
+          "e0125858-0f4b-48b4-b682-2e86ab31a211",
+          "1e109908-fdd2-4e46-98e1-9d2a9bb9608b"
+        ]
+      },
+      {
+        "code": "DOORWAY_BLOCKED",
+        "message": "鞋柜 占用门洞内侧 800 mm 净空区（项目布局规则）",
+        "objectIds": [
+          "561a56f3-603a-4c9d-9090-e37704b782d3",
+          "p1-conflict-demo:openings:0"
+        ]
+      },
+      {
+        "code": "DOOR_CABINET_CONFLICT",
+        "message": "p1-conflict-demo:openings:0 的门扇扫掠区与 鞋柜 的开启包络冲突",
+        "objectIds": [
+          "p1-conflict-demo:openings:0",
+          "561a56f3-603a-4c9d-9090-e37704b782d3"
+        ]
+      }
+    ]
+  },
+  "interactionChecks": {
+    "oneClickOpen": true,
+    "oneClickReset": true,
+    "selectAndE": true,
+    "inspectorCheckbox": true,
+    "doubleClick": true,
+    "walkModeE": true
+  },
+  "checksImplemented": [
+    "OPENABLE_FRONT_BLOCKED",
+    "DOOR_CABINET_CONFLICT",
+    "SURFACE_ITEM_OVERHANG",
+    "SURFACE_ITEM_COLLISION",
+    "SURFACE_ITEM_HOST_MISSING"
+  ],
+  "tests": {
+    "node": 69,
+    "python": 153,
+    "build": "pass",
+    "testAll": "pass"
+  },
+  "limitations": [
+    "open envelopes are rectangles/quarter-circle approximations, not rigid-body dynamics",
+    "standalone wardrobe/fridge open pose is a lightweight overlay, TD cabinets animate real leaf meshes",
+    "sliding doors use lateral offset rather than a full track",
+    "photo-generated asset snapping is P2"
+  ]
+}

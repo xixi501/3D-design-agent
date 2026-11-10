@@ -4,7 +4,7 @@ description: 已有布置的场景跑"检查 → 定位 → 有限修复 → 如
 license: MIT
 compatibility: 需要 candidate.preflight / candidate.review / scene.read / candidate.propose + candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（人工按判据逐条核对）。
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
   status: verified
   level: structure
   owner: member3

@@ -1,15 +1,15 @@
 ---
 name: entry-storage
-description: 在 1.5–6㎡ 的玄关里排"开门→落尘→换鞋→挂衣→镜"的入户动线，按人数估鞋柜容量、控换鞋凳前净空、给强弱电箱留检修口，并决定地方不够时先保什么。当用户要"玄关怎么设计""鞋柜放不下""进门太乱"时使用；不适用于需要拆改墙体或改门洞、以及要做整墙定制柜体结构设计的任务。
+description: 在 1.5–20㎡ 的玄关或过道里排"开门→落尘→换鞋→挂衣→镜"的入户动线，按人数估鞋柜容量、控换鞋凳前净空、给强弱电箱留检修口，并决定地方不够时先保什么。当用户要"玄关怎么设计""鞋柜放不下""进门太乱""过道怎么利用"时使用；不适用于需要拆改墙体或改门洞、以及要做整墙定制柜体结构设计的任务。
 license: MIT
 compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: "0.3.0"
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
+  activation: active
   judgement_refs: "J-ENT-01,J-ENT-02,J-CIR-01,J-CUR-01,J-VER-01,J-VER-02"
 ---
 
@@ -21,9 +21,10 @@ metadata:
 
 ✅ 适用：
 
-- 玄关使用面积 1.5–6㎡，已有一版含入户门与墙体门窗的场景；
-- 用户说"进门太乱""鞋放不下""换鞋没地方坐""玄关要不要做隔断"；
-- 已有旧玄关，想在不拆墙的前提下加柜、换布局。
+- 玄关或过道使用面积 1.5–20㎡，已有一版含入户门与墙体门窗的场景；
+- 用户说"进门太乱""鞋放不下""换鞋没地方坐""玄关要不要做隔断""过道怎么利用"；
+- 已有旧玄关，想在不拆墙的前提下加柜、换布局；
+- 过道场景只允许在单侧布置浅柜（进深 ≤ 400 mm）或端景桌/绿植，另一侧必须保留 ≥ 900 mm 连续通行。
 
 ❌ 不适用（转其他技能）：
 

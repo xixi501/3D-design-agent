@@ -7,8 +7,10 @@ import {
   checkScene,
   newId,
   pointInPolygon,
+  isSurfaceHost,
 } from "./index.js";
 import { Zg } from "./inherited/footprints.js";
+import { toggleActionCommand } from "./actions.js";
 import { furnitureElevation } from "./placement.js";
 import {
   SceneError,
@@ -28,14 +30,40 @@ export const editableFields = [
   "d",
   "h",
   "color",
+  "parentObjectId",
+  "placement",
 ] as const;
 export type AgentPatch = Partial<
   Pick<Furniture, (typeof editableFields)[number]>
 >;
+export interface AllowedAsset {
+  assetId: string;
+  name: string;
+  w: number;
+  d: number;
+  h: number;
+}
 export type CandidateEdit =
   | { type: "create"; key: string; values: AgentPatch }
   | { type: "update"; id: string; values: AgentPatch }
-  | { type: "delete"; id: string };
+  | { type: "delete"; id: string }
+  | {
+      type: "action";
+      collection: "openings" | "furniture";
+      id: string;
+      action: "toggle_open" | "toggle_on";
+    }
+  | {
+      type: "placeAsset";
+      assetId: string;
+      values: {
+        x: number;
+        y: number;
+        z?: number;
+        placement: "floor" | "surface";
+        parentObjectId?: string;
+      };
+    };
 export interface EditScope {
   targetIds: string[];
   allowDeleteIds: string[];
@@ -43,6 +71,10 @@ export interface EditScope {
   fieldMask?: Record<string, string[]>;
   additionBounds?: { x0: number; y0: number; x1: number; y1: number };
   allowedRoomIds?: string[];
+  /** Opening or furniture IDs the actor may toggle (open/on) without moving them. */
+  actionIds?: string[];
+  /** Photo-generated models the actor may place; dimensions come from AssetRecord. */
+  allowedAssets?: AllowedAsset[];
   requirements: { key: string; count: number; scope: "project" | "targets" }[];
 }
 export interface CandidateIssue {
@@ -64,7 +96,7 @@ export interface BusinessDiff {
   deleted: string[];
   updated: string[];
 }
-const fail = (message: string) => {
+const fail = (message: string): never => {
   throw new SceneError("INVALID_CANDIDATE", message);
 };
 const record = (v: any) => v && typeof v === "object" && !Array.isArray(v);
@@ -82,6 +114,8 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     "additionBounds",
     "fieldMask",
     "allowedRoomIds",
+    "actionIds",
+    "allowedAssets",
   ]);
   const ids = new Set(plan.furniture.map((f) => f.id));
   for (const name of ["targetIds", "allowDeleteIds", "allowAddKeys"] as const) {
@@ -101,6 +135,42 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     fail("目标身份无效或删除授权超出目标范围");
   if (s.allowAddKeys.some((key) => !Object.hasOwn(catalog, key)))
     fail("新增配方不在家具目录内");
+  if (s.actionIds !== undefined) {
+    const actionable = new Set([
+      ...plan.furniture.map((f) => f.id),
+      ...plan.openings.map((o) => o.id),
+    ]);
+    if (
+      !Array.isArray(s.actionIds) ||
+      s.actionIds.length > 300 ||
+      s.actionIds.some((id) => typeof id !== "string" || !actionable.has(id)) ||
+      new Set(s.actionIds).size !== s.actionIds.length
+    )
+      fail("动作授权对象无效");
+  }
+  if (s.allowedAssets !== undefined) {
+    if (!Array.isArray(s.allowedAssets) || s.allowedAssets.length > 300)
+      fail("照片资产授权列表无效");
+    const ids = new Set<string>();
+    for (const asset of s.allowedAssets) {
+      keys(asset, ["assetId", "name", "w", "d", "h"]);
+      if (
+        typeof asset.assetId !== "string" ||
+        !asset.assetId ||
+        ids.has(asset.assetId) ||
+        typeof asset.name !== "string" ||
+        !asset.name ||
+        !Number.isFinite(asset.w) ||
+        !Number.isFinite(asset.d) ||
+        !Number.isFinite(asset.h) ||
+        asset.w <= 0 ||
+        asset.d <= 0 ||
+        asset.h <= 0
+      )
+        fail("照片资产授权记录无效");
+      ids.add(asset.assetId);
+    }
+  }
   if (s.fieldMask) {
     if (!record(s.fieldMask)) fail("字段授权必须为对象");
     for (const [id, fields] of Object.entries(s.fieldMask))
@@ -164,7 +234,11 @@ export function materializeEdits(
         ? ["type", "key", "values"]
         : edit.type === "update"
           ? ["type", "id", "values"]
-          : ["type", "id"],
+          : edit.type === "action"
+            ? ["type", "collection", "id", "action"]
+            : edit.type === "placeAsset"
+              ? ["type", "assetId", "values"]
+              : ["type", "id"],
     );
     let command: Command;
     if (edit.type === "create") {
@@ -176,15 +250,17 @@ export function materializeEdits(
         typeof edit.values.y !== "number"
       )
         fail("新增家具需要 x/y 坐标");
+      const values = { ...edit.values };
+      if (values.placement === "surface" && values.parentObjectId) {
+        const host = working.plan.furniture.find(
+          (item) => item.id === values.parentObjectId,
+        );
+        if (host) values.z = (host.z || 0) + host.h;
+      }
       command = {
         type: "add",
         collection: "furniture",
-        object: createFurniture(
-          edit.key,
-          edit.values.x,
-          edit.values.y,
-          edit.values,
-        ),
+        object: createFurniture(edit.key, values.x, values.y, values),
       };
     } else if (edit.type === "update") {
       if (!scope.targetIds.includes(edit.id)) fail("修改对象超出授权范围");
@@ -207,6 +283,64 @@ export function materializeEdits(
       if (!scope.allowDeleteIds.includes(edit.id))
         fail("删除对象没有获得任务授权");
       command = { type: "delete", collection: "furniture", id: edit.id };
+    } else if (edit.type === "action") {
+      if (!scope.actionIds?.includes(edit.id))
+        fail("动作对象没有获得任务授权");
+      if (!["openings", "furniture"].includes(edit.collection))
+        fail("动作集合无效");
+      if (!["toggle_open", "toggle_on"].includes(edit.action))
+        fail("动作类型无效");
+      const toggled = toggleActionCommand(
+        working.plan,
+        edit.collection,
+        edit.id,
+      );
+      if (!toggled)
+        fail("该对象没有可切换的开启或电器状态");
+      command = toggled as Command;
+    } else if (edit.type === "placeAsset") {
+      const asset = scope.allowedAssets?.find(
+        (item) => item.assetId === edit.assetId,
+      );
+      if (!asset) fail("照片资产没有获得任务授权");
+      keys(edit.values, ["x", "y", "z", "placement", "parentObjectId"]);
+      if (
+        !Number.isFinite(edit.values.x) ||
+        !Number.isFinite(edit.values.y)
+      )
+        fail("照片资产需要 x/y 坐标");
+      if (!["floor", "surface"].includes(edit.values.placement))
+        fail("照片资产放置类型无效");
+      const host =
+        edit.values.placement === "surface"
+          ? working.plan.furniture.find(
+              (item) => item.id === edit.values.parentObjectId,
+            )
+          : undefined;
+      if (edit.values.placement === "surface" && !host)
+        fail("台面放置需要真实宿主");
+      if (host && !isSurfaceHost(host)) fail("宿主不是可承载的台面家具");
+      command = {
+        type: "add",
+        collection: "furniture",
+        object: {
+          id: newId(),
+          key: `model:${asset!.assetId}`,
+          type: "model",
+          modelId: asset!.assetId,
+          name: asset!.name,
+          x: edit.values.x,
+          y: edit.values.y,
+          z: host ? (host.z || 0) + host.h : edit.values.z || 0,
+          rot: 0,
+          w: asset!.w,
+          d: asset!.d,
+          h: asset!.h,
+          color: "#ffffff",
+          placement: edit.values.placement,
+          ...(host ? { parentObjectId: host.id } : {}),
+        } as Furniture,
+      };
     } else fail("不支持的候选编辑类型");
     commands.push(command!);
     working = applyCommands(working, [command!]);
@@ -285,7 +419,13 @@ export function checkCandidate(
       blocking: true,
     });
   const protectedView = (plan: Plan) => {
-    const view: any = { ...plan, furniture: [] };
+    // Action state is not structure: openings keep their geometry but their
+    // open flag may change through Candidate action edits.
+    const view: any = {
+      ...plan,
+      furniture: [],
+      openings: plan.openings.map(({ open, ...opening }: any) => opening),
+    };
     if (view.source?.activityGroups) {
       if (view.source.kind === "activity-groups") delete view.source;
       else view.source = { ...view.source, activityGroups: undefined };
@@ -301,14 +441,20 @@ export function checkCandidate(
   )
     add("PROTECTED_STRUCTURE", [], "修改了受保护的结构或项目字段");
   for (const id of diff.updated)
-    if (!scope.targetIds.includes(id))
+    if (
+      !scope.targetIds.includes(id) &&
+      !scope.actionIds?.includes(id)
+    )
       add("PROTECTED_OBJECT", [id], "修改了未授权对象");
   for (const id of diff.deleted)
     if (!scope.allowDeleteIds.includes(id))
       add("PROTECTED_OBJECT", [id], "删除了未授权对象");
   for (const id of diff.added) {
     const f = after.plan.furniture.find((f) => f.id === id)!;
-    if (!scope.allowAddKeys.includes(f.key))
+    const allowedModel =
+      f.type === "model" &&
+      scope.allowedAssets?.some((asset) => asset.assetId === f.modelId);
+    if (!allowedModel && !scope.allowAddKeys.includes(f.key))
       add("UNAUTHORIZED_ASSET", [id], "新增类型超出任务范围");
     const b = scope.additionBounds;
     if (b && (f.x < b.x0 || f.x > b.x1 || f.y < b.y0 || f.y > b.y1))
@@ -374,8 +520,15 @@ export function checkCandidate(
       issue.code + ":" + [...issue.objectIds].sort().join(","),
     );
     const affected = issue.objectIds.some((id) => changed.has(id));
+    const actionAffected = issue.objectIds.some((id) =>
+      scope.actionIds?.includes(id),
+    );
+    const actionConflict =
+      actionAffected &&
+      ["OPENABLE_FRONT_BLOCKED", "DOOR_CABINET_CONFLICT"].includes(issue.code);
     const blocking =
-      affected && (!old || (issue.metric || 0) > (old.metric || 0) + 1);
+      actionConflict ||
+      (affected && (!old || (issue.metric || 0) > (old.metric || 0) + 1));
     issues.push({
       ...issue,
       level: issue.level as "error" | "warning",

@@ -51,7 +51,10 @@ Thumbs.db
 .codex/
 
 # ActiScape local service and reproducible acceptance output
-/data/
+/data/*
+# Real V100 asset cache is an explicit, reviewed repository artifact.
+!/data/real-generated-assets/
+!/data/real-generated-assets/**
 /test-results/
 /.tools/
 /reference/runtime/

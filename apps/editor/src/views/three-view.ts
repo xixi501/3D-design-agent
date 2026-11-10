@@ -8,6 +8,7 @@ import {
   projectToWall,
   catalog,
   furnitureElevation,
+  toggleActionCommand,
   type Plan,
   type Furniture,
   type Command,
@@ -58,7 +59,9 @@ export class ThreeView {
   yaw = 0;
   pitch = 0;
   generation = 0;
+  lastSelected?: { id: string; collection: "openings" | "furniture" };
   private clock = new THREE.Clock();
+  private lastClick?: { t: number; x: number; y: number };
   private walkDown?: { x: number; y: number };
   private orbitSave?: { position: THREE.Vector3; target: THREE.Vector3 };
   private textures = new Map<string, THREE.Texture>();
@@ -116,23 +119,11 @@ export class ThreeView {
     this.controls.maxPolarAngle = Math.PI * 0.49;
     new ResizeObserver(() => this.resize()).observe(host);
     const canvas = this.renderer.domElement;
-    const rayAt = (e: PointerEvent | MouseEvent) => {
-      const r = canvas.getBoundingClientRect(),
-        ray = new THREE.Raycaster();
-      ray.setFromCamera(
-        new THREE.Vector2(
-          ((e.clientX - r.left) / r.width) * 2 - 1,
-          (-(e.clientY - r.top) / r.height) * 2 + 1,
-        ),
-        this.camera,
-      );
-      return ray;
-    };
     canvas.addEventListener(
       "pointerdown",
       (e) => {
         if (this.walking || e.button !== 0 || !this.plan) return;
-        const ray = rayAt(e),
+        const ray = this.rayAt(e),
           hit = ray
             .intersectObjects(this.root.children, true)
             .find(
@@ -166,7 +157,7 @@ export class ThreeView {
     );
     canvas.addEventListener("pointermove", (e) => {
       if (!this.drag) return;
-      const point = rayAt(e).ray.intersectPlane(
+      const point = this.rayAt(e).ray.intersectPlane(
         this.drag.plane,
         new THREE.Vector3(),
       );
@@ -212,7 +203,20 @@ export class ThreeView {
     });
     canvas.addEventListener("click", (e) => {
       if (this.walking) return;
-      const hit = rayAt(e)
+      // Browsers do not always synthesize dblclick after pointer capture, so
+      // detect a second click within 350 ms ourselves as well.
+      const now = performance.now();
+      if (
+        this.lastClick &&
+        now - this.lastClick.t < 350 &&
+        Math.hypot(e.clientX - this.lastClick.x, e.clientY - this.lastClick.y) <
+          12
+      ) {
+        this.lastClick = undefined;
+        if (this.toggleAt(e)) return;
+      }
+      this.lastClick = { t: now, x: e.clientX, y: e.clientY };
+      const hit = this.rayAt(e)
         .intersectObjects(this.root.children, true)
         .find(
           (h) =>
@@ -220,14 +224,22 @@ export class ThreeView {
             h.object.userData.objectId ||
             h.object.userData.wallId,
         );
-      if (hit)
-        this.select(
+      if (hit) {
+        const collection = (hit.object.userData.collection ||
+          (hit.object.userData.wallId ? "walls" : "furniture")) as
+          | "openings"
+          | "furniture";
+        const id =
           hit.object.userData.fid ||
-            hit.object.userData.objectId ||
-            hit.object.userData.wallId,
-          hit.object.userData.collection ||
-            (hit.object.userData.wallId ? "walls" : "furniture"),
-        );
+          hit.object.userData.objectId ||
+          hit.object.userData.wallId;
+        this.lastSelected = { id, collection };
+        this.select(id, collection);
+      }
+    });
+    canvas.addEventListener("dblclick", (e) => {
+      if (this.walking) return;
+      if (this.toggleAt(e)) e.preventDefault();
     });
     window.addEventListener("keydown", (e) => {
       if (
@@ -253,6 +265,41 @@ export class ThreeView {
     });
     window.addEventListener("keyup", (e) => this.keys.delete(e.code));
     window.addEventListener("blur", () => this.keys.clear());
+    window.addEventListener("keydown", (e) => {
+      if (
+        e.code !== "KeyE" ||
+        /INPUT|TEXTAREA|SELECT/.test((e.target as HTMLElement).tagName)
+      )
+        return;
+      if (this.walking) {
+        e.preventDefault();
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+        const hit = ray
+          .intersectObjects(this.root.children, true)
+          .find(
+            (h) =>
+              h.distance <= 2.5 &&
+              (h.object.userData.fid || h.object.userData.objectId),
+          );
+        if (hit) {
+          const collection = (hit.object.userData.collection ||
+            (hit.object.userData.fid ? "furniture" : "openings")) as
+            | "openings"
+            | "furniture";
+          this.toggleInteractive(
+            hit.object.userData.fid || hit.object.userData.objectId,
+            collection,
+          );
+        }
+      } else if (this.lastSelected) {
+        e.preventDefault();
+        this.toggleInteractive(
+          this.lastSelected.id,
+          this.lastSelected.collection,
+        );
+      }
+    });
     this.renderer.setAnimationLoop(() => {
       const dt = Math.min(this.clock.getDelta(), 0.05);
       if (this.walking) this.walk(dt);
@@ -802,6 +849,48 @@ export class ThreeView {
       (this.selected.material as THREE.Material).dispose();
       this.selected = undefined;
     }
+  }
+  rayAt(e: { clientX: number; clientY: number }) {
+    const r = this.renderer.domElement.getBoundingClientRect(),
+      ray = new THREE.Raycaster();
+    ray.setFromCamera(
+      new THREE.Vector2(
+        ((e.clientX - r.left) / r.width) * 2 - 1,
+        (-(e.clientY - r.top) / r.height) * 2 + 1,
+      ),
+      this.camera,
+    );
+    return ray;
+  }
+  toggleAt(e: { clientX: number; clientY: number }) {
+    const hit = this.rayAt(e)
+      .intersectObjects(this.root.children, true)
+      .find(
+        (h) =>
+          h.object.userData.objectId ||
+          h.object.userData.fid ||
+          h.object.userData.wallId,
+      );
+    if (!hit) return false;
+    const collection = (
+      hit.object.userData.collection ||
+      (hit.object.userData.fid ? "furniture" : "openings")
+    ) as "openings" | "furniture";
+    const id = hit.object.userData.fid || hit.object.userData.objectId;
+    return this.toggleInteractive(id, collection);
+  }
+  toggleInteractive(
+    id: string,
+    collection: "openings" | "furniture",
+  ): boolean {
+    if (!this.plan) return false;
+    const command = toggleActionCommand(this.plan, collection, id);
+    if (!command) return false;
+    void this.commit(
+      [command],
+      collection === "openings" ? "开关门扇" : "开关柜门/抽屉/电器",
+    );
+    return true;
   }
   preview(f: Furniture) {
     const g = this.furniture.get(f.id);

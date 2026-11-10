@@ -5,6 +5,59 @@ import {
   type AssetRecord,
 } from "../../../packages/scene-core/src/index.js";
 
+/** Apply a user-confirmed millimetre height without rewriting the immutable GLB. */
+export function calibrateAssetRecord(
+  record: AssetRecord,
+  targetHeightMm: number,
+): AssetRecord {
+  if (
+    !Number.isFinite(targetHeightMm) ||
+    targetHeightMm < 10 ||
+    targetHeightMm > 5000
+  )
+    throw new SceneError(
+      "INVALID_CALIBRATION",
+      "目标高度需在 10–5000 mm 之间",
+      400,
+    );
+  if (!(record.h > 0))
+    throw new SceneError("INVALID_CALIBRATION", "资产高度无效", 422);
+  const factor = targetHeightMm / record.h;
+  return {
+    ...record,
+    w: Math.round(record.w * factor * 1000) / 1000,
+    d: Math.round(record.d * factor * 1000) / 1000,
+    h: targetHeightMm,
+    normalization: {
+      scale: record.normalization.scale * factor,
+      center: [...record.normalization.center] as [number, number, number],
+    },
+    scaleCalibrated: true,
+    scaleSource: "user_confirmed",
+    defaultPlacement: "surface",
+  };
+}
+
+export function imageMime(bytes: Buffer): string | undefined {
+  if (
+    bytes.length > 8 &&
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47
+  )
+    return "image/png";
+  if (bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8)
+    return "image/jpeg";
+  if (
+    bytes.length > 12 &&
+    bytes.subarray(0, 4).toString("ascii") === "RIFF" &&
+    bytes.subarray(8, 12).toString("ascii") === "WEBP"
+  )
+    return "image/webp";
+  return undefined;
+}
+
 /** Validate the self-contained, uncompressed GLB subset and derive bounds from vertex data. */
 export function inspectGlb(bytes: Buffer, name: string): AssetRecord {
   const fail = (message: string): never => {

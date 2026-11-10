@@ -6,7 +6,7 @@ from .roles import objects_summary
 from .scene_projection import sync_text_scene_program
 from .scene_registry import get_scene_registry
 from .schemas import Edit, Proposal, Review
-from .skill_registry import get_registry
+from .skill_registry import get_registry, stage_skill
 from .store import fingerprint
 
 VERSION = "s2b-rectangular-3"
@@ -18,16 +18,16 @@ BRIEF_PROMPT = (
     RULES
     + """你是主控 Agent，负责把用户原话整理为 GenerationRequest。先调用 generation_context 读取当前信息。
 只提取用户明确提供的信息；缺少的数据必须为 null，不得猜测净尺寸、入口或窗的位置。原文未提是否有窗，windows=null；明确无窗才返回 windows=[]。
-purpose 只能从输入 roomTypes 的 active ID 中选择；reserved、未知用途、不规则轮廓、多房间与照片生成 status=unsupported。
+purpose 只能从输入 roomTypes 的 active ID 中选择；主卧、次卧、书房、厨房、卫生间、玄关和过道都在支持范围，不要因为房间不是客餐厅就拒绝；reserved、未知用途、不规则轮廓、多房间与照片生成 status=unsupported。
 width 是横向室内净宽，depth 是纵向室内净深。尺寸保留原始数值和 mm/cm/m 单位，不自行换算，不把面积当长宽。
 北/上 north，东/右 east，南/下 south，西/左 west。明确“居中”才 position=center；明确距离则 position=offset，水平从左侧量开口起点、竖直从上侧量。
 只说“靠左/靠右”等而没有距离，position=null，并提出补充问题。不要擅自给 400、500 等位置。
 门窗宽度、离地、顶高和层高/墙厚没提供就 null，让代码采用已声明默认值。
-evidence 必须给 purpose/width/depth/doors/windows 各自的用户原文摘录；不能引用系统说明或示例。一个原文片段可以证明多个字段。
+evidence 必须给 purpose/width/depth/doors/windows 各自的用户原文逐字摘录；必须是用户原话中连续出现的片段，不得使用省略号、改写、拼接或引用系统说明/示例。一个原文片段可以证明多个字段，但 doors 的摘录必须能独立支撑墙面与位置判断。
 若用户补充修正，以最新明确修正为准；不明确的矛盾加入 conflicts，并一次询问全部关键缺失项。
 furniture 只写用户指定的类型与数量。没有指定家具时返回 []，由真实 Skill 的基础清单补齐。不把四把椅子写成四张桌子。
 style 只写用户明确的风格，没指定返回 null。status=ready 需要关键结构信息完整；否则 status=clarify。
-skillSelection 只能从输入 skillCandidates 中选择：primarySkillId 必须来自 primary，modifierSkillIds 最多两个且必须来自 modifiers。reason 用一句短话说明匹配依据。不得选择 reserved、未知或不适用 Skill。
+skillSelection 只能从输入 skillCandidates 中选择：primarySkillId 必须来自 primary，modifierSkillIds 最多两个且必须来自 modifiers 的当前列表；若 modifiers 为空或没有真正适用的项，modifierSkillIds 必须返回 []，不得凭记忆填写 style-coherence/lighting-color。reason 用一句短话说明匹配依据。不得选择 reserved、未知或不适用 Skill。
 """
 )
 ASSET_PROMPT = (
@@ -36,6 +36,7 @@ ASSET_PROMPT = (
 每个 requests 项只返回一个真实目录 key，复制其给定的 request_index，严格符合语义，优先普通基础款。
 索引从 0 开始。count=4 表示该配方创建四件家具，你仍只返回该请求的一条 choice，禁止按实例数量展开。choices 总长度必须等于 requests 长度。
 无精准匹配时再换词搜索，不用用途不同的家具凑数。
+若 repairDirective 存在，优先按它要求的 replace_catalog_key / downsize 方向换选，不扩大家具尺寸。
 只选资产，不安排坐标，不修改结构，不调用照片生成。
 """
 )
@@ -47,7 +48,8 @@ DESIGN_PROMPT = (
 北墙在 y=0、南墙在 y=净深、西墙 x=0、东墙 x=净宽；已是室内净边界，不再减墙厚。
 rot=0 背向北，90 背向东，180 背向南，270 背向西。尤其注意：rot=90/270 时占地宽深互换。
 在最终返回前必须调用 precheck_initialization 检查整个方案。根据具体检查结果与尺寸修正，不能只改摘要。
-若 lastReport 不为空，应改变产生问题的位置和朝向；不能扩大房间、改门窗或减少规定数量。
+若 repairDirective 存在，优先执行其中的 action（如 clear_openable_envelope、rehost_or_floor_surface_item、separate_objects）并只移动 objectIds；不得扩大房间、改门窗或减少规定数量。
+若 lastReport 不为空，应改变产生问题的位置和朝向；不能重复同一无效位置。
 summary 简短说明区域组织和主要阅读座位。先确保几何正确，再考虑美观。
 """
 )
@@ -136,6 +138,12 @@ class GenerationRoles:
             {
                 **({"lastReport": last_report} if last_report is not None else {}),
                 "userRequest": task["input"],
+                "skill": stage_skill(
+                    task["generation"].get("skillBundle"),
+                    "asset",
+                    task["generation"].get("skillSnapshot"),
+                ),
+                "repairDirective": task["generation"].get("repairDirective"),
                 "requests": [{"request_index": i, **a} for i, a in enumerate(intent["additions"])],
                 **(
                     {"sourceSymbols": task["generation"].get("compiledSymbols", [])}
@@ -172,7 +180,7 @@ class GenerationRoles:
                 client=self.client,
                 task=task,
                 plan=candidate["state"]["plan"],
-                selection_id=f"candidate-{round}",
+                selection_id=f"candidate-{candidate['id']}",
                 room_type=room_type,
                 stage="candidate",
             )
@@ -194,7 +202,11 @@ class GenerationRoles:
 
         catalogue = (await self.client.request("/catalog"))["items"]
         generation = task["generation"]
-        skill_context = get_registry().context(generation.get("skillBundle"))
+        skill_context = stage_skill(
+            generation.get("skillBundle"),
+            "layout",
+            generation.get("skillSnapshot"),
+        )
         result = await self.base.invoke(
             "design",
             DESIGN_PROMPT,
@@ -208,7 +220,13 @@ class GenerationRoles:
                 "openings": generation["openings"],
                 "style": generation["style"],
                 "selectedAssets": [catalogue[k] for k in scope["allowAddKeys"]],
-                "skill": skill_context or generation["skillSnapshot"],
+                "skill": skill_context,
+                "repairDirective": generation.get("repairDirective"),
+                "repairSkill": (
+                    stage_skill(generation.get("skillBundle"), "repair")
+                    if generation.get("repairDirective")
+                    else None
+                ),
                 "lastReport": last_report,
             },
             task["id"],
@@ -231,7 +249,11 @@ class GenerationRoles:
             for e in evidence
         ]
         generation = self.store.task(task["id"], internal=True)["generation"]
-        skill_context = get_registry().context(generation.get("skillBundle"))
+        skill_context = stage_skill(
+            generation.get("skillBundle"),
+            "check",
+            generation.get("skillSnapshot"),
+        )
         return await self.base.invoke(
             "check",
             CHECK_PROMPT,
@@ -241,7 +263,7 @@ class GenerationRoles:
                 "userRequest": task["input"],
                 "generation": candidate["generation"],
                 "requirements": candidate["scope"]["requirements"],
-                "skill": skill_context or generation["skillSnapshot"],
+                "skill": skill_context,
                 "candidate": objects_summary(
                     {"plan": candidate["state"]["plan"], "revision": candidate["baseRevision"]}
                 ),

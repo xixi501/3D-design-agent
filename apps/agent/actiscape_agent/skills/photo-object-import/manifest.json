@@ -2,15 +2,22 @@
   "schemaVersion": "actiscape.skill.v1",
   "id": "photo-object-import",
   "name": "照片物品入场景与局部摆放",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "kind": "asset",
-  "status": "conformant",
-  "activation": "reserved",
+  "status": "verified",
+  "activation": "active",
   "summary": "单件照片 → 异步资产作业 → 外观与尺寸确认 → 落到点选或语言指定的支撑面 → 检查与留证。",
   "appliesTo": {
-    "modes": ["asset_import"],
-    "roomKinds": ["any"],
-    "areaM2": [0, 1000],
+    "modes": [
+      "asset_import"
+    ],
+    "roomKinds": [
+      "any"
+    ],
+    "areaM2": [
+      0,
+      1000
+    ],
     "projectState": "existing",
     "requiredInputs": [
       "单件物品照片",
@@ -51,6 +58,26 @@
   "validation": {
     "structure": true,
     "dryRun": true,
-    "realCore": false
+    "realCore": true
+  },
+  "stageHints": {
+    "asset": [
+      "第 1 步",
+      "第 2 步",
+      "第 4 步",
+      "第 5 步"
+    ],
+    "layout": [
+      "第 5 步",
+      "第 6 步",
+      "第 7 步"
+    ],
+    "check": [
+      "第 7 步",
+      "怎么验证"
+    ],
+    "repair": [
+      "第 7 步"
+    ]
   }
 }

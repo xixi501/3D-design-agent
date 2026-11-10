@@ -8,6 +8,23 @@ export function furnitureElevation(
   plan: Plan,
   regions?: any[],
 ): number {
+  // Surface items follow their host's top face; this keeps a vase/lamp on a
+  // table even when the host is later moved or resized.
+  if (f.parentObjectId) {
+    const seen = new Set<string>();
+    let current: Furniture | undefined = f;
+    let offset = 0;
+    while (current?.parentObjectId && !seen.has(current.id)) {
+      seen.add(current.id);
+      const host = plan.furniture.find(
+        (item) => item.id === current!.parentObjectId,
+      );
+      if (!host || host.id === current.id) break;
+      offset += host.h;
+      current = host;
+    }
+    if (current && current.id !== f.id) return offset + (current.z || 0);
+  }
   if (!(q0 as Record<string, any>)[f.key]?.ceil) return f.z || 0;
   const room = (regions || D4(plan, Wc(plan)).regions).find((r: any) =>
     r.rects.some(

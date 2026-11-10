@@ -225,3 +225,50 @@ test("scene checks report curtain-zone and window-cabinet conflicts", () => {
   assert.ok(result.issues.some((issue) => issue.code === "CUR-01"));
   assert.ok(result.issues.some((issue) => issue.code === "WIN-01"));
 });
+
+test("door clearance ignores wall/floor coverings but still blocks furniture", () => {
+  const plan = blankPlan();
+  plan.name = "door clearance";
+  plan.nodes = [
+    { id: "n0", x: 0, y: 0 },
+    { id: "n1", x: 4000, y: 0 },
+    { id: "n2", x: 4000, y: 4000 },
+    { id: "n3", x: 0, y: 4000 },
+  ];
+  plan.walls = [
+    { id: "north", a: "n0", b: "n1", t: 20, status: "existing" },
+    { id: "east", a: "n1", b: "n2", t: 20, status: "existing" },
+    { id: "south", a: "n2", b: "n3", t: 20, status: "existing" },
+    { id: "west", a: "n3", b: "n0", t: 20, status: "existing" },
+  ];
+  plan.openings = [
+    {
+      id: "door",
+      wall: "south",
+      type: "door",
+      pos: 2000,
+      width: 900,
+      sill: 0,
+      head: 2100,
+    },
+  ];
+  plan.rooms = [
+    {
+      id: "room",
+      x: 2000,
+      y: 2000,
+      name: "主卧",
+      mat: "oak",
+      ceil: { type: "none", drop: 0, edgeW: 400, cove: false },
+    },
+  ];
+  const curtain = createFurniture("curtain", 2000, 3800);
+  const chair = createFurniture("armchair", 2000, 3300);
+  plan.furniture = [curtain, chair];
+  const result = checkScene(plan);
+  const doorIssues = result.issues.filter(
+    (issue) => issue.code === "DOORWAY_BLOCKED",
+  );
+  assert.ok(doorIssues.some((issue) => issue.objectIds.includes(chair.id)));
+  assert.ok(!doorIssues.some((issue) => issue.objectIds.includes(curtain.id)));
+});

@@ -64,6 +64,8 @@ export class ChatPanel {
   private briefTask?: string;
   private floorplanUpload = node("button", "上传户型图复现客餐厅");
   private floorplanFile = node("input");
+  private photoUpload = node("button", "上传物品照片转 3D");
+  onPhotoImport?: () => void;
   private projectId?: string;
   private conversationId?: string;
   private tasks: any[] = [];
@@ -81,6 +83,9 @@ export class ChatPanel {
     this.floorplanFile.accept = "image/png,image/jpeg,.png,.jpg,.jpeg";
     this.floorplanFile.hidden = true;
     this.floorplanUpload.onclick = () => this.floorplanFile.click();
+    this.photoUpload.type = "button";
+    this.photoUpload.dataset.testid = "chat-photo-import";
+    this.photoUpload.onclick = () => this.onPhotoImport?.();
     this.floorplanFile.onchange = () => {
       const file = this.floorplanFile.files?.[0];
       if (file) void this.uploadFloorplan(file);
@@ -103,6 +108,7 @@ export class ChatPanel {
       this.context,
       this.floorplanUpload,
       this.floorplanFile,
+      this.photoUpload,
       this.connection,
       this.brief,
       this.messages,
@@ -676,6 +682,7 @@ export class ChatPanel {
           ? previous.body
           : {
               requestId: crypto.randomUUID(),
+              projectId: this.projectId,
               input,
               selectedIds: context.selectedIds,
               ...(!current && this.mode() !== "edit"
@@ -760,6 +767,7 @@ export class ChatPanel {
           ? previous.body
           : {
               requestId: crypto.randomUUID(),
+              projectId: this.projectId,
               input,
               mode: "reconstruct_floorplan",
               imageId: image.id,

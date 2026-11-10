@@ -65,6 +65,7 @@ export class ChatPanel {
   private floorplanUpload = node("button", "上传户型图复现客餐厅");
   private floorplanFile = node("input");
   private photoUpload = node("button", "上传物品照片转 3D");
+  private quick = node("div", undefined, "chat-quick");
   onPhotoImport?: () => void;
   private projectId?: string;
   private conversationId?: string;
@@ -77,6 +78,11 @@ export class ChatPanel {
   constructor(
     private getContext: () => Context,
     private onCommit: (projectId: string, generated?: boolean) => Promise<void>,
+    private onActivity?: (state: {
+      active: boolean;
+      waiting?: boolean;
+      label: string;
+    }) => void,
   ) {
     this.floorplanUpload.type = "button";
     this.floorplanFile.type = "file";
@@ -103,13 +109,18 @@ export class ChatPanel {
     this.send.type = "submit";
     this.cancel.type = "button";
     form.append(this.input, actions);
+    this.quick.append(
+      this.suggestion("试试：生成一个 6×4.2 米的客餐厅"),
+      this.suggestion("试试：把茶几往左移 200 毫米"),
+      this.suggestion("试试：打开电视柜检查净空"),
+    );
     this.root.append(
-      node("h2", "设计助手"),
       this.context,
+      this.connection,
+      this.quick,
       this.floorplanUpload,
       this.floorplanFile,
       this.photoUpload,
-      this.connection,
       this.brief,
       this.messages,
       this.notice,
@@ -131,6 +142,22 @@ export class ChatPanel {
         void this.submit();
       }
     };
+  }
+  private suggestion(text: string) {
+    const button = node("button", text, "chat-suggestion");
+    button.type = "button";
+    button.onclick = () => {
+      this.input.value = text.replace(/^试试：/, "");
+      this.input.focus();
+    };
+    return button;
+  }
+  focus() {
+    this.input.focus();
+    this.input.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  openFloorplan() {
+    this.floorplanFile.click();
   }
   mount(host: HTMLElement, projectId: string) {
     if (this.root.parentElement !== host) host.replaceChildren(this.root);
@@ -318,6 +345,16 @@ export class ChatPanel {
   }
   private render() {
     this.renderMode();
+    const currentTask = this.current();
+    this.onActivity?.({
+      active: !!currentTask,
+      waiting: currentTask?.status === "waiting_input",
+      label: currentTask
+        ? currentTask.status === "waiting_input"
+          ? "等待你核对户型草稿"
+          : currentTask.phaseLabel || "AI 正在处理你的空间…"
+        : "在线 · 等你的下一个想法",
+    });
     const nearBottom =
       this.messages.scrollHeight -
         this.messages.scrollTop -
@@ -334,7 +371,12 @@ export class ChatPanel {
           "muted",
         ),
       );
-    for (const task of this.tasks.slice(-40)) {
+    const visibleTasks = this.tasks.slice(-4);
+    if (this.tasks.length > visibleTasks.length)
+      this.messages.append(
+        node("p", `更早的 ${this.tasks.length - visibleTasks.length} 条记录已收起`, "chat-older"),
+      );
+    for (const task of visibleTasks) {
       const entry = node("article", undefined, "chat-task");
       entry.dataset.task = task.id;
       entry.append(node("div", task.input, "chat-user"));
@@ -346,6 +388,23 @@ export class ChatPanel {
         );
       badge.dataset.status = task.status;
       reply.append(badge);
+      if (active.has(task.status) && task.status !== "waiting_input") {
+        const rail = node("div", undefined, "chat-phase-rail");
+        const label = task.phaseLabel || "";
+        const currentIndex = /提交|保存/.test(label)
+          ? 3
+          : /检查|渲染|核对|修复/.test(label)
+            ? 2
+            : /生成|设计|选择|理解/.test(label)
+              ? 1
+              : 0;
+        for (const [index, text] of ["理解", "生成", "检查", "保存"].entries()) {
+          const step = node("span", text);
+          if (index === currentIndex) step.className = "current";
+          rail.append(step);
+        }
+        reply.append(rail);
+      }
       reply.append(
         node(
           "p",

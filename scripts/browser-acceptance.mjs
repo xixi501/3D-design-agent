@@ -297,6 +297,7 @@ try {
   await step(
     "kitchen shape, per-run wall cabinets, room surfaces and custom tiles use real controls",
     async () => {
+      await page.click("#open-catalog");
       await page.type("#catalog-search", "uCounter");
       await clickMutation('[data-key="uCounter"]');
       await change('[data-field="kit.shape"]', "L");
@@ -306,6 +307,7 @@ try {
       assert.equal(kitchen.kit.shape, "L");
       assert.equal(kitchen.kit.sink.bowls, 2);
       assert.deepEqual(kitchen.kit.wallLegs, [0]);
+      await page.click("#close-catalog");
       const room = (await current()).plan.rooms[0];
       await page.evaluate(
         (id) => __actiscape.select({ collection: "rooms", id }),
@@ -324,6 +326,7 @@ try {
   await step(
     "wall drawing, opening placement and structural updates commit atomically",
     async () => {
+      await page.click('#mode-precision');
       await page.click('#structural-toggle');
       await page.click('[data-tool="wall"]');
       const points = await page.evaluate(() =>

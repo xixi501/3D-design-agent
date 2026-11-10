@@ -69,9 +69,23 @@ export class FloorplanPanel {
     this.canvas.dataset.testid = "floorplan-canvas";
     const heading = el("div"),
       close = el("button", "关闭"),
-      title = el("h2", "核对户型图");
+      title = el("h2", "核对户型图"),
+      titleBlock = el("div"),
+      steps = el("div");
     heading.className = "floorplan-heading";
-    heading.append(title, close);
+    titleBlock.className = "floorplan-title";
+    steps.className = "floorplan-steps";
+    for (const [index, label] of ["识别", "核对", "生成"].entries()) {
+      const step = el("span", `${String(index + 1).padStart(2, "0")}  ${label}`);
+      if (index === 1) step.className = "active";
+      steps.append(step);
+    }
+    titleBlock.append(
+      el("span", "AI FLOORPLAN RECONSTRUCTION"),
+      title,
+      steps,
+    );
+    heading.append(titleBlock, close);
     close.onclick = () => this.dialog.close();
     const body = el("div"),
       drawing = el("div"),

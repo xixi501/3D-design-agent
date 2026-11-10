@@ -25,15 +25,98 @@ import { Ov } from "./modeling/furniture-3d.js";
 import { Fh } from "./modeling/furniture-2d.js";
 import * as THREE from "three";
 const root = document.querySelector("#app")!;
-root.innerHTML = `<header><div class="brand">演境 <span>ActiScape</span></div><input id="project-name" aria-label="项目名称"><span id="save-state" role="status">连接项目服务…</span><div class="header-actions"><button id="new-project">新建</button><button id="open-project">打开项目</button><button id="import-project">导入 JSON</button><button id="export-project">导出</button><button id="save-project" class="primary">保存</button></div></header>
-<div class="toolbar"><div class="tools"><button data-tool="select" class="active">选择</button><button id="structural-toggle" title="墙体、门窗、柱梁等结构工具">结构工具</button><span id="structural-tools"><button data-tool="wall">墙体</button><button data-tool="opening:door">门</button><button data-tool="opening:window">窗</button><button data-tool="struct:column">柱</button><button data-tool="beam">梁</button><button data-tool="room">房间</button><button data-tool="measure">尺寸</button></span></div><select id="openable-jump" title="定位可开启家具" aria-label="定位可开启家具"><option value="">可开启家具…</option></select><div class="view-switch"><button data-view="2d" class="active">二维</button><button data-view="split">分屏</button><button data-view="3d">三维</button></div><button id="frame">适应视图</button><button id="source-image" hidden>显示原图</button><button id="walk">漫游</button><button id="open-all" data-testid="open-all">一键全开检验</button><button id="undo" title="Ctrl Z">撤销</button><button id="redo" title="Ctrl Shift Z">重做</button></div>
-<main><aside class="library"><div class="side-heading">家具与模型 <span id="catalog-count"></span></div><input id="catalog-search" placeholder="搜索家具 / 造型" aria-label="搜索家具"><button id="upload-model" class="wide primary subtle">＋ 导入 GLB 模型</button><button id="upload-photo" class="wide subtle" data-testid="upload-photo">＋ 上传物品照片转 3D</button><div id="catalog"></div></aside><div id="viewport" data-mode="2d"><div id="plan-view"></div><div id="three-view"></div><div id="selection-actions" hidden><span id="selection-name"></span><button id="selection-toggle" hidden>打开柜门</button></div><div class="view-caption">单层设计 · mm</div></div><aside class="inspector"><nav><button data-panel="properties" class="active">属性</button><button data-panel="history">历史</button><button data-panel="checks">检查</button><button data-panel="chat">对话</button></nav><div id="inspector-body"></div></aside></main><footer><span id="message" role="status">正在载入…</span><span id="revision"></span></footer><input id="json-file" type="file" accept=".json,application/json" hidden><input id="glb-file" type="file" accept=".glb" hidden><input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><dialog id="dialog"><div id="dialog-body"></div><button id="close-dialog">关闭</button></dialog>`;
+root.innerHTML = `<header class="app-bar">
+  <div class="brand-block">
+    <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M6 8h17v5H11v19h18v-9h5v14H6z"/><path d="M23 4h11v11h-5V9h-6z"/><path d="M18 18h10v4H18z"/></svg></span>
+    <div><b>演境</b><small>ACTISCAPE · AI STUDIO</small></div>
+  </div>
+  <div class="project-block">
+    <span class="eyebrow">当前空间</span>
+    <input id="project-name" aria-label="项目名称">
+    <span id="save-state" role="status">连接项目服务…</span>
+  </div>
+  <div class="bar-actions">
+    <div class="mode-switch" role="group" aria-label="工作模式">
+      <button id="mode-ai" class="active">AI 设计</button>
+      <button id="mode-precision">精细编辑</button>
+    </div>
+    <button id="new-project" class="quiet">新建空间</button>
+    <button id="open-project" class="quiet">打开项目</button>
+    <details class="more-actions"><summary aria-label="更多项目操作">•••</summary><button id="import-project">导入 JSON</button><button id="export-project">导出项目</button></details>
+    <button id="mobile-agent" class="mobile-only" title="打开 AI 设计搭档">AI</button>
+    <button id="context-toggle" class="mobile-only" title="打开项目上下文">属性</button>
+    <button id="save-project" class="primary">保存</button>
+  </div>
+</header>
+<div class="workbench">
+  <aside class="agent-rail" id="agent-rail">
+    <div class="agent-rail-head">
+      <span class="agent-orb">AI</span>
+      <div class="agent-rail-title"><strong>AI 设计搭档</strong><span id="agent-live-status">在线 · 等你的第一个想法</span></div>
+      <span class="live-dot" aria-hidden="true"></span>
+    </div>
+    <div id="agent-host" class="agent-host"></div>
+  </aside>
+  <section class="stage-shell">
+    <div class="stage-toolbar">
+      <div class="stage-title"><span class="eyebrow">空间画布</span><strong id="stage-room-label">未命名空间</strong></div>
+      <div class="stage-space-nav" id="space-nav" hidden></div>
+      <div class="stage-view"><button data-view="2d" class="active">2D</button><button data-view="split">分屏</button><button data-view="3d">3D</button></div>
+      <div class="stage-actions">
+        <button id="frame" title="适应视图">适应</button>
+        <button id="source-image" hidden>原图</button>
+        <button id="walk" title="第一人称漫游">漫游</button>
+        <button id="open-all" data-testid="open-all">一键全开</button>
+        <button id="undo" title="Ctrl Z">撤销</button>
+        <button id="redo" title="Ctrl Shift Z">重做</button>
+      </div>
+    </div>
+    <div id="viewport" data-mode="2d">
+      <div id="plan-view"></div>
+      <div id="three-view"></div>
+      <div id="selection-actions" hidden><span id="selection-name"></span><button id="selection-toggle" hidden>打开柜门</button></div>
+      <div id="stage-busy" class="stage-busy" hidden><div class="stage-busy-card"><span class="agent-orb mini">AI</span><div><strong>AI 正在构建空间</strong><span id="stage-busy-label">理解空间与需求…</span></div><i aria-hidden="true"></i></div></div>
+      <div id="empty-state" class="empty-state">
+        <div class="empty-kicker">A NEW SPACE · 01</div>
+        <h1>把空间交给 AI，<em>从一个想法开始</em></h1>
+        <p class="empty-lede">描述你想要的房间，或上传户型图让 AI 识别全屋。它会读懂空间、生成候选，并把检查结果交给你确认。</p>
+        <div class="empty-choices">
+          <button class="empty-card" id="empty-floorplan"><span class="empty-index">01</span><b>上传户型图</b><small>AI 识别墙体、门窗与房间<br>先核对，再生成</small><i>↗</i></button>
+          <button class="empty-card" id="empty-prompt"><span class="empty-index">02</span><b>从一句话开始</b><small>描述尺寸、功能与风格<br>生成第一版空间</small><i>↗</i></button>
+        </div>
+        <button id="empty-example" class="text-button">或打开一个示例空间 <span>→</span></button>
+      </div>
+      <div class="view-caption">单层设计 · mm</div>
+    </div>
+    <div class="stage-footer">
+      <div class="tools"><button data-tool="select" class="active">选择</button><button id="structural-toggle" title="墙体、门窗、柱梁等结构工具">结构工具</button><span id="structural-tools"><button data-tool="wall">墙体</button><button data-tool="opening:door">门</button><button data-tool="opening:window">窗</button><button data-tool="struct:column">柱</button><button data-tool="beam">梁</button><button data-tool="room">房间</button><button data-tool="measure">尺寸</button></span></div>
+      <select id="openable-jump" title="定位可开启家具" aria-label="定位可开启家具"><option value="">可开启家具…</option></select>
+      <button id="open-catalog" class="catalog-trigger">＋ 添加家具</button>
+      <span class="stage-help">空格拖动画布 · 滚轮缩放 · E 开关柜门</span>
+    </div>
+  </section>
+  <aside class="context-panel" id="context-panel">
+    <div class="context-head"><span class="eyebrow">CONTEXT</span><span>项目上下文</span><button id="context-close" class="icon-button" aria-label="关闭上下文">×</button></div>
+    <nav class="context-tabs"><button data-panel="overview" class="active">概览</button><button data-panel="properties">属性</button><button data-panel="checks">检查</button><button data-panel="history">历史</button><button data-panel="chat">AI</button></nav>
+    <div id="inspector-body"></div>
+  </aside>
+</div>
+<footer><span id="message" role="status">正在载入…</span><span class="footer-shortcuts">⌘K AI 指令 · ⌘Z 撤销 · E 开关</span><span id="revision"></span></footer>
+<div id="catalog-drawer" class="drawer" hidden>
+  <button class="drawer-scrim" id="close-catalog-scrim" aria-label="关闭家具目录"></button>
+  <aside class="drawer-panel" aria-label="家具目录">
+    <div class="drawer-head"><div><span class="eyebrow">ASSET LIBRARY</span><h2>添加家具</h2></div><button id="close-catalog" class="icon-button" aria-label="关闭">×</button></div>
+    <aside class="library"><div class="side-heading">家具与模型 <span id="catalog-count"></span></div><input id="catalog-search" placeholder="搜索家具 / 造型" aria-label="搜索家具"><button id="upload-model" class="wide subtle">＋ 导入 GLB 模型</button><button id="upload-photo" class="wide subtle" data-testid="upload-photo">＋ 上传物品照片转 3D</button><div id="catalog"></div></aside>
+  </aside>
+</div>
+<input id="json-file" type="file" accept=".json,application/json" hidden><input id="glb-file" type="file" accept=".glb" hidden><input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><dialog id="dialog"><div id="dialog-body"></div><button id="close-dialog">关闭</button></dialog>`;
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
+document.body.dataset.mode = "ai";
 let project: Project | undefined,
   selection: Selection | undefined,
   busy = false,
-  panel = "properties",
+  panel = "overview",
   events: EventSource | undefined,
   loadSequence = 0,
   inspectorSequence = 0,
@@ -88,6 +171,13 @@ const chat = new ChatPanel(
         three.frame();
       }
     }
+  },
+  (state) => {
+    $("#agent-live-status").textContent = state.label;
+    $("#agent-rail").classList.toggle("is-working", state.active);
+    $("#stage-busy").hidden = !state.active || !!state.waiting;
+    $("#stage-busy-label").textContent = state.label;
+    if (state.active || state.waiting) $("#empty-state").classList.add("is-hidden");
   },
 );
 chat.onPhotoImport = () => $<HTMLInputElement>("#photo-file").click();
@@ -148,6 +238,9 @@ function setSelection(s?: Selection) {
       ? { id: s.id, collection: s.collection }
       : undefined;
   three.highlight(s?.collection === "furniture" ? s.id : undefined);
+  if (s && panel === "overview") panel = "properties";
+  if (!s && panel === "properties") panel = "overview";
+  syncPanel();
   updateSelectionActions();
   if (s?.collection === "furniture") {
     const f = project?.plan.furniture.find((x) => x.id === s.id);
@@ -161,7 +254,11 @@ async function inspector() {
   const sequence = ++inspectorSequence;
   const host = $("#inspector-body");
   if (panel === "chat") {
-    chat.mount(host, project.id);
+    chat.focus();
+    return;
+  }
+  if (panel === "overview") {
+    renderOverview(host);
     return;
   }
   if (panel === "properties") {
@@ -204,6 +301,89 @@ async function inspector() {
     );
   }
 }
+function openCatalog() {
+  const drawer = $("#catalog-drawer");
+  drawer.hidden = false;
+  document.body.classList.add("catalog-open");
+  requestAnimationFrame(() => $("#catalog-search").focus());
+}
+function closeCatalog() {
+  const drawer = $("#catalog-drawer");
+  drawer.hidden = true;
+  document.body.classList.remove("catalog-open");
+}
+function setMode(mode: "ai" | "precision") {
+  document.body.dataset.mode = mode;
+  $("#mode-ai").classList.toggle("active", mode === "ai");
+  $("#mode-precision").classList.toggle("active", mode === "precision");
+  if (mode === "ai") closeCatalog();
+}
+function renderOverview(host: HTMLElement) {
+  if (!project) return;
+  const plan = project.plan;
+  const rooms = plan.rooms || [];
+  const selectedCount = selection ? 1 : 0;
+  host.innerHTML = `<div class="overview">
+    <div class="overview-hero"><span class="eyebrow">PROJECT OVERVIEW</span><h2>${esc(plan.name || "未命名空间")}</h2><p>${rooms.length ? `${rooms.length} 个空间 · ${plan.furniture.length} 件家具 · 版本 ${project.revision}` : "从一个想法开始，AI 会帮你完成第一版空间。"}</p></div>
+    <div class="metric-grid">
+      <div><b>${rooms.length}</b><span>空间</span></div>
+      <div><b>${plan.furniture.length}</b><span>家具</span></div>
+      <div><b>${plan.walls.length}</b><span>墙体</span></div>
+    </div>
+    ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => `<button data-room="${esc(r.id)}"><b>${esc(r.name || "空间")}</b><small>定位</small></button>`).join("")}</div></section>` : ""}
+    <section class="overview-section"><div class="overview-section-head"><h3>下一步</h3><span>AI 快捷入口</span></div><div class="overview-actions"><button data-overview-action="check">全屋检查</button><button data-overview-action="catalog">添加家具</button><button data-overview-action="walk">进入漫游</button></div></section>
+    ${selectedCount ? `<p class="overview-note">当前选中的对象已在属性面板中展开。</p>` : `<p class="overview-note">在画布中选择家具，或让 AI 继续帮你调整。</p>`}
+  </div>`;
+  host.querySelectorAll<HTMLButtonElement>("[data-room]").forEach((button) => {
+    button.onclick = () => {
+      const room = rooms.find((r) => r.id === button.dataset.room);
+      if (room) focusRoom(room);
+    };
+  });
+  host.querySelectorAll<HTMLButtonElement>("[data-overview-action]").forEach((button) => {
+    button.onclick = () => {
+      const action = button.dataset.overviewAction;
+      if (action === "check") {
+        panel = "checks";
+        syncPanel();
+        void inspector().catch(fail);
+      } else if (action === "catalog") openCatalog();
+      else if (action === "walk") $("#walk").click();
+    };
+  });
+}
+function focusRoom(room: any) {
+  if (planView.centerOn) planView.centerOn(room.x, room.y);
+  if (three.focusRoom) three.focusRoom(room);
+}
+function syncPanel() {
+  document.querySelectorAll<HTMLButtonElement>("[data-panel]").forEach((b) =>
+    b.classList.toggle("active", b.dataset.panel === panel),
+  );
+}
+function updateEmptyState() {
+  const blank =
+    !!project &&
+    collections.every((k) => project!.plan[k].length === 0) &&
+    !project.roomLabelArchive.length;
+  $("#empty-state").classList.toggle("is-hidden", !blank);
+}
+function renderSpaceNav() {
+  const nav = $("#space-nav");
+  if (!project) return;
+  const rooms = project.plan.rooms || [];
+  nav.hidden = rooms.length < 2 || rooms.length > 5;
+  nav.innerHTML = rooms
+    .slice(0, 8)
+    .map((r) => `<button data-space="${esc(r.id)}">${esc(r.name || "空间")}</button>`)
+    .join("");
+  nav.querySelectorAll<HTMLButtonElement>("[data-space]").forEach((b) => {
+    b.onclick = () => {
+      const room = rooms.find((r) => r.id === b.dataset.space);
+      if (room) focusRoom(room);
+    };
+  });
+}
 async function display(next: Project, frame = false) {
   project = next;
   localStorage.setItem("actiscape-project", next.id);
@@ -211,6 +391,7 @@ async function display(next: Project, frame = false) {
   $<HTMLInputElement>("#project-name").value = next.plan.name;
   $("#revision").textContent =
     `版本 ${next.revision} · ${next.plan.furniture.length} 件家具`;
+  $("#stage-room-label").textContent = next.plan.name || "未命名空间";
   $("#open-all").textContent =
     allDoorCabinetCommands(next.plan, "toggle").mode === "close"
       ? "复位门柜"
@@ -243,6 +424,10 @@ async function display(next: Project, frame = false) {
     selection?.collection === "furniture" ? selection.id : undefined,
   );
   updateSelectionActions();
+  chat.mount($("#agent-host"), next.id);
+  renderSpaceNav();
+  updateEmptyState();
+  syncPanel();
   await inspector();
   await assetLibrary();
   if (!lastFailure) saved("已保存到项目服务");
@@ -692,10 +877,9 @@ $("#close-dialog").onclick = () => $<HTMLDialogElement>("#dialog").close();
 $("#new-project").onclick = () =>
   void (async () => {
     await open(await post("/projects", {}));
-    panel = "chat";
-    document
-      .querySelectorAll<HTMLButtonElement>("[data-panel]")
-      .forEach((b) => b.classList.toggle("active", b.dataset.panel === "chat"));
+    panel = "overview";
+    syncPanel();
+    chat.focus();
     await inspector();
   })().catch(fail);
 $("#save-project").onclick = () => {
@@ -795,6 +979,33 @@ $("#frame").onclick = () => {
   planView.frame();
   three.frame();
 };
+$("#mode-ai").onclick = () => setMode("ai");
+$("#mode-precision").onclick = () => setMode("precision");
+$("#open-catalog").onclick = openCatalog;
+$("#close-catalog").onclick = closeCatalog;
+$("#close-catalog-scrim").onclick = closeCatalog;
+$("#mobile-agent").onclick = () => {
+  $("#context-panel").classList.remove("open");
+  $("#agent-rail").classList.toggle("mobile-open");
+};
+$("#context-toggle").onclick = () => {
+  $("#agent-rail").classList.remove("mobile-open");
+  $("#context-panel").classList.toggle("open");
+};
+$("#context-close").onclick = () => $("#context-panel").classList.remove("open");
+$("#empty-prompt").onclick = () => chat.focus();
+$("#empty-floorplan").onclick = () => chat.openFloorplan();
+$("#empty-example").onclick = () => $("#open-project").click();
+window.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.code === "KeyK") {
+    e.preventDefault();
+    chat.focus();
+  }
+  if (e.code === "Escape" && !$("#catalog-drawer").hidden) {
+    e.preventDefault();
+    closeCatalog();
+  }
+});
 $("#structural-toggle").onclick = () => {
   const tools = $(".tools");
   const open = tools.classList.toggle("open");
@@ -868,10 +1079,12 @@ document
 document.querySelectorAll<HTMLButtonElement>("[data-panel]").forEach(
   (b) =>
     (b.onclick = () => {
+      if (b.dataset.panel === "chat") {
+        chat.focus();
+        return;
+      }
       panel = b.dataset.panel!;
-      document
-        .querySelectorAll("[data-panel]")
-        .forEach((t) => t.classList.toggle("active", t === b));
+      syncPanel();
       void inspector().catch(fail);
     }),
 );

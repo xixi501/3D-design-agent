@@ -77,6 +77,8 @@ export class ThreeView {
     start: THREE.Vector3;
     plane: THREE.Plane;
     next: { x: number; y: number };
+    startClient: { x: number; y: number };
+    moved: boolean;
   };
   constructor(
     public host: HTMLElement,
@@ -101,7 +103,7 @@ export class ThreeView {
     this.renderer.toneMappingExposure = 1.25;
     host.append(this.renderer.domElement);
     this.renderer.domElement.dataset.testid = "three-canvas";
-    this.scene.background = new THREE.Color("#eef1f4");
+    this.scene.background = new THREE.Color("#e9e3d8");
     this.scene.add(new THREE.HemisphereLight("#fff8ef", "#b2bcc7", 2.4));
     const sun = new THREE.DirectionalLight("#fff4e0", 2.8);
     sun.position.set(8, 14, 10);
@@ -156,6 +158,8 @@ export class ThreeView {
           plane,
           base: this.base,
           next: { x: f.x, y: f.y },
+          startClient: { x: e.clientX, y: e.clientY },
+          moved: false,
         };
         this.controls.enabled = false;
         canvas.setPointerCapture(e.pointerId);
@@ -164,6 +168,16 @@ export class ThreeView {
     );
     canvas.addEventListener("pointermove", (e) => {
       if (!this.drag) return;
+      if (!this.drag.moved) {
+        if (
+          Math.hypot(
+            e.clientX - this.drag.startClient.x,
+            e.clientY - this.drag.startClient.y,
+          ) < 3
+        )
+          return;
+        this.drag.moved = true;
+      }
       const point = this.rayAt(e).ray.intersectPlane(
         this.drag.plane,
         new THREE.Vector3(),
@@ -179,10 +193,10 @@ export class ThreeView {
     });
     canvas.addEventListener("pointerup", () => {
       if (!this.drag) return;
-      const { f, next, base } = this.drag;
+      const { f, next, base, moved } = this.drag;
       this.drag = undefined;
       this.controls.enabled = !this.walking;
-      if (Math.hypot(next.x - f.x, next.y - f.y) > 1)
+      if (moved && Math.hypot(next.x - f.x, next.y - f.y) > 1)
         void this.commit(
           [{ type: "update", collection: "furniture", id: f.id, patch: next }],
           "三维拖动对象",
@@ -894,6 +908,13 @@ export class ThreeView {
       edges.position.y = 0.006;
       this.envelopeLayer.add(mesh, edges);
     }
+  }
+  focusRoom(room: { x: number; y: number }) {
+    const x = room.x / 1000,
+      z = room.y / 1000;
+    this.camera.position.set(x + 3.6, 3.2, z + 4.2);
+    this.controls.target.set(x, 0.8, z);
+    this.controls.update();
   }
   focusFurniture(id: string) {
     const f = this.plan?.furniture.find((item) => item.id === id);

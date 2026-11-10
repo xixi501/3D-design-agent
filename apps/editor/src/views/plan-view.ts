@@ -146,6 +146,15 @@ export class PlanView {
     this.oy = (h - b.h * this.scale) / 2 - b.y * this.scale;
     this.draw();
   }
+  centerOn(x: number, y: number, zoom = this.scale) {
+    const w = this.host.clientWidth,
+      h = this.host.clientHeight;
+    if (w <= 0 || h <= 0) return;
+    this.scale = Math.max(0.001, zoom);
+    this.ox = w / 2 - x * this.scale;
+    this.oy = h / 2 - y * this.scale;
+    this.draw();
+  }
   screen(p: { x: number; y: number }) {
     const r = this.canvas.getBoundingClientRect();
     return {
@@ -559,7 +568,7 @@ export class PlanView {
       dpr = devicePixelRatio;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, this.canvas.width / dpr, this.canvas.height / dpr);
-    c.fillStyle = "#f7f8fa";
+    c.fillStyle = "#f7f3eb";
     c.fillRect(0, 0, this.canvas.width / dpr, this.canvas.height / dpr);
     if (!this.plan) return;
     c.translate(this.ox, this.oy);
@@ -568,7 +577,7 @@ export class PlanView {
       plan = this.plan,
       geo = wallGeometry(plan),
       rooms = detectRooms(plan, geo);
-    c.strokeStyle = "#e3e8ec";
+    c.strokeStyle = "#e5ded2";
     c.lineWidth = unit * 0.5;
     const step = this.scale < 0.04 ? 1000 : 500;
     for (

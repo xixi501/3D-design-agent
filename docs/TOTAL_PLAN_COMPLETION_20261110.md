@@ -9,7 +9,7 @@
 - 路径：`/workspace/3D-design-agent`
 - 分支：`dev/core`
 - 本交付以 `git log -1` 为准；工作区应在提交后保持干净。
-- 当前测试基线：**Node 79、Python 169、`npm run test:all` exit 0**。
+- 当前测试基线：**Node 80、Python 183、`npm run test:all` exit 0**。
 - 真实 V100 缓存仍为 0 案例（P2.1 外部依赖）；`apps/asset-service` 仍未合入。
 - 真实华为云 AgentArts 未部署；P4 在本地模拟 `/invocations` 验收，`cloudDeploymentVerified=false`。
 
@@ -29,10 +29,10 @@
 
 | 文档阶段 | 用户编号 | 状态 | 主要依据 | 未闭合项 |
 | --- | --- | --- | --- | --- |
-| P0 | P1 | **完成（G3 可选未做）** | `docs/P1_ACCEPTANCE_20261110.md`；动作/净空/台面真实演示 | 柜体前方地面“半透明开启包络线框”仍未单独绘制（G3 可选加分项） |
-| P1 | P0 | **主体完成，1 项兜底未实现** | `docs/P0_ACCEPTANCE_20261110.md`；7 类房间 + 2BHK | `roles.py` 确定性排布兜底未实现（G2）；2BHK 展示用冻结 fixture |
+| P0 | P1 | **完成** | `docs/P1_ACCEPTANCE_20261110.md`；动作/净空/台面真实演示 | 无 |
+| P1 | P0 | **完成** | `docs/P0_ACCEPTANCE_20261110.md`；7 类房间 + 2BHK | 2BHK 展示用冻结 fixture（实时 VLM 非本轮范围） |
 | P2 | P2 | **成员一完成；P2.1 外部依赖** | `docs/P2_ACCEPTANCE_20261110.md` | `apps/asset-service` 未合入；真实 V100 缓存 0；P2 第二验收命令不可执行 |
-| P3 | P3 | **完成，G4/G7/G8 已收口** | `docs/P3_ACCEPTANCE_20261110.md` | FastExec 不含单件平移/改色；动作/照片冲突默认等待；Repair 仍是有界指令 |
+| P3 | P3 | **完成** | `docs/P3_ACCEPTANCE_20261110.md` | 照片候选碰撞仍等待输入；Repair 仍是有界指令 |
 | P4 | P4 | **完成（本地模拟，非真实云部署）** | `docs/P4_ACCEPTANCE_20261110.md`；候选 envelope + runtime 全流程 | 真实华为云凭证/网络未验证；云端转发同步、无 SSE/resume |
 
 ## 2. 本轮 P4 实现
@@ -67,6 +67,8 @@
   - 本地模式自动剥离 `projectId`，保持原 TaskInput 严格契约。
 - 测试：`test_agentarts_runtime.py`、`tests/agentarts-proxy.test.ts`。
 
+**走查修复**：本地代理已发送 `localBody`（tasks/resume 剥离 `projectId`）；`watchActive()` 跳过 `cloud:true`；`task_runtime` 透传 `floorplanScope`。
+
 **边界**：云端转发是同步的；真实生产建议用 AgentArts 异步任务/轮询。`node scripts/platform-probe.mjs --prepare-only` 通过，但完整 probe 需要真实 SDK 运行时/模型。
 
 ## 3. 本轮收口的 4 项技术债
@@ -93,9 +95,16 @@
 - 为 `rectangular-living-reading`、`style-coherence`、`lighting-color`、`photo-object-import` 等补齐阶段提示；
 - 修复 `**第 N 步 …** [J-…]` 带尾注时无法解析步骤的问题；
 - 新增 `test_active_stage_slices_have_no_fallback`：active primary/modifier 在 asset/layout/check/repair 均 `fallback=false`；
-- 结果：`pytest` 169 passed。
+- 结果：`pytest` 183 passed。
 
-### 3.3 G8：命令脚本口径（已关闭）
+### 3.3 G2/G3/G5/G6：本轮追加关闭
+
+- **G2**：`deterministic_layout.py` 复用 6 类 positive L3 模板 + 过道通用布局；设计模型超时/格式失败时回退，fake-model 测试覆盖。
+- **G3**：`three-view.ts` 在柜体开启或选中时绘制地面半透明包络，冲突橙红、正常青绿。
+- **G5**：PolicyController 支持单件快速平移/旋转/改色；InteractiveFlow 生成 update Candidate。
+- **G6**：`OPENABLE_FRONT_BLOCKED` 时按 `clearance - remaining + 50mm` 移开阻挡物，重新走 Candidate → CheckScene → Commit。
+
+### 3.4 G8：命令脚本口径（已关闭）
 
 - `packages/scene-core/package.json` 新增：
   ```json
@@ -114,8 +123,8 @@
 
 | 命令 | 当前结果 |
 | --- | --- |
-| `npm test` | **79 passed / 0 failed** |
-| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **169 passed** |
+| `npm test` | **80 passed / 0 failed** |
+| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **183 passed** |
 | `npm run build` | 通过（typecheck + vite） |
 | `npm run test:all` | **exit 0**（baseline/browser/parity/catalog/visual） |
 | `npm run test:skill-pool:v1` | **exit 0**（13 Skills / 26 cases） |
@@ -129,7 +138,7 @@
 - **用户 P1 / 文档 P0 动作**：[总览](evidence/p1-actions-20261110/contact-sheet.png) · [冲突检查](evidence/p1-actions-20261110/32-conflict-checks.png) · [一键全开](evidence/p1-actions-20261110/44-overview-open.png)
 - **用户 P2 / 文档 P2 照片**：[总览](evidence/p2-photo-assets-20261110/contact-sheet.png) · [校准](evidence/p2-photo-assets-20261110/70-dialog.png) · [台面落位](evidence/p2-photo-assets-20261110/71-placed.png)
 - **用户 P3 / 文档 P3 动作+照片**：[总览](evidence/p3-policy-actions-20261110/contact-sheet.png) · [动作](evidence/p3-policy-actions-20261110/action-oblique.png) · [照片](evidence/p3-policy-actions-20261110/photo-oblique.png) · [冲突](evidence/p3-policy-actions-20261110/p3-blocked-chat.png)
-- **用户 P4 / 文档 P4 AgentArts**：[总览](evidence/p4-agentarts-20261110/contact-sheet.png) · [候选 envelope](evidence/p4-agentarts-20261110/candidate-envelope.json) · [runtime 全流程](evidence/p4-agentarts-20261110/runtime-run.json)
+- **用户 P4 / 文档 P4 AgentArts**：[总览](evidence/p4-agentarts-20261110/contact-sheet.png) · [候选 envelope](evidence/p4-agentarts-20261110/candidate-envelope.json) · [runtime 全流程](evidence/p4-agentarts-20261110/runtime-run.json) · [G3 包络](evidence/p4-agentarts-20261110/g3-open-envelope.png)
 
 阶段报告：
 
@@ -147,24 +156,12 @@
 - 成员二交付后放入 `data/real-generated-assets/<sha>/` 即可自动切换，无需改 P3/P4 路由；
 - 这不是接口缺失，是用户明确要求“先做接口、不等队友”。
 
-### 6.2 G2：`roles.py` 确定性排布兜底
+### 6.2 照片候选碰撞
 
-- 7 类房间仍依赖 DeepSeek 实时生成；
-- 模型失败/超时没有代码级保底；
-- 建议在 `roles.py`/`generation_roles.py` 补主卧、次卧、书房、厨卫、玄关的确定性布局器。
+- `photo_to_scene` 台面越界/碰撞仍返回 `waiting_input`，不自动重排；
+- 动作候选的 `OPENABLE_FRONT_BLOCKED` 已支持最小避让。
 
-### 6.3 G3：地面开启包络线框（可选）
-
-- 当前有柜门 3D 开启姿态 + 检查面板 mm 数；
-- 没有独立的地面半透明/虚线包络层；
-- 不影响确定性检查与动作验收。
-
-### 6.4 P3 两个非阻塞边界
-
-- `interactive_action` 只做开门/开柜/开关灯；单件平移/改色仍走 `edit`；
-- 动作/照片候选冲突默认 `waiting_input`，不自动进入 RepairPolicyRouter 重排；Repair 是角色有界指令，不是全自动几何修复。
-
-### 6.5 真实华为云部署
+### 6.3 真实华为云部署
 
 - `cloudDeploymentVerified=false`；
 - 本环境只验证 SDK 运行时、本地模拟 `/invocations`、网关转发与 probe 兼容；
@@ -188,7 +185,7 @@ node scripts/platform-probe.mjs --prepare-only
 
 预期：
 
-- Node 79；Python 169；build 通过；`test:all` exit 0；replay exit 0；scene-core 23；probe prepare 通过；
+- Node 80；Python 183；build 通过；`test:all` exit 0；replay exit 0；scene-core 23；probe prepare 通过；
 - `git status --short` 为空（本交付提交后）。
 
 关键抽查：
@@ -202,7 +199,7 @@ node scripts/platform-probe.mjs --prepare-only
 
 ## 8. 结论
 
-- **文档 P0/P3/P4 已落地并可展示**；文档 P1/P2 的主体已完成，但分别留下 G2 与 P2.1 外部依赖。
+- **文档 P0/P1/P3/P4 已落地并可展示**；文档 P2 成员一接口完成，P2.1 真实 V100 仍是外部依赖。
 - **G7/G4/G8/G10 已在本轮关闭**：replay 全绿、切片无 fallback、scene-core 命令可执行、工作区即将提交。
 - **不能声称真实华为云已部署或真实 V100 已接入**；报告已明确标注 `cloudDeploymentVerified=false` 与缓存 0。
-- 下一步若继续：优先真实 AgentArts 部署验证与 P2.1 真实资产；G2/G3 作为稳定性/展示增强。
+- 下一步若继续：优先真实 AgentArts 部署验证、P2.1 真实资产与照片碰撞自动重排。

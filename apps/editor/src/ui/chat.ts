@@ -616,6 +616,12 @@ export class ChatPanel {
       this.watched = undefined;
       return;
     }
+    if (task.cloud === true) {
+      this.events?.close();
+      this.events = undefined;
+      this.watched = undefined;
+      return;
+    }
     if (this.watched === task.id && this.events) return;
     this.events?.close();
     this.watched = task.id;

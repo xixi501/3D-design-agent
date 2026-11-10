@@ -130,32 +130,44 @@ class GenerationRoles:
             return result
 
         schema = asset_selection_schema(len(intent["additions"]), set(catalogue))
-        result = await self.base.invoke(
-            "assets",
-            self.asset_prompt,
-            schema,
-            [search_catalogue_batch],
-            {
-                **({"lastReport": last_report} if last_report is not None else {}),
-                "userRequest": task["input"],
-                "skill": stage_skill(
-                    task["generation"].get("skillBundle"),
-                    "asset",
-                    task["generation"].get("skillSnapshot"),
-                ),
-                "repairDirective": task["generation"].get("repairDirective"),
-                "requests": [{"request_index": i, **a} for i, a in enumerate(intent["additions"])],
-                **(
-                    {"sourceSymbols": task["generation"].get("compiledSymbols", [])}
-                    if task.get("mode") == "reconstruct_floorplan"
-                    else {}
-                ),
-            },
-            task["id"],
-            prompt_version=self.asset_version,
-        )
+        try:
+            result = await self.base.invoke(
+                "assets",
+                self.asset_prompt,
+                schema,
+                [search_catalogue_batch],
+                {
+                    **({"lastReport": last_report} if last_report is not None else {}),
+                    "userRequest": task["input"],
+                    "skill": stage_skill(
+                        task["generation"].get("skillBundle"),
+                        "asset",
+                        task["generation"].get("skillSnapshot"),
+                    ),
+                    "repairDirective": task["generation"].get("repairDirective"),
+                    "requests": [{"request_index": i, **a} for i, a in enumerate(intent["additions"])],
+                    **(
+                        {"sourceSymbols": task["generation"].get("compiledSymbols", [])}
+                        if task.get("mode") == "reconstruct_floorplan"
+                        else {}
+                    ),
+                },
+                task["id"],
+                prompt_version=self.asset_version,
+            )
+            return schema.model_validate(result).model_dump()
+        except Exception as error:  # noqa: BLE001 - deterministic fallback boundary
+            from .deterministic_layout import deterministic_assets
 
-        return schema.model_validate(result).model_dump()
+            fallback = deterministic_assets(intent, catalogue)
+            if fallback is None:
+                raise
+            self.store.event(
+                task["id"],
+                "deterministic_assets",
+                {"reason": type(error).__name__, "choices": fallback["choices"]},
+            )
+            return fallback
 
     async def candidate(self, task, project, scope, proposal, round):
         request = {
@@ -207,32 +219,52 @@ class GenerationRoles:
             "layout",
             generation.get("skillSnapshot"),
         )
-        result = await self.base.invoke(
-            "design",
-            DESIGN_PROMPT,
-            Proposal,
-            self.base.scene_tools(layout) + [precheck_initialization],
-            {
-                "userRequest": task["input"],
-                "scope": scope,
-                "shell": objects_summary(layout),
-                "dimensions": generation["dimensions"],
-                "openings": generation["openings"],
-                "style": generation["style"],
-                "selectedAssets": [catalogue[k] for k in scope["allowAddKeys"]],
-                "skill": skill_context,
-                "repairDirective": generation.get("repairDirective"),
-                "repairSkill": (
-                    stage_skill(generation.get("skillBundle"), "repair")
-                    if generation.get("repairDirective")
-                    else None
-                ),
-                "lastReport": last_report,
-            },
-            task["id"],
-            prompt_version=VERSION,
-        )
-        return Proposal.model_validate(result).model_dump(exclude_none=True)
+        try:
+            result = await self.base.invoke(
+                "design",
+                DESIGN_PROMPT,
+                Proposal,
+                self.base.scene_tools(layout) + [precheck_initialization],
+                {
+                    "userRequest": task["input"],
+                    "scope": scope,
+                    "shell": objects_summary(layout),
+                    "dimensions": generation["dimensions"],
+                    "openings": generation["openings"],
+                    "style": generation["style"],
+                    "selectedAssets": [catalogue[k] for k in scope["allowAddKeys"]],
+                    "skill": skill_context,
+                    "repairDirective": generation.get("repairDirective"),
+                    "repairSkill": (
+                        stage_skill(generation.get("skillBundle"), "repair")
+                        if generation.get("repairDirective")
+                        else None
+                    ),
+                    "lastReport": last_report,
+                },
+                task["id"],
+                prompt_version=VERSION,
+            )
+            return Proposal.model_validate(result).model_dump(exclude_none=True)
+        except Exception as error:  # noqa: BLE001 - bounded fallback boundary
+            # Model timeout/format failures must not strand an otherwise valid
+            # frozen shell. The fallback still goes through the same Candidate
+            # gate; this is a code path, not a privileged write.
+            from .deterministic_layout import deterministic_proposal
+
+            proposal = deterministic_proposal(task, layout, scope)
+            if proposal is None:
+                raise
+            self.store.event(
+                task["id"],
+                "deterministic_layout",
+                {
+                    "reason": type(error).__name__,
+                    "summary": proposal["summary"],
+                    "editCount": len(proposal["edits"]),
+                },
+            )
+            return proposal
 
     async def inspect(self, task, candidate, evidence):
         @tool

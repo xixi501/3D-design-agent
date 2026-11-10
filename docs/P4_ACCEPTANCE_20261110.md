@@ -24,6 +24,7 @@ P4 已完成并通过本地模拟验收：
 - [候选 envelope JSON](evidence/p4-agentarts-20261110/candidate-envelope.json)
 - [AgentArts runtime 全流程结果](evidence/p4-agentarts-20261110/runtime-run.json)
 - [platform-probe 输入](evidence/p4-agentarts-20261110/platform-probe-input.json)
+- [G3 地面开启包络线框](evidence/p4-agentarts-20261110/g3-open-envelope.png)
 
 ## 3. P4.1 去 Node 依赖与远程视觉候选
 
@@ -57,7 +58,7 @@ P4 已完成并通过本地模拟验收：
 - 网关 fixture 实测：`hpd-adapter-6-1`，1000×800，6 段墙、2 个洞口，artifact hash `46777b75…`；
 - `test_floorplan_vision_provider.py::test_remote_runner_uses_gateway_envelope_and_never_spawns_node` 通过；
 - `tests/floorplan-candidate.test.ts` 通过；
-- `npm test` 79 passed。
+- `npm test` 80 passed。
 
 ## 4. P4.2 AgentArts 完整 Workflow 与工作台转发
 
@@ -94,14 +95,23 @@ P4 已完成并通过本地模拟验收：
 - `tests/agentarts-proxy.test.ts`：本地模拟 `/invocations`，网关转发并返回 cloud task；
 - `node scripts/platform-probe.mjs --prepare-only`：通过，probe 载荷不变。
 
+### 4.4 P4 走查修复（2026-11-10 追加）
+
+1. **本地代理 `projectId` 剥离 Bug**：`agent-proxy.ts` 的本地 fetch 已改为发送 `localBody`，不再把 `projectId` 透传给 Python `TaskInput/ResumeInput`；新增本地 tasks/resume 转发断言。
+2. **cloud task 误监听**：`watchActive()` 对 `task.cloud === true` 直接关闭旧 EventSource 并返回，不再请求不存在的本地 SSE。
+3. **floorplanScope 透传**：`task_runtime._body` 现在保留 `floorplanScope`，AgentArts `run_task` 的户型图任务参数不丢失。
+4. **G3 包络线框**：`three-view.ts` 在柜体开启或选中时绘制地面半透明包络；冲突显示橙红，正常显示青绿。
+5. **G5/G6 FastExec + 最小避让**：策略支持单件平移/旋转/改色；`OPENABLE_FRONT_BLOCKED` 时按 `clearance - remaining + 50mm` 移开阻挡物并重新走 Candidate → CheckScene → Commit。
+6. **G2 确定性布局**：`deterministic_layout.py` 复用 6 类房间的 positive L3 模板，模型失败时缩放坐标生成候选；过道使用通用安全布局；fake-model 测试覆盖。
+
 ## 5. 验收命令
 
 ```bash
 npm test
-# 79 passed / 0 failed
+# 80 passed / 0 failed
 
 PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q
-# 169 passed
+# 183 passed
 
 npm run build
 # typecheck + vite build 通过

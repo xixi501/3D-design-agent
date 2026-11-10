@@ -53,6 +53,20 @@ PLAN = {
             "opt": {"open": False},
         },
         {
+            "id": "bed",
+            "key": "bed18",
+            "type": "bed",
+            "name": "双人床 1.8m",
+            "x": 2000,
+            "y": 1300,
+            "z": 0,
+            "rot": 0,
+            "w": 1800,
+            "d": 2000,
+            "h": 950,
+            "color": "#ffffff",
+        },
+        {
             "id": "t1",
             "key": "coffeeTable",
             "type": "coffeeTable",
@@ -87,7 +101,7 @@ PLAN = {
 
 
 class FlowScene:
-    def __init__(self, *, blocked=False):
+    def __init__(self, *, blocked=False, block_once=False):
         self.project = {
             "id": "p",
             "revision": 0,
@@ -96,6 +110,8 @@ class FlowScene:
         }
         self.candidates = {}
         self.blocked = blocked
+        self.block_once = block_once
+        self.blocked_once_used = False
 
     async def request(self, path, body=None):
         if path == "/projects/p":
@@ -122,6 +138,10 @@ class FlowScene:
                     else:
                         o = next(x for x in state["openings"] if x["id"] == edit["id"])
                         o["open"] = not o.get("open")
+                elif edit["type"] == "update":
+                    f = next(x for x in state["furniture"] if x["id"] == edit["id"])
+                    f.update(edit["values"])
+                    updated.append(f["id"])
                 elif edit["type"] == "placeAsset":
                     values = edit["values"]
                     state["furniture"].append(
@@ -156,18 +176,23 @@ class FlowScene:
                 "operationId": "commit-" + body["requestId"],
                 "scope": body["scope"],
                 "checks": {
-                    "passed": not self.blocked,
+                    "passed": not (
+                        self.blocked
+                        or (self.block_once and not self.blocked_once_used)
+                    ),
                     "issues": (
                         [
                             {
                                 "code": "OPENABLE_FRONT_BLOCKED",
                                 "objectIds": ["w1", "bed"],
-                                "message": "衣柜开启净空不足",
+                                "message": "衣柜开启净空仅 0 mm（需 600 mm），被 双人床 1.8m 占用",
                                 "level": "error",
                                 "blocking": True,
+                                "metric": 0,
                             }
                         ]
                         if self.blocked
+                        or (self.block_once and not self.blocked_once_used)
                         else []
                     ),
                     "coverage": [],
@@ -178,6 +203,8 @@ class FlowScene:
                 "committed": None,
             }
             self.candidates[c["id"]] = c
+            if self.block_once and not self.blocked_once_used:
+                self.blocked_once_used = True
             return copy.deepcopy(c)
         parts = path.split("/")
         cid = parts[4]
@@ -327,5 +354,50 @@ async def test_policy_auto_routes_an_edit_request_with_asset_to_photo_flow(tmp_p
         assert task["result"]["policy"]["route"] == "photo_to_scene"
         model = next(f for f in client.project["plan"]["furniture"] if f["type"] == "model")
         assert model["parentObjectId"] == "t1" and model["z"] == 400
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_blocked_action_repairs_blocker_by_minimum_clearance(tmp_path):
+    client = FlowScene(block_once=True)
+    manager = TaskManager(tmp_path, client, NoopRoles)
+    try:
+        task = await start(
+            manager,
+            {
+                "requestId": "action-repair",
+                "input": "打开衣柜门，把挡住柜门的家具移开一点",
+                "mode": "interactive_action",
+                "selectedIds": ["w1"],
+            },
+        )
+        assert task["status"] == "completed", task
+        assert client.project["revision"] == 1
+        assert client.project["plan"]["furniture"][0]["opt"]["open"] is True
+        bed = next(f for f in client.project["plan"]["furniture"] if f["id"] == "bed")
+        assert bed["y"] == 1950  # 0mm remaining + 600mm clearance + 50mm buffer
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_fast_single_object_move_commits_without_model(tmp_path):
+    client = FlowScene()
+    manager = TaskManager(tmp_path, client, NoopRoles)
+    try:
+        task = await start(
+            manager,
+            {
+                "requestId": "fast-move",
+                "input": "把茶几往左移200毫米",
+                "selectedIds": ["t1"],
+            },
+        )
+        assert task["status"] == "completed", task
+        assert task["result"]["policy"]["fastEdit"]["values"]["x"] == 1800
+        table = next(f for f in client.project["plan"]["furniture"] if f["id"] == "t1")
+        assert table["x"] == 1800
+        assert client.project["revision"] == 1
     finally:
         await manager.close()

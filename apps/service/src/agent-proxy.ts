@@ -53,7 +53,7 @@ export function agentProxy(app: FastifyInstance) {
           method: req.method,
           headers: { "content-type": "application/json" },
           ...(req.method === "POST"
-            ? { body: JSON.stringify(req.body ?? {}) }
+            ? { body: JSON.stringify(localBody) }
             : {}),
           signal: abort.signal,
         });

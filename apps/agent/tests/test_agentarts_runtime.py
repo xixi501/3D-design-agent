@@ -78,3 +78,20 @@ async def test_agentarts_handler_routes_run_task_without_probe_validation(monkey
     assert result["status"] == "completed"
     assert seen["projectId"] == "project-1"
     assert seen["mode"] == "photo_to_scene"
+
+
+def test_runtime_preserves_floorplan_scope():
+    body = task_runtime._body(
+        {
+            "projectId": "p",
+            "mode": "reconstruct_floorplan",
+            "imageId": "image-1",
+            "floorplanScope": {
+                "roomSelection": "selected",
+                "functionalAreas": ["kitchen"],
+                "excludeFunctionalAreas": ["balcony"],
+            },
+        }
+    )
+    assert body["floorplanScope"]["functionalAreas"] == ["kitchen"]
+    assert body["imageId"] == "image-1"

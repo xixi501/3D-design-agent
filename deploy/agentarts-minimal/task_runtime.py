@@ -24,7 +24,7 @@ def _body(payload: dict) -> dict:
         "selectedIds": list(payload.get("selectedIds") or []),
         "mode": payload.get("mode") or "edit",
     }
-    for key in ("imageId", "assetId", "hostId"):
+    for key in ("imageId", "assetId", "hostId", "floorplanScope"):
         if payload.get(key) is not None:
             body[key] = payload[key]
     return body

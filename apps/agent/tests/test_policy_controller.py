@@ -10,6 +10,9 @@ def scene():
                     "key": "wardrobe",
                     "type": "wardrobe",
                     "name": "衣柜",
+                    "x": 2000,
+                    "y": 500,
+                    "rot": 0,
                     "opt": {"open": False},
                 },
                 {
@@ -126,3 +129,19 @@ def test_repair_router_maps_action_and_surface_codes():
         {"issues": [{"code": "E_CONSTRAINT_UNSATISFIABLE", "objectIds": []}]}
     )
     assert stop is not None and stop.targetRole == "coordinator"
+
+
+def test_fast_edit_parses_move_rotate_and_color():
+    controller = PolicyController()
+    move = controller.decide(task("把茶几往左移200毫米", selected=["w1"]), scene())
+    # selected w1 is a wardrobe, but fast-edit still targets the selected object
+    assert move.route == "interactive_action"
+    assert move.fastEdit["values"]["x"] == scene()["plan"]["furniture"][0]["x"] - 200
+
+    rotate = controller.decide(task("顺时针旋转90度", selected=["w1"]), scene())
+    assert rotate.route == "interactive_action"
+    assert rotate.fastEdit["values"]["rot"] == 90
+
+    color = controller.decide(task("把它改成蓝色", selected=["w1"]), scene())
+    assert color.route == "interactive_action"
+    assert color.fastEdit["values"]["color"] == "#2f5f9f"

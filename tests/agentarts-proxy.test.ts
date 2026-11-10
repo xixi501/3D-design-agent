@@ -76,3 +76,68 @@ test("AGENTARTS_INVOCATIONS_URL creates a synchronous cloud task and strips proj
     await new Promise<void>((resolve) => cloud.close(() => resolve()));
   }
 });
+
+test("local agent forwarding strips projectId from tasks and resume", async () => {
+  const seen: any[] = [];
+  const local = http.createServer((req, res) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => {
+      seen.push({
+        url: req.url,
+        body: JSON.parse(Buffer.concat(chunks).toString() || "{}"),
+      });
+      const payload = Buffer.from(JSON.stringify({ id: "local-task", status: "queued" }));
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(payload);
+    });
+  });
+  await new Promise<void>((resolve) => local.listen(0, "127.0.0.1", resolve));
+  const previousAgent = process.env.ACTISCAPE_AGENT_URL;
+  const previousCloud = process.env.AGENTARTS_INVOCATIONS_URL;
+  process.env.ACTISCAPE_AGENT_URL = `http://127.0.0.1:${(local.address() as any).port}`;
+  delete process.env.AGENTARTS_INVOCATIONS_URL;
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "actiscape-local-proxy-"));
+  const service = await createApp({ dataDir, logger: false });
+  await service.app.listen({ port: 0, host: "127.0.0.1" });
+  try {
+    const base = baseUrl(service.app.server);
+    const task = await fetch(`${base}/api/agent/conversations/c1/tasks`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "project-1",
+        requestId: "request-1",
+        input: "打开衣柜门",
+        selectedIds: ["w1"],
+      }),
+    });
+    assert.equal(task.status, 200);
+    const resume = await fetch(`${base}/api/agent/tasks/t1/resume`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "project-1",
+        requestId: "request-2",
+        input: "",
+        selectedIds: [],
+      }),
+    });
+    assert.equal(resume.status, 200);
+    assert.equal(seen.length, 2);
+    assert.equal(seen[0].url, "/conversations/c1/tasks");
+    assert.equal(seen[0].body.projectId, undefined);
+    assert.equal(seen[0].body.requestId, "request-1");
+    assert.equal(seen[1].url, "/tasks/t1/resume");
+    assert.equal(seen[1].body.projectId, undefined);
+    assert.equal(seen[1].body.requestId, "request-2");
+  } finally {
+    await service.app.close();
+    fs.rmSync(dataDir, { recursive: true, force: true });
+    if (previousAgent === undefined) delete process.env.ACTISCAPE_AGENT_URL;
+    else process.env.ACTISCAPE_AGENT_URL = previousAgent;
+    if (previousCloud === undefined) delete process.env.AGENTARTS_INVOCATIONS_URL;
+    else process.env.AGENTARTS_INVOCATIONS_URL = previousCloud;
+    await new Promise<void>((resolve) => local.close(() => resolve()));
+  }
+});

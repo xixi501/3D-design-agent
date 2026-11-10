@@ -8,6 +8,8 @@ import {
   projectToWall,
   catalog,
   furnitureElevation,
+  openEnvelope,
+  checkScene,
   toggleActionCommand,
   type Plan,
   type Furniture,
@@ -60,6 +62,8 @@ export class ThreeView {
   pitch = 0;
   generation = 0;
   lastSelected?: { id: string; collection: "openings" | "furniture" };
+  private highlightedId?: string;
+  private envelopeLayer = new THREE.Group();
   private clock = new THREE.Clock();
   private lastClick?: { t: number; x: number; y: number };
   private walkDown?: { x: number; y: number };
@@ -112,6 +116,8 @@ export class ThreeView {
     });
     sun.shadow.bias = -0.0003;
     this.scene.add(sun, this.root);
+    this.envelopeLayer.name = "open-envelopes";
+    this.scene.add(this.envelopeLayer);
     this.camera.position.set(13, 12, 15);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.set(4.5, 0, 3);
@@ -821,7 +827,67 @@ export class ThreeView {
       this.root.add(group);
       this.furniture.set(f.id, group);
     }
+    this.drawActionEnvelopes(plan);
     this.resize();
+  }
+
+  private drawActionEnvelopes(plan: Plan) {
+    for (const child of [...this.envelopeLayer.children]) {
+      this.envelopeLayer.remove(child);
+      if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
+        child.geometry.dispose();
+        const material = child.material;
+        if (Array.isArray(material)) material.forEach((m) => m.dispose());
+        else material.dispose();
+      }
+    }
+    const blocked = new Set(
+      checkScene(plan)
+        .issues.filter((issue) =>
+          ["OPENABLE_FRONT_BLOCKED", "DOOR_CABINET_CONFLICT"].includes(
+            issue.code,
+          ),
+        )
+        .flatMap((issue) => issue.objectIds),
+    );
+    for (const f of plan.furniture) {
+      if (f.opt?.open !== true && f.id !== this.highlightedId) continue;
+      const envelope = openEnvelope(f);
+      if (!envelope) continue;
+      const shape = new THREE.Shape();
+      envelope.polygon.forEach((point, index) => {
+        if (index === 0) shape.moveTo(point.x / 1000, -point.y / 1000);
+        else shape.lineTo(point.x / 1000, -point.y / 1000);
+      });
+      shape.closePath();
+      const geometry = new THREE.ShapeGeometry(shape);
+      geometry.rotateX(-Math.PI / 2);
+      const warn = blocked.has(f.id);
+      const color = warn ? "#d97945" : "#2c9a8e";
+      const mesh = new THREE.Mesh(
+        geometry,
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: warn ? 0.22 : 0.14,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        }),
+      );
+      mesh.position.y = 0.005;
+      mesh.renderOrder = 1;
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geometry),
+        new THREE.LineBasicMaterial({
+          color,
+          transparent: true,
+          opacity: warn ? 0.95 : 0.75,
+          depthWrite: false,
+        }),
+      );
+      edges.position.y = 0.006;
+      this.envelopeLayer.add(mesh, edges);
+    }
   }
   frame() {
     if (!this.plan) return;
@@ -837,12 +903,15 @@ export class ThreeView {
   }
   highlight(id?: string) {
     this.clearSelection();
+    this.highlightedId = id;
     if (id && this.furniture.has(id)) {
       this.selected = new THREE.BoxHelper(this.furniture.get(id)!, 0x17888b);
       this.scene.add(this.selected);
     }
+    if (this.plan) this.drawActionEnvelopes(this.plan);
   }
   clearSelection() {
+    this.highlightedId = undefined;
     if (this.selected) {
       this.scene.remove(this.selected);
       this.selected.geometry.dispose();

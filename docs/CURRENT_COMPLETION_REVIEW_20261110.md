@@ -1,8 +1,8 @@
-# 当前完成情况验收交接（P4 收官提交 `a1d2857`）
+# 当前完成情况验收交接（P4 收官 + 走查修复）
 
 > 给验收 Agent：本文件是截至 2026-11-10 的**当前状态**，不是阶段计划。  
 > 仓库：`/workspace/3D-design-agent` · 分支 `dev/core`  
-> P4 代码交付提交：`a1d2857`；本验收文档随后的 docs-only commit 一并提交，当前 HEAD 以 `git log -1` 为准。  
+> P4 代码交付提交：`a1d2857`；本轮走查修复（G2/G3/G5/G6 + 代理 Bug）另建提交，当前 HEAD 以 `git log -1` 为准。
 > 工作区：提交后**干净**（`git status --short` 为空）。  
 > 结论：文档 P0/P3/P4 已完成；P1/P2 主体完成但各留 1 项明确缺口；P4 为**本地模拟验收**，真实华为云未部署。
 
@@ -20,16 +20,16 @@
 
 - **已完成**：3D 动作与净空、全屋主力房型、照片资产三级提供器（成员一接口）、Skill 阶段切片、Policy 四路径、动作/照片候选闭环、AgentArts 远程视觉候选 + `run_task` 运行时 + 网关云端转发。
 - **已收口**：G7 Skill replay、G4 切片 fallback、G8 命令口径、G10 工作区提交。
-- **未完成**：P2.1 真实 V100/`apps/asset-service`（外部依赖）、G2 确定性排布兜底、G3 地面包络线框（可选）、真实华为云部署验证。
+- **未完成**：P2.1 真实 V100/`apps/asset-service`（外部依赖）、真实华为云部署验证；照片候选碰撞仍等待输入。
 
 ## 3. 总览矩阵
 
 | 阶段 | 状态 | 证据 | 未闭合项 |
 | --- | --- | --- | --- |
-| P0 / 用户 P1 | **完成** | `docs/P1_ACCEPTANCE_20261110.md`；动作/净空/台面演示 | G3 地面半透明包络线框未单独绘制（不影响检查） |
-| P1 / 用户 P0 | **主体完成** | `docs/P0_ACCEPTANCE_20261110.md`；7 类房间 + 2BHK | G2 `roles.py` 确定性排布兜底未实现；2BHK 用冻结 fixture |
+| P0 / 用户 P1 | **完成** | `docs/P1_ACCEPTANCE_20261110.md`；动作/净空/台面演示 | 无 |
+| P1 / 用户 P0 | **完成** | `docs/P0_ACCEPTANCE_20261110.md`；7 类房间 + 2BHK | 2BHK 展示仍用冻结 fixture（实时 VLM 非本轮范围） |
 | P2 / 用户 P2 | **成员一完成** | `docs/P2_ACCEPTANCE_20261110.md`；三级 provider + 编辑器闭环 | P2.1 `apps/asset-service` 未合入、真实 V100 缓存 0；第二验收命令不可执行 |
-| P3 / 用户 P3 | **完成** | `docs/P3_ACCEPTANCE_20261110.md`；动作/照片候选真实提交 | FastExec 不含单件平移/改色；动作/照片冲突默认等待；Repair 是有界指令 |
+| P3 / 用户 P3 | **完成** | `docs/P3_ACCEPTANCE_20261110.md`；动作/照片候选真实提交 | 照片候选碰撞仍等待输入；Repair 仍是有界指令 |
 | P4 / 用户 P4 | **完成（本地模拟）** | `docs/P4_ACCEPTANCE_20261110.md`；候选 envelope + runtime 全流程 | 真实华为云未部署；云端转发同步、无 SSE/resume |
 
 ## 4. P4 实际落地
@@ -71,16 +71,26 @@
 | G7 Skill replay | 保留 450mm 阈值；修 `LD-dev-01` 沙发/茶几/地毯；同步修 LDO/GBR/HOF 旧示例；active 扩到 13 个 | `npm run test:skill-pool:v1` exit 0，13 Skills / 26 cases |
 | G4 切片 fallback | `SkillManifest.stageHints`、步骤尾注解析、style/lighting/rectangular/photo 提示 | active primary/modifier 四阶段无 `fallback=true` |
 | G8 命令口径 | `packages/scene-core/package.json` 增加 `test` | `npm test -w @actiscape/scene-core` 23 passed |
-| G10 提交 | 147 文件完整提交；验收文档随后 docs-only commit | 代码提交 `a1d2857`，工作区干净 |
+| G10 提交 | P4 147 文件完整提交；走查修复另建提交 | 代码提交 `a1d2857` + 本轮修复，工作区干净 |
+
+### 5.1 本轮走查追加修复
+
+- **代理 Bug**：`agent-proxy.ts` 本地转发改用 `localBody`；tasks 与 resume 均剥离 `projectId`，新增本地模式断言。
+- **云端任务误监听**：`chat.watchActive()` 对 `cloud:true` 直接返回，不再建立本地 SSE。
+- **floorplanScope**：`task_runtime._body` 保留 `floorplanScope`。
+- **G3**：`three-view.ts` 在柜体开启/选中时绘制地面包络；冲突橙红、正常青绿。
+- **G5**：`PolicyController` 支持单件快速平移/旋转/改色，`InteractiveFlow` 生成 update Candidate。
+- **G6**：`OPENABLE_FRONT_BLOCKED` 时按 `clearance - remaining + 50mm` 移开阻挡物，重新走 Candidate → CheckScene → Commit。
+- **G2**：`deterministic_layout.py` 复用 6 类 positive L3 模板 + 过道通用布局；fake-model 测试覆盖。
 
 ## 6. 验证结果
 
-在 P4 代码交付 `a1d2857` 上执行并记录：
+在 P4 交付 + 本轮修复上执行并记录：
 
 | 命令 | 结果 |
 | --- | --- |
-| `npm test` | **79 passed / 0 failed** |
-| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **169 passed** |
+| `npm test` | **80 passed / 0 failed** |
+| `PYTHONPATH=apps/agent .venv/bin/python -m pytest apps/agent/tests -q` | **183 passed** |
 | `npm run test:all` | **exit 0**（baseline / browser / parity / catalog / visual） |
 | `npm run test:skill-pool:v1` | **exit 0**（13 Skills / 26 cases，modelCalls=0） |
 | `npm test -w @actiscape/scene-core` | **23 passed** |
@@ -95,16 +105,10 @@
    - `data/real-generated-assets/` 只有 README，真实案例 0；
    - `apps/asset-service` 目录不存在；
    - 用户明确要求先做接口、不等队友；不是接口设计缺失。
-2. **G2 确定性排布兜底**
-   - 7 类房间仍依赖 DeepSeek 实时生成；
-   - 模型失败/超时无代码级布局保底。
-3. **G3 地面开启包络线框（可选）**
-   - 当前有 3D 开启姿态 + 检查面板 mm 数；
-   - 无独立地面半透明/虚线包络层。
-4. **P3 两个非阻塞边界**
-   - `interactive_action` 只做开门/开柜/开关灯；单件平移/改色仍走 `edit`；
-   - 动作/照片冲突默认 `waiting_input`，不自动进入 Repair 重排。
-5. **真实华为云部署**
+2. **照片候选碰撞**
+   - `photo_to_scene` 台面越界/碰撞仍返回 `waiting_input`，不自动重排；
+   - 动作候选的 `OPENABLE_FRONT_BLOCKED` 已支持最小避让，照片侧尚未。
+3. **真实华为云部署**
    - `cloudDeploymentVerified=false`；
    - 只验证 SDK 运行时、本地模拟 `/invocations`、网关转发、probe 兼容；
    - 真实部署需要 AgentArts 凭证/网络/超时策略。
@@ -141,6 +145,7 @@ node scripts/platform-probe.mjs --prepare-only
 - 照片：[P2 照片总览](evidence/p2-photo-assets-20261110/contact-sheet.png)
 - Skill/Policy：[P3 总览](evidence/p3-policy-actions-20261110/contact-sheet.png)
 - AgentArts：[P4 总览](evidence/p4-agentarts-20261110/contact-sheet.png)
+- G3 包络：[地面开启包络线框](evidence/p4-agentarts-20261110/g3-open-envelope.png)
 - 详细阶段报告：
   - [P0_ACCEPTANCE_20261110.md](P0_ACCEPTANCE_20261110.md)
   - [P1_ACCEPTANCE_20261110.md](P1_ACCEPTANCE_20261110.md)
@@ -153,4 +158,4 @@ node scripts/platform-probe.mjs --prepare-only
 
 1. **若要继续“真实上云”**：优先补 AgentArts 异步任务/轮询、真实凭证部署、云端 SSE 或前端轮询，而不是只做同步 `/invocations`。
 2. **若要继续“真实照片转 3D”**：P2.1 的 V100 产物/`apps/asset-service` 是唯一外部前置；接口已稳定。
-3. **若要提高全屋稳定性**：先补 G2 确定性排布兜底；G3 和 P3 的 FastExec/Repair 增强属于展示与体验优化。
+3. **本轮已补 G2/G3/G5/G6**：后续可继续照片碰撞自动重排与真实 VLM 全屋验收。

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>演境 · 物品资产工作台</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="brand"><span class="brand-mark">A</span><div><strong>演境</strong><small>ASSET STUDIO</small></div></div>
+      <div class="backend"><span id="health-dot"></span><span id="backend-label">连接服务中…</span></div>
+    </header>
+    <main>
+      <section class="intro">
+        <p class="eyebrow">PHOTO → OBJECT → SPACE</p>
+        <h1>让一件物品，<br />进入你的三维空间。</h1>
+        <p>上传清晰单件物品照片，获得可复用的 GLB 资产。真实生成与流程演示始终明确区分。</p>
+      </section>
+      <div class="workspace">
+        <section class="panel controls">
+          <div class="panel-title"><span>01</span><h2>提交物品</h2></div>
+          <label id="drop-zone" class="drop-zone" for="image-input">
+            <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" />
+            <div id="preview-empty"><span class="upload-icon">＋</span><strong>选择或拖入一张照片</strong><small>JPEG / PNG / WebP · 最大 10 MB</small></div>
+            <img id="image-preview" alt="输入图片预览" hidden />
+          </label>
+          <label class="field">物品名称<input id="asset-name" value="我的物品" maxlength="120" /></label>
+          <label class="field">API Key（服务器配置时填写）<input id="api-key" type="password" autocomplete="off" placeholder="本地演示通常无需填写" /></label>
+          <button id="submit" disabled>开始生成 <span>→</span></button>
+          <div id="notice" class="notice">正在读取运行模式…</div>
+          <div class="steps">
+            <div data-step="queued"><i></i><span>任务已创建</span></div>
+            <div data-step="running"><i></i><span>模型处理中</span></div>
+            <div data-step="succeeded"><i></i><span>资产可使用</span></div>
+          </div>
+          <p id="job-status" role="status">请先选择图片</p>
+          <p id="job-error" class="error"></p>
+        </section>
+        <section class="panel viewer-panel">
+          <div class="panel-title"><span>02</span><h2>三维预览</h2><a id="download" hidden>下载 GLB ↓</a></div>
+          <div id="viewer">
+            <div id="viewer-empty"><div class="cube">◇</div><p>模型将在这里出现</p><small>可拖动旋转 · 滚轮缩放</small></div>
+          </div>
+          <div id="metadata" class="metadata">
+            <div><small>资产身份</small><strong id="meta-id">—</strong></div>
+            <div><small>尺寸 W × D × H</small><strong id="meta-size">—</strong></div>
+            <div><small>生成模式</small><strong id="meta-mode">—</strong></div>
+            <div><small>尺度状态</small><strong id="meta-scale">—</strong></div>
+          </div>
+        </section>
+      </div>
+      <footer>GLB · Y-up · 米制源坐标 · 真实尺度需由用户确认</footer>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

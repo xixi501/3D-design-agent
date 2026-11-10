@@ -1,0 +1,6 @@
+textured-vase.glb is reused unchanged from the project team's dev/core branch.
+Original path: fixtures/textured-vase.glb
+Introducing commit: de33c0c (chore(s0): pin upstream reference and isolated product environment)
+Verified SHA-256: 82ac02acc251d3bef8e03866e466d53f1500c7e5c2a75172fbf47d034b37c5f1
+
+It is a fixed demo asset and is not generated from the submitted image.

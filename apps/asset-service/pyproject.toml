@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "actiscape-asset-service"
+version = "0.1.0"
+description = "Independent image-to-GLB asset jobs for ActiScape"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.30,<1",
+  "python-multipart>=0.0.12,<1",
+  "Pillow>=10,<13",
+  "numpy>=1.26,<3",
+  "trimesh>=4.4,<5",
+]
+
+[tool.setuptools]
+packages = ["asset_service"]
+
+[tool.setuptools.package-data]
+asset_service = ["static/*", "assets/*"]

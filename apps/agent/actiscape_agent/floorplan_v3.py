@@ -2326,6 +2326,77 @@ def _assemble_structure_v3(
                 "全屋模式没有形成可复现的封闭房间",
                 details={"objectIds": []},
             )
+    features = []
+    dimensions = []
+    for index, anchor in enumerate(anchors):
+        horizontal = abs(float(anchor["a"]["y"]) - float(anchor["b"]["y"])) < 2
+        axis = "x" if horizontal else "y"
+        candidates = []
+        for wall in draft_walls:
+            if horizontal:
+                line = (float(wall["a"]["y"]) + float(wall["b"]["y"])) / 2
+                if abs(line - float(anchor["a"]["y"])) > 20:
+                    continue
+                low, high = sorted((float(wall["a"]["x"]), float(wall["b"]["x"])))
+                if abs(low - min(float(anchor["a"]["x"]), float(anchor["b"]["x"]))) > 30:
+                    continue
+                if abs(high - max(float(anchor["a"]["x"]), float(anchor["b"]["x"]))) > 30:
+                    continue
+            else:
+                line = (float(wall["a"]["x"]) + float(wall["b"]["x"])) / 2
+                if abs(line - float(anchor["a"]["x"])) > 20:
+                    continue
+                low, high = sorted((float(wall["a"]["y"]), float(wall["b"]["y"])))
+                if abs(low - min(float(anchor["a"]["y"]), float(anchor["b"]["y"]))) > 30:
+                    continue
+                if abs(high - max(float(anchor["a"]["y"]), float(anchor["b"]["y"]))) > 30:
+                    continue
+            candidates.append(wall)
+        if not candidates:
+            continue
+        wall = min(
+            candidates,
+            key=lambda item: (
+                abs((float(item["a"]["y"]) + float(item["b"]["y"])) / 2 - float(anchor["a"]["y"]))
+                if horizontal
+                else abs(
+                    (float(item["a"]["x"]) + float(item["b"]["x"])) / 2 - float(anchor["a"]["x"])
+                )
+            ),
+        )
+        from_feature = f"auto_anchor_{index}_a"
+        to_feature = f"auto_anchor_{index}_b"
+        features.extend(
+            [
+                {
+                    "id": from_feature,
+                    "objectId": wall["id"],
+                    "kind": "wall_end",
+                    "axis": axis,
+                    "endpoint": "a",
+                    "evidenceRefs": ["auto:outline"],
+                },
+                {
+                    "id": to_feature,
+                    "objectId": wall["id"],
+                    "kind": "wall_end",
+                    "axis": axis,
+                    "endpoint": "b",
+                    "evidenceRefs": ["auto:outline"],
+                },
+            ]
+        )
+        dimensions.append(
+            {
+                "id": f"auto_anchor_dim_{index}",
+                "anchorIndex": index,
+                "from": from_feature,
+                "to": to_feature,
+                "distance": anchor["distance"],
+                "basis": anchor.get("basis", "exterior"),
+                "evidenceRefs": ["auto:outline"],
+            }
+        )
     return {
         "status": "draft",
         "question": recognition.get("question", ""),
@@ -2350,8 +2421,8 @@ def _assemble_structure_v3(
             *recognition["uncertainties"],
             *room_notes,
         ],
-        "features": [],
-        "dimensions": [],
+        "features": features,
+        "dimensions": dimensions,
     }
 
 
@@ -3349,7 +3420,23 @@ class FloorplanV3(FloorplanV2):
         ]
         groups = record.get("activityGroupCandidates") or []
         if not objects:
-            raise TaskError("FURNITURE_MISSING", "目标客餐厅没有家具对象候选")
+            await tools.result("furniture_contours", record, pictures=False)
+            self.patch(
+                task["id"],
+                furnitureContours={
+                    "recordId": record["id"],
+                    "candidateCount": 0,
+                    "targetRegions": record.get("targetRegions") or {},
+                },
+                furniturePass={"status": "draft", "symbols": []},
+                phase="matching_assets",
+            )
+            self.store.event(
+                task["id"],
+                "floorplan_no_furniture",
+                {"reason": "source image has no selectable furniture contours"},
+            )
+            return []
         if len(objects) > 300 or len(groups) > 300:
             raise TaskError(
                 "CANDIDATE_LIMIT",
@@ -3885,6 +3972,30 @@ class FloorplanV3(FloorplanV2):
                     sceneDraftBaseProjectRevision=draft["baseRevision"],
                 )
 
+        from .floorplan_flow import FloorplanFlow
+
+        merge_commands = FloorplanFlow._merge_collinear_wall_gaps(draft)
+        if merge_commands:
+            draft = await self.client.request(
+                root + "/" + draft["id"] + "/commands",
+                {
+                    "requestId": task_id + ":wall-merge",
+                    "draftRevision": draft["revision"],
+                    "commands": merge_commands,
+                },
+            )
+            self.patch(
+                task_id,
+                draftId=draft["id"],
+                floorplan=draft,
+                sceneDraftRevision=draft["revision"],
+                sceneDraftHash=draft["hash"],
+            )
+            self.store.event(
+                task_id,
+                "floorplan_wall_merge",
+                {"count": len(merge_commands), "draftRevision": draft["revision"]},
+            )
         diagnostics = await self.client.request(root + "/" + draft["id"] + "/diagnostics", {})
         draft, diagnostics = await self.reconcile_code_uncertainties(task, root, draft, diagnostics)
         if not draft["data"].get("symbols"):

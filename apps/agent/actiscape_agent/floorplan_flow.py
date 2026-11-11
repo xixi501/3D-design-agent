@@ -189,6 +189,8 @@ class FloorplanFlow:
             return []
         walls_by_id = {wall["id"]: wall for wall in walls}
         commands = []
+        merged_ids = set()
+        added_openings = 0
         for orient in ("h", "v"):
             axis = "x" if orient == "h" else "y"
             group = sorted(
@@ -237,6 +239,7 @@ class FloorplanFlow:
                     ),
                 }
                 commands.append({"type": "upsert", "collection": "walls", "object": merged_wall})
+                merged_ids.update(ids)
                 for wall in chain["walls"][1:]:
                     commands.append({"type": "delete", "collection": "walls", "id": wall["id"]})
                 for opening in openings:
@@ -260,6 +263,7 @@ class FloorplanFlow:
                     start = min(wall["a"][axis], wall["b"][axis])
                     end = max(wall["a"][axis], wall["b"][axis])
                     if start - previous > 2:
+                        added_openings += 1
                         commands.append(
                             {
                                 "type": "upsert",
@@ -274,6 +278,21 @@ class FloorplanFlow:
                             }
                         )
                     previous = end
+        if added_openings:
+            for uncertainty in data.get("uncertainties") or []:
+                if uncertainty.get("code") != "OPENING_TYPE":
+                    continue
+                if not (set(uncertainty.get("objectIds") or []) & merged_ids):
+                    continue
+                message = str(uncertainty.get("message") or "")
+                if "断口" in message or "opening" in message.lower() or "窗" in message:
+                    commands.append(
+                        {
+                            "type": "delete",
+                            "collection": "uncertainties",
+                            "id": uncertainty["id"],
+                        }
+                    )
         return commands
 
     async def _ground_legacy(self, state, task):
@@ -387,11 +406,50 @@ class FloorplanFlow:
         preview = await self.client.request(
             prefix + "/" + draft["id"] + "/preview", {"taskId": task["id"]}
         )
+        source_audit = None
+        if preview.get("checks", {}).get("passed"):
+            try:
+                source_audit = await self.client.request(
+                    prefix + "/" + draft["id"] + "/source-audit",
+                    {"taskId": task["id"]},
+                )
+            except SceneFailure as error:
+                source_audit = {
+                    "result": {
+                        "issueCount": 0,
+                        "issues": [],
+                        "unavailable": str(error),
+                    }
+                }
+            g["sourceAudit"] = source_audit
+            self.store.event(
+                task["id"],
+                "floorplan_source_audit",
+                {
+                    "issueCount": (source_audit.get("result") or {}).get("issueCount", 0),
+                    "draftId": draft["id"],
+                },
+            )
+            if (source_audit.get("result") or {}).get("issueCount", 0):
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "waiting_input",
+                        "phase": "reviewing_floorplan",
+                        "draftId": draft["id"],
+                        "message": "结构预览已通过，但 wallaudit 原图对账发现墙体不一致；请查看对账证据后修正，不能直接确认。",
+                        "report": {
+                            "checks": preview["checks"],
+                            "sourceAudit": source_audit,
+                        },
+                    },
+                }
         g.update(
             previewChecks=preview["checks"],
             defaults=preview.get("defaults", []),
             compiledSymbols=preview.get("symbols", []),
             scale=preview.get("scale"),
+            sourceAudit=source_audit,
         )
         self.store.update(task["id"], generation=g)
         self.store.event(

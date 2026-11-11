@@ -565,6 +565,41 @@ def _opening_interval_type(
     return "window" if light >= 0.22 else "door"
 
 
+def _merge_candidate_wall_gaps(candidates: list[dict]):
+    """Recover continuous walls when a window/door split the pixel candidate."""
+    merged = []
+    for orient in ("h", "v"):
+        current = sorted(
+            [item for item in candidates if item["orient"] == orient],
+            key=lambda item: (item["line"], item["s0"]),
+        )
+        chains = []
+        for item in current:
+            for chain in chains:
+                if abs(chain["line"] - item["line"]) > 3:
+                    continue
+                gap = item["s0"] - chain["s1"]
+                if 2 <= gap <= 300:
+                    chain["s1"] = max(chain["s1"], item["s1"])
+                    chain["t"] = max(chain["t"], item["t"])
+                    chain["parts"].extend(item.get("parts") or [])
+                    chain["sourceIndices"].extend(item.get("sourceIndices") or [])
+                    chain["connections"] = max(
+                        chain.get("connections", 0), item.get("connections", 0)
+                    )
+                    break
+            else:
+                chains.append(
+                    {
+                        **item,
+                        "parts": list(item.get("parts") or []),
+                        "sourceIndices": list(item.get("sourceIndices") or []),
+                    }
+                )
+        merged.extend(chains)
+    return merged
+
+
 def _opening_candidates_v4(
     gray: np.ndarray,
     candidates: list[dict],
@@ -838,6 +873,9 @@ def structure_candidates_v4(image: Image.Image, raw: dict):
     filtered = _candidate_connections(filtered)
     filtered, closures = _close_dangling_endpoints(filtered)
     filtered = _candidate_connections(filtered)
+    if recovery:
+        filtered = _merge_candidate_wall_gaps(filtered)
+        filtered = _candidate_connections(filtered)
     if len(filtered) < 4:
         fallback = structure_candidates(image, raw)
         fallback["structureSkeletonVersion"] = 4

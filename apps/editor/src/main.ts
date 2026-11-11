@@ -21,6 +21,7 @@ import { PlanView, type Selection } from "./views/plan-view.js";
 import { ThreeView } from "./views/three-view.js";
 import { renderInspector, esc } from "./ui/inspector.js";
 import { ChatPanel } from "./ui/chat.js";
+import { displayProjectName, displayRoomName, roomArea } from "./ui/labels.js";
 import { Ov } from "./modeling/furniture-3d.js";
 import { Fh } from "./modeling/furniture-2d.js";
 import * as THREE from "three";
@@ -42,7 +43,7 @@ root.innerHTML = `<header class="app-bar">
     </div>
     <button id="new-project" class="quiet">新建空间</button>
     <button id="open-project" class="quiet">打开项目</button>
-    <details class="more-actions"><summary aria-label="更多项目操作">•••</summary><button id="import-project">导入 JSON</button><button id="export-project">导出项目</button></details>
+    <details class="more-actions"><summary aria-label="更多项目操作">•••</summary><button id="import-project">导入 JSON</button><button id="export-project">导出项目 JSON</button><button id="export-image">导出当前视图 PNG</button><button id="export-pdf">打印 / 保存为 PDF</button></details>
     <button id="mobile-agent" class="mobile-only" title="打开 AI 设计搭档">AI</button>
     <button id="context-toggle" class="mobile-only" title="打开项目上下文">属性</button>
     <button id="save-project" class="primary">保存</button>
@@ -258,7 +259,7 @@ async function inspector() {
     return;
   }
   if (panel === "overview") {
-    renderOverview(host);
+    await renderOverview(host);
     return;
   }
   if (panel === "properties") {
@@ -318,21 +319,27 @@ function setMode(mode: "ai" | "precision") {
   $("#mode-precision").classList.toggle("active", mode === "precision");
   if (mode === "ai") closeCatalog();
 }
-function renderOverview(host: HTMLElement) {
+async function renderOverview(host: HTMLElement) {
   if (!project) return;
-  const plan = project.plan;
+  const snapshot = project;
+  const plan = snapshot.plan;
   const rooms = plan.rooms || [];
   const selectedCount = selection ? 1 : 0;
+  let health: any;
+  try {
+    health = await api(`/projects/${snapshot.id}/checks`);
+  } catch {}
   host.innerHTML = `<div class="overview">
-    <div class="overview-hero"><span class="eyebrow">PROJECT OVERVIEW</span><h2>${esc(plan.name || "未命名空间")}</h2><p>${rooms.length ? `${rooms.length} 个空间 · ${plan.furniture.length} 件家具 · 版本 ${project.revision}` : "从一个想法开始，AI 会帮你完成第一版空间。"}</p></div>
+    <div class="overview-hero"><span class="eyebrow">PROJECT OVERVIEW</span><h2>${esc(displayProjectName(plan.name))}</h2><p>${rooms.length ? `${rooms.length} 个空间 · ${plan.furniture.length} 件家具 · 版本 ${project.revision}` : "从一个想法开始，AI 会帮你完成第一版空间。"}</p></div>
     <div class="metric-grid">
       <div><b>${rooms.length}</b><span>空间</span></div>
       <div><b>${plan.furniture.length}</b><span>家具</span></div>
-      <div><b>${plan.walls.length}</b><span>墙体</span></div>
+      <div><b>${health?.issues?.length || 0}</b><span>待处理</span></div>
     </div>
-    ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => `<button data-room="${esc(r.id)}"><b>${esc(r.name || "空间")}</b><small>定位</small></button>`).join("")}</div></section>` : ""}
-    <section class="overview-section"><div class="overview-section-head"><h3>下一步</h3><span>AI 快捷入口</span></div><div class="overview-actions"><button data-overview-action="check">全屋检查</button><button data-overview-action="catalog">添加家具</button><button data-overview-action="walk">进入漫游</button></div></section>
-    ${selectedCount ? `<p class="overview-note">当前选中的对象已在属性面板中展开。</p>` : `<p class="overview-note">在画布中选择家具，或让 AI 继续帮你调整。</p>`}
+    ${health && rooms.length ? `<button class="health-card ${health.issues?.length ? "has-issues" : "is-clear"}" data-overview-action="check"><span>${health.issues?.length ? `${health.issues.length} 项需要处理` : "设计检查通过"}</span><small>${health.issues?.length ? esc(health.issues[0].message) : "没有发现结构、净空或台面问题"}</small><b>查看</b></button>` : ""}
+    ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => { const area = roomArea(plan, r.id); return `<button data-room="${esc(r.id)}"><b>${esc(displayRoomName(r))}</b><small>${area ? `${area} ㎡` : "定位"}</small></button>`; }).join("")}</div></section>` : ""}
+    <section class="overview-section"><div class="overview-section-head"><h3>下一步</h3><span>AI 快捷入口</span></div><div class="overview-actions">${rooms.length ? `<button data-overview-action="check">全屋检查</button><button data-overview-action="catalog">添加家具</button><button data-overview-action="walk">进入漫游</button>` : `<button data-overview-action="start">从一句话开始</button><button data-overview-action="plan">上传户型图</button>`}</div></section>
+    ${selectedCount ? `<p class="overview-note">当前选中的对象已在属性面板中展开。</p>` : rooms.length ? `<p class="overview-note">在画布中选择家具，或让 AI 继续帮你调整。</p>` : `<p class="overview-note">先描述一个房间，或上传一张户型图。</p>`}
   </div>`;
   host.querySelectorAll<HTMLButtonElement>("[data-room]").forEach((button) => {
     button.onclick = () => {
@@ -349,6 +356,8 @@ function renderOverview(host: HTMLElement) {
         void inspector().catch(fail);
       } else if (action === "catalog") openCatalog();
       else if (action === "walk") $("#walk").click();
+      else if (action === "start") chat.focus();
+      else if (action === "plan") chat.openFloorplan();
     };
   });
 }
@@ -375,7 +384,7 @@ function renderSpaceNav() {
   nav.hidden = rooms.length < 2 || rooms.length > 5;
   nav.innerHTML = rooms
     .slice(0, 8)
-    .map((r) => `<button data-space="${esc(r.id)}">${esc(r.name || "空间")}</button>`)
+    .map((r) => `<button data-space="${esc(r.id)}">${esc(displayRoomName(r))}</button>`)
     .join("");
   nav.querySelectorAll<HTMLButtonElement>("[data-space]").forEach((b) => {
     b.onclick = () => {
@@ -387,11 +396,12 @@ function renderSpaceNav() {
 async function display(next: Project, frame = false) {
   project = next;
   localStorage.setItem("actiscape-project", next.id);
-  $("#project-name").setAttribute("value", next.plan.name);
-  $<HTMLInputElement>("#project-name").value = next.plan.name;
+  const projectLabel = displayProjectName(next.plan.name);
+  $("#project-name").setAttribute("value", projectLabel);
+  $<HTMLInputElement>("#project-name").value = projectLabel;
   $("#revision").textContent =
     `版本 ${next.revision} · ${next.plan.furniture.length} 件家具`;
-  $("#stage-room-label").textContent = next.plan.name || "未命名空间";
+  $("#stage-room-label").textContent = projectLabel;
   $("#open-all").textContent =
     allDoorCabinetCommands(next.plan, "toggle").mode === "close"
       ? "复位门柜"
@@ -846,9 +856,11 @@ async function examples(name: string) {
 }
 $("#open-project").onclick = async () => {
   try {
-    const projects = await api("/projects");
+    const projects = (await api<any[]>("/projects")).filter(
+      (p) => p.revision > 0 || p.id === project?.id,
+    );
     $("#dialog-body").innerHTML =
-      `<h2>打开项目</h2><div class="project-list">${projects.map((p: any) => `<button data-project="${esc(p.id)}">${esc(p.name)} <small>版本 ${p.revision}</small></button>`).join("")}</div><h3>从固定样例开始</h3><div class="actions"><button data-example="living-dining">客餐厅</button><button data-example="modeling-gallery">家具与建模展台</button><button data-example="glb-display">GLB 展台</button></div>`;
+      `<div class="dialog-kicker">YOUR SPACES</div><h2>打开项目</h2><p class="muted">继续一个空间，或从精修样例开始。</p><div class="project-gallery">${projects.map((p: any, i: number) => `<button data-project="${esc(p.id)}" class="project-card"><span class="project-cover cover-${i % 4}"><span>${esc(displayProjectName(p.name).slice(0, 2))}</span><i></i></span><strong>${esc(displayProjectName(p.name))}</strong><small>版本 ${p.revision} · ${new Date(p.updatedAt).toLocaleDateString("zh-CN")}</small></button>`).join("")}</div><h3 class="gallery-heading">精修样例</h3><div class="actions"><button data-example="living-dining">客餐厅</button><button data-example="modeling-gallery">家具展台</button><button data-example="glb-display">GLB 展台</button></div>`;
     $("#dialog-body")
       .querySelectorAll<HTMLButtonElement>("[data-project]")
       .forEach(
@@ -890,6 +902,52 @@ $("#save-project").onclick = () => {
 };
 $("#export-project").onclick = () => {
   if (project) window.location.href = `/api/projects/${project.id}/export`;
+};
+function currentSnapshot() {
+  if (!project) return undefined;
+  const mode = $("#viewport").dataset.mode;
+  const source =
+    mode === "3d"
+      ? three.renderer.domElement
+      : mode === "2d"
+        ? planView.canvas
+        : three.renderer.domElement;
+  if (!source) return undefined;
+  const canvas = document.createElement("canvas");
+  canvas.width = source.width;
+  canvas.height = source.height;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#f3efe7";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, 0, 0);
+  return { canvas, name: displayProjectName(project.plan.name), revision: project.revision, mode };
+}
+function download(name: string, url: string) {
+  const link = document.createElement("a");
+  link.download = name;
+  link.href = url;
+  link.click();
+}
+$("#export-image").onclick = () => {
+  const shot = currentSnapshot();
+  if (!shot) return;
+  download(
+    `${shot.name.replace(/[\\/:*?"<>|]/g, "-")}-v${shot.revision}.png`,
+    shot.canvas.toDataURL("image/png"),
+  );
+  message("当前视图已导出为 PNG");
+};
+$("#export-pdf").onclick = () => {
+  const shot = currentSnapshot();
+  if (!shot) return;
+  const win = window.open("", "_blank");
+  if (!win) {
+    message("浏览器拦截了打印窗口，请允许弹出窗口");
+    return;
+  }
+  const data = shot.canvas.toDataURL("image/png");
+  win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(shot.name)} · 演境</title><style>@page{size:A4;margin:12mm}body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#1e2724;margin:0}header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #d9d1c4;padding-bottom:8px;margin-bottom:14px}h1{font-size:22px;margin:0}small{color:#81796c}img{display:block;width:100%;height:auto;border:1px solid #d9d1c4;border-radius:6px}p{color:#81796c;font-size:10px;margin-top:10px}</style></head><body><header><div><small>演境 ACTISCAPE · AI DESIGN</small><h1>${esc(shot.name)}</h1></div><small>版本 ${shot.revision} · ${new Date().toLocaleDateString("zh-CN")}</small></header><img src="${data}"><p>由演境 AI Studio 生成 · 当前视图 · ${shot.mode === "3d" ? "三维" : "二维"}</p><script>window.onload=()=>window.print()</script></body></html>`);
+  win.document.close();
 };
 $("#import-project").onclick = () => $<HTMLInputElement>("#json-file").click();
 $<HTMLInputElement>("#json-file").onchange = async (e) => {

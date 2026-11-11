@@ -36,7 +36,31 @@ try {
     await page.$eval("#empty-state h1", (el) => el.textContent.includes("AI")),
     true,
   );
+  assert.equal(await page.$$eval(".chat-style", (els) => els.length), 3);
+  assert.equal(
+    await page.$$eval(".chat-style", (els) => els.every((el) => el.offsetParent)),
+    true,
+  );
   await page.screenshot({ path: path.join(out, "desktop-empty.png") });
+
+  await page.click("#open-project");
+  await page.waitForFunction(() => document.querySelectorAll(".project-card").length > 0);
+  assert.equal(
+    await page.$eval("body", (el) => el.innerText.includes("Evaluation only")),
+    false,
+  );
+  assert.equal(
+    await page.$eval("body", (el) => el.innerText.includes("全屋 · 2BHK 样板间")),
+    true,
+  );
+  await page.screenshot({ path: path.join(out, "project-gallery.png") });
+  await page.click("#close-dialog");
+  for (const id of ["#export-image", "#export-pdf"]) {
+    assert.equal(
+      await page.$eval(id, (el) => el instanceof HTMLButtonElement),
+      true,
+    );
+  }
 
   await page.click("#open-catalog");
   await page.waitForFunction(() => !document.querySelector("#catalog-drawer").hidden);

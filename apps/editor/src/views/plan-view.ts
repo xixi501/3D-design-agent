@@ -18,6 +18,7 @@ import { floorColors } from "./three-view.js";
 import { Mv, Sv } from "../modeling/surfaces.js";
 import { Gr } from "../../../../packages/scene-core/src/inherited/footprints.js";
 import type { EditBase } from "../api.js";
+import { displayRoomName } from "../ui/labels.js";
 export interface Selection {
   collection: Collection;
   id: string;
@@ -688,7 +689,7 @@ export class PlanView {
     c.font = `${13 * unit}px sans-serif`;
     for (const r of plan.rooms) {
       c.fillStyle = "#677a83";
-      c.fillText(r.name, r.x, r.y);
+      c.fillText(displayRoomName(r), r.x, r.y);
     }
     const f = this.selectedFurniture();
     if (f) {

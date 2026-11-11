@@ -66,6 +66,8 @@ export class ChatPanel {
   private floorplanFile = node("input");
   private photoUpload = node("button", "上传物品照片转 3D");
   private quick = node("div", undefined, "chat-quick");
+  private stylePicker = node("div", undefined, "chat-styles");
+  private styleHint = "";
   onPhotoImport?: () => void;
   private projectId?: string;
   private conversationId?: string;
@@ -103,6 +105,18 @@ export class ChatPanel {
     this.input.maxLength = 4000;
     this.input.rows = 4;
     this.brief.open = true;
+    for (const style of ["暖木极简", "现代东方", "奶油自然"]) {
+      const button = node("button", style, "chat-style");
+      button.type = "button";
+      button.onclick = () => {
+        this.styleHint = this.styleHint === style ? "" : style;
+        this.stylePicker
+          .querySelectorAll(".chat-style")
+          .forEach((b) => b.classList.toggle("active", b.textContent === this.styleHint));
+        if (this.styleHint) this.input.placeholder = `描述空间，AI 会按「${style}」方向设计`;
+      };
+      this.stylePicker.append(button);
+    }
     const form = node("form"),
       actions = node("div", undefined, "chat-actions");
     actions.append(this.send, this.cancel);
@@ -118,6 +132,7 @@ export class ChatPanel {
       this.context,
       this.connection,
       this.quick,
+      this.stylePicker,
       this.floorplanUpload,
       this.floorplanFile,
       this.photoUpload,
@@ -199,6 +214,7 @@ export class ChatPanel {
       this.brief.hidden = true;
       return;
     }
+    this.stylePicker.hidden = !this.getContext().blank;
     const generating = this.mode() === "generate_rectangular",
       context = this.getContext();
     this.context.textContent = generating
@@ -351,7 +367,9 @@ export class ChatPanel {
       waiting: currentTask?.status === "waiting_input",
       label: currentTask
         ? currentTask.status === "waiting_input"
-          ? "等待你核对户型草稿"
+          ? currentTask.mode === "reconstruct_floorplan"
+            ? "等待你核对户型草稿"
+            : "需要补充说明"
           : currentTask.phaseLabel || "AI 正在处理你的空间…"
         : "在线 · 等你的下一个想法",
     });
@@ -410,7 +428,9 @@ export class ChatPanel {
           "p",
           (active.has(task.status) && task.status !== "waiting_input"
             ? task.phaseLabel || "正在处理已保存的任务…"
-            : task.result?.message) ||
+            : task.status === "completed"
+              ? "本次空间修改已经提交，下面是摘要。"
+              : task.result?.message) ||
             task.error ||
             task.phaseLabel ||
             "任务已保存，正在处理。",
@@ -511,6 +531,19 @@ export class ChatPanel {
       }
       const result = task.result;
       if (result?.status === "completed") {
+        const card = node("div", undefined, "chat-result-card");
+        card.append(
+          node("span", "AI 设计完成", "chat-result-kicker"),
+          node("p", result.message || "本次空间修改已经提交。", "chat-result-copy"),
+          node(
+            "div",
+            `${result.changes?.length || 0} 项变更 · 版本 ${result.committedRevision || task.result?.committedRevision || ""} · 检查通过`,
+            "chat-result-meta",
+          ),
+        );
+        reply.append(card);
+        const basis = node("details");
+        basis.append(node("summary", "AI 设计依据"));
         if (result.generation?.mode === "reconstruct_floorplan") {
           reply.append(
             node(
@@ -519,7 +552,7 @@ export class ChatPanel {
             ),
           );
           for (const skill of result.skillsUsed || [])
-            reply.append(
+            basis.append(
               node("p", `复现技能 ${skill.id} @ ${skill.version}`, "muted"),
             );
         }
@@ -532,7 +565,7 @@ export class ChatPanel {
             ),
           );
           for (const skill of result.skillsUsed || [])
-            reply.append(
+            basis.append(
               node(
                 "p",
                 `设计技能 ${skill.id} @ ${skill.version} · ${skill.contentHash.slice(0, 12)}`,
@@ -540,6 +573,7 @@ export class ChatPanel {
               ),
             );
         }
+        if (basis.childElementCount > 1) reply.append(basis);
         const list = node("ul");
         for (const change of result.changes || []) {
           const label =
@@ -717,7 +751,10 @@ export class ChatPanel {
     };
   }
   private async submit() {
-    const input = this.input.value.trim();
+    const typed = this.input.value.trim();
+    const input = this.styleHint && typed
+      ? `${typed}\n\n设计方向：${this.styleHint}`
+      : typed;
     if (!input || this.sending) return;
     const context = this.getContext();
     if (context.projectId !== this.projectId) return;

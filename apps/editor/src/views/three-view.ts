@@ -20,6 +20,7 @@ import { ensureAssets } from "../modeling/asset-cache.js";
 import { Ko, zd, Qu, Lu, Ps, ei, Hd, qC } from "../modeling/surfaces.js";
 import { Gr } from "../../../../packages/scene-core/src/inherited/footprints.js";
 import type { EditBase } from "../api.js";
+import { displayRoomName } from "../ui/labels.js";
 export const floorColors: Record<string, string> = {
   oak: "#c7ab82",
   walnut: "#826145",
@@ -441,6 +442,19 @@ export class ThreeView {
             );
           uv.needsUpdate = true;
         } else this.mapFloor(mesh, recipe.tile / 1000);
+      }
+      if (plan.rooms.length > 1 && label) {
+        const title = displayRoomName(
+          plan.rooms.find((r) => r.id === label.id) || label,
+        );
+        const area = Math.round((room.bb.w * room.bb.h) / 100000) / 10;
+        const sprite = this.roomSprite(`${title}  ${area}㎡`);
+        sprite.position.set(
+          (room.bb.x + room.bb.w / 2) / 1000,
+          1.9,
+          (room.bb.y + room.bb.h / 2) / 1000,
+        );
+        this.root.add(sprite);
       }
       const ceiling = ei(label);
       if (ceiling.type !== "none") {
@@ -908,6 +922,38 @@ export class ThreeView {
       edges.position.y = 0.006;
       this.envelopeLayer.add(mesh, edges);
     }
+  }
+  private roomSprite(text: string) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 128;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#fffdf8e8";
+    ctx.beginPath();
+    ctx.roundRect(4, 18, 504, 92, 22);
+    ctx.fill();
+    ctx.strokeStyle = "#b8613c55";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = "#1e2724";
+    ctx.font = '600 32px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 256, 64);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    this.transientTextures.push(texture);
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+      }),
+    );
+    sprite.scale.set(2.0, 0.5, 1);
+    sprite.renderOrder = 20;
+    return sprite;
   }
   focusRoom(room: { x: number; y: number }) {
     const x = room.x / 1000,

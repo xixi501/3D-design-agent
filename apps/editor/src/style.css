@@ -413,3 +413,75 @@ dialog h3 { font-size: 11px; letter-spacing: .05em; margin: 18px 0 8px; }
   .stage-toolbar { flex: 0 0 auto; height: auto; min-height: 45px; }
   .stage-actions { padding-top: 2px; overflow-x: auto; }
 }
+
+/* Readability + project gallery (product pass 2) */
+button { font-size: 11.5px; }
+.mode-switch button { font-size: 11px; }
+.eyebrow { font-size: 9.5px; }
+.chat-context, .chat-connection { font-size: 10.5px; }
+.chat-suggestion { font-size: 10px; }
+.chat-task, .chat-user { font-size: 11.5px; }
+.chat-assistant { font-size: 11px; }
+.chat-status { font-size: 10px; }
+.chat-assistant details { font-size: 10px; }
+.chat-brief { font-size: 10px; }
+.chat-panel textarea { font-size: 12px; }
+.chat-actions button:not(.primary) { font-size: 10.5px; }
+.chat-help { font-size: 9.5px; }
+.stage-actions button { font-size: 11px; }
+.stage-view button { font-size: 11px; }
+.tools button { font-size: 10.5px; }
+#openable-jump, .catalog-trigger { font-size: 10.5px; }
+.context-tabs button { font-size: 10.5px; }
+.context-head { font-size: 11.5px; }
+.overview-hero p, .overview-note { font-size: 11.5px; }
+.overview-section-head h3 { font-size: 10.5px; }
+.overview-rooms b { font-size: 11.5px; }
+.overview-rooms small { font-size: 10px; }
+.overview-actions button { font-size: 11px; }
+.metric-grid span { font-size: 10px; }
+.library summary { font-size: 12px; }
+.library > .wide { font-size: 11.5px; }
+.catalog-items button { font-size: 10.5px; }
+.history-item, .issue { font-size: 11.5px; }
+#message, #revision { font-size: 10px; }
+.footer-shortcuts { font-size: 9.5px; }
+.floorplan-controls label, .floorplan-controls p, .floorplan-drawing p { font-size: 11px; }
+
+.dialog-kicker { color: var(--copper); font-size: 9px; font-weight: 700; letter-spacing: .18em; margin-bottom: 7px; }
+.project-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin: 16px 0 24px; max-height: 390px; overflow: auto; }
+.project-card { display: flex; flex-direction: column; align-items: stretch; text-align: left; border: 1px solid var(--line-soft); border-radius: 11px; padding: 7px; background: var(--surface); white-space: normal; }
+.project-card:hover { border-color: var(--copper); background: var(--surface); }
+.project-card strong { font-size: 11.5px; margin: 8px 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-card small { color: var(--muted-2); font-size: 9.5px; margin: 0 3px 3px; }
+.project-cover { position: relative; display: block; height: 94px; border-radius: 7px; overflow: hidden; background: #e9e3d8; }
+.project-cover span { position: absolute; left: 9px; top: 8px; font-size: 10px; letter-spacing: .12em; color: #fffdf8cc; z-index: 1; }
+.project-cover i { position: absolute; inset: 18px 12px 10px; border: 1px solid #fffdf877; border-radius: 3px; transform: skewY(-7deg) rotate(-3deg); box-shadow: 34px 18px 0 -1px #fffdf82e, -28px 27px 0 -1px #fffdf82a; }
+.cover-0 { background: linear-gradient(135deg, #7d5d48, #c79770); }
+.cover-1 { background: linear-gradient(135deg, #3f6f66, #a4c0b2); }
+.cover-2 { background: linear-gradient(135deg, #6e6255, #c6b394); }
+.cover-3 { background: linear-gradient(135deg, #864d3d, #d39a73); }
+.gallery-heading { margin-top: 0; }
+@media (max-width: 700px) { .project-gallery { grid-template-columns: 1fr 1fr; } }
+.chat-styles { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 1px 0 3px; }
+.chat-styles[hidden] { display: none; }
+.chat-style { flex: 0 0 auto; border: 1px solid #ffffff1c; border-radius: 12px; padding: 4px 8px; background: #ffffff08; color: #c9d4ce; font-size: 10px; }
+.chat-style:hover, .chat-style.active { background: #b8613c2e; border-color: #b8613c88; color: #fffaf1; }
+.chat-result-card { margin-top: 6px; padding: 9px 10px; border: 1px solid #b8613c40; border-radius: 9px; background: #b8613c12; }
+.chat-result-kicker { color: #e6bd78; font-size: 8.5px; letter-spacing: .14em; font-weight: 700; }
+.chat-result-copy { margin: 5px 0 7px !important; color: #e9e3d9; font-size: 10.5px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.chat-result-meta { color: #aebcb5; font-size: 9px; letter-spacing: .02em; }
+.stage-view button, .stage-actions button { transition: none; }
+@media (max-width: 600px) {
+  dialog { min-width: 0; width: 92vw; padding: 18px; }
+  .project-gallery { grid-template-columns: 1fr 1fr; max-height: 44vh; }
+  .project-cover { height: 74px; }
+  .project-card strong { font-size: 10.5px; }
+}
+.health-card { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; text-align: left; border: 1px solid var(--line-soft); background: var(--surface-2); border-radius: 9px; padding: 9px 10px; margin: 2px 0 2px; white-space: normal; }
+.health-card span { font-size: 11px; font-weight: 650; color: var(--ink-soft); }
+.health-card small { grid-column: 1; color: var(--muted); font-size: 10px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.health-card b { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--muted); font-size: 10px; font-weight: 500; }
+.health-card.has-issues { border-color: #d8b09b; background: #faf0e8; }
+.health-card.has-issues span { color: var(--copper); }
+.health-card:hover { border-color: var(--copper); }

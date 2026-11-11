@@ -183,7 +183,7 @@ try {
   );
   await original.waitForFunction(() => window.__designer);
   await original.evaluate(() => __designer.setView("3d"));
-  await editor.goto(`http://127.0.0.1:${address.port}/?debug`, {
+  await editor.goto(`http://127.0.0.1:${address.port}/?debug&example=living-dining`, {
     waitUntil: "load",
   });
   await editor.waitForFunction(

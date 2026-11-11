@@ -115,8 +115,20 @@ try {
     );
     await ready();
   };
+  const welcomePosts = [];
+  page.on("request", (request) => {
+    if (
+      request.method() === "POST" &&
+      new URL(request.url()).pathname === "/api/projects"
+    )
+      welcomePosts.push(request.url());
+  });
   await page.goto(base + "/?debug", { waitUntil: "load" });
+  await page.waitForSelector("#dialog[open] [data-example='living-dining']");
+  assert.equal(welcomePosts.length, 0, "root must not create a draft project");
+  await page.click("[data-example='living-dining']");
   await ready();
+  assert.equal(welcomePosts.length, 1, "opening a sample should create one project");
   await step(
     "complete legacy snapshot loads with stable identity and data",
     async () => {

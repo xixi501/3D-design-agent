@@ -81,16 +81,11 @@ async function uiRevision(revision) {
 try {
   if (!afterRestart) {
     await page.goto(base + "/", { waitUntil: "load" });
-    await ready();
-    const old = new URL(page.url()).searchParams.get("project");
-    await page.click("#new-project");
-    await page.waitForFunction(
-      (p) => new URL(location.href).searchParams.get("project") !== p,
-      {},
-      old,
-    );
+    await page.waitForSelector("#dialog[open] #gallery-new-project");
+    await page.click("#gallery-new-project");
     await ready();
     const id = new URL(page.url()).searchParams.get("project");
+    assert.ok(id, "new blank project should have an id");
     await page.waitForFunction(
       () =>
         document.querySelector(".chat-actions .primary")?.textContent ===

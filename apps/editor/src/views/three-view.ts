@@ -1011,6 +1011,24 @@ export class ThreeView {
       marker.position.set(f.x / 1000, (f.z || 0) / 1000 + f.h / 1000 + 0.3, f.y / 1000);
       this.interactionLayer.add(marker);
     }
+    // Doors/windows are togglable too; place their E marker on the wall line.
+    const geo = wallGeometry(plan);
+    for (const opening of plan.openings) {
+      if (!toggleActionCommand(plan, "openings", opening.id)) continue;
+      const wall = geo.active.find(
+        (g) =>
+          g.w.id === opening.wall ||
+          g.ops.some((o: any) => o.o.id === opening.id),
+      );
+      if (!wall) continue;
+      const marker = this.markerSprite();
+      marker.position.set(
+        (wall.a.x + wall.u.x * opening.pos) / 1000,
+        opening.sill > 0 ? 1.75 : 1.55,
+        (wall.a.y + wall.u.y * opening.pos) / 1000,
+      );
+      this.interactionLayer.add(marker);
+    }
   }
   private walkObjectAtCenter() {
     if (!this.plan) return undefined;

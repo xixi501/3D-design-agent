@@ -783,6 +783,27 @@ def structure_candidates_v4(image: Image.Image, raw: dict):
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
     mask = _wall_mask(image)
     segments = _wall_components(mask, rgb)
+    recovery = False
+    if len(segments) < 16 and raw.get("segments_px"):
+        # The V4 mid-gray mask intentionally ignores very dark CAD walls.
+        # For such plans, use the already-filtered HPD source segments rather
+        # than returning an incomplete candidate set to the structure role.
+        segments = [
+            {
+                "orient": segment["orient"],
+                "line": float(segment["line"]),
+                "s0": float(segment["s0"]),
+                "s1": float(segment["s1"]),
+                "t": float(segment.get("t") or 8),
+                "lum": float(segment.get("lum") or 0),
+                "area": max(
+                    1, (float(segment["s1"]) - float(segment["s0"])) * float(segment.get("t") or 8)
+                ),
+            }
+            for segment in raw.get("segments_px") or []
+            if segment.get("orient") in ("h", "v")
+        ]
+        recovery = True
     groups = _union_groups(segments)
     candidates = []
     for group in groups:
@@ -928,6 +949,7 @@ def structure_candidates_v4(image: Image.Image, raw: dict):
             "shortLeafWallsDropped": leafDrops,
             "endpointClosures": len(closures),
             "wallMaskPixels": int((mask > 0).sum()),
+            **({"recovery": "raw-hpd-segments"} if recovery else {}),
         },
         "_mask": Image.fromarray(mask * 255, mode="L"),
     }

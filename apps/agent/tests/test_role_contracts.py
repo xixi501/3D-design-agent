@@ -30,6 +30,9 @@ def test_role_context_is_least_privilege_and_hash_bound():
             "image": {"id": "image-1"},
             "structureSkeleton": {"candidateWalls": []},
             "scope": {"roomSelection": "all_visible"},
+            "functionalAreas": ["bedroom", "kitchen"],
+            "roomCatalog": [{"id": "bedroom", "name": "卧室"}],
+            "floorplanScope": {"roomSelection": "all_visible"},
         },
     )
     assert context.role == "structure"

@@ -851,6 +851,9 @@ class Workflow:
             else:
                 result["message"] = "门/柜门/抽屉/电器的开启状态已提交，可撤销。"
             result["policy"] = policy
+        elif task.get("mode") == "repair_layout":
+            result["message"] = "AI 已完成布局修复并通过检查，可撤销。"
+            result["policy"] = generation.get("policy")
         elif task.get("mode") == "photo_to_scene":
             added = [
                 f

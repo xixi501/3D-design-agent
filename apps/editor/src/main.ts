@@ -12,7 +12,6 @@ import {
   type AssetRecord,
   type Plan,
   allDoorCabinetCommands,
-  checkScene,
   isSurfaceHost,
   isOpenableFurniture,
   isTogglableFurniture,
@@ -387,194 +386,48 @@ function layoutIssues(plan: Plan) {
     }
   return issues;
 }
-function repairIssues(plan: Plan) {
-  return [...checkScene(plan).issues, ...layoutIssues(plan)].filter(
-    (issue) => issue.level === "error",
-  );
-}
-function errorCount(plan: Plan) {
-  return repairIssues(plan).length;
-}
-
-function repairCommands(plan: Plan): Command[] {
-  const working = clone(plan);
-  const original = new Map(working.furniture.map((f) => [f.id, clone(f)]));
-  const room = working.rooms[0];
-  const offsets = [0, 250, -250, 500, -500, 800, -800, 1200, -1200];
-  for (let pass = 0; pass < 6; pass++) {
-    const errors = repairIssues(working);
-    if (!errors.length) break;
-    let improved = false;
-    for (const issue of errors) {
-      const surfaceIssue = issue.code === "SURFACE_ITEM_OVERHANG";
-      // For an overhang, move the item that sits on the host, never the host
-      // itself. Moving the table under a misplaced vase is not a design fix.
-      const overlapIssue = issue.code === "FURNITURE_OVERLAP";
-      let item =
-        working.furniture.find(
-          (f) =>
-            issue.objectIds.includes(f.id) &&
-            (!surfaceIssue || f.parentObjectId || f.placement === "surface"),
-        ) ||
-        working.furniture.find((f) => issue.objectIds.includes(f.id));
-      if (overlapIssue) {
-        const partners = issue.objectIds
-          .map((id) => working.furniture.find((f) => f.id === id))
-          .filter(Boolean) as typeof item[];
-        const movable = partners.find(
-          (f) =>
-            f &&
-            !/table|cabinet|wardrobe|sofa/i.test(`${f.type} ${f.key}`),
-        );
-        if (movable) item = movable;
-      }
-      if (!item) continue;
-      const current = errorCount(working);
-      const candidates: { x: number; y: number; z?: number; host?: string }[] =
-        [];
-      const host = item.parentObjectId
-        ? working.furniture.find((f) => f.id === item.parentObjectId)
-        : undefined;
-      if (surfaceIssue && host) {
-        const maxX = Math.max(0, (host.w - item.w) / 2 - 20);
-        const maxY = Math.max(0, (host.d - item.d) / 2 - 20);
-        for (const dx of [0, maxX, -maxX])
-          for (const dy of [0, maxY, -maxY])
-            candidates.push({
-              x: host.x + dx,
-              y: host.y + dy,
-              z: (host.z || 0) + host.h,
-              host: host.id,
-            });
-      } else if (item.parentObjectId || item.placement === "surface") {
-        if (host)
-          candidates.push({
-            x: host.x,
-            y: host.y,
-            z: (host.z || 0) + host.h,
-            host: host.id,
-          });
-      }
-      if (!surfaceIssue && /chair|stool/i.test(`${item.type} ${item.key}`)) {
-        const table = working.furniture.find((f) =>
-          /diningTable|roundTable|table/i.test(`${f.type} ${f.key}`),
-        );
-        if (table) {
-          const rotated = Math.abs(table.rot % 180) === 90;
-          const halfX = (rotated ? table.d : table.w) / 2,
-            halfY = (rotated ? table.w : table.d) / 2;
-          for (const [dx, dy] of [
-            [halfX + item.w / 2 + 90, 0],
-            [-halfX - item.w / 2 - 90, 0],
-            [0, halfY + item.d / 2 + 90],
-            [0, -halfY - item.d / 2 - 90],
-          ])
-            candidates.push({ x: table.x + dx, y: table.y + dy });
-        }
-      }
-      if (!surfaceIssue) {
-        for (const dx of offsets)
-          for (const dy of offsets) {
-            if (!dx && !dy) continue;
-            candidates.push({ x: item.x + dx, y: item.y + dy });
-            if (room) candidates.push({ x: room.x + dx, y: room.y + dy });
-          }
-      }
-      let best: typeof candidates[number] | undefined,
-        bestCount = current,
-        bestOverlap = layoutIssues(working).length,
-        bestDistance = Number.POSITIVE_INFINITY;
-      for (const candidate of candidates) {
-        const test = clone(working);
-        const target = test.furniture.find((f) => f.id === item.id)!;
-        target.x = candidate.x;
-        target.y = candidate.y;
-        if (candidate.z !== undefined) {
-          target.z = candidate.z;
-          target.parentObjectId = candidate.host;
-          target.placement = "surface";
-        }
-        const count = errorCount(test),
-          distance = Math.hypot(candidate.x - item.x, candidate.y - item.y);
-        // Prefer zero-error positions, then no unexplained overlaps, then the
-        // smallest move. A repair must reduce real conflicts.
-        const overlap = layoutIssues(test).length;
-        const score = count * 1_000_000 + overlap * 10_000 + distance;
-        const bestScore = bestCount * 1_000_000 + bestOverlap * 10_000 + bestDistance;
-        if (score < bestScore) {
-          best = candidate;
-          bestCount = count;
-          bestOverlap = overlap;
-          bestDistance = distance;
-        }
-      }
-      if (best && bestCount < current) {
-        item.x = best.x;
-        item.y = best.y;
-        if (best.z !== undefined) {
-          item.z = best.z;
-          item.parentObjectId = best.host;
-          item.placement = "surface";
-        }
-        improved = true;
-      }
-    }
-    if (!improved) break;
-  }
-  const changes: Command[] = [];
-  for (const f of working.furniture) {
-    const before = original.get(f.id);
-    if (!before) continue;
-    if (
-      before.x !== f.x ||
-      before.y !== f.y ||
-      before.z !== f.z ||
-      before.parentObjectId !== f.parentObjectId ||
-      before.placement !== f.placement
-    )
-      changes.push({
-        type: "update",
-        collection: "furniture",
-        id: f.id,
-        patch: {
-          x: f.x,
-          y: f.y,
-          z: f.z,
-          parentObjectId: f.parentObjectId,
-          placement: f.placement,
-        },
-      });
-  }
-  return changes;
-}
 async function repairScene() {
   if (!project || busy || repairing) return;
-  repairing = true;
   const target = project;
-  try {
-    const commandsToFix = repairCommands(target.plan);
-    if (!commandsToFix.length) {
-      message("当前布局没有可自动调整的对象，请用 AI 对话或手动调整");
-      return;
-    }
-    if (
-      !window.confirm(
-        `建议调整：${commandsToFix
-          .slice(0, 5)
-          .map((c: any) => target.plan.furniture.find((f) => f.id === c.id)?.name || "家具")
-          .join("、")}。只处理碰撞/越界，不改变风格。继续吗？`,
-      )
+  const checks = await api(`/projects/${target.id}/checks`);
+  const overlaps = layoutIssues(target.plan);
+  if (!checks.issues.some((i: any) => i.level === "error") && !overlaps.length) {
+    message("当前场景没有需要修复的硬伤");
+    return;
+  }
+  if (
+    !window.confirm(
+      "AI 会分析当前布局，生成一个可检查的修复候选；不会改动墙体和门窗，也不会新增房间。继续吗？",
     )
-      return;
-    await commands(commandsToFix, "一键修复布局");
-    if (project?.id === target.id) {
-      const checks = await api(`/projects/${target.id}/checks`);
-      message(
-        checks.issues.some((i: any) => i.level === "error")
-          ? "已自动调整布局，但仍有关键问题，请查看检查面板"
-          : "已自动修复布局，检查通过",
-      );
-    }
+  )
+    return;
+  repairing = true;
+  try {
+    const repairIds = [
+      ...new Set(
+        [...checks.issues, ...overlaps]
+          .flatMap((i: any) => i.objectIds || [])
+          .filter((id: string) => target.plan.furniture.some((f) => f.id === id)),
+      ),
+    ].slice(0, 20);
+    const describe = (i: any) =>
+      `- ${i.message}（相关对象：${(i.objectIds || [])
+        .map((id: string) => {
+          const f = target.plan.furniture.find((x) => x.id === id);
+          return f ? `${f.name} id=${f.id} x=${f.x} y=${f.y}` : id;
+        })
+        .join("；")}）`;
+    const lines = [...checks.issues.map(describe), ...overlaps.map(describe)];
+    const brief = `请作为布局修复 Agent，修复当前场景的以下硬伤，只做最小必要调整：
+${lines.join("\n")}
+
+要求：
+1. 只移动/调整发生冲突的家具或台面物品，不移动墙体、门窗，不新增房间；
+2. 对餐椅优先围绕餐桌四周布置，对台面物品优先放回宿主台面中心/安全范围；
+3. 保持家具清单和风格不变，不要用“整体重做”规避问题；
+4. 生成候选后必须通过检查，再提交；若无法修复，明确告诉我原因。`;
+    await chat.requestRepair(brief, repairIds);
+    message("AI 修复任务已提交，正在生成可检查候选…");
   } catch (error) {
     fail(error);
   } finally {

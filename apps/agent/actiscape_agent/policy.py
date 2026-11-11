@@ -29,6 +29,7 @@ PolicyMode = Literal[
     "photo_to_scene",
     "generate_rectangular",
     "reconstruct_floorplan",
+    "repair_layout",
 ]
 
 ROOM_WORDS = (
@@ -149,6 +150,12 @@ class PolicyController:
                 route="reconstruct_floorplan",
                 mode="reconstruct_floorplan",
                 reason="显式户型图模式",
+            )
+        if mode == "repair_layout":
+            return PolicyDecision(
+                route="edit",
+                mode="repair_layout",
+                reason="显式布局修复任务，进入可检查的编辑候选流程",
             )
         if mode == "generate_rectangular":
             return PolicyDecision(

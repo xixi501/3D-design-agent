@@ -151,6 +151,7 @@ class TaskInput(StrictModel):
         "photo_to_scene",
         "generate_rectangular",
         "reconstruct_floorplan",
+        "repair_layout",
     ] = "edit"
     imageId: str | None = Field(default=None, min_length=1, max_length=200)
     assetId: str | None = Field(default=None, min_length=1, max_length=200)

@@ -750,6 +750,36 @@ export class ChatPanel {
         this.connection.textContent = "任务连接中断，正在重新读取状态…";
     };
   }
+  async requestRepair(brief: string, selectedIds: string[] = []) {
+    if (this.sending) return;
+    const context = this.getContext();
+    if (!context.projectId) return;
+    this.sending = true;
+    this.notice.textContent = "";
+    try {
+      if (!this.conversationId) await this.load();
+      if (!this.conversationId) throw new Error("设计助手暂不可用");
+      const task = await post<any>(
+        `/agent/conversations/${this.conversationId}/tasks`,
+        {
+          requestId: crypto.randomUUID(),
+          projectId: context.projectId,
+          input: brief,
+          selectedIds,
+          mode: "repair_layout",
+        },
+      );
+      this.update(task);
+      this.watchActive();
+      this.input.value = "";
+    } catch (error) {
+      this.notice.textContent = (error as Error).message;
+      await this.load();
+    } finally {
+      this.sending = false;
+      this.render();
+    }
+  }
   private async submit() {
     const typed = this.input.value.trim();
     const input = this.styleHint && typed

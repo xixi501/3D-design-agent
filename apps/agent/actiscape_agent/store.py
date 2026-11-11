@@ -212,6 +212,7 @@ class TaskStore:
             "photo_to_scene",
             "generate_rectangular",
             "reconstruct_floorplan",
+            "repair_layout",
         ):
             raise TaskError("INVALID_MODE", "未知任务模式")
         if mode == "reconstruct_floorplan" and not body.get("imageId"):

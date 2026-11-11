@@ -543,3 +543,12 @@ body.structure-open #structural-tools button { border-color: transparent; font-s
 .overview-room-row > button[data-room] b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .room-repair { flex: 0 0 auto; border: 1px solid var(--line-soft); border-radius: 6px; padding: 3px 7px; color: var(--copper); background: var(--surface-2); font-size: 9px; }
 .room-repair:hover { border-color: var(--copper); color: var(--copper); }
+.repair-room-list { display: flex; flex-direction: column; gap: 6px; margin: 16px 0; max-height: 48vh; overflow: auto; }
+.repair-room-list button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); text-align: left; }
+.repair-room-list button:hover:not(:disabled) { border-color: var(--copper); background: #fff8f2; }
+.repair-room-list button:disabled { opacity: .55; }
+.repair-room-list button > span { display: flex; flex-direction: column; gap: 2px; }
+.repair-room-list button b { font-size: 12px; }
+.repair-room-list button small { color: var(--muted-2); font-size: 10px; }
+.repair-room-list button > b { color: var(--copper); font-size: 11px; }
+.overview-room-row .room-repair { border-color: #d7a78f; background: #fff8f2; color: var(--copper); }

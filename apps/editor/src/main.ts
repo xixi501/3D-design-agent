@@ -532,6 +532,41 @@ function furnitureInRegion(plan: Plan, region: any) {
       .map((f) => f.id),
   );
 }
+async function openRepairScope() {
+  if (!project) return;
+  const target = project;
+  const checks = await api(`/projects/${target.id}/checks`);
+  const layout = layoutIssues(target.plan);
+  const all = [...checks.issues, ...layout];
+  const rows = target.plan.rooms
+    .map((room) => {
+      const region = roomRegion(target.plan, room.id);
+      const ids = furnitureInRegion(target.plan, region);
+      const count = all.filter((issue: any) =>
+        (issue.objectIds || []).some((id: string) => ids.has(id)),
+      ).length;
+      return { room, count };
+    })
+    .sort((a, b) => b.count - a.count);
+  const dialog = $<HTMLDialogElement>("#dialog"),
+    body = $("#dialog-body");
+  body.innerHTML = `<div class="dialog-kicker">REPAIR SCOPE</div><h2>选择要修复的房间</h2><p class="muted">全屋问题较多，按房间修复更安全。只调整该房间内的家具，不改墙体门窗。</p><div class="repair-room-list">${rows
+    .map(
+      ({ room, count }) =>
+        `<button data-scope-room="${esc(room.id)}" ${count ? "" : "disabled"}><span><b>${esc(displayRoomName(room))}</b><small>${count ? `${count} 项问题` : "没有硬伤"}</small></span><b>${count ? "修复" : "通过"}</b></button>`,
+    )
+    .join("")}</div><div class="actions"><button id="repair-scope-cancel">先不修</button></div>`;
+  body.querySelectorAll<HTMLButtonElement>("[data-scope-room]").forEach(
+    (button) =>
+      (button.onclick = () => {
+        dialog.close();
+        void repairScene(button.dataset.scopeRoom);
+      }),
+  );
+  body.querySelector<HTMLButtonElement>("#repair-scope-cancel")!.onclick =
+    () => dialog.close();
+  dialog.showModal();
+}
 async function repairScene(roomId?: string) {
   if (!project || busy || repairing) return;
   const target = project;
@@ -557,7 +592,7 @@ async function repairScene(roomId?: string) {
   }
   const total = issues.length + overlaps.length;
   if (!roomId && total > 8) {
-    message("全屋问题较多，请在右侧「空间导航」选择房间，逐个修复");
+    await openRepairScope();
     return;
   }
   if (

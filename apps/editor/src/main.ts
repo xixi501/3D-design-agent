@@ -410,14 +410,16 @@ async function repairScene() {
           .filter((id: string) => target.plan.furniture.some((f) => f.id === id)),
       ),
     ].slice(0, 20);
-    const describe = (i: any) =>
-      `- ${i.message}（相关对象：${(i.objectIds || [])
-        .map((id: string) => {
-          const f = target.plan.furniture.find((x) => x.id === id);
-          return f ? `${f.name} id=${f.id} x=${f.x} y=${f.y}` : id;
-        })
-        .join("；")}）`;
+    const describe = (i: any) => {
+      const objects = (i.objectIds || [])
+        .map((id: string) => target.plan.furniture.find((x) => x.id === id))
+        .filter(Boolean)
+        .map((f: any) => `${f.name} id=${f.id} x=${f.x} y=${f.y}`);
+      return `- ${i.message}${objects.length ? `（只涉及家具：${objects.join("；")}）` : ""}`;
+    };
     const lines = [...checks.issues.map(describe), ...overlaps.map(describe)];
+    // Never send wall/opening IDs in the repair brief; they are not furniture
+    // targets and were the source of the "target does not exist" failure.
     const brief = `请作为布局修复 Agent，修复当前场景的以下硬伤，只做最小必要调整：
 ${lines.join("\n")}
 
@@ -425,7 +427,8 @@ ${lines.join("\n")}
 1. 只移动/调整发生冲突的家具或台面物品，不移动墙体、门窗，不新增房间；
 2. 对餐椅优先围绕餐桌四周布置，对台面物品优先放回宿主台面中心/安全范围；
 3. 保持家具清单和风格不变，不要用“整体重做”规避问题；
-4. 生成候选后必须通过检查，再提交；若无法修复，明确告诉我原因。`;
+4. 生成候选后必须通过检查，再提交；若无法修复，明确告诉我原因；
+5. 只能选择上面列出的家具 ID 作为 target，不得把墙体/门窗 ID 当作家具。`;
     await chat.requestRepair(brief, repairIds);
     message("AI 修复任务已提交，正在生成可检查候选…");
   } catch (error) {

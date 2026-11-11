@@ -171,8 +171,16 @@ def completion_result(task: dict, state: dict, candidate: dict, revision: int):
     return result
 
 
-def compile_scope(project: dict, intent: dict, assets: dict, catalogue: dict) -> dict:
+def compile_scope(project: dict, intent: dict, assets: dict, catalogue: dict, *, task_mode: str | None = None) -> dict:
     furniture = {f["id"]: f for f in project["plan"]["furniture"]}
+    if task_mode == "repair_layout":
+        # A repair must only target furniture, even if the model saw wall/opening
+        # IDs in a generated issue description.
+        intent = {
+            **intent,
+            "target_ids": [i for i in intent["target_ids"] if i in furniture],
+            "reference_ids": [i for i in intent["reference_ids"] if i in furniture],
+        }
     targets = intent["target_ids"]
     references = intent["reference_ids"]
     if (
@@ -427,7 +435,13 @@ class Workflow:
             return await FloorplanFlow(self.store, self.client, self.roles).scope(state, task)
         catalogue = (await self.client.request("/catalog"))["items"]
         try:
-            scope = compile_scope(state["project"], state["intent"], state["assets"], catalogue)
+            scope = compile_scope(
+                state["project"],
+                state["intent"],
+                state["assets"],
+                catalogue,
+                task_mode=task.get("mode"),
+            )
         except TaskError as e:
             return {
                 "route": "end",

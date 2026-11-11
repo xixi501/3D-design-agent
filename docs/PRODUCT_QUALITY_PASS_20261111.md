@@ -84,9 +84,10 @@
 - PolicyController 路由到编辑工作流，Agent 生成候选，经过 CheckScene/截图检查后提交；
 - 不再直接调用 `/commands`，修复动作也进入多 Agent 链路；
 - 修复会显示在 AI 舱，用户可撤销；
-- 副本实测：餐桌与餐椅重叠 → Agent 完成任务，仅移动冲突餐椅，revision +1，健康检查通过。
+- 副本实测：餐桌与餐椅重叠 → Agent 只把冲突餐椅移到餐桌北侧，餐桌保持原位，revision +1，健康检查通过；
+- 任务经历理解需求 → 生成候选 → 检查视图 → 提交，AI 舱记录完成摘要。
 
-![Agent 修复结果](evidence/product-quality-20261111/agent-repair-final4.png)
+![Agent 修复结果](evidence/product-quality-20261111/agent-repair-final5.png)
 
 ### 3.7 导出
 

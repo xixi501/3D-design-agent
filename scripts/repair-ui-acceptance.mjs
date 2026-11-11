@@ -116,7 +116,8 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
 
   // The desktop export entry is explicit, not hidden behind the overflow menu.
-  await page.goto(`${base}/?debug`, { waitUntil: "load" });
+  await page.goto(`${base}/?debug&example=living-dining`, { waitUntil: "load" });
+  await ready(page);
   await page.waitForSelector(".export-actions summary");
   await page.click(".export-actions summary");
   for (const id of ["#export-image", "#export-pdf", "#export-project"])

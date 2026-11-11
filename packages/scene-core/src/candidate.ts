@@ -71,6 +71,8 @@ export interface EditScope {
   fieldMask?: Record<string, string[]>;
   additionBounds?: { x0: number; y0: number; x1: number; y1: number };
   allowedRoomIds?: string[];
+  /** strict-repair requires every target-related error to disappear. */
+  checkProfile?: "legacy" | "strict-repair";
   /** Opening or furniture IDs the actor may toggle (open/on) without moving them. */
   actionIds?: string[];
   /** Photo-generated models the actor may place; dimensions come from AssetRecord. */
@@ -82,12 +84,19 @@ export interface CandidateIssue {
   objectIds: string[];
   message: string;
   level: "error" | "warning";
+  category?: "structure" | "furniture" | "surface" | "action" | "overlap";
+  fixableByFurniture?: boolean;
+  owner?: "furniture" | "structure" | "manual";
+  roomId?: string;
   metric?: number;
   blocking: boolean;
 }
 export interface CheckReport {
   passed: boolean;
   issues: CandidateIssue[];
+  remainingIssues: number;
+  targetIssuesBefore: number;
+  targetIssuesAfter: number;
   coverage: string[];
   limitations: string[];
 }
@@ -114,9 +123,15 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     "additionBounds",
     "fieldMask",
     "allowedRoomIds",
+    "checkProfile",
     "actionIds",
     "allowedAssets",
   ]);
+  if (
+    s.checkProfile !== undefined &&
+    !["legacy", "strict-repair"].includes(s.checkProfile)
+  )
+    fail("checkProfile 需要 legacy 或 strict-repair");
   const ids = new Set(plan.furniture.map((f) => f.id));
   for (const name of ["targetIds", "allowDeleteIds", "allowAddKeys"] as const) {
     const values = s[name];
@@ -511,15 +526,21 @@ export function checkCandidate(
     if (z < -1 || z + f.h > after.plan.height + 1)
       add("INVALID_ELEVATION", [f.id], `${f.name} 超出有效高度区间`);
   }
+  const strict = scope.checkProfile === "strict-repair";
+  const targetIds = new Set(scope.targetIds);
+  if (strict && !targetIds.size)
+    add("STRICT_SCOPE_EMPTY", [], "严格修复需要至少一个目标家具");
   const baseline = checkScene(before.plan).issues;
+  const afterIssues = checkScene(after.plan).issues;
   const previous = new Map(
     baseline.map((i) => [i.code + ":" + [...i.objectIds].sort().join(","), i]),
   );
-  for (const issue of checkScene(after.plan).issues) {
+  for (const issue of afterIssues) {
     const old = previous.get(
       issue.code + ":" + [...issue.objectIds].sort().join(","),
     );
     const affected = issue.objectIds.some((id) => changed.has(id));
+    const targetRelevant = issue.objectIds.some((id) => targetIds.has(id));
     const actionAffected = issue.objectIds.some((id) =>
       scope.actionIds?.includes(id),
     );
@@ -528,22 +549,36 @@ export function checkCandidate(
       ["OPENABLE_FRONT_BLOCKED", "DOOR_CABINET_CONFLICT"].includes(issue.code);
     const blocking =
       actionConflict ||
-      (affected && (!old || (issue.metric || 0) > (old.metric || 0) + 1));
+      (affected && (!old || (issue.metric || 0) > (old.metric || 0) + 1)) ||
+      (strict && targetRelevant);
     issues.push({
       ...issue,
       level: issue.level as "error" | "warning",
       blocking,
     });
   }
+  const targetIssuesBefore = baseline.filter(
+    (issue) =>
+      issue.level === "error" && issue.objectIds.some((id) => targetIds.has(id)),
+  ).length;
+  const targetIssuesAfter = afterIssues.filter(
+    (issue) =>
+      issue.level === "error" && issue.objectIds.some((id) => targetIds.has(id)),
+  ).length;
   return {
     passed: !issues.some((i) => i.blocking),
     issues,
+    remainingIssues: afterIssues.filter((issue) => issue.level === "error")
+      .length,
+    targetIssuesBefore,
+    targetIssuesAfter,
     coverage: [
       "授权对象与结构逐字段保护",
       "需求数量",
       "封闭房间占地包含（20 mm 容差）",
       "有效高度与原版参数化轮廓 SAT",
       "基准问题对照",
+      ...(strict ? ["严格修复：目标对象相关 error 必须清零"] : []),
     ],
     limitations: [
       "GLB 使用矩形占地，不是精确网格碰撞",

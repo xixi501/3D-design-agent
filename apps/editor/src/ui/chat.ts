@@ -531,13 +531,29 @@ export class ChatPanel {
       }
       const result = task.result;
       if (result?.status === "completed") {
+        const checks = result.checks || result.report?.codeChecks;
+        const remaining =
+          checks && Number.isFinite(checks.remainingIssues)
+            ? checks.remainingIssues
+            : Array.isArray(checks?.issues)
+              ? checks.issues.filter((issue: any) => issue.level === "error")
+                  .length
+              : undefined;
+        const checkLabel =
+          remaining === undefined
+            ? "已保存"
+            : remaining > 0
+              ? `仍有 ${remaining} 项问题`
+              : checks?.passed === false
+                ? "检查未通过"
+                : "检查通过";
         const card = node("div", undefined, "chat-result-card");
         card.append(
           node("span", "AI 设计完成", "chat-result-kicker"),
           node("p", result.message || "本次空间修改已经提交。", "chat-result-copy"),
           node(
             "div",
-            `${result.changes?.length || 0} 项变更 · 版本 ${result.committedRevision || task.result?.committedRevision || ""} · 检查通过`,
+            `${result.changes?.length || 0} 项变更 · 版本 ${result.committedRevision || task.result?.committedRevision || ""} · ${checkLabel}`,
             "chat-result-meta",
           ),
         );
@@ -750,7 +766,11 @@ export class ChatPanel {
         this.connection.textContent = "任务连接中断，正在重新读取状态…";
     };
   }
-  async requestRepair(brief: string, selectedIds: string[] = []) {
+  async requestRepair(
+    brief: string,
+    selectedIds: string[] = [],
+    allowedRoomIds: string[] = [],
+  ) {
     if (this.sending) {
       this.notice.textContent = "当前还有任务在处理，请稍后再试";
       this.render();
@@ -770,6 +790,7 @@ export class ChatPanel {
           projectId: context.projectId,
           input: brief,
           selectedIds,
+          allowedRoomIds,
           mode: "repair_layout",
         },
       );

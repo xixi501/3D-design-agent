@@ -51,7 +51,8 @@ test("openable envelope reports a bed blocking the wardrobe doors", () => {
   );
   assert.equal(issues.length, 1);
   assert.deepEqual(issues[0].objectIds.sort(), [wardrobe.id, bed.id].sort());
-  assert.ok((issues[0].metric ?? 0) < 600);
+  assert.ok((issues[0].metric ?? 0) > 0);
+  assert.ok((issues[0].metric ?? 0) <= 600);
 });
 
 test("openable envelope passes when the required depth is clear", () => {

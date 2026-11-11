@@ -395,16 +395,63 @@ async function inspector() {
   if (panel === "checks") {
     const data = await api(`/projects/${project.id}/checks`);
     if (panel !== "checks" || sequence !== inspectorSequence) return;
-    host.innerHTML = `<h2>场景检查</h2><p class="muted">版本 ${data.revision} · ${data.issues.length} 项提示</p>${data.issues.map((i: any) => `<button class="issue" data-id="${esc(i.objectIds[0])}">${esc(i.message)}</button>`).join("") || "<p>当前检查未发现问题。</p>"}${data.issues.some((i: any) => i.level === "error") ? '<button id="repair-scene" class="repair-button wide">一键修复到最近可用版本</button>' : ""}<h3>检查范围</h3><p class="muted">${data.coverage.map(esc).join("<br>")}</p><p class="muted">${data.limitations.map(esc).join("<br>")}</p>`;
+    const issues = data.issues || [];
+    const fixable = issues.filter(isFixableError);
+    const structural = issues.filter(
+      (issue: any) => issue.level === "error" && issue.fixableByFurniture === false,
+    );
+    const tagFor = (issue: any) =>
+      issue.category === "structure"
+        ? "结构"
+        : issue.category === "surface"
+          ? "台面"
+          : issue.category === "overlap"
+            ? "重叠"
+            : "家具";
+    const buttonFor = (issue: any) => {
+      const furnitureId = (issue.objectIds || []).find((id: string) =>
+        project!.plan.furniture.some((item) => item.id === id),
+      );
+      const openingId = (issue.objectIds || []).find((id: string) =>
+        project!.plan.openings.some((item) => item.id === id),
+      );
+      const wallId = (issue.objectIds || []).find((id: string) =>
+        project!.plan.walls.some((item) => item.id === id),
+      );
+      const collection = furnitureId
+        ? "furniture"
+        : openingId
+          ? "openings"
+          : wallId
+            ? "walls"
+            : "";
+      const id = furnitureId || openingId || wallId || "";
+      return `<button class="issue ${issue.fixableByFurniture === false ? "structural" : ""}" data-id="${esc(id)}" data-collection="${collection}" data-room="${esc(issue.roomId || "")}"><span class="issue-tag">${tagFor(issue)}</span>${esc(issue.message)}</button>`;
+    };
+    host.innerHTML = `<h2>场景检查</h2><p class="muted">版本 ${data.revision} · ${issues.length} 项提示${structural.length ? ` · ${structural.length} 项结构问题` : ""}</p>${issues.map(buttonFor).join("") || "<p>当前检查未发现问题。</p>"}${fixable.length ? '<button id="repair-scene" class="repair-button wide">AI 尝试修复可移动家具</button>' : ""}${structural.length ? '<button id="go-structure" class="repair-button wide muted-repair">去结构编辑</button>' : ""}<h3>检查范围</h3><p class="muted">${data.coverage.map(esc).join("<br>")}</p><p class="muted">${data.limitations.map(esc).join("<br>")}</p>`;
     host.querySelectorAll<HTMLButtonElement>("[data-id]").forEach(
       (b) =>
         (b.onclick = () => {
-          panel = "properties";
-          setSelection({ collection: "furniture", id: b.dataset.id! });
+          const collection = b.dataset.collection as any;
+          if (collection && b.dataset.id) {
+            panel = "properties";
+            setSelection({ collection, id: b.dataset.id });
+            return;
+          }
+          const room = (project?.plan.rooms || []).find(
+            (item) => item.id === b.dataset.room,
+          );
+          if (room) focusRoom(room);
         }),
     );
     const repair = host.querySelector<HTMLButtonElement>("#repair-scene");
     if (repair) repair.onclick = () => void repairScene();
+    const structure = host.querySelector<HTMLButtonElement>("#go-structure");
+    if (structure)
+      structure.onclick = () => {
+        $<HTMLDialogElement>("#dialog").close();
+        $("#open-structure").click();
+      };
   }
 }
 function openCatalog() {
@@ -418,6 +465,18 @@ function closeCatalog() {
   drawer.hidden = true;
   document.body.classList.remove("catalog-open");
 }
+function issuesInRoom(plan: Plan, room: any, issues: any[]) {
+  const region = roomRegion(plan, room.id);
+  const ids = furnitureInRegion(plan, region);
+  return issues.filter(
+    (issue) =>
+      issue.roomId === room.id ||
+      (issue.objectIds || []).some((id: string) => ids.has(id)),
+  );
+}
+function isFixableError(issue: any) {
+  return issue.level === "error" && issue.fixableByFurniture !== false;
+}
 async function renderOverview(host: HTMLElement) {
   if (!project) return;
   const snapshot = project;
@@ -428,9 +487,13 @@ async function renderOverview(host: HTMLElement) {
   try {
     health = await api(`/projects/${snapshot.id}/checks`);
   } catch {}
-  const layout = layoutIssues(plan);
-  const issueCount = (health?.issues?.length || 0) + layout.length;
-  const firstIssue = health?.issues?.[0]?.message || layout[0]?.message;
+  const issues = health?.issues || [];
+  const issueCount = issues.length;
+  const fixableErrors = issues.filter(isFixableError);
+  const structuralErrors = issues.filter(
+    (issue: any) => issue.level === "error" && issue.fixableByFurniture === false,
+  );
+  const firstIssue = issues[0]?.message;
   host.innerHTML = `<div class="overview">
     <div class="overview-hero"><span class="eyebrow">PROJECT OVERVIEW</span><h2>${esc(displayProjectName(plan.name))}</h2><p>${rooms.length ? `${rooms.length} 个空间 · ${plan.furniture.length} 件家具 · 版本 ${project.revision}` : "从一个想法开始，AI 会帮你完成第一版空间。"}</p></div>
     <div class="metric-grid">
@@ -438,8 +501,15 @@ async function renderOverview(host: HTMLElement) {
       <div><b>${plan.furniture.length}</b><span>家具</span></div>
       <div><b>${issueCount}</b><span>待处理</span></div>
     </div>
-    ${health && rooms.length ? `<div class="health-row"><button class="health-card ${issueCount ? "has-issues" : "is-clear"}" data-overview-action="check"><span>${issueCount ? `${issueCount} 项需要处理` : "设计检查通过"}</span><small>${issueCount ? esc(firstIssue) : "没有发现结构、净空或台面问题"}</small><b>查看</b></button>${issueCount ? `<button class="repair-button" data-overview-action="repair">一键修复</button>` : ""}</div>` : ""}
-    ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => { const area = roomArea(plan, r.id); return `<div class="overview-room-row"><button data-room="${esc(r.id)}"><b>${esc(displayRoomName(r))}</b><small>${area ? `${area} ㎡` : "定位"}</small></button><button class="room-repair" data-repair-room="${esc(r.id)}">修复</button></div>`; }).join("")}</div></section>` : ""}
+    ${health && rooms.length ? `<div class="health-row"><button class="health-card ${issueCount ? "has-issues" : "is-clear"}" data-overview-action="check"><span>${issueCount ? `${issueCount} 项需要处理` : "设计检查通过"}</span><small>${issueCount ? esc(firstIssue) : "没有发现结构、净空或台面问题"}</small><b>查看</b></button>${fixableErrors.length ? `<button class="repair-button" data-overview-action="repair">一键修复</button>` : structuralErrors.length ? `<button class="repair-button muted-repair" data-overview-action="check">结构问题</button>` : ""}</div>` : ""}
+    ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => {
+      const area = roomArea(plan, r.id);
+      const roomIssues = issuesInRoom(plan, r, issues);
+      const fixable = roomIssues.filter(isFixableError).length;
+      const structural = roomIssues.filter((issue: any) => issue.level === "error" && issue.fixableByFurniture === false).length;
+      const label = fixable ? "修复" : structural ? "结构" : "无";
+      return `<div class="overview-room-row"><button data-room="${esc(r.id)}"><b>${esc(displayRoomName(r))}</b><small>${area ? `${area} ㎡` : "定位"}</small></button><button class="room-repair" data-repair-room="${esc(r.id)}" ${fixable ? "" : "disabled"}>${label}</button></div>`;
+    }).join("")}</div></section>` : ""}
     <section class="overview-section"><div class="overview-section-head"><h3>下一步</h3><span>AI 快捷入口</span></div><div class="overview-actions">${rooms.length ? `<button data-overview-action="check">全屋检查</button><button data-overview-action="catalog">添加家具</button><button data-overview-action="walk">进入漫游</button>` : `<button data-overview-action="start">从一句话开始</button><button data-overview-action="plan">上传户型图</button>`}</div></section>
     ${selectedCount ? `<p class="overview-note">当前选中的对象已在属性面板中展开。</p>` : rooms.length ? `<p class="overview-note">在画布中选择家具，或让 AI 继续帮你调整。</p>` : `<p class="overview-note">先描述一个房间，或上传一张户型图。</p>`}
   </div>`;
@@ -468,34 +538,6 @@ async function renderOverview(host: HTMLElement) {
   });
 }
 let repairing = false;
-function layoutIssues(plan: Plan) {
-  const items = plan.furniture.filter(
-    (f) => !f.parentObjectId && f.placement !== "surface",
-  );
-  const issues: {
-    code: string;
-    objectIds: string[];
-    message: string;
-    level: string;
-  }[] = [];
-  for (let i = 0; i < items.length; i++)
-    for (let j = i + 1; j < items.length; j++) {
-      const a = rotatedAabb(items[i]),
-        b = rotatedAabb(items[j]);
-      const overlap =
-        Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) >
-          40 &&
-        Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 40;
-      if (overlap)
-        issues.push({
-          code: "FURNITURE_OVERLAP",
-          objectIds: [items[i].id, items[j].id],
-          message: `${items[i].name} 与 ${items[j].name} 重叠`,
-          level: "error",
-        });
-    }
-  return issues;
-}
 function roomRegion(plan: Plan, roomId: string) {
   const regions = detectRooms(plan, wallGeometry(plan)).regions;
   return (
@@ -536,25 +578,31 @@ async function openRepairScope() {
   if (!project) return;
   const target = project;
   const checks = await api(`/projects/${target.id}/checks`);
-  const layout = layoutIssues(target.plan);
-  const all = [...checks.issues, ...layout];
   const rows = target.plan.rooms
     .map((room) => {
-      const region = roomRegion(target.plan, room.id);
-      const ids = furnitureInRegion(target.plan, region);
-      const count = all.filter((issue: any) =>
-        (issue.objectIds || []).some((id: string) => ids.has(id)),
-      ).length;
-      return { room, count };
+      const roomIssues = issuesInRoom(target.plan, room, checks.issues || []);
+      const fixable = roomIssues.filter(isFixableError);
+      const structural = roomIssues.filter(
+        (issue: any) =>
+          issue.level === "error" && issue.fixableByFurniture === false,
+      );
+      return { room, roomIssues, fixable, structural };
     })
-    .sort((a, b) => b.count - a.count);
+    .sort((a, b) => b.roomIssues.length - a.roomIssues.length);
   const dialog = $<HTMLDialogElement>("#dialog"),
     body = $("#dialog-body");
-  body.innerHTML = `<div class="dialog-kicker">REPAIR SCOPE</div><h2>选择要修复的房间</h2><p class="muted">全屋问题较多，按房间修复更安全。只调整该房间内的家具，不改墙体门窗。</p><div class="repair-room-list">${rows
-    .map(
-      ({ room, count }) =>
-        `<button data-scope-room="${esc(room.id)}" ${count ? "" : "disabled"}><span><b>${esc(displayRoomName(room))}</b><small>${count ? `${count} 项问题` : "没有硬伤"}</small></span><b>${count ? "修复" : "通过"}</b></button>`,
-    )
+  body.innerHTML = `<div class="dialog-kicker">REPAIR SCOPE</div><h2>选择要修复的房间</h2><p class="muted">AI 只调整该房间内可移动的家具，不改墙体门窗。结构问题需要进入结构编辑。</p><div class="repair-room-list">${rows
+    .map(({ room, fixable, structural, roomIssues }) => {
+      const label = fixable.length ? "修复" : structural.length ? "结构" : "通过";
+      const detail = fixable.length
+        ? `${fixable.length} 项可修复`
+        : structural.length
+          ? `${structural.length} 项结构问题`
+          : roomIssues.length
+            ? `${roomIssues.length} 项提示`
+            : "没有硬伤";
+      return `<button data-scope-room="${esc(room.id)}" ${fixable.length ? "" : "disabled"}><span><b>${esc(displayRoomName(room))}</b><small>${detail}</small></span><b>${label}</b></button>`;
+    })
     .join("")}</div><div class="actions"><button id="repair-scope-cancel">先不修</button></div>`;
   body.querySelectorAll<HTMLButtonElement>("[data-scope-room]").forEach(
     (button) =>
@@ -574,55 +622,60 @@ async function repairScene(roomId?: string) {
   const region = roomId ? roomRegion(target.plan, roomId) : undefined;
   const room = roomId ? target.plan.rooms.find((r) => r.id === roomId) : undefined;
   const roomFurniture = furnitureInRegion(target.plan, region);
-  const issues = roomId
-    ? checks.issues.filter((i: any) =>
-        (i.objectIds || []).some((id: string) => roomFurniture.has(id)),
-      )
-    : checks.issues;
-  const overlaps = (
-    roomId
-      ? layoutIssues(target.plan).filter((i: any) =>
-          (i.objectIds || []).some((id: string) => roomFurniture.has(id)),
-        )
-      : layoutIssues(target.plan)
-  ) as any[];
-  if (!issues.some((i: any) => i.level === "error") && !overlaps.length) {
-    message(room ? `「${displayRoomName(room)}」没有需要修复的硬伤` : "当前场景没有需要修复的硬伤");
+  const allIssues = roomId
+    ? issuesInRoom(target.plan, room!, checks.issues || [])
+    : checks.issues || [];
+  const issues = allIssues.filter(isFixableError);
+  const structural = allIssues.filter(
+    (issue: any) =>
+      issue.level === "error" && issue.fixableByFurniture === false,
+  );
+  if (!issues.length) {
+    message(
+      structural.length
+        ? "该范围内的结构问题无法靠移动家具修复，请使用结构编辑调整墙体或门窗。"
+        : room
+          ? `「${displayRoomName(room)}」没有需要修复的家具问题`
+          : "当前场景没有需要修复的家具问题",
+    );
     return;
   }
-  const total = issues.length + overlaps.length;
+  const total = issues.length;
   if (!roomId && total > 8) {
     await openRepairScope();
     return;
   }
+  const note = structural.length
+    ? `另有 ${structural.length} 项结构问题不会交给家具 Agent，需要手动调整。`
+    : "";
   if (
     !window.confirm(
       room
-        ? `AI 将只修复「${displayRoomName(room)}」内的 ${total} 项问题，不改墙体门窗、不新增房间。继续吗？`
-        : "AI 会分析当前布局，生成一个可检查的修复候选；不会改动墙体和门窗，也不会新增房间。继续吗？",
+        ? `AI 将只修复「${displayRoomName(room)}」内的 ${total} 项可移动家具问题，不改墙体门窗、不新增房间。${note}继续吗？`
+        : `AI 会分析当前布局，生成一个可检查的修复候选；不会改动墙体和门窗，也不会新增房间。${note}继续吗？`,
     )
   )
     return;
   repairing = true;
   try {
-    const repairIds = [
-      ...new Set(
-        [
-          ...issues.slice(0, 8),
-          ...overlaps.slice(0, 8),
-        ]
-          .flatMap((i: any) => i.objectIds || [])
-          .filter((id: string) => target.plan.furniture.some((f) => f.id === id)),
+    const repairIds: string[] = [
+      ...new Set<string>(
+        issues
+          .slice(0, 8)
+          .flatMap((i: any): string[] =>
+            (i.objectIds || []).filter((id: unknown): id is string =>
+              typeof id === "string",
+            ),
+          )
+          .filter((id: string) => target.plan.furniture.some((f) => f.id === id))
+          .filter((id: string) => !roomId || roomFurniture.has(id)),
       ),
     ].slice(0, 12);
-    // Keep the brief below the Agent task input limit. The target furniture
-    // IDs are sent separately as selectedIds; repeating UUIDs and coordinates
-    // in prose made whole-home repairs exceed 4000 characters.
-    const messages = [
-      ...new Set(
-        [...issues, ...overlaps].map((i: any) => i.message as string),
-      ),
-    ];
+    if (!repairIds.length) {
+      message("当前问题没有可授权的家具目标，请在画布中选中家具后再试。");
+      return;
+    }
+    const messages = [...new Set(issues.map((i: any) => i.message as string))];
     const MAX_REPAIR_ISSUES = 8;
     const lines = messages
       .slice(0, MAX_REPAIR_ISSUES)
@@ -631,8 +684,6 @@ async function repairScene(roomId?: string) {
       lines.push(
         `- 本次先处理前 ${MAX_REPAIR_ISSUES} 项；其余 ${messages.length - MAX_REPAIR_ISSUES} 项完成后再点一次修复`,
       );
-    // Never send wall/opening IDs in the repair brief; they are not furniture
-    // targets and were the source of the "target does not exist" failure.
     const brief = `请作为布局修复 Agent，修复当前场景的以下硬伤，只做最小必要调整：
 ${lines.join("\n")}
 
@@ -640,18 +691,20 @@ ${lines.join("\n")}
 1. 只移动/调整发生冲突的家具或台面物品，不移动墙体、门窗，不新增房间；
 2. 对餐椅优先围绕餐桌四周布置，对台面物品优先放回宿主台面中心/安全范围；
 3. 保持家具清单和风格不变，不要用“整体重做”规避问题；
-4. 生成候选后必须通过检查，再提交；若无法修复，明确告诉我原因；
-5. 只能选择上面列出的家具 ID 作为 target，不得把墙体/门窗 ID 当作家具。`;
+4. 本次目标问题必须真正消失；若无法修复，明确告诉我原因，不要提交一个只改几毫米的候选；
+5. 只能修改本次授权的 target 家具，不得把墙体/门窗 ID 当作家具。`;
     if (brief.length > 4000)
       throw new Error("当前问题过多，修复说明超过任务上限；请先处理当前视图附近的问题");
-    const started = await chat.requestRepair(brief, repairIds);
+    const started = await chat.requestRepair(
+      brief,
+      repairIds,
+      roomId ? [roomId] : [],
+    );
     if (started)
       message(
         messages.length > 8
-          ? room
-          ? `AI 正在修复「${displayRoomName(room)}」的 ${Math.min(8, total)} 项问题…`
-          : "本次修复前 8 项，完成后可再次点击处理剩余问题"
-        : "AI 修复任务已提交，正在生成可检查候选…",
+          ? `AI 正在处理前 ${MAX_REPAIR_ISSUES} 项（共 ${messages.length} 条唯一问题）…`
+          : "AI 修复任务已提交，正在生成可检查候选…",
       );
   } catch (error) {
     fail(error);
@@ -659,7 +712,6 @@ ${lines.join("\n")}
     repairing = false;
   }
 }
-
 function focusRoom(room: any) {
   if (planView.centerOn) planView.centerOn(room.x, room.y);
   if (three.focusRoom) three.focusRoom(room);
@@ -1156,10 +1208,12 @@ async function examples(name: string) {
 $("#open-project").onclick = async () => {
   try {
     const projects = (await api<any[]>("/projects")).filter(
-      (p) => p.revision > 0 || p.id === project?.id,
+      (p) =>
+        !(p.name || "").startsWith("Evaluation only:") &&
+        (p.revision > 0 || p.id === project?.id),
     );
     $("#dialog-body").innerHTML =
-      `<div class="dialog-kicker">YOUR SPACES</div><h2>打开项目</h2><p class="muted">继续一个空间，或从精修样例开始。</p><div class="project-gallery">${projects.map((p: any, i: number) => `<button data-project="${esc(p.id)}" class="project-card"><span class="project-cover cover-${i % 4}"><span>${esc(displayProjectName(p.name).slice(0, 2))}</span><i></i></span><strong>${esc(displayProjectName(p.name))}</strong><small>版本 ${p.revision} · ${new Date(p.updatedAt).toLocaleDateString("zh-CN")}</small></button>`).join("")}</div><h3 class="gallery-heading">精修样例</h3><div class="actions"><button data-example="living-dining">客餐厅</button><button data-example="modeling-gallery">家具展台</button><button data-example="glb-display">GLB 展台</button></div>`;
+      `<div class="dialog-kicker">YOUR SPACES</div><h2>打开项目</h2><p class="muted">继续一个空间，或从精修样例开始。</p><div class="project-gallery">${projects.map((p: any, i: number) => `<button data-project="${esc(p.id)}" class="project-card"><span class="project-cover cover-${i % 4}"><span>${esc(displayProjectName(p.name).slice(0, 2))}</span><i></i></span><strong>${esc(displayProjectName(p.name))}</strong><small>版本 ${p.revision} · ${new Date(p.updatedAt).toLocaleDateString("zh-CN")}</small></button>`).join("")}</div><h3 class="gallery-heading">精修样例</h3><div class="actions"><button data-example="living-dining">客餐厅</button><button data-example="full-home-showcase">全屋样板间</button><button data-example="modeling-gallery">家具展台</button><button data-example="glb-display">GLB 展台</button></div>`;
     $("#dialog-body")
       .querySelectorAll<HTMLButtonElement>("[data-project]")
       .forEach(

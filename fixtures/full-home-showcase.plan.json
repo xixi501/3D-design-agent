@@ -1,0 +1,388 @@
+{
+  "version": 2,
+  "name": "演境 · 全屋样板间",
+  "height": 2800,
+  "phase": "renovate",
+  "nodes": [
+    {
+      "id": "showcase-n0",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "showcase-n1",
+      "x": 6000,
+      "y": 0
+    },
+    {
+      "id": "showcase-n2",
+      "x": 12000,
+      "y": 0
+    },
+    {
+      "id": "showcase-n3",
+      "x": 0,
+      "y": 4500
+    },
+    {
+      "id": "showcase-n4",
+      "x": 6000,
+      "y": 4500
+    },
+    {
+      "id": "showcase-n5",
+      "x": 12000,
+      "y": 4500
+    },
+    {
+      "id": "showcase-n6",
+      "x": 0,
+      "y": 9000
+    },
+    {
+      "id": "showcase-n7",
+      "x": 6000,
+      "y": 9000
+    },
+    {
+      "id": "showcase-n8",
+      "x": 12000,
+      "y": 9000
+    }
+  ],
+  "walls": [
+    {
+      "id": "showcase-north",
+      "a": "showcase-n0",
+      "b": "showcase-n2",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "showcase-east",
+      "a": "showcase-n2",
+      "b": "showcase-n8",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "showcase-south",
+      "a": "showcase-n8",
+      "b": "showcase-n6",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "showcase-west",
+      "a": "showcase-n6",
+      "b": "showcase-n0",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "showcase-mid-v",
+      "a": "showcase-n1",
+      "b": "showcase-n7",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "showcase-mid-h",
+      "a": "showcase-n3",
+      "b": "showcase-n5",
+      "t": 200,
+      "status": "existing"
+    }
+  ],
+  "openings": [
+    {
+      "id": "showcase-living-kitchen",
+      "wall": "showcase-mid-h",
+      "type": "door",
+      "pos": 2000,
+      "width": 900,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0
+    },
+    {
+      "id": "showcase-master-bath",
+      "wall": "showcase-mid-h",
+      "type": "door",
+      "pos": 9000,
+      "width": 900,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0
+    },
+    {
+      "id": "showcase-living-master",
+      "wall": "showcase-mid-v",
+      "type": "door",
+      "pos": 2200,
+      "width": 900,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0
+    },
+    {
+      "id": "showcase-kitchen-bath",
+      "wall": "showcase-mid-v",
+      "type": "door",
+      "pos": 6800,
+      "width": 900,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0
+    }
+  ],
+  "furniture": [
+    {
+      "id": "showcase-01-sofa",
+      "key": "sofa",
+      "type": "sofa",
+      "name": "三人沙发",
+      "w": 2200,
+      "d": 950,
+      "h": 820,
+      "color": "#8e9aa8",
+      "x": 2000,
+      "y": 1900,
+      "rot": 0
+    },
+    {
+      "id": "showcase-02-coffeeTable",
+      "key": "coffeeTable",
+      "type": "coffeeTable",
+      "name": "茶几",
+      "w": 1200,
+      "d": 600,
+      "h": 400,
+      "color": "#a47a55",
+      "x": 2000,
+      "y": 2900,
+      "rot": 0
+    },
+    {
+      "id": "showcase-03-rug",
+      "key": "rug",
+      "type": "rug",
+      "name": "地毯",
+      "w": 2400,
+      "d": 1800,
+      "h": 12,
+      "color": "#d9cbb5",
+      "x": 2000,
+      "y": 2500,
+      "rot": 0
+    },
+    {
+      "id": "showcase-04-diningTable",
+      "key": "diningTable",
+      "type": "diningTable",
+      "name": "餐桌",
+      "w": 1600,
+      "d": 900,
+      "h": 750,
+      "color": "#b98c5f",
+      "x": 4500,
+      "y": 1000,
+      "rot": 0
+    },
+    {
+      "id": "showcase-05-chair",
+      "key": "chair",
+      "type": "chair",
+      "name": "餐椅",
+      "w": 460,
+      "d": 520,
+      "h": 880,
+      "color": "#5d636e",
+      "x": 3800,
+      "y": 1000,
+      "rot": 0
+    },
+    {
+      "id": "showcase-06-chair",
+      "key": "chair",
+      "type": "chair",
+      "name": "餐椅",
+      "w": 460,
+      "d": 520,
+      "h": 880,
+      "color": "#5d636e",
+      "x": 5200,
+      "y": 1000,
+      "rot": 180
+    },
+    {
+      "id": "showcase-07-bed18",
+      "key": "bed18",
+      "type": "bed",
+      "name": "双人床 1.8m",
+      "w": 1800,
+      "d": 2100,
+      "h": 1050,
+      "color": "#a9bccf",
+      "x": 9500,
+      "y": 1700,
+      "rot": 0
+    },
+    {
+      "id": "showcase-08-nightstand",
+      "key": "nightstand",
+      "type": "nightstand",
+      "name": "床头柜（台灯可点亮）",
+      "w": 500,
+      "d": 420,
+      "h": 500,
+      "color": "#b48a62",
+      "x": 8200,
+      "y": 900,
+      "rot": 0
+    },
+    {
+      "id": "showcase-09-nightstand",
+      "key": "nightstand",
+      "type": "nightstand",
+      "name": "床头柜（台灯可点亮）",
+      "w": 500,
+      "d": 420,
+      "h": 500,
+      "color": "#b48a62",
+      "x": 10800,
+      "y": 900,
+      "rot": 0
+    },
+    {
+      "id": "showcase-10-counter",
+      "key": "counter",
+      "type": "counter",
+      "name": "一字橱柜（可定制）",
+      "w": 2100,
+      "d": 600,
+      "h": 900,
+      "color": "#f0ede8",
+      "x": 4500,
+      "y": 8200,
+      "rot": 0
+    },
+    {
+      "id": "showcase-11-stool",
+      "key": "stool",
+      "type": "stool",
+      "name": "圆凳 / 化妆凳",
+      "w": 400,
+      "d": 400,
+      "h": 450,
+      "color": "#c9b8a6",
+      "x": 3500,
+      "y": 7400,
+      "rot": 0
+    },
+    {
+      "id": "showcase-12-toilet",
+      "key": "toilet",
+      "type": "toilet",
+      "name": "马桶",
+      "w": 400,
+      "d": 700,
+      "h": 780,
+      "color": "#fafafa",
+      "x": 10800,
+      "y": 8200,
+      "rot": 0
+    },
+    {
+      "id": "showcase-13-vanity",
+      "key": "vanity",
+      "type": "vanity",
+      "name": "浴室柜（含镜）",
+      "w": 800,
+      "d": 500,
+      "h": 850,
+      "color": "#c29a6b",
+      "x": 7200,
+      "y": 8200,
+      "rot": 0
+    },
+    {
+      "id": "showcase-14-plant",
+      "key": "plant",
+      "type": "plant",
+      "name": "绿植",
+      "w": 500,
+      "d": 500,
+      "h": 1400,
+      "color": "#5f8f55",
+      "x": 11000,
+      "y": 5000,
+      "rot": 0
+    }
+  ],
+  "structs": [],
+  "beams": [],
+  "rooms": [
+    {
+      "id": "showcase-living",
+      "x": 3000,
+      "y": 2200,
+      "name": "客餐厅",
+      "roomType": "living_dining",
+      "mat": "oak",
+      "ceil": {
+        "type": "none",
+        "drop": 0,
+        "edgeW": 400,
+        "cove": false
+      }
+    },
+    {
+      "id": "showcase-master",
+      "x": 9000,
+      "y": 2200,
+      "name": "主卧",
+      "roomType": "master_bedroom",
+      "mat": "oak",
+      "ceil": {
+        "type": "none",
+        "drop": 0,
+        "edgeW": 400,
+        "cove": false
+      }
+    },
+    {
+      "id": "showcase-kitchen",
+      "x": 3000,
+      "y": 6800,
+      "name": "厨房",
+      "roomType": "kitchen",
+      "mat": "tile",
+      "ceil": {
+        "type": "none",
+        "drop": 0,
+        "edgeW": 400,
+        "cove": false
+      }
+    },
+    {
+      "id": "showcase-bath",
+      "x": 9000,
+      "y": 6800,
+      "name": "卫生间",
+      "roomType": "bathroom",
+      "mat": "tile",
+      "ceil": {
+        "type": "none",
+        "drop": 0,
+        "edgeW": 400,
+        "cove": false
+      }
+    }
+  ],
+  "measures": [],
+  "elec": [],
+  "prices": {},
+  "voids": [],
+  "comments": []
+}

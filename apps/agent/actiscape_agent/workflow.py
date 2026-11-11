@@ -171,16 +171,46 @@ def completion_result(task: dict, state: dict, candidate: dict, revision: int):
     return result
 
 
-def compile_scope(project: dict, intent: dict, assets: dict, catalogue: dict, *, task_mode: str | None = None) -> dict:
+def compile_scope(
+    project: dict,
+    intent: dict,
+    assets: dict,
+    catalogue: dict,
+    *,
+    task_mode: str | None = None,
+    task: dict | None = None,
+) -> dict:
     furniture = {f["id"]: f for f in project["plan"]["furniture"]}
     if task_mode == "repair_layout":
         # A repair must only target furniture, even if the model saw wall/opening
         # IDs in a generated issue description.
+        authorized = set((task or {}).get("selectedIds") or [])
+        if not authorized:
+            raise TaskError(
+                "NEEDS_INPUT",
+                "修复任务需要至少一个已授权的家具目标",
+            )
+        targets = [
+            i
+            for i in intent["target_ids"]
+            if i in furniture and (not authorized or i in authorized)
+        ]
         intent = {
             **intent,
-            "target_ids": [i for i in intent["target_ids"] if i in furniture],
+            "target_ids": targets,
             "reference_ids": [i for i in intent["reference_ids"] if i in furniture],
+            "field_permissions": {
+                key: value
+                for key, value in (intent.get("field_permissions") or {}).items()
+                if key in targets
+            },
+            "delete_ids": [i for i in intent["delete_ids"] if i in targets],
         }
+        if authorized and not intent["target_ids"]:
+            raise TaskError(
+                "NEEDS_INPUT",
+                "本次修复没有获得授权的家具目标，请重新选择房间或对象",
+            )
     targets = intent["target_ids"]
     references = intent["reference_ids"]
     if (
@@ -221,6 +251,11 @@ def compile_scope(project: dict, intent: dict, assets: dict, catalogue: dict, *,
             for key, count in counts.items()
         ],
     }
+    if task_mode == "repair_layout":
+        scope["checkProfile"] = "strict-repair"
+    allowed_room_ids = (task or {}).get("allowedRoomIds") or []
+    if allowed_room_ids:
+        scope["allowedRoomIds"] = list(dict.fromkeys(allowed_room_ids))
     if counts and intent["area"] == "local":
         anchors = [furniture[id] for id in set(references + targets)]
         if not anchors:
@@ -441,6 +476,7 @@ class Workflow:
                 state["assets"],
                 catalogue,
                 task_mode=task.get("mode"),
+                task=task,
             )
         except TaskError as e:
             return {

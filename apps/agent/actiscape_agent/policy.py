@@ -481,6 +481,37 @@ class RepairPolicyRouter:
         if not report:
             return None
         issues = self._issues(report)
+        structural = next(
+            (
+                issue
+                for issue in issues
+                if issue.get("fixableByFurniture") is False
+                or issue.get("category") == "structure"
+            ),
+            None,
+        )
+        if structural is not None:
+            return RepairDirective(
+                code=str(structural.get("code") or "STRUCTURE"),
+                targetRole="coordinator",
+                action="stop",
+                objectIds=sorted(
+                    {
+                        str(object_id)
+                        for object_id in (
+                            structural.get("object_ids")
+                            or structural.get("objectIds")
+                            or []
+                        )
+                    }
+                )[:100],
+                message=str(
+                    structural.get("message")
+                    or structural.get("description")
+                    or "结构尺寸不足，需要人工调整墙体或门窗"
+                ),
+                maxDeltaMm=0,
+            )
         for code, (role, action) in self.ROUTES.items():
             matches = [issue for issue in issues if issue.get("code") == code]
             if not matches:

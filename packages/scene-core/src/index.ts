@@ -473,14 +473,58 @@ export function footprint(f: Furniture): { x: number; y: number }[] {
   }));
 }
 
+const PASSAGE_MM = 700;
+
+/** True when the empty room can contain one axis-aligned 700×700 mm passage square. */
+function regionSupportsPassage(region: any) {
+  const rects = region.rects || [];
+  if (!rects.length) return true;
+  const minX = Math.min(...rects.map((r: any) => r.x)),
+    maxX = Math.max(...rects.map((r: any) => r.x + r.w)),
+    minY = Math.min(...rects.map((r: any) => r.y)),
+    maxY = Math.max(...rects.map((r: any) => r.y + r.h)),
+    step = 100,
+    size = PASSAGE_MM,
+    inside = (x: number, y: number) =>
+      rects.some(
+        (r: any) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h,
+      );
+  for (let y = minY; y + size <= maxY; y += step)
+    for (let x = minX; x + size <= maxX; x += step)
+      if (
+        inside(x, y) &&
+        inside(x + size, y) &&
+        inside(x + size, y + size) &&
+        inside(x, y + size)
+      )
+        return true;
+  return false;
+}
+
+function boxesInRegion(boxes: any[], region: any) {
+  const rects = region.rects || [];
+  return boxes.filter((b: any) =>
+    rects.some(
+      (r: any) =>
+        b.x1 > r.x &&
+        b.x0 < r.x + r.w &&
+        b.y1 > r.y &&
+        b.y0 < r.y + r.h,
+    ),
+  );
+}
+
 function circulationBlocked(
   region: any,
   boxes: any[],
   start: { x: number; y: number },
 ) {
   const rects = region.rects || [];
+  const roomBoxes = boxesInRegion(boxes, region);
   const blockers = () =>
-    boxes.filter((b: any) => b.z <= 20 && b.f.h > 100).map((b: any) => b.f.id);
+    roomBoxes
+      .filter((b: any) => b.z <= 20 && b.f.h > 100)
+      .map((b: any) => b.f.id);
   if (!rects.length) return [];
   const step = 100,
     half = 350,
@@ -517,7 +561,7 @@ function circulationBlocked(
         { x: x - half, y: y + half },
       ];
       if (!square.every((p) => inside(p.x, p.y))) continue;
-      const blocked = boxes.some(
+      const blocked = roomBoxes.some(
         (b: any) =>
           b.z <= 20 &&
           b.f.h > 100 &&
@@ -585,14 +629,27 @@ function circulationBlocked(
   return startComponent !== largest ? blockers() : [];
 }
 
+export type IssueCategory =
+  | "structure"
+  | "furniture"
+  | "surface"
+  | "action"
+  | "overlap";
+
+export interface SceneIssue {
+  code: string;
+  objectIds: string[];
+  message: string;
+  level: "error" | "warning";
+  category?: IssueCategory;
+  fixableByFurniture?: boolean;
+  owner?: "furniture" | "structure" | "manual";
+  roomId?: string;
+  metric?: number;
+}
+
 export function checkScene(plan: Plan) {
-  const issues: {
-    code: string;
-    objectIds: string[];
-    message: string;
-    level: string;
-    metric?: number;
-  }[] = [];
+  const issues: SceneIssue[] = [];
   const geo = Wc(plan);
   const regions = D4(plan, geo).regions;
   // Reuse upstream decomposed footprints and separating-axis penetration depth.
@@ -614,6 +671,27 @@ export function checkScene(plan: Plan) {
       y1: Math.max(...p.map((p) => p.y)),
     };
   });
+  const structuralRoomIds = new Set<string>();
+  for (const region of regions) {
+    if (regionSupportsPassage(region)) continue;
+    const labels: any[] = Array.isArray((region as any).labels)
+      ? (region as any).labels
+      : [];
+    const roomId = labels[0]?.id;
+    if (typeof roomId !== "string" || !roomId) continue;
+    structuralRoomIds.add(region.key || roomId);
+    const room = plan.rooms.find((item) => item.id === roomId);
+    issues.push({
+      code: "STRUCT_ROOM_PASSAGE",
+      objectIds: [roomId],
+      roomId,
+      message: `${room?.name || "房间"} 内无法容纳 ${PASSAGE_MM}×${PASSAGE_MM} mm 连续通行区，需调整墙体或房间尺寸`,
+      level: "error",
+      category: "structure",
+      fixableByFurniture: false,
+      owner: "structure",
+    });
+  }
   for (let i = 0; i < boxes.length; i++)
     for (let j = i + 1; j < boxes.length; j++) {
       const a = boxes[i],
@@ -699,7 +777,7 @@ export function checkScene(plan: Plan) {
         objectIds: [f.id, wallHit.id],
         message: `${f.name} 正前方 ${envelope.spec.clearance} mm 开启包络撞墙，柜门/抽屉无法完全打开`,
         level: "error",
-        metric: 0,
+        metric: envelope.spec.clearance,
       });
       continue;
     }
@@ -729,7 +807,7 @@ export function checkScene(plan: Plan) {
         objectIds: [f.id, other.f.id],
         message: `${f.name} 正前方开启净空仅 ${remaining} mm（需 ${envelope.spec.clearance} mm），被 ${other.f.name} 占用`,
         level: "error",
-        metric: remaining,
+        metric: Math.max(0, envelope.spec.clearance - remaining),
       });
     }
   }
@@ -892,6 +970,46 @@ export function checkScene(plan: Plan) {
         }
       }
       if (!doorTypes.has(op.o.type) || op.o.sill > 20) continue;
+      const doorWidth = op.s1 - op.s0;
+      if (doorWidth < PASSAGE_MM) {
+        const middle = (op.s0 + op.s1) / 2;
+        const adjacentRooms: any[] = [-1, 1]
+          .map((side) => {
+            const probe = {
+              x: w.a.x + w.u.x * middle + w.n.x * side * (w.ht + 400),
+              y: w.a.y + w.u.y * middle + w.n.y * side * (w.ht + 400),
+            };
+            return regions.find((r: any) =>
+              r.rects.some(
+                (b: any) =>
+                  probe.x >= b.x &&
+                  probe.x <= b.x + b.w &&
+                  probe.y >= b.y &&
+                  probe.y <= b.y + b.h,
+              ),
+            );
+          })
+          .filter(Boolean);
+        const adjacent =
+          adjacentRooms.length &&
+          adjacentRooms.every((room) => room.key === adjacentRooms[0].key)
+            ? adjacentRooms[0]
+            : undefined;
+        const roomName = plan.rooms.find(
+          (item) => item.id === adjacent?.labels?.[0]?.id,
+        )?.name;
+        issues.push({
+          code: "STRUCT_DOOR_CLEAR_WIDTH",
+          objectIds: [op.o.id],
+          roomId: adjacent?.labels?.[0]?.id,
+          message: `${roomName ? `${roomName}门洞` : "门洞"} 净宽仅 ${Math.round(doorWidth)} mm，小于 ${PASSAGE_MM} mm 通行下限；需改门洞，不能靠移动家具修复`,
+          level: "error",
+          category: "structure",
+          fixableByFurniture: false,
+          owner: "structure",
+        });
+        continue;
+      }
       for (const side of [-1, 1]) {
         const middle = (op.s0 + op.s1) / 2,
           probe = {
@@ -908,6 +1026,7 @@ export function checkScene(plan: Plan) {
           ),
         );
         if (!room) continue;
+        if (structuralRoomIds.has(room.key || "")) continue;
         const circulationStart = {
           x: w.a.x + w.u.x * middle + w.n.x * side * (w.ht + 400),
           y: w.a.y + w.u.y * middle + w.n.y * side * (w.ht + 400),
@@ -917,13 +1036,22 @@ export function checkScene(plan: Plan) {
           boxes,
           circulationStart,
         );
-        if (circulationBlockers.length)
+        if (circulationBlockers.length) {
+          const roomId = Array.isArray((room as any).labels)
+            ? (room as any).labels[0]?.id
+            : undefined;
+          const roomName = plan.rooms.find((item) => item.id === roomId)?.name;
           issues.push({
             code: "CIR-02",
             objectIds: [op.o.id, ...circulationBlockers],
-            message: `${op.o.id} 内侧没有连续 700 mm 宽的可达区域`,
+            roomId,
+            message: `${roomName || "门洞"} 内侧没有连续 700 mm 宽的可达区域`,
             level: "error",
+            category: "furniture",
+            fixableByFurniture: true,
+            owner: "furniture",
           });
+        }
         const zone = [
           [op.s0, side * w.ht],
           [op.s1, side * w.ht],
@@ -957,6 +1085,7 @@ export function checkScene(plan: Plan) {
     for (const op of w.ops) {
       if (!doorTypes.has(op.o.type) || (op.o.sill ?? 0) > 20) continue;
       const doorWidth = op.s1 - op.s0;
+      if (doorWidth < PASSAGE_MM) continue;
       if (doorWidth < 100) continue;
       for (const side of [-1, 1]) {
         if (op.o.side && op.o.side !== side) continue;
@@ -975,6 +1104,7 @@ export function checkScene(plan: Plan) {
           ),
         );
         if (!room) continue;
+        if (structuralRoomIds.has(room.key || "")) continue;
         const hingeAt = op.o.hinge ? op.s1 : op.s0,
           direction = op.o.hinge ? -1 : 1,
           hinge = {
@@ -999,20 +1129,39 @@ export function checkScene(plan: Plan) {
           if (doorCabinetSeen.has(key)) continue;
           if (Ts([envelope.polygon], [swing]) > 20) {
             doorCabinetSeen.add(key);
+            const roomId = Array.isArray((room as any).labels)
+              ? (room as any).labels[0]?.id
+              : undefined;
+            const roomName = plan.rooms.find((item) => item.id === roomId)?.name;
             issues.push({
               code: "DOOR_CABINET_CONFLICT",
               objectIds: [op.o.id, f.id],
-              message: `${op.o.id} 的门扇扫掠区与 ${f.name} 的开启包络冲突`,
+              roomId,
+              message: `${roomName || "门洞"} 的门扇扫掠区与 ${f.name} 的开启包络冲突`,
               level: "error",
             });
           }
         }
       }
     }
+  for (const issue of issues) {
+    if (issue.category) continue;
+    const structural = issue.code.startsWith("STRUCT_");
+    issue.category = structural
+      ? "structure"
+      : issue.code === "POSSIBLE_OVERLAP"
+        ? "overlap"
+        : issue.code.startsWith("SURFACE_ITEM_")
+          ? "surface"
+          : "furniture";
+    issue.fixableByFurniture = !structural;
+    issue.owner = structural ? "structure" : "furniture";
+  }
   return {
     issues,
     coverage: [
       "结构引用与尺寸校验",
+      "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
       "原版参数化轮廓 SAT 相交与垂直区间",
       "家具轮廓与墙体及洞口",
       "窗帘前 150 mm 与窗前 400 mm 净空",

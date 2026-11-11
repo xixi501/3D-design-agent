@@ -160,6 +160,10 @@ body[data-mode="ai"] #structural-toggle { display: none; }
 .history-item small { display: block; color: var(--muted-2); margin-top: 3px; font-size: 9px; }
 .history-item.future { opacity: .45; }
 .issue { display: block; width: 100%; text-align: left; white-space: normal; border: 1px solid var(--line-soft); border-radius: 7px; padding: 8px; margin: 0 0 6px; color: var(--copper); background: var(--surface-2); font-size: 10px; line-height: 1.55; }
+.issue-tag { display: inline-block; min-width: 30px; margin-right: 6px; padding: 1px 5px; border-radius: 4px; background: rgba(164, 92, 59, .12); color: var(--copper); font-size: 9px; font-weight: 600; text-align: center; }
+.issue.structural { border-style: dashed; color: var(--muted); }
+.issue.structural .issue-tag { background: rgba(120, 120, 120, .12); color: var(--muted); }
+.repair-button.muted-repair { background: transparent; color: var(--ink); border-color: var(--line); }
 
 /* ── Overview ────────────────────────────────────────────────── */
 .overview-hero { padding: 2px 0 12px; }

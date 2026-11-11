@@ -1,8 +1,6 @@
 import { detectRooms, type Plan } from "../../../../packages/scene-core/src/index.js";
 
 const projectNames: Record<string, string> = {
-  "Evaluation only: 2BHK bungalow development reference": "全屋 · 2BHK 样板间",
-  "Evaluation only: 2BHK bungalow development reference ": "全屋 · 2BHK 样板间",
   新户型: "未命名空间",
 };
 
@@ -20,7 +18,7 @@ const roomNames: Record<string, string> = {
 export function displayProjectName(name?: string) {
   if (!name) return "未命名空间";
   if (projectNames[name]) return projectNames[name];
-  if (name.startsWith("Evaluation only:")) return "全屋 · 2BHK 样板间";
+  if (name.startsWith("Evaluation only:")) return "开发参考 · 非展示样例";
   return name;
 }
 

@@ -184,6 +184,7 @@ class TaskStore:
             "mode": row["mode"],
         }
         generation = json.loads(row["generation"])
+        data["allowedRoomIds"] = generation.get("allowedRoomIds", [])
         if internal:
             data["generation"] = generation
         else:
@@ -256,6 +257,8 @@ class TaskStore:
                 for key in ("assetId", "hostId")
                 if body.get(key) is not None
             }
+            if body.get("allowedRoomIds"):
+                extra["allowedRoomIds"] = body["allowedRoomIds"]
             if extra:
                 # Persist photo hints for every mode so PolicyController can
                 # auto-route an ordinary edit request that carries an assetId.

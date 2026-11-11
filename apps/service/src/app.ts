@@ -391,12 +391,20 @@ export async function createApp(options: {
   const fixtures = path.resolve("fixtures");
   app.get("/api/examples", async () => [
     { id: "living-dining", name: "客餐厅" },
+    { id: "full-home-showcase", name: "全屋样板间" },
     { id: "modeling-gallery", name: "家具与建模展台" },
     { id: "glb-display", name: "贴图 GLB 展台" },
   ]);
   app.get("/api/examples/:name", async (req) => {
     const name = (req.params as any).name;
-    if (!["living-dining", "modeling-gallery", "glb-display"].includes(name))
+    if (
+      ![
+        "living-dining",
+        "full-home-showcase",
+        "modeling-gallery",
+        "glb-display",
+      ].includes(name)
+    )
       throw new SceneError("NOT_FOUND", "样例不存在", 404);
     return JSON.parse(
       fs.readFileSync(path.join(fixtures, `${name}.plan.json`), "utf8"),

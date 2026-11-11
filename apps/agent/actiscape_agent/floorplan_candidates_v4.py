@@ -715,7 +715,6 @@ def _opening_candidates_v4(
                 hint == "door"
                 and candidate["role"] in ("top", "bottom", "left", "right")
                 and width >= 38
-                and not (candidate["role"] == "top" and interval["start"] < 300)
             ):
                 hint = "window"
             output.append(

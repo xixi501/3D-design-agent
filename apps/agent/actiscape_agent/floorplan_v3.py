@@ -2237,6 +2237,11 @@ def _assemble_structure_v3(
     # vertical pixel scales agree; never silently stretch X and Y.
     outline_mm = skeleton.get("outline_mm") or []
     outline_px = skeleton.get("outline_px") or []
+    if skeleton.get("totalWidthMm") or skeleton.get("totalHeightMm"):
+        # The user-declared total dimensions define the scale; a partial OCR
+        # dimension tick must not override the HPD outline scale.
+        anchors = []
+        recognition["anchors"] = []
     if len(outline_mm) == 2 and len(outline_px) == 4:
         x0, y0, x1, y1 = (float(value) for value in outline_px)
         width_px, height_px = x1 - x0, y1 - y0

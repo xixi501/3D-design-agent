@@ -786,7 +786,7 @@ export function floorplanScale(data: FloorplanData) {
       return (
         Math.abs(
           Math.hypot(a.b.x - a.a.x, a.b.y - a.a.y) * values[0] - expected,
-        ) > Math.max(2, expected * 0.003)
+        ) > Math.max(2, expected * 0.005)
       );
     })
   )

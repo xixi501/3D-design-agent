@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "actiscape-asset-service"
-version = "0.1.0"
+version = "0.2.0"
 description = "Independent image-to-GLB asset jobs for ActiScape"
 requires-python = ">=3.10,<3.14"
 dependencies = [
@@ -14,6 +14,7 @@ dependencies = [
   "Pillow>=10,<13",
   "numpy>=1.26,<3",
   "trimesh>=4.4,<5",
+  "httpx>=0.27,<1",
 ]
 
 [tool.setuptools]

@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import re
@@ -80,7 +81,10 @@ class JobStore:
         request_hash: str,
         idempotency_key: str | None,
         backend: str,
-    ) -> tuple[dict, bool]:
+        options: dict,
+        input_sha256: str,
+        reuse_cache: bool = False,
+    ) -> tuple[dict, bool, bool]:
         with self.lock:
             index = json.loads(self.index_path.read_text(encoding="utf-8"))
             if idempotency_key:
@@ -88,7 +92,17 @@ class JobStore:
                 if previous:
                     if previous["request_hash"] != request_hash:
                         raise JobConflict("相同 Idempotency-Key 不能用于不同图片或参数")
-                    return self.get(previous["job_id"]), True
+                    return self.get(previous["job_id"]), True, False
+
+            if reuse_cache:
+                for cached in self.list():
+                    result = cached.get("result") or {}
+                    if (
+                        cached["status"] == "succeeded"
+                        and result.get("inputSha256") == input_sha256
+                        and (self.job_dir(cached["id"]) / "asset.glb").is_file()
+                    ):
+                        return cached, True, True
 
             job_id = str(uuid.uuid4())
             directory = self.jobs_dir / job_id
@@ -104,6 +118,8 @@ class JobStore:
                 "created_at": now,
                 "updated_at": now,
                 "input_file": input_name,
+                "inputSha256": input_sha256,
+                "options": options,
                 "error": None,
                 "result": None,
             }
@@ -111,7 +127,7 @@ class JobStore:
             if idempotency_key:
                 index[idempotency_key] = {"job_id": job_id, "request_hash": request_hash}
                 atomic_json(self.index_path, index)
-            return job, False
+            return job, False, False
 
     def update(self, job_id: str, **changes) -> dict:
         with self.lock:
@@ -129,4 +145,21 @@ class JobStore:
                 result = job.get("result")
                 if result and result.get("asset_id") == asset_id:
                     return result, path.parent
+        raise KeyError(asset_id)
+
+    def update_asset(self, asset_id: str, updates: dict) -> dict:
+        with self.lock:
+            for path in self.jobs_dir.glob("*/job.json"):
+                job = json.loads(path.read_text(encoding="utf-8"))
+                result = job.get("result")
+                if not result or result.get("asset_id") != asset_id:
+                    continue
+                metadata = copy.deepcopy(result)
+                metadata.update(updates)
+                atomic_json(path.parent / "metadata.json", metadata)
+                atomic_json(path.parent / "record.json", metadata)
+                job["result"] = metadata
+                job["updated_at"] = utc_now()
+                atomic_json(path, job)
+                return metadata
         raise KeyError(asset_id)

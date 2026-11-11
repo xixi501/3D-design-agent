@@ -1,16 +1,17 @@
 # ActiScape 资产服务（成员二）
 
-独立的图片任务、GLB 资产存储与三维预览模块。当前版本 `0.1.0`。
+独立的图片任务、GLB 资产存储与三维预览模块。当前版本 `0.2.0`。
 
 ## 能力边界
 
-- `demo` 后端：固定返回团队核心分支的 `textured-vase.glb` 示例，只验证上传、状态、持久化、预览与下载。**结果不是输入照片的真实重建。**
-- `hunyuan` 后端：调用 Hunyuan3D-2 图像到几何与贴图管线，输出真实生成 GLB。需要 NVIDIA CUDA GPU，具体安装见 [SERVER_RUNBOOK.md](SERVER_RUNBOOK.md)。
-- 单张照片中的背面与遮挡区域由模型补全；真实尺寸不能仅凭照片确定。元数据中的 `scale_calibrated` 首版固定为 `false`，由主系统向用户确认尺寸。
+- `demo`：固定返回团队核心分支的花瓶样本，只验证流程，不是输入照片的真实重建。
+- `hunyuan`：使用 Hunyuan3D-2 几何、去光照和贴图管线；贴图前执行悬浮块清理、退化面清理和默认 20,000 面减面。
+- 透明背景 RGBA 图片直接保留；白底或不透明 PNG/JPG 会转为 RGB 后执行背景移除。
+- 单图背面与遮挡由模型补全。类别默认尺寸不是真实测量值，主系统应向用户确认尺寸。
 
-## 本机演示
+## 本机演示与测试
 
-需要 Python 3.10–3.13，无需 GPU。
+需要 Python 3.10–3.13，无需 GPU：
 
 ```bash
 cd apps/asset-service
@@ -20,84 +21,95 @@ pip install -e .
 ASSET_BACKEND=demo python -m asset_service
 ```
 
-打开 `http://127.0.0.1:8000/`。选择 `examples/demo-input.png` 或自己的 JPEG/PNG/WebP，提交后可以旋转、缩放模型并下载 GLB。Three.js 0.160.0 通过 CDN 加载，首次打开页面需要联网。
-
-运行时数据默认写入当前目录的 `generated_assets/`。该目录包含输入图片与模型，不应提交到 Git。
-
-## HTTP 调用
-
-创建任务：
+打开 `http://127.0.0.1:8000/`。Three.js 0.160.0 通过 CDN 加载，首次打开需要联网。运行测试：
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/jobs \
-  -H 'Idempotency-Key: demo-vase-001' \
-  -F 'name=演示花瓶' \
-  -F 'file=@examples/demo-input.png;type=image/png'
+PYTHONPATH=apps/asset-service python3 -m unittest discover -s apps/asset-service/tests -v
 ```
 
-从响应复制 `job.id`，查询状态：
+运行时数据默认在 `generated_assets/`，不提交到 Git。
+
+## 生成接口
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/assets/generate \
+  -H 'Idempotency-Key: vase-001' \
+  -F 'name=陶瓷花瓶' \
+  -F 'category=vase' \
+  -F 'placement_type=surface' \
+  -F 'target_height_mm=280' \
+  -F 'max_faces=20000' \
+  -F 'image=@examples/demo-input.png;type=image/png'
+```
+
+可选 `prompt` 当前只记录为生成上下文，不改变 Hunyuan 单图管线。`target_height_mm` 省略时使用类别默认高度；`max_faces` 省略时使用 `ASSET_MAX_FACES=20000`。
+
+相同归一化输入图片的 SHA256 已有成功结果时，接口直接复用并返回 `cached=true`。设置 `force_regenerate=true` 可强制重新生成。`Idempotency-Key` 仍用于请求级去重，相同键对应不同内容返回 409。
+
+原有 `POST /api/v1/jobs`（文件字段 `file`）继续保留，默认使用 `decor` 类别。
+
+## 状态、结果与校准
 
 ```bash
 curl http://127.0.0.1:8000/api/v1/jobs/JOB_ID
-curl http://127.0.0.1:8000/api/v1/assets
-curl -OJ http://127.0.0.1:8000/api/v1/assets/ASSET_ID/model
+curl http://127.0.0.1:8000/api/v1/assets/ASSET_ID
+curl -OJ http://127.0.0.1:8000/api/v1/assets/ASSET_ID/model.glb
 ```
 
-如果服务设置了 `ASSET_API_KEY`，除健康检查外的请求都要加请求头：
+用户确认尺寸后，无需重新推理：
 
 ```bash
--H "X-API-Key: $ASSET_API_KEY"
+curl -X POST http://127.0.0.1:8000/api/v1/assets/ASSET_ID/calibrate \
+  -H 'Content-Type: application/json' \
+  -d '{"heightMm":280,"category":"vase","placementType":"surface"}'
 ```
+
+也可传可选 `widthMm/depthMm`。省略时按模型包围盒长宽比计算。校准结果写入任务结果、`metadata.json` 和 `record.json`，`scaleSource` 变为 `user_confirmed`。
 
 | 方法 | 路径 | 作用 |
 | --- | --- | --- |
-| GET | `/api/v1/health` | 服务、版本与后端状态 |
-| POST | `/api/v1/jobs` | multipart 图片字段 `file`、可选 `name`；支持 `Idempotency-Key` |
-| GET | `/api/v1/jobs` | 任务列表 |
-| GET | `/api/v1/jobs/{id}` | 查询状态、错误或完成结果 |
-| GET | `/api/v1/assets` | 已完成资产列表 |
-| GET | `/api/v1/assets/{id}` | 资产元数据 |
-| GET | `/api/v1/assets/{id}/model` | 下载完整 GLB |
+| GET | `/api/v1/health` | 服务与后端状态 |
+| POST | `/api/v1/assets/generate` | 新生成接口，支持类别、尺寸、减面和 SHA256 缓存 |
+| POST | `/api/v1/jobs` | 兼容旧任务接口 |
+| GET | `/api/v1/jobs/{id}` | 状态、错误或结果 |
+| GET | `/api/v1/assets` | 已完成资产 |
+| GET | `/api/v1/assets/{id}` | 资产契约与元数据 |
+| POST | `/api/v1/assets/{id}/calibrate` | 毫秒级尺寸校准 |
+| GET | `/api/v1/assets/{id}/model.glb` | 下载 GLB；旧 `/model` 保留 |
+| GET | `/api/v1/assets/{id}/preview.png` | 输入图片预览 |
 
-任务状态为 `queued → running → succeeded`，失败为 `failed` 并带 `error.code/message`。服务重启会把未完成任务标为 `JOB_INTERRUPTED`，不会假装后台任务仍在运行；已完成资产可以继续读取。相同幂等键和相同内容返回原任务，相同键对应不同内容返回 HTTP 409。
+设置 `ASSET_API_KEY` 后，除健康检查外都需要 `X-API-Key` 请求头。
 
-## 元数据与坐标
+## 主系统对接契约
 
-完成任务的 `result` 同时是资产元数据，包含：
+资产生成或校准后固定包含：
 
-- `asset_id/job_id`：稳定身份；当前二者相同。
-- `model_url`：相对 URL，不含某台机器的私有绝对路径。
-- `generation.mode/is_real_generation/model`：明确区分演示与真实生成。
-- `file.sha256/bytes/vertices/materials`：文件校验与基本规模。
-- `spatial.unit=m`、`up_axis=Y`、`bounds_min/bounds_max`：GLB 源坐标信息。
-- `spatial.size_m/size_mm`：宽 `w`、深 `d`、高 `h`。
-- `spatial.normalization`：`scale` 为源单位到米的系数，`center` 为 `[中心X, 底部Y, 中心Z]`。
-- `spatial.scale_calibrated=false`：尺寸仍需用户确认。
+- `assetId/name/status/category/placementType`。
+- `physicalDimensionsMm={width,depth,height}` 和 `scaleSource=category_default|user_confirmed`。
+- `pivot=bottom_center`、`inputSha256`、`glbUrl`、`previewUrl`。
+- `stats={vertices,faces,fileSizeBytes,aspectRatio}`。
+- `generation.mode/is_real_generation`，明确真实生成与 demo。
 
-## 交给成员一
+GLB 文件采用米、Y-up，水平 X/Z 中心为 0，底部 `min_y=0`，最长边归一化为 1。`spatial` 描述该单位包络；主系统应使用 `physicalDimensionsMm` 设置毫米级实例尺寸，不要把单位包络高度当成真实 1 米。
 
-主系统 `dev/core` 已提供 `POST /api/assets`，接收静态、未压缩、贴图内嵌 GLB，返回毫米尺寸和归一化信息。本服务导出时检查这些约束。将下载的 GLB 上传主系统即可：
+类别默认高度：花瓶 280、台灯 450、植物 600、椅子 820、边几/桌子 520、沙发 840、摆件 250 mm。`plant/chair/table/side_table/sofa` 默认 `floor`，其他类别默认 `surface`。
+
+## V100 轻量预设导出
+
+在配置好权重和依赖的学校服务器上：
 
 ```bash
-curl -X POST http://127.0.0.1:3001/api/assets \
-  -F 'file=@JOB_OR_ASSET_ID.glb;type=model/gltf-binary'
+python -m asset_service.preset \
+  examples/photo.jpg \
+  presets/real-v100-vase \
+  --height-mm 280 \
+  --max-faces 20000
 ```
 
-主系统场景使用毫米、地面 x/y、向上 z；GLB 使用米、Y-up。主系统已有转换与导入脚本 `scripts/import-asset.mjs`。本模块不负责落点、房间状态、撤销或保存。
+该命令在贴图前减面，导出底部中心归一化 GLB，并生成 `model.glb`、`preview.png`、`record.json`。预设只有在实际 V100 运行、下载并检查后才能提交。
 
-## 配置
+## 配置与限制
 
-见 `.env.example`。环境变量需要由 shell 或部署平台注入，本模块不会自动读取 `.env`。
+见 `.env.example`。`ASSET_MAX_FACES` 控制默认面数；`ASSET_DATA_DIR` 应位于持久磁盘；`ASSET_CORS_ORIGINS` 配置主系统来源；`HUNYUAN_*` 配置模型与代码版本。
 
-- `ASSET_BACKEND=demo|hunyuan`
-- `ASSET_DATA_DIR`：持久数据目录，服务器上应放在持久磁盘。
-- `ASSET_API_KEY`：可选；公网/共享平台部署必须设置。
-- `ASSET_CORS_ORIGINS`：允许跨域调用的主系统来源，逗号分隔；同源网页无需设置。
-- `HUNYUAN_*`：真实生成模型、子目录、代码版本与低显存开关。
-
-## 已知限制
-
-- 单进程单 GPU 工作线程，适合首版演示，不是分布式队列。
-- 重启不自动恢复未完成任务；需要重新提交。
-- 首版不做自动减面、真实尺寸推断或支撑面检查。
-- 输入图片和生成结果保存在本地磁盘，生产部署需要备份与访问控制。
+当前为单进程单工作线程；重启不续跑未完成任务。输入和结果需要备份与访问控制。类别默认尺寸不是校准结果，背面材质仍需逐案例检查。

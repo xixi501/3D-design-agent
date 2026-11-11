@@ -3,7 +3,7 @@
 - 更新日期：2026-11-10
 - 工作分支：`dev/assets`
 - 对齐基线：`main` / `dev/assets` = `da793c6ba8f826ed1f8b836727e2dfc250a68b6b`
-- 模块版本：`actiscape-asset-service 0.1.0`
+- 模块版本：`actiscape-asset-service 0.2.0`
 - 阶段计划：[成员二计划](member2-plan.md)
 
 ## 当前结论
@@ -74,3 +74,18 @@
 - 重启不自动续跑未完成任务；已完成结果可恢复。
 - 首版不做真实尺寸推断，主系统必须让用户确认尺寸。
 - 下一阶段优先处理背面材质与模型轻量化，再扩展固定案例数量。
+
+## 2026-11-11 主系统对接改造
+
+已完成 0.2.0 代码与本机验证：
+
+- Hunyuan 贴图前依次执行 `FloaterRemover`、`DegenerateFaceRemover`、`FaceReducer`，默认 `ASSET_MAX_FACES=20000`，请求可用 `max_faces` 覆盖。
+- 只有 RGBA 透明通道最小值小于 250 时才跳过去背景；白底 RGBA、RGB 和其他模式统一转 RGB 后去背景。
+- GLB 水平中心归零、底部 `min_y=0`、最长边为 1，输出 `aspectRatio` 和 `pivot=bottom_center`。
+- 新增 `POST /api/v1/assets/generate`，支持类别、摆放方式、目标高度、面数和强制重新生成。
+- 新增毫秒级 `POST /api/v1/assets/{id}/calibrate`，只传高度即可按长宽比计算宽深，无需重新推理。
+- 固定输出 `assetId/physicalDimensionsMm/scaleSource/stats/glbUrl/previewUrl` 等主系统字段，保留旧任务与模型接口。
+- 相同归一化图片 SHA256 可直接复用成功结果，`force_regenerate=true` 可绕过缓存。
+- 6 项 unittest 全部通过；另已通过真实 HTTP 验证生成、缓存、校准与 GLB 下载，并在浏览器确认 demo 材质仍可显示。
+
+`presets/real-v100-vase/` 尚未提交：必须在 V100 上用新管线重新执行“贴图前减面”，再取得 `model.glb/preview.png/record.json` 并检查。不能把旧 21.2 MB 模型在本机直接压缩后冒充该结果。服务器可使用 `python -m asset_service.preset examples/photo.jpg presets/real-v100-vase --height-mm 280 --max-faces 20000` 导出。

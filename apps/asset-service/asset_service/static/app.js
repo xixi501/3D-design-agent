@@ -162,10 +162,14 @@ async function showAsset(asset) {
   };
   $('meta-id').textContent = asset.asset_id;
   $('meta-id').title = asset.asset_id;
-  const size = asset.spatial.size_mm;
-  $('meta-size').textContent = `${size.w.toFixed(0)} × ${size.d.toFixed(0)} × ${size.h.toFixed(0)} mm`;
+  const physical = asset.physicalDimensionsMm;
+  const size = physical || asset.spatial.size_mm;
+  const width = physical ? physical.width : size.w;
+  const depth = physical ? physical.depth : size.d;
+  const height = physical ? physical.height : size.h;
+  $('meta-size').textContent = `${width.toFixed(0)} × ${depth.toFixed(0)} × ${height.toFixed(0)} mm`;
   $('meta-mode').textContent = asset.generation.is_real_generation ? '真实生成' : 'Demo 示例';
-  $('meta-scale').textContent = asset.spatial.scale_calibrated ? '已校准' : '待用户确认';
+  $('meta-scale').textContent = asset.scaleSource === 'user_confirmed' ? '用户已确认' : '类别默认，待确认';
 }
 
 health();

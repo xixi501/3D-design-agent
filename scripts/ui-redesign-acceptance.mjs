@@ -67,14 +67,13 @@ try {
   await page.screenshot({ path: path.join(out, "desktop-catalog.png") });
   await page.click("#close-catalog");
 
-  await page.click("#mode-precision");
-  await page.click("#structural-toggle");
+  await page.click(".more-actions summary");
+  await page.click("#open-structure");
   assert.equal(
     await page.$eval('[data-tool="wall"]', (el) => el.offsetParent !== null),
     true,
   );
   await page.screenshot({ path: path.join(out, "desktop-precision.png") });
-  await page.click("#mode-ai");
 
   await page.setViewport({ width: 390, height: 844 });
   await new Promise((resolve) => setTimeout(resolve, 400));

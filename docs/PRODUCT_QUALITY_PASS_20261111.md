@@ -75,7 +75,19 @@
 
 ![设计健康状态](evidence/product-quality-20261111/a-health.png)
 
-### 3.6 导出
+### 3.6 一键修复
+
+![一键修复后的健康状态](evidence/product-quality-20261111/final-clean-header.png)
+
+- 检查面板和概览健康卡增加“一键修复”；
+- 对台面越界：把物品移回宿主台面中心；
+- 对家具进墙/碰撞：在局部候选位置中搜索，选择错误数最少的布局；
+- 测试副本上 3 个错误 → 0，revision +1；
+- 修复仍走 Candidate/CheckScene/Commit，不直接写正式场景。
+
+![一键修复结果](evidence/product-quality-20261111/repair-result.png)
+
+### 3.7 导出
 
 “更多操作”新增：
 
@@ -83,7 +95,7 @@
 - 打印 / 保存为 PDF；
 - 原 JSON 导出保留。
 
-### 3.7 空项目上下文
+### 3.8 空项目上下文
 
 空项目不再显示无意义的“全屋检查 / 进入漫游”，而是：
 

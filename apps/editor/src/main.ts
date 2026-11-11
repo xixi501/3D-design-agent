@@ -12,6 +12,7 @@ import {
   type AssetRecord,
   type Plan,
   allDoorCabinetCommands,
+  checkScene,
   isSurfaceHost,
   isOpenableFurniture,
   isTogglableFurniture,
@@ -37,13 +38,9 @@ root.innerHTML = `<header class="app-bar">
     <span id="save-state" role="status">连接项目服务…</span>
   </div>
   <div class="bar-actions">
-    <div class="mode-switch" role="group" aria-label="工作模式">
-      <button id="mode-ai" class="active">AI 设计</button>
-      <button id="mode-precision">精细编辑</button>
-    </div>
     <button id="new-project" class="quiet">新建空间</button>
     <button id="open-project" class="quiet">打开项目</button>
-    <details class="more-actions"><summary aria-label="更多项目操作">•••</summary><button id="import-project">导入 JSON</button><button id="export-project">导出项目 JSON</button><button id="export-image">导出当前视图 PNG</button><button id="export-pdf">打印 / 保存为 PDF</button></details>
+    <details class="more-actions"><summary aria-label="更多项目操作">•••</summary><button id="open-structure">结构编辑（高级）</button><button id="import-project">导入 JSON</button><button id="export-project">导出项目 JSON</button><button id="export-image">导出当前视图 PNG</button><button id="export-pdf">打印 / 保存为 PDF</button></details>
     <button id="mobile-agent" class="mobile-only" title="打开 AI 设计搭档">AI</button>
     <button id="context-toggle" class="mobile-only" title="打开项目上下文">属性</button>
     <button id="save-project" class="primary">保存</button>
@@ -292,7 +289,7 @@ async function inspector() {
   if (panel === "checks") {
     const data = await api(`/projects/${project.id}/checks`);
     if (panel !== "checks" || sequence !== inspectorSequence) return;
-    host.innerHTML = `<h2>场景检查</h2><p class="muted">版本 ${data.revision} · ${data.issues.length} 项提示</p>${data.issues.map((i: any) => `<button class="issue" data-id="${esc(i.objectIds[0])}">${esc(i.message)}</button>`).join("") || "<p>当前检查未发现问题。</p>"}<h3>检查范围</h3><p class="muted">${data.coverage.map(esc).join("<br>")}</p><p class="muted">${data.limitations.map(esc).join("<br>")}</p>`;
+    host.innerHTML = `<h2>场景检查</h2><p class="muted">版本 ${data.revision} · ${data.issues.length} 项提示</p>${data.issues.map((i: any) => `<button class="issue" data-id="${esc(i.objectIds[0])}">${esc(i.message)}</button>`).join("") || "<p>当前检查未发现问题。</p>"}${data.issues.some((i: any) => i.level === "error") ? '<button id="repair-scene" class="repair-button wide">一键修复到最近可用版本</button>' : ""}<h3>检查范围</h3><p class="muted">${data.coverage.map(esc).join("<br>")}</p><p class="muted">${data.limitations.map(esc).join("<br>")}</p>`;
     host.querySelectorAll<HTMLButtonElement>("[data-id]").forEach(
       (b) =>
         (b.onclick = () => {
@@ -300,6 +297,8 @@ async function inspector() {
           setSelection({ collection: "furniture", id: b.dataset.id! });
         }),
     );
+    const repair = host.querySelector<HTMLButtonElement>("#repair-scene");
+    if (repair) repair.onclick = () => void repairScene();
   }
 }
 function openCatalog() {
@@ -312,12 +311,6 @@ function closeCatalog() {
   const drawer = $("#catalog-drawer");
   drawer.hidden = true;
   document.body.classList.remove("catalog-open");
-}
-function setMode(mode: "ai" | "precision") {
-  document.body.dataset.mode = mode;
-  $("#mode-ai").classList.toggle("active", mode === "ai");
-  $("#mode-precision").classList.toggle("active", mode === "precision");
-  if (mode === "ai") closeCatalog();
 }
 async function renderOverview(host: HTMLElement) {
   if (!project) return;
@@ -336,7 +329,7 @@ async function renderOverview(host: HTMLElement) {
       <div><b>${plan.furniture.length}</b><span>家具</span></div>
       <div><b>${health?.issues?.length || 0}</b><span>待处理</span></div>
     </div>
-    ${health && rooms.length ? `<button class="health-card ${health.issues?.length ? "has-issues" : "is-clear"}" data-overview-action="check"><span>${health.issues?.length ? `${health.issues.length} 项需要处理` : "设计检查通过"}</span><small>${health.issues?.length ? esc(health.issues[0].message) : "没有发现结构、净空或台面问题"}</small><b>查看</b></button>` : ""}
+    ${health && rooms.length ? `<div class="health-row"><button class="health-card ${health.issues?.length ? "has-issues" : "is-clear"}" data-overview-action="check"><span>${health.issues?.length ? `${health.issues.length} 项需要处理` : "设计检查通过"}</span><small>${health.issues?.length ? esc(health.issues[0].message) : "没有发现结构、净空或台面问题"}</small><b>查看</b></button>${health.issues?.length ? `<button class="repair-button" data-overview-action="repair">一键修复</button>` : ""}</div>` : ""}
     ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => { const area = roomArea(plan, r.id); return `<button data-room="${esc(r.id)}"><b>${esc(displayRoomName(r))}</b><small>${area ? `${area} ㎡` : "定位"}</small></button>`; }).join("")}</div></section>` : ""}
     <section class="overview-section"><div class="overview-section-head"><h3>下一步</h3><span>AI 快捷入口</span></div><div class="overview-actions">${rooms.length ? `<button data-overview-action="check">全屋检查</button><button data-overview-action="catalog">添加家具</button><button data-overview-action="walk">进入漫游</button>` : `<button data-overview-action="start">从一句话开始</button><button data-overview-action="plan">上传户型图</button>`}</div></section>
     ${selectedCount ? `<p class="overview-note">当前选中的对象已在属性面板中展开。</p>` : rooms.length ? `<p class="overview-note">在画布中选择家具，或让 AI 继续帮你调整。</p>` : `<p class="overview-note">先描述一个房间，或上传一张户型图。</p>`}
@@ -358,9 +351,138 @@ async function renderOverview(host: HTMLElement) {
       else if (action === "walk") $("#walk").click();
       else if (action === "start") chat.focus();
       else if (action === "plan") chat.openFloorplan();
+      else if (action === "repair") void repairScene();
     };
   });
 }
+let repairing = false;
+function errorCount(plan: Plan) {
+  return checkScene(plan).issues.filter((issue) => issue.level === "error").length;
+}
+function repairCommands(plan: Plan): Command[] {
+  const working = clone(plan);
+  const original = new Map(working.furniture.map((f) => [f.id, clone(f)]));
+  const room = working.rooms[0];
+  const offsets = [0, 250, -250, 500, -500, 800, -800, 1200, -1200];
+  for (let pass = 0; pass < 6; pass++) {
+    const errors = checkScene(working).issues.filter(
+      (issue) => issue.level === "error",
+    );
+    if (!errors.length) break;
+    let improved = false;
+    for (const issue of errors) {
+      const item = working.furniture.find((f) =>
+        issue.objectIds.includes(f.id),
+      );
+      if (!item) continue;
+      const current = errorCount(working);
+      const candidates: { x: number; y: number; z?: number; host?: string }[] =
+        [];
+      if (item.parentObjectId || item.placement === "surface") {
+        const host = working.furniture.find((f) => f.id === item.parentObjectId);
+        if (host)
+          candidates.push({
+            x: host.x,
+            y: host.y,
+            z: (host.z || 0) + host.h,
+            host: host.id,
+          });
+      }
+      for (const dx of offsets)
+        for (const dy of offsets) {
+          if (!dx && !dy) continue;
+          candidates.push({ x: item.x + dx, y: item.y + dy });
+          if (room) candidates.push({ x: room.x + dx, y: room.y + dy });
+        }
+      let best: typeof candidates[number] | undefined,
+        bestCount = current;
+      for (const candidate of candidates) {
+        const test = clone(working);
+        const target = test.furniture.find((f) => f.id === item.id)!;
+        target.x = candidate.x;
+        target.y = candidate.y;
+        if (candidate.z !== undefined) {
+          target.z = candidate.z;
+          target.parentObjectId = candidate.host;
+          target.placement = "surface";
+        }
+        const count = errorCount(test);
+        if (count < bestCount) {
+          best = candidate;
+          bestCount = count;
+        }
+      }
+      if (best) {
+        item.x = best.x;
+        item.y = best.y;
+        if (best.z !== undefined) {
+          item.z = best.z;
+          item.parentObjectId = best.host;
+          item.placement = "surface";
+        }
+        improved = true;
+      }
+    }
+    if (!improved) break;
+  }
+  const changes: Command[] = [];
+  for (const f of working.furniture) {
+    const before = original.get(f.id);
+    if (!before) continue;
+    if (
+      before.x !== f.x ||
+      before.y !== f.y ||
+      before.z !== f.z ||
+      before.parentObjectId !== f.parentObjectId ||
+      before.placement !== f.placement
+    )
+      changes.push({
+        type: "update",
+        collection: "furniture",
+        id: f.id,
+        patch: {
+          x: f.x,
+          y: f.y,
+          z: f.z,
+          parentObjectId: f.parentObjectId,
+          placement: f.placement,
+        },
+      });
+  }
+  return changes;
+}
+async function repairScene() {
+  if (!project || busy || repairing) return;
+  repairing = true;
+  const target = project;
+  try {
+    const commandsToFix = repairCommands(target.plan);
+    if (!commandsToFix.length) {
+      message("当前布局没有可自动调整的对象，请用 AI 对话或手动调整");
+      return;
+    }
+    if (
+      !window.confirm(
+        `将自动调整 ${commandsToFix.length} 件家具，修复最近的碰撞/越界问题。继续吗？`,
+      )
+    )
+      return;
+    await commands(commandsToFix, "一键修复布局");
+    if (project?.id === target.id) {
+      const checks = await api(`/projects/${target.id}/checks`);
+      message(
+        checks.issues.some((i: any) => i.level === "error")
+          ? "已自动调整布局，但仍有关键问题，请查看检查面板"
+          : "已自动修复布局，检查通过",
+      );
+    }
+  } catch (error) {
+    fail(error);
+  } finally {
+    repairing = false;
+  }
+}
+
 function focusRoom(room: any) {
   if (planView.centerOn) planView.centerOn(room.x, room.y);
   if (three.focusRoom) three.focusRoom(room);
@@ -1037,8 +1159,10 @@ $("#frame").onclick = () => {
   planView.frame();
   three.frame();
 };
-$("#mode-ai").onclick = () => setMode("ai");
-$("#mode-precision").onclick = () => setMode("precision");
+$("#open-structure").onclick = () => {
+  const open = document.body.classList.toggle("structure-open");
+  $("#open-structure").textContent = open ? "收起结构工具" : "结构编辑（高级）";
+};
 $("#open-catalog").onclick = openCatalog;
 $("#close-catalog").onclick = closeCatalog;
 $("#close-catalog-scrim").onclick = closeCatalog;

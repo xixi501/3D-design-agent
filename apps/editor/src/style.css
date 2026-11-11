@@ -485,3 +485,36 @@ button { font-size: 11.5px; }
 .health-card.has-issues { border-color: #d8b09b; background: #faf0e8; }
 .health-card.has-issues span { color: var(--copper); }
 .health-card:hover { border-color: var(--copper); }
+.health-row { display: flex; gap: 6px; align-items: stretch; }
+.health-row .health-card { flex: 1; margin: 2px 0; }
+.repair-button { border: 1px solid var(--copper); background: var(--copper); color: #fffaf1; border-radius: 8px; padding: 7px 10px; font-size: 10.5px; white-space: nowrap; }
+.repair-button:hover { background: #9d4f31; border-color: #9d4f31; }
+.repair-button.wide { width: 100%; margin: 4px 0 10px; }
+/* Structural tools are an advanced tray, not part of the normal footer. */
+#structural-toggle { display: none !important; }
+#structural-tools { display: none !important; }
+body.structure-open #structural-tools {
+  display: flex !important;
+  position: fixed;
+  left: 350px;
+  right: 330px;
+  bottom: 38px;
+  z-index: 15;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fffdf8f2;
+  box-shadow: var(--shadow-m);
+  backdrop-filter: blur(8px);
+}
+body.structure-open #structural-tools::before {
+  content: "结构工具";
+  color: var(--copper);
+  font-size: 9px;
+  letter-spacing: .08em;
+  margin: 0 5px 0 2px;
+}
+body.structure-open #structural-tools button { border-color: transparent; font-size: 11px; }
+@media (max-width: 1080px) { body.structure-open #structural-tools { left: 12px; right: 12px; } }

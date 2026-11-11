@@ -175,7 +175,7 @@ try {
   const originalCapture = await fixView(original, true);
   const editor = await browser.newPage(),
     address = app.server.address();
-  await editor.goto(`http://127.0.0.1:${address.port}/?debug`, {
+  await editor.goto(`http://127.0.0.1:${address.port}/?debug&example=living-dining`, {
     waitUntil: "load",
   });
   await editor.waitForFunction(

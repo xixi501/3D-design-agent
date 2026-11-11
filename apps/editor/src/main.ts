@@ -1241,15 +1241,18 @@ async function examples(name: string) {
     await importDoc(doc, { "fixture-vase": asset.id });
   } else await importDoc(doc);
 }
-$("#open-project").onclick = async () => {
+async function openProjectGallery(welcome = false) {
   try {
     const projects = (await api<any[]>("/projects")).filter(
       (p) =>
         !(p.name || "").startsWith("Evaluation only:") &&
         (p.revision > 0 || p.id === project?.id),
     );
+    const intro = welcome
+      ? `<div class="dialog-kicker">WELCOME TO ACTISCAPE</div><h2>从一个空间开始</h2><p class="muted">选择一个已有项目，或从精修样例开始。你也可以先新建一个空白空间。</p>`
+      : `<div class="dialog-kicker">YOUR SPACES</div><h2>打开项目</h2><p class="muted">继续一个空间，或从精修样例开始。</p>`;
     $("#dialog-body").innerHTML =
-      `<div class="dialog-kicker">YOUR SPACES</div><h2>打开项目</h2><p class="muted">继续一个空间，或从精修样例开始。</p><div class="project-gallery">${projects.map((p: any, i: number) => `<button data-project="${esc(p.id)}" class="project-card"><span class="project-cover cover-${i % 4}"><span>${esc(displayProjectName(p.name).slice(0, 2))}</span><i></i></span><strong>${esc(displayProjectName(p.name))}</strong><small>版本 ${p.revision} · ${new Date(p.updatedAt).toLocaleDateString("zh-CN")}</small></button>`).join("")}</div><h3 class="gallery-heading">精修样例</h3><div class="actions"><button data-example="living-dining">客餐厅</button><button data-example="full-home-showcase">全屋样板间</button><button data-example="modeling-gallery">家具展台</button><button data-example="glb-display">GLB 展台</button></div>`;
+      `${intro}<div class="project-gallery">${projects.map((p: any, i: number) => `<button data-project="${esc(p.id)}" class="project-card"><span class="project-cover cover-${i % 4}"><span>${esc(displayProjectName(p.name).slice(0, 2))}</span><i></i></span><strong>${esc(displayProjectName(p.name))}</strong><small>版本 ${p.revision} · ${new Date(p.updatedAt).toLocaleDateString("zh-CN")}</small></button>`).join("")}</div><h3 class="gallery-heading">精修样例</h3><div class="actions"><button data-example="living-dining">客餐厅</button><button data-example="full-home-showcase">全屋样板间</button><button data-example="modeling-gallery">家具展台</button><button data-example="glb-display">GLB 展台</button></div><div class="actions"><button id="gallery-new-project" class="primary">新建空白空间</button></div>`;
     $("#dialog-body")
       .querySelectorAll<HTMLButtonElement>("[data-project]")
       .forEach(
@@ -1269,20 +1272,26 @@ $("#open-project").onclick = async () => {
         (b) =>
           (b.onclick = () => void examples(b.dataset.example!).catch(fail)),
       );
+    $("#gallery-new-project").onclick = () => {
+      $<HTMLDialogElement>("#dialog").close();
+      void newProject().catch(fail);
+    };
     $<HTMLDialogElement>("#dialog").showModal();
   } catch (e) {
     fail(e);
   }
-};
+}
+async function newProject() {
+  const next = await post<Project>("/projects", {});
+  await open(next);
+  panel = "overview";
+  syncPanel();
+  chat.focus();
+  await inspector();
+}
+$("#open-project").onclick = () => void openProjectGallery(false);
 $("#close-dialog").onclick = () => $<HTMLDialogElement>("#dialog").close();
-$("#new-project").onclick = () =>
-  void (async () => {
-    await open(await post("/projects", {}));
-    panel = "overview";
-    syncPanel();
-    chat.focus();
-    await inspector();
-  })().catch(fail);
+$("#new-project").onclick = () => void newProject().catch(fail);
 $("#save-project").onclick = () => {
   lastFailure = false;
   void refresh()
@@ -1442,8 +1451,14 @@ $("#context-toggle").onclick = () => {
   $("#context-panel").classList.toggle("open");
 };
 $("#context-close").onclick = () => $("#context-panel").classList.remove("open");
-$("#empty-prompt").onclick = () => chat.focus();
-$("#empty-floorplan").onclick = () => chat.openFloorplan();
+$("#empty-prompt").onclick = () => {
+  if (!project) void newProject().then(() => chat.focus()).catch(fail);
+  else chat.focus();
+};
+$("#empty-floorplan").onclick = () => {
+  if (!project) void newProject().then(() => chat.openFloorplan()).catch(fail);
+  else chat.openFloorplan();
+};
 $("#empty-example").onclick = () => $("#open-project").click();
 window.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.code === "KeyK") {
@@ -1592,17 +1607,21 @@ if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug"))
   };
 renderCatalog();
 try {
-  const requestedProject = new URLSearchParams(location.search).get("project");
+  const params = new URLSearchParams(location.search);
+  const requestedProject = params.get("project");
+  const requestedExample = params.get("example");
   const id = requestedProject || localStorage.getItem("actiscape-project");
   if (id) {
     try {
       await open(await api(`/projects/${id}`));
     } catch (e) {
-      if (e instanceof ApiError && e.status === 404 && !requestedProject)
-        await examples("living-dining");
-      else throw e;
+      if (e instanceof ApiError && e.status === 404 && !requestedProject) {
+        localStorage.removeItem("actiscape-project");
+        await openProjectGallery(true);
+      } else throw e;
     }
-  } else await examples("living-dining");
+  } else if (requestedExample) await examples(requestedExample);
+  else await openProjectGallery(true);
 } catch (e) {
   fail(e);
 }

@@ -92,7 +92,7 @@ def artifact(path):
 
 
 def analyze(image, image_path, args, out, adapter_version):
-    allowed = {"grayMax", "satMax", "outlined", "mmPerPixel"}
+    allowed = {"grayMax", "satMax", "outlined", "mmPerPixel", "totalWidthMm", "totalHeightMm"}
     if set(args) - allowed:
         raise ValueError("墙线分析包含未知参数")
     gray = finite(args.get("grayMax", 175), 20, 255)
@@ -102,24 +102,47 @@ def analyze(image, image_path, args, out, adapter_version):
     scale = finite(args.get("mmPerPixel", 1), 0.01, 10000)
     if not isinstance(args.get("outlined", False), bool):
         raise TypeError("outlined 必须是布尔值")
+    total_width = args.get("totalWidthMm")
+    total_height = args.get("totalHeightMm")
     arguments = [
         image_path,
         "--out",
         out,
-        "--scale",
-        scale,
         "--gray-max",
         int(gray),
         "--sat-max",
         int(saturation),
     ]
+    if total_width is not None:
+        arguments += ["--total-width", finite(total_width, 100, 100000)]
+    if total_height is not None:
+        arguments += ["--total-height", finite(total_height, 100, 100000)]
+    if total_width is None and total_height is None:
+        arguments += ["--scale", scale]
     if args.get("outlined"):
         if "mmPerPixel" not in args:
             raise ValueError("描边墙分析需要先从真实尺寸取得 mmPerPixel")
         arguments += ["--outlined"]
     run("analyze.py", arguments)
     raw = json.loads((out / "analysis.json").read_text())
-    result = {k: raw[k] for k in ("size", "outline_px", "segments_px", "gaps_px", "dims_px")}
+    result = {
+        k: raw[k]
+        for k in (
+            "size",
+            "outline_px",
+            "outline_mm",
+            "scale_check",
+            "segments_px",
+            "gaps_px",
+            "dims_px",
+        )
+        if k in raw
+    }
+    result["mmPerPx"] = raw.get("mmPerPx")
+    if total_width is not None:
+        result["totalWidthMm"] = float(total_width)
+    if total_height is not None:
+        result["totalHeightMm"] = float(total_height)
     files = {name: artifact(out / name) for name in ("analysis.png", "mask.png")}
     if adapter_version in (
         "hpd-adapter-5",

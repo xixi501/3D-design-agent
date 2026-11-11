@@ -47,6 +47,16 @@ class FloorplanToolset:
         self.submission = None
 
     async def request(self, mode, parameters):
+        if mode == "analyze" and "totalWidthMm" not in parameters:
+            import re
+
+            text = str(self.task.get("input") or "")
+            width = re.search(r"(?:总宽|宽度|width)\s*[:：]?\s*(\d+(?:\.\d+)?)", text, re.I)
+            height = re.search(r"(?:总高|高度|height)\s*[:：]?\s*(\d+(?:\.\d+)?)", text, re.I)
+            if width:
+                parameters = {**parameters, "totalWidthMm": float(width.group(1))}
+            if height:
+                parameters = {**parameters, "totalHeightMm": float(height.group(1))}
         workflow_version = self.store.task(self.task["id"], internal=True)["generation"].get(
             "workflowVersion"
         )
@@ -149,9 +159,24 @@ class FloorplanToolset:
             sat_max: int = 80,
             outlined: bool = False,
             mm_per_pixel: float | None = None,
+            total_width_mm: float | None = None,
+            total_height_mm: float | None = None,
         ) -> list[dict]:
-            """Run original analyze.py. Read numbered wall/gap candidates, dimension ticks, wall mask and overlay. All coordinates remain original pixels. Supply mm_per_pixel only from a real readable dimension; required for outlined walls."""
+            """Run original analyze.py. Read numbered wall/gap candidates, dimension ticks, wall mask and overlay. All coordinates remain original pixels. Supply total width/height from the user's real dimensions when available; do not infer them."""
             parameters = {"grayMax": gray_max, "satMax": sat_max, "outlined": outlined}
+            text = str(self.task.get("input") or "")
+            import re
+
+            if total_width_mm is None:
+                match = re.search(r"(?:总宽|宽度|width)\s*[:：]?\s*(\d+(?:\.\d+)?)", text, re.I)
+                total_width_mm = float(match.group(1)) if match else None
+            if total_height_mm is None:
+                match = re.search(r"(?:总高|高度|height)\s*[:：]?\s*(\d+(?:\.\d+)?)", text, re.I)
+                total_height_mm = float(match.group(1)) if match else None
+            if total_width_mm is not None:
+                parameters["totalWidthMm"] = total_width_mm
+            if total_height_mm is not None:
+                parameters["totalHeightMm"] = total_height_mm
             if mm_per_pixel is not None:
                 parameters["mmPerPixel"] = mm_per_pixel
             record = await self.request("analyze", parameters)

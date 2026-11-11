@@ -1572,6 +1572,10 @@ def build_structure_skeleton(record, image):
             "analysisId": record["id"],
             "image": {k: image[k] for k in ("id", "sha256", "width", "height")},
             "outline_px": result.get("outline_px"),
+            "outline_mm": result.get("outline_mm"),
+            "totalWidthMm": result.get("totalWidthMm"),
+            "totalHeightMm": result.get("totalHeightMm"),
+            "scaleCheck": result.get("scale_check"),
             "segments": [
                 {"analysisId": record["id"], "index": index, **segment}
                 for index, segment in enumerate(result.get("segments_px") or [])
@@ -1609,6 +1613,10 @@ def build_structure_skeleton(record, image):
         "analysisId": record["id"],
         "image": {k: image[k] for k in ("id", "sha256", "width", "height")},
         "outline_px": result.get("outline_px"),
+        "outline_mm": result.get("outline_mm"),
+        "totalWidthMm": result.get("totalWidthMm"),
+        "totalHeightMm": result.get("totalHeightMm"),
+        "scaleCheck": result.get("scale_check"),
         "segments": segments,
         "candidateWalls": candidate_walls,
         "gaps": gaps,
@@ -2224,6 +2232,59 @@ def _assemble_structure_v3(
         ]
     elif recognition.get("anchors"):
         anchors = recognition["anchors"]
+    # If analyze.py was given the user's total dimensions, its outline already
+    # provides a deterministic scale. Use it only when the horizontal and
+    # vertical pixel scales agree; never silently stretch X and Y.
+    outline_mm = skeleton.get("outline_mm") or []
+    outline_px = skeleton.get("outline_px") or []
+    if len(outline_mm) == 2 and len(outline_px) == 4:
+        x0, y0, x1, y1 = (float(value) for value in outline_px)
+        width_px, height_px = x1 - x0, y1 - y0
+        if width_px > 0 and height_px > 0:
+            width_scale = float(outline_mm[0]) / width_px
+            height_scale = float(outline_mm[1]) / height_px
+            target_height = skeleton.get("totalHeightMm") or outline_mm[1]
+            consistent = (
+                abs(width_scale / height_scale - 1) <= 0.03
+                and abs(float(outline_mm[1]) / float(target_height) - 1) <= 0.03
+            )
+            has_horizontal = any(
+                abs(float(anchor["a"]["y"]) - float(anchor["b"]["y"])) < 2 for anchor in anchors
+            )
+            has_vertical = any(
+                abs(float(anchor["a"]["x"]) - float(anchor["b"]["x"])) < 2 for anchor in anchors
+            )
+            if not has_horizontal:
+                anchors.append(
+                    {
+                        "a": {"x": x0, "y": y0},
+                        "b": {"x": x1, "y": y0},
+                        "distance": {"value": float(outline_mm[0]), "unit": "mm"},
+                        "basis": "exterior",
+                        "evidence": "analyze.py total width / outline",
+                    }
+                )
+            if consistent and not has_vertical:
+                anchors.append(
+                    {
+                        "a": {"x": x0, "y": y0},
+                        "b": {"x": x0, "y": y1},
+                        "distance": {"value": float(target_height), "unit": "mm"},
+                        "basis": "exterior",
+                        "evidence": "analyze.py total height / outline",
+                    }
+                )
+            if not consistent:
+                recognition["uncertainties"].append(
+                    {
+                        "id": "auto_scale_axis_mismatch",
+                        "message": "横纵像素比例不一致，图片可能被拉伸；已只用横向总尺寸，纵向尺寸需重新出图或手动标定。",
+                        "blocking": True,
+                        "code": "DIMENSION_LOCAL",
+                        "objectIds": [],
+                        "evidenceRefs": [],
+                    }
+                )
     if dimension_by_id and len(used_dimensions) != len(dimension_by_id):
         raise TaskError(
             "INVALID_DIMENSION_REFERENCE",

@@ -15,9 +15,9 @@ from .floorplan_schemas import (
 )
 from .floorplan_tools import FloorplanToolset
 from .generation_roles import GenerationRoles
+from .role_contracts import build_role_context
 from .roles import objects_summary
 from .scene_projection import project_floorplan_candidate
-from .role_contracts import build_role_context
 from .store import TaskError, fingerprint
 
 VERSION = "s2c-floorplan-8"

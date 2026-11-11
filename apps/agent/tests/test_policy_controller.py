@@ -58,8 +58,14 @@ def task(text, mode="edit", selected=None, generation=None):
 
 def test_explicit_modes_always_win():
     controller = PolicyController()
-    assert controller.decide(task("随便说", "generate_rectangular"), scene()).route == "generate_rectangular"
-    assert controller.decide(task("随便说", "reconstruct_floorplan"), scene()).route == "reconstruct_floorplan"
+    assert (
+        controller.decide(task("随便说", "generate_rectangular"), scene()).route
+        == "generate_rectangular"
+    )
+    assert (
+        controller.decide(task("随便说", "reconstruct_floorplan"), scene()).route
+        == "reconstruct_floorplan"
+    )
     assert controller.decide(task("随便说", "interactive_action"), scene()).route == "waiting"
 
 
@@ -102,7 +108,10 @@ def test_photo_requires_asset_and_keeps_host():
 
 def test_generation_is_detected_only_with_room_and_dimensions():
     controller = PolicyController()
-    assert controller.decide(task("生成一个主卧，宽3600毫米深4200毫米"), scene()).route == "generate_rectangular"
+    assert (
+        controller.decide(task("生成一个主卧，宽3600毫米深4200毫米"), scene()).route
+        == "generate_rectangular"
+    )
     assert controller.decide(task("把主卧的衣柜打开"), scene()).route == "waiting"  # two wardrobes
     assert controller.decide(task("把墙上的挂画换个位置"), scene()).route == "edit"
 
@@ -127,16 +136,12 @@ def test_repair_router_maps_action_and_surface_codes():
     assert directive.action == "clear_openable_envelope"
     assert directive.objectIds == ["bed", "w1"]
 
-    surface = router.route(
-        {"issues": [{"code": "SURFACE_ITEM_OVERHANG", "objectIds": ["vase"]}]}
-    )
+    surface = router.route({"issues": [{"code": "SURFACE_ITEM_OVERHANG", "objectIds": ["vase"]}]})
     assert surface is not None and surface.maxDeltaMm == 0
     assert surface.action == "rehost_or_floor_surface_item"
 
     assert router.route({"issues": []}) is None
-    stop = router.route(
-        {"issues": [{"code": "E_CONSTRAINT_UNSATISFIABLE", "objectIds": []}]}
-    )
+    stop = router.route({"issues": [{"code": "E_CONSTRAINT_UNSATISFIABLE", "objectIds": []}]})
     assert stop is not None and stop.targetRole == "coordinator"
 
 

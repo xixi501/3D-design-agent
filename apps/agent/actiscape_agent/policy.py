@@ -237,19 +237,17 @@ class PolicyController:
         )
 
     def _looks_like_generation(self, text: str) -> bool:
-        return any(word in text for word in GENERATION_WORDS) and any(
-            word in text for word in ROOM_WORDS
-        ) and any(word in text for word in DIMENSION_WORDS)
+        return (
+            any(word in text for word in GENERATION_WORDS)
+            and any(word in text for word in ROOM_WORDS)
+            and any(word in text for word in DIMENSION_WORDS)
+        )
 
     def _target_furniture(self, text: str, task: dict, project: dict):
         plan = project["plan"]
         # An explicit object name outranks the current selection; only fall back
         # to selection for "它/这把" style commands.
-        matches = [
-            f
-            for f in plan.get("furniture", [])
-            if _names(f) and _names(f) in text
-        ]
+        matches = [f for f in plan.get("furniture", []) if _names(f) and _names(f) in text]
         unique = {f["id"]: f for f in matches}
         if len(unique) == 1:
             return next(iter(unique.values()))
@@ -261,9 +259,7 @@ class PolicyController:
             )
         return None
 
-    def _fast_edit(
-        self, text: str, task: dict, project: dict
-    ) -> PolicyDecision | None:
+    def _fast_edit(self, text: str, task: dict, project: dict) -> PolicyDecision | None:
         """Single-object move/rotate/color without a model call."""
         item = self._target_furniture(text, task, project)
         if item is None:
@@ -331,9 +327,7 @@ class PolicyController:
             )
         return None
 
-    def _action(
-        self, text: str, task: dict, project: dict
-    ) -> PolicyDecision | None:
+    def _action(self, text: str, task: dict, project: dict) -> PolicyDecision | None:
         if not any(word in text for word in ACTION_WORDS):
             return None
         plan = project["plan"]
@@ -344,11 +338,7 @@ class PolicyController:
                 reason="一键开启全部门柜，进入快速动作子流程",
                 action="open_all",
             )
-        action = (
-            "toggle_on"
-            if any(word in text for word in TOGGLE_WORDS)
-            else "toggle_open"
-        )
+        action = "toggle_on" if any(word in text for word in TOGGLE_WORDS) else "toggle_open"
         selected = list(task.get("selectedIds") or [])
         target_id = None
         collection = None
@@ -367,17 +357,13 @@ class PolicyController:
             for opening in plan.get("openings", []):
                 if "门" in text and opening.get("type") in DOOR_TYPES:
                     candidates.append(("openings", opening))
-            unique = {
-                (kind, item["id"]): (kind, item)
-                for kind, item in candidates
-            }
+            unique = {(kind, item["id"]): (kind, item) for kind, item in candidates}
             if len(unique) == 1:
                 collection, item = next(iter(unique.values()))
                 target_id = item["id"]
             elif len(unique) > 1:
                 names = "、".join(
-                    _names(item) if kind == "furniture" else "门"
-                    for kind, item in unique.values()
+                    _names(item) if kind == "furniture" else "门" for kind, item in unique.values()
                 )
                 return PolicyDecision(
                     route="waiting",
@@ -394,12 +380,16 @@ class PolicyController:
                 question="请先选中要打开/关闭的门、柜门、抽屉或电器。",
                 action=action,
             )
-        item = next(
-            (f for f in plan.get("furniture", []) if f["id"] == target_id),
-            None,
-        ) if collection == "furniture" else next(
-            (o for o in plan.get("openings", []) if o["id"] == target_id),
-            None,
+        item = (
+            next(
+                (f for f in plan.get("furniture", []) if f["id"] == target_id),
+                None,
+            )
+            if collection == "furniture"
+            else next(
+                (o for o in plan.get("openings", []) if o["id"] == target_id),
+                None,
+            )
         )
         if item is None:
             return PolicyDecision(
@@ -485,8 +475,7 @@ class RepairPolicyRouter:
             (
                 issue
                 for issue in issues
-                if issue.get("fixableByFurniture") is False
-                or issue.get("category") == "structure"
+                if issue.get("fixableByFurniture") is False or issue.get("category") == "structure"
             ),
             None,
         )
@@ -499,9 +488,7 @@ class RepairPolicyRouter:
                     {
                         str(object_id)
                         for object_id in (
-                            structural.get("object_ids")
-                            or structural.get("objectIds")
-                            or []
+                            structural.get("object_ids") or structural.get("objectIds") or []
                         )
                     }
                 )[:100],
@@ -524,18 +511,10 @@ class RepairPolicyRouter:
                     {
                         str(object_id)
                         for issue in matches
-                        for object_id in (
-                            issue.get("object_ids")
-                            or issue.get("objectIds")
-                            or []
-                        )
+                        for object_id in (issue.get("object_ids") or issue.get("objectIds") or [])
                     }
                 )[:100],
-                message=str(
-                    matches[0].get("message")
-                    or matches[0].get("description")
-                    or code
-                ),
+                message=str(matches[0].get("message") or matches[0].get("description") or code),
                 maxDeltaMm=0 if action in ("rehost_or_floor_surface_item", "stop") else 600,
             )
         return None

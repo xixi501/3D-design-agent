@@ -252,11 +252,7 @@ class TaskStore:
                 raise TaskError(
                     "PROJECT_BUSY", "此项目已有任务，请先完成澄清或取消该任务", 409
                 ) from e
-            extra = {
-                key: body[key]
-                for key in ("assetId", "hostId")
-                if body.get(key) is not None
-            }
+            extra = {key: body[key] for key in ("assetId", "hostId") if body.get(key) is not None}
             if body.get("allowedRoomIds"):
                 extra["allowedRoomIds"] = body["allowedRoomIds"]
             if extra:

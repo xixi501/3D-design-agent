@@ -41,10 +41,7 @@ HOST_WORDS = ("茶几", "餐桌", "书桌", "电视柜", "床头柜", "边几", 
 def _host(furniture: dict) -> bool:
     if not isinstance(furniture.get("h"), (int, float)) or furniture["h"] > 1400:
         return False
-    return (
-        furniture.get("key") in SURFACE_KEYS
-        or furniture.get("type") in SURFACE_TYPES
-    )
+    return furniture.get("key") in SURFACE_KEYS or furniture.get("type") in SURFACE_TYPES
 
 
 class PhotoFlow:
@@ -160,16 +157,10 @@ class PhotoFlow:
                 },
             }
         if not candidate["checks"]["passed"]:
-            blocking = [
-                issue
-                for issue in candidate["checks"]["issues"]
-                if issue.get("blocking")
-            ]
+            blocking = [issue for issue in candidate["checks"]["issues"] if issue.get("blocking")]
             message = "照片资产落位检查未通过，正式场景未改变。"
             if blocking:
-                message += " " + "；".join(
-                    issue["message"] for issue in blocking[:3]
-                )
+                message += " " + "；".join(issue["message"] for issue in blocking[:3])
             return {
                 "route": "end",
                 "final": {

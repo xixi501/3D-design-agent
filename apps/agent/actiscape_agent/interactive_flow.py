@@ -31,13 +31,9 @@ class InteractiveFlow:
                 None,
             )
             if item is None:
-                raise TaskError(
-                    "ACTION_TARGET_UNRESOLVED", "快速编辑缺少真实目标", 409
-                )
+                raise TaskError("ACTION_TARGET_UNRESOLVED", "快速编辑缺少真实目标", 409)
             values = dict(fast_edit.get("values") or {})
-            if not values or any(
-                key not in ("x", "y", "rot", "color") for key in values
-            ):
+            if not values or any(key not in ("x", "y", "rot", "color") for key in values):
                 raise TaskError("ACTION_INVALID", "快速编辑字段无效", 409)
             edits = [{"type": "update", "id": target_id, "values": values}]
             target_ids = [target_id]
@@ -72,9 +68,8 @@ class InteractiveFlow:
                     )
                     action_ids.append(opening["id"])
             for furniture in plan.get("furniture", []):
-                if (
-                    furniture.get("key") in OPENABLE_KEYS
-                    and not (furniture.get("opt") or {}).get("open")
+                if furniture.get("key") in OPENABLE_KEYS and not (furniture.get("opt") or {}).get(
+                    "open"
                 ):
                     edits.append(
                         {
@@ -99,9 +94,7 @@ class InteractiveFlow:
             target_id = decision.get("targetId")
             collection = decision.get("collection")
             if not target_id or collection not in ("openings", "furniture"):
-                raise TaskError(
-                    "ACTION_TARGET_UNRESOLVED", "快速动作缺少明确目标", 409
-                )
+                raise TaskError("ACTION_TARGET_UNRESOLVED", "快速动作缺少明确目标", 409)
             edits = [
                 {
                     "type": "action",
@@ -155,11 +148,7 @@ class InteractiveFlow:
                 "proposal": {"summary": request["summary"], "edits": request["edits"]},
                 "route": "render",
             }
-        blocking = [
-            issue
-            for issue in candidate["checks"]["issues"]
-            if issue.get("blocking")
-        ]
+        blocking = [issue for issue in candidate["checks"]["issues"] if issue.get("blocking")]
         repaired = await self._repair_blocked(
             task, request, decision, candidate, action_edits, blocking
         )
@@ -167,9 +156,7 @@ class InteractiveFlow:
             return repaired
         message = "开启检验发现布局冲突，正式场景未改变。"
         if blocking:
-            message += " " + "；".join(
-                issue["message"] for issue in blocking[:3]
-            )
+            message += " " + "；".join(issue["message"] for issue in blocking[:3])
         return {
             "route": "end",
             "final": {
@@ -243,7 +230,7 @@ class InteractiveFlow:
             repaired = await self.client.request(
                 f"/projects/{task['projectId']}/candidates", repair_request
             )
-        except SceneFailure as error:
+        except SceneFailure:
             return None
         if not repaired["checks"]["passed"]:
             return None

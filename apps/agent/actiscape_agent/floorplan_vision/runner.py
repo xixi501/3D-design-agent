@@ -207,9 +207,7 @@ def _remote_run(
         with httpx.Client(timeout=timeout, trust_env=False) as client:
             response = client.post(
                 base + "/api/tools/floorplan-candidate",
-                headers=(
-                    {"Authorization": "Bearer " + token} if token else {}
-                ),
+                headers=({"Authorization": "Bearer " + token} if token else {}),
                 json={
                     "imageBase64": base64.b64encode(image).decode(),
                     "scope": scope,

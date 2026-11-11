@@ -69,6 +69,10 @@ export class ThreeView {
   private lastClick?: { t: number; x: number; y: number };
   private walkDown?: { x: number; y: number };
   private orbitSave?: { position: THREE.Vector3; target: THREE.Vector3 };
+  private interactionLayer = new THREE.Group();
+  private walkHighlight?: THREE.BoxHelper;
+  private interactionTimer = 0;
+  private lastInteraction = "";
   private textures = new Map<string, THREE.Texture>();
   private transientMaterials: THREE.Material[] = [];
   private transientTextures: THREE.Texture[] = [];
@@ -91,6 +95,7 @@ export class ThreeView {
       base?: EditBase,
     ) => Promise<void>,
     public onWalkChange?: (on: boolean) => void,
+    public onInteractionChange?: (info?: { label: string }) => void,
   ) {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -122,6 +127,9 @@ export class ThreeView {
     this.scene.add(sun, this.root);
     this.envelopeLayer.name = "open-envelopes";
     this.scene.add(this.envelopeLayer);
+    this.interactionLayer.name = "walk-interactions";
+    this.interactionLayer.visible = false;
+    this.scene.add(this.interactionLayer);
     this.camera.position.set(13, 12, 15);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.set(4.5, 0, 3);
@@ -329,8 +337,14 @@ export class ThreeView {
     });
     this.renderer.setAnimationLoop(() => {
       const dt = Math.min(this.clock.getDelta(), 0.05);
-      if (this.walking) this.walk(dt);
-      else this.controls.update();
+      if (this.walking) {
+        this.walk(dt);
+        this.interactionTimer += dt;
+        if (this.interactionTimer >= 0.16) {
+          this.interactionTimer = 0;
+          this.checkWalkInteraction();
+        }
+      } else this.controls.update();
       if (this.host.clientWidth) this.renderer.render(this.scene, this.camera);
     });
   }
@@ -862,6 +876,7 @@ export class ThreeView {
       this.furniture.set(f.id, group);
     }
     this.drawActionEnvelopes(plan);
+    this.rebuildInteractionMarkers(plan);
     this.resize();
   }
 
@@ -954,6 +969,113 @@ export class ThreeView {
     sprite.scale.set(2.0, 0.5, 1);
     sprite.renderOrder = 20;
     return sprite;
+  }
+  private markerSprite() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 96;
+    canvas.height = 96;
+    const ctx = canvas.getContext("2d")!;
+    ctx.clearRect(0, 0, 96, 96);
+    ctx.fillStyle = "#b8613c";
+    ctx.beginPath();
+    ctx.arc(48, 48, 34, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#fffdf8";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.fillStyle = "#fffdf8";
+    ctx.font = '700 42px "Avenir Next",sans-serif';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("E", 48, 51);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    this.transientTextures.push(texture);
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+      }),
+    );
+    sprite.scale.set(0.2, 0.2, 1);
+    sprite.renderOrder = 30;
+    return sprite;
+  }
+  private rebuildInteractionMarkers(plan: Plan) {
+    this.interactionLayer.clear();
+    for (const f of plan.furniture) {
+      if (!toggleActionCommand(plan, "furniture", f.id)) continue;
+      const marker = this.markerSprite();
+      marker.position.set(f.x / 1000, (f.z || 0) / 1000 + f.h / 1000 + 0.3, f.y / 1000);
+      this.interactionLayer.add(marker);
+    }
+  }
+  private walkObjectAtCenter() {
+    if (!this.plan) return undefined;
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+    const hit = ray
+      .intersectObjects(this.root.children, true)
+      .find(
+        (h) =>
+          h.distance <= 2.5 &&
+          (h.object.userData.fid ||
+            h.object.userData.objectId ||
+            h.object.userData.wallId),
+      );
+    if (!hit) return undefined;
+    const collection = (hit.object.userData.collection ||
+      (hit.object.userData.fid ? "furniture" : "openings")) as
+      | "openings"
+      | "furniture";
+    const id =
+      hit.object.userData.fid ||
+      hit.object.userData.objectId ||
+      hit.object.userData.wallId;
+    if (!toggleActionCommand(this.plan, collection, id)) return undefined;
+    let label = "交互";
+    if (collection === "furniture") {
+      const f = this.plan.furniture.find((item) => item.id === id);
+      if (!f) return undefined;
+      const open = !!f.opt?.open;
+      label = `${f.name} · ${open ? "关闭" : "打开"}`;
+    } else {
+      const opening = this.plan.openings.find((item) => item.id === id);
+      if (!opening) return undefined;
+      label = `${opening.type === "door" ? "门" : "窗"} · ${opening.open ? "关闭" : "打开"}`;
+    }
+    return { hit, label };
+  }
+  private checkWalkInteraction() {
+    const found = this.walkObjectAtCenter();
+    if (!found) {
+      this.clearWalkInteraction();
+      return;
+    }
+    if (found.label !== this.lastInteraction) {
+      this.lastInteraction = found.label;
+      this.onInteractionChange?.({ label: found.label });
+    }
+    if (!this.walkHighlight) {
+      this.walkHighlight = new THREE.BoxHelper(found.hit.object, 0xb8613c);
+      this.walkHighlight.material.depthTest = false;
+      this.walkHighlight.renderOrder = 40;
+      this.scene.add(this.walkHighlight);
+    }
+  }
+  private clearWalkInteraction() {
+    if (this.walkHighlight) {
+      this.scene.remove(this.walkHighlight);
+      this.walkHighlight.geometry.dispose();
+      (this.walkHighlight.material as THREE.Material).dispose();
+      this.walkHighlight = undefined;
+    }
+    if (this.lastInteraction) {
+      this.lastInteraction = "";
+      this.onInteractionChange?.(undefined);
+    }
   }
   focusRoom(room: { x: number; y: number }) {
     const x = room.x / 1000,
@@ -1067,6 +1189,8 @@ export class ThreeView {
     this.walking = on;
     this.controls.enabled = !on;
     this.keys.clear();
+    this.interactionLayer.visible = on;
+    this.clearWalkInteraction();
     if (on) {
       this.orbitSave = {
         position: this.camera.position.clone(),
@@ -1089,6 +1213,7 @@ export class ThreeView {
     }
     this.host.classList.toggle("walking", on);
     this.onWalkChange?.(on);
+    if (!on) this.clearWalkInteraction();
   }
   walk(dt: number) {
     const turn =

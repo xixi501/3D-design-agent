@@ -89,6 +89,15 @@
 
 ![Agent 修复结果](evidence/product-quality-20261111/agent-repair-final5.png)
 
+### 3.6.1 3D 漫游交互提示
+
+- 进入漫游后出现准星、操作说明和退出方式；
+- 可开关的家具上方显示铜色 `E` 标记；
+- 看向可交互对象时，屏幕中央显示对象名 + `E 打开/关闭`，并用框高亮；
+- 切出漫游后 HUD 和标记自动隐藏。
+
+![漫游交互提示](evidence/product-quality-20261111/walk-hud-final.png)
+
 ### 3.7 导出
 
 “更多操作”新增：

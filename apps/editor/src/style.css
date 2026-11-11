@@ -518,3 +518,14 @@ body.structure-open #structural-tools::before {
 }
 body.structure-open #structural-tools button { border-color: transparent; font-size: 11px; }
 @media (max-width: 1080px) { body.structure-open #structural-tools { left: 12px; right: 12px; } }
+#walk-hud { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+#walk-hud[hidden] { display: none; }
+.walk-crosshair { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; transform: translate(-50%, -50%); border: 1px solid #fffdf8cc; border-radius: 50%; box-shadow: 0 0 0 4px #1e272433; }
+.walk-crosshair::after { content: ""; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; transform: translate(-50%, -50%); border-radius: 50%; background: #fffdf8; }
+.walk-tip { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); padding: 6px 11px; border-radius: 14px; background: #1e2724cc; color: #fffdf8dd; font-size: 10px; white-space: nowrap; }
+.walk-target { position: absolute; left: 50%; top: calc(50% + 32px); transform: translateX(-50%); display: flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 10px; background: #fffdf8f2; color: var(--ink); box-shadow: var(--shadow-m); font-size: 11px; }
+.walk-target[hidden] { display: none; }
+.walk-target kbd { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 5px; background: var(--copper); color: #fff; font: 700 11px/1 "Avenir Next",sans-serif; }
+.walk-marker-hint { position: absolute; right: 16px; bottom: 26px; color: #fffdf8bb; font-size: 9px; background: #1e2724aa; padding: 5px 8px; border-radius: 8px; }
+.walk-marker-hint b { color: #fffdf8; background: var(--copper); border-radius: 4px; padding: 1px 4px; }
+@media (max-width: 820px) { .walk-tip { font-size: 9px; white-space: normal; max-width: 82vw; text-align: center; } .walk-marker-hint { display: none; } }

@@ -751,9 +751,13 @@ export class ChatPanel {
     };
   }
   async requestRepair(brief: string, selectedIds: string[] = []) {
-    if (this.sending) return;
+    if (this.sending) {
+      this.notice.textContent = "当前还有任务在处理，请稍后再试";
+      this.render();
+      return false;
+    }
     const context = this.getContext();
-    if (!context.projectId) return;
+    if (!context.projectId) return false;
     this.sending = true;
     this.notice.textContent = "";
     try {
@@ -772,9 +776,11 @@ export class ChatPanel {
       this.update(task);
       this.watchActive();
       this.input.value = "";
+      return true;
     } catch (error) {
       this.notice.textContent = (error as Error).message;
-      await this.load();
+      this.render();
+      return false;
     } finally {
       this.sending = false;
       this.render();

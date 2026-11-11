@@ -512,19 +512,30 @@ async function repairScene() {
   try {
     const repairIds = [
       ...new Set(
-        [...checks.issues, ...overlaps]
+        [
+          ...checks.issues.slice(0, 8),
+          ...overlaps.slice(0, 8),
+        ]
           .flatMap((i: any) => i.objectIds || [])
           .filter((id: string) => target.plan.furniture.some((f) => f.id === id)),
       ),
-    ].slice(0, 20);
-    const describe = (i: any) => {
-      const objects = (i.objectIds || [])
-        .map((id: string) => target.plan.furniture.find((x) => x.id === id))
-        .filter(Boolean)
-        .map((f: any) => `${f.name} id=${f.id} x=${f.x} y=${f.y}`);
-      return `- ${i.message}${objects.length ? `（只涉及家具：${objects.join("；")}）` : ""}`;
-    };
-    const lines = [...checks.issues.map(describe), ...overlaps.map(describe)];
+    ].slice(0, 12);
+    // Keep the brief below the Agent task input limit. The target furniture
+    // IDs are sent separately as selectedIds; repeating UUIDs and coordinates
+    // in prose made whole-home repairs exceed 4000 characters.
+    const messages = [
+      ...new Set(
+        [...checks.issues, ...overlaps].map((i: any) => i.message as string),
+      ),
+    ];
+    const MAX_REPAIR_ISSUES = 8;
+    const lines = messages
+      .slice(0, MAX_REPAIR_ISSUES)
+      .map((message) => `- ${message}`);
+    if (messages.length > MAX_REPAIR_ISSUES)
+      lines.push(
+        `- 本次先处理前 ${MAX_REPAIR_ISSUES} 项；其余 ${messages.length - MAX_REPAIR_ISSUES} 项完成后再点一次修复`,
+      );
     // Never send wall/opening IDs in the repair brief; they are not furniture
     // targets and were the source of the "target does not exist" failure.
     const brief = `请作为布局修复 Agent，修复当前场景的以下硬伤，只做最小必要调整：
@@ -536,8 +547,15 @@ ${lines.join("\n")}
 3. 保持家具清单和风格不变，不要用“整体重做”规避问题；
 4. 生成候选后必须通过检查，再提交；若无法修复，明确告诉我原因；
 5. 只能选择上面列出的家具 ID 作为 target，不得把墙体/门窗 ID 当作家具。`;
-    await chat.requestRepair(brief, repairIds);
-    message("AI 修复任务已提交，正在生成可检查候选…");
+    if (brief.length > 4000)
+      throw new Error("当前问题过多，修复说明超过任务上限；请先处理当前视图附近的问题");
+    const started = await chat.requestRepair(brief, repairIds);
+    if (started)
+      message(
+        messages.length > 8
+          ? "本次修复前 8 项，完成后可再次点击处理剩余问题"
+          : "AI 修复任务已提交，正在生成可检查候选…",
+      );
   } catch (error) {
     fail(error);
   } finally {

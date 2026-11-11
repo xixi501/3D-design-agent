@@ -16,6 +16,8 @@ import {
   isOpenableFurniture,
   isTogglableFurniture,
   rotatedAabb,
+  detectRooms,
+  wallGeometry,
 } from "../../../packages/scene-core/src/index.js";
 import { PlanView, type Selection } from "./views/plan-view.js";
 import { ThreeView } from "./views/three-view.js";
@@ -72,7 +74,7 @@ root.innerHTML = `<header class="app-bar">
       <div id="plan-view"></div>
       <div id="three-view"></div>
       <div id="selection-actions" hidden><span id="selection-name"></span><button id="selection-toggle" hidden>打开柜门</button></div>
-      <div id="walk-hud" hidden><div class="walk-crosshair"></div><div class="walk-tip">WASD 移动 · 方向键转向 · 拖动环顾 · E 交互 · Esc 退出</div><div id="walk-target" class="walk-target" hidden><kbd>E</kbd><span id="walk-target-text"></span></div><div id="walk-toast" class="walk-toast" hidden></div><div class="walk-marker-hint">场景中的 <b>E</b> 标记表示可开关的门/柜门/抽屉/电器</div></div>
+      <div id="walk-hud" hidden><div class="walk-crosshair"></div><div class="walk-tip">WASD 移动 · 方向键转向 · 拖动环顾 · E 交互 · Esc 退出</div><div id="walk-target" class="walk-target" hidden><kbd>E</kbd><span id="walk-target-text"></span></div><div id="walk-toast" class="walk-toast" hidden></div><div id="walk-map" class="walk-map"><div class="walk-map-head"><span>俯视导航</span><small>点击房间</small></div><canvas id="walk-map-canvas" width="240" height="180"></canvas></div><div class="walk-marker-hint">场景中的 <b>E</b> 标记表示可开关的门/柜门/抽屉/电器</div></div>
       <div id="stage-busy" class="stage-busy" hidden><div class="stage-busy-card"><span class="agent-orb mini">AI</span><div><strong>AI 正在构建空间</strong><span id="stage-busy-label">理解空间与需求…</span></div><i aria-hidden="true"></i></div></div>
       <div id="empty-state" class="empty-state">
         <div class="empty-kicker">A NEW SPACE · 01</div>
@@ -137,6 +139,7 @@ const three = new ThreeView(
     $("#walk").textContent = on ? "退出漫游" : "漫游";
     $("#walk").classList.toggle("active", on);
     $("#walk-hud").hidden = !on;
+    startWalkMap(on);
   },
   (info) => {
     const target = $("#walk-target");
@@ -155,6 +158,92 @@ const three = new ThreeView(
     (toast as any)._timer = setTimeout(() => (toast.hidden = true), 1800);
   },
 );
+let walkMapTimer: ReturnType<typeof setInterval> | undefined;
+function startWalkMap(on: boolean) {
+  if (walkMapTimer) {
+    clearInterval(walkMapTimer);
+    walkMapTimer = undefined;
+  }
+  if (!on) return;
+  drawWalkMap();
+  walkMapTimer = setInterval(drawWalkMap, 220);
+}
+function walkMapTransform(plan: Plan) {
+  const xs = plan.nodes.map((n) => n.x), ys = plan.nodes.map((n) => n.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const canvas = $("#walk-map-canvas") as HTMLCanvasElement;
+  const w = canvas.width, h = canvas.height, pad = 12;
+  const sx = (x: number) => pad + ((x - minX) / Math.max(1, maxX - minX)) * (w - pad * 2);
+  const sy = (y: number) => pad + ((y - minY) / Math.max(1, maxY - minY)) * (h - pad * 2);
+  return { canvas, w, h, sx, sy, minX, minY, maxX, maxY };
+}
+function drawWalkMap() {
+  if (!project) return;
+  const plan = project.plan;
+  if (!plan.nodes.length) return;
+  const { canvas, w, h, sx, sy } = walkMapTransform(plan);
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#fffdf8e8";
+  ctx.fillRect(0, 0, w, h);
+  const geo = wallGeometry(plan), rooms = detectRooms(plan, geo).regions;
+  ctx.fillStyle = "#e9e1d4";
+  for (const room of rooms) {
+    const bb = room.bb;
+    ctx.fillRect(sx(bb.x), sy(bb.y), sx(bb.x + bb.w) - sx(bb.x), sy(bb.y + bb.h) - sy(bb.y));
+  }
+  ctx.strokeStyle = "#5d625f";
+  ctx.lineWidth = 2;
+  for (const wall of geo.active) {
+    ctx.beginPath();
+    ctx.moveTo(sx(wall.a.x), sy(wall.a.y));
+    ctx.lineTo(sx(wall.b.x), sy(wall.b.y));
+    ctx.stroke();
+  }
+  ctx.fillStyle = "#5d625f";
+  ctx.font = '500 9px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign = "center";
+  for (const room of rooms) {
+    const label = room.labels[0];
+    if (!label) continue;
+    ctx.fillText(displayRoomName(label), sx(room.bb.x + room.bb.w / 2), sy(room.bb.y + room.bb.h / 2));
+  }
+  const cam = three.camera.position;
+  const px = sx(cam.x * 1000), py = sy(cam.z * 1000);
+  const yaw = three.yaw;
+  ctx.fillStyle = "#b8613c";
+  ctx.beginPath();
+  ctx.arc(px, py, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#b8613c";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(px, py);
+  ctx.lineTo(px - Math.sin(yaw) * 13, py - Math.cos(yaw) * 13);
+  ctx.stroke();
+}
+($("#walk-map-canvas") as HTMLElement).onclick = (event) => {
+  if (!project || !three.walking) return;
+  const canvas = event.currentTarget as HTMLCanvasElement;
+  const rect = canvas.getBoundingClientRect();
+  const x = ((event as MouseEvent).clientX - rect.left) / rect.width;
+  const y = ((event as MouseEvent).clientY - rect.top) / rect.height;
+  const plan = project.plan;
+  const { minX, minY, maxX, maxY } = walkMapTransform(plan);
+  const p = {
+    x: minX + x * (maxX - minX),
+    y: minY + y * (maxY - minY),
+  };
+  const room = detectRooms(plan, wallGeometry(plan)).regions.find((r: any) =>
+    r.rects.some((rect: any) => p.x >= rect.x && p.x <= rect.x + rect.w && p.y >= rect.y && p.y <= rect.y + rect.h),
+  );
+  if (room) {
+    three.walkTo(room.bb.x + room.bb.w / 2, room.bb.y + room.bb.h / 2);
+    drawWalkMap();
+  }
+};
+
 const planView = new PlanView(
   $("#plan-view"),
   setSelection,

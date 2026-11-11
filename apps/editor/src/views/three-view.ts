@@ -71,6 +71,7 @@ export class ThreeView {
   private walkDown?: { x: number; y: number };
   private orbitSave?: { position: THREE.Vector3; target: THREE.Vector3 };
   private interactionLayer = new THREE.Group();
+  private roomLabels: THREE.Sprite[] = [];
   private walkHighlight?: THREE.BoxHelper;
   private interactionTimer = 0;
   private lastInteraction = "";
@@ -422,6 +423,7 @@ export class ThreeView {
     this.transientTextures = [];
     this.root.clear();
     this.furniture.clear();
+    this.roomLabels = [];
     const geo = wallGeometry(plan),
       rooms = detectRooms(plan, geo);
     for (const room of rooms.regions) {
@@ -471,6 +473,7 @@ export class ThreeView {
           (room.bb.y + room.bb.h / 2) / 1000,
         );
         this.root.add(sprite);
+        this.roomLabels.push(sprite);
       }
       const ceiling = ei(label);
       if (ceiling.type !== "none") {
@@ -1100,6 +1103,9 @@ export class ThreeView {
     return { hit, label };
   }
   private checkWalkInteraction() {
+    for (const marker of this.interactionLayer.children)
+      marker.visible =
+        marker.position.distanceTo(this.camera.position) < 7;
     const found = this.walkObjectAtCenter();
     if (!found) {
       this.clearWalkInteraction();
@@ -1115,6 +1121,11 @@ export class ThreeView {
       this.walkHighlight.renderOrder = 40;
       this.scene.add(this.walkHighlight);
     }
+  }
+  walkTo(x: number, y: number) {
+    if (!this.walking) return;
+    this.camera.position.set(x / 1000, 1.65, y / 1000);
+    this.checkWalkInteraction();
   }
   private clearWalkInteraction() {
     if (this.walkHighlight) {
@@ -1256,6 +1267,7 @@ export class ThreeView {
     this.controls.enabled = !on;
     this.keys.clear();
     this.interactionLayer.visible = on;
+    for (const label of this.roomLabels) label.visible = !on;
     // Layout clearance envelopes are an editing aid, not part of the room.
     // Showing them in walkthrough makes an open cabinet look like a green mat.
     this.envelopeLayer.visible = !on;

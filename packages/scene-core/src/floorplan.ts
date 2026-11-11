@@ -781,16 +781,17 @@ export function floorplanScale(data: FloorplanData) {
       diagnostics,
     );
   if (
-    data.anchors.some(
-      (a) =>
+    data.anchors.some((a) => {
+      const expected = millimetres(a.distance, "anchor.distance");
+      return (
         Math.abs(
-          Math.hypot(a.b.x - a.a.x, a.b.y - a.a.y) * values[0] -
-            millimetres(a.distance, "anchor.distance"),
-        ) > 1.001,
-    )
+          Math.hypot(a.b.x - a.a.x, a.b.y - a.a.y) * values[0] - expected,
+        ) > Math.max(2, expected * 0.003)
+      );
+    })
   )
     invalid(
-      "明确尺寸在统一比例下仍有超过 1 mm 的差异，请核对标定端点；不能分别拉伸图片",
+      "明确尺寸在统一比例下仍有超过容许误差的差异，请核对标定端点；不能分别拉伸图片",
       "anchors",
       diagnostics,
     );

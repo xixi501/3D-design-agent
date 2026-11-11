@@ -179,6 +179,103 @@ class FloorplanFlow:
                 }
             raise
 
+    @staticmethod
+    def _merge_collinear_wall_gaps(draft):
+        """Merge wall segments split by a door/window into one wall plus an opening."""
+        data = draft["data"]
+        walls = list(data.get("walls") or [])
+        openings = list(data.get("openings") or [])
+        if not walls:
+            return []
+        walls_by_id = {wall["id"]: wall for wall in walls}
+        commands = []
+        for orient in ("h", "v"):
+            axis = "x" if orient == "h" else "y"
+            group = sorted(
+                [wall for wall in walls if (wall["a"]["y"] == wall["b"]["y"]) if orient == "h"]
+                if orient == "h"
+                else [wall for wall in walls if (wall["a"]["x"] == wall["b"]["x"])],
+                key=lambda wall: (
+                    wall["a"]["y"] if orient == "h" else wall["a"]["x"],
+                    min(wall["a"][axis], wall["b"][axis]),
+                ),
+            )
+            chains = []
+            for wall in group:
+                line = wall["a"]["y"] if orient == "h" else wall["a"]["x"]
+                start = min(wall["a"][axis], wall["b"][axis])
+                end = max(wall["a"][axis], wall["b"][axis])
+                for chain in chains:
+                    if abs(chain["line"] - line) > 3:
+                        continue
+                    gap = start - chain["end"]
+                    if 2 <= gap <= 300:
+                        chain["walls"].append(wall)
+                        chain["end"] = end
+                        break
+                else:
+                    chains.append({"line": line, "start": start, "end": end, "walls": [wall]})
+            for chain in chains:
+                if len(chain["walls"]) < 2:
+                    continue
+                first = chain["walls"][0]
+                ids = {wall["id"] for wall in chain["walls"]}
+                merged_wall = {
+                    "id": first["id"],
+                    "a": (
+                        {"x": chain["start"], "y": chain["line"]}
+                        if orient == "h"
+                        else {"x": chain["line"], "y": chain["start"]}
+                    ),
+                    "b": (
+                        {"x": chain["end"], "y": chain["line"]}
+                        if orient == "h"
+                        else {"x": chain["line"], "y": chain["end"]}
+                    ),
+                    "thicknessPx": max(
+                        float(wall.get("thicknessPx") or 12) for wall in chain["walls"]
+                    ),
+                }
+                commands.append({"type": "upsert", "collection": "walls", "object": merged_wall})
+                for wall in chain["walls"][1:]:
+                    commands.append({"type": "delete", "collection": "walls", "id": wall["id"]})
+                for opening in openings:
+                    if opening.get("wallId") not in ids:
+                        continue
+                    source = walls_by_id[opening["wallId"]]
+                    source_start = min(source["a"][axis], source["b"][axis])
+                    commands.append(
+                        {
+                            "type": "upsert",
+                            "collection": "openings",
+                            "object": {
+                                **opening,
+                                "wallId": first["id"],
+                                "offset": source_start + float(opening["offset"]) - chain["start"],
+                            },
+                        }
+                    )
+                previous = chain["start"]
+                for wall in chain["walls"]:
+                    start = min(wall["a"][axis], wall["b"][axis])
+                    end = max(wall["a"][axis], wall["b"][axis])
+                    if start - previous > 2:
+                        commands.append(
+                            {
+                                "type": "upsert",
+                                "collection": "openings",
+                                "object": {
+                                    "id": f"auto_open_{len(commands)}",
+                                    "wallId": first["id"],
+                                    "type": "hole",
+                                    "offset": (previous + start) / 2 - chain["start"],
+                                    "width": start - previous,
+                                },
+                            }
+                        )
+                    previous = end
+        return commands
+
     async def _ground_legacy(self, state, task):
         project = state["project"]
         if any(project["plan"].get(k) for k in COLLECTIONS) or project.get("roomLabelArchive"):
@@ -272,6 +369,21 @@ class FloorplanFlow:
             )
             g.update(versionRebases=g.get("versionRebases", 0) + 1)
         g.update(floorplan=draft, draftId=draft["id"], phase="reviewing_floorplan")
+        merge_commands = self._merge_collinear_wall_gaps(draft)
+        if merge_commands:
+            draft = await self.client.request(
+                prefix + "/" + draft["id"] + "/commands",
+                {
+                    "requestId": task["id"] + ":wall-merge",
+                    "draftRevision": draft["revision"],
+                    "commands": merge_commands,
+                },
+            )
+            self.store.event(
+                task["id"],
+                "floorplan_wall_merge",
+                {"count": len(merge_commands), "draftRevision": draft["revision"]},
+            )
         preview = await self.client.request(
             prefix + "/" + draft["id"] + "/preview", {"taskId": task["id"]}
         )

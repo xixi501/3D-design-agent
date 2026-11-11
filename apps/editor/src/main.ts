@@ -439,7 +439,7 @@ async function renderOverview(host: HTMLElement) {
       <div><b>${issueCount}</b><span>待处理</span></div>
     </div>
     ${health && rooms.length ? `<div class="health-row"><button class="health-card ${issueCount ? "has-issues" : "is-clear"}" data-overview-action="check"><span>${issueCount ? `${issueCount} 项需要处理` : "设计检查通过"}</span><small>${issueCount ? esc(firstIssue) : "没有发现结构、净空或台面问题"}</small><b>查看</b></button>${issueCount ? `<button class="repair-button" data-overview-action="repair">一键修复</button>` : ""}</div>` : ""}
-    ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => { const area = roomArea(plan, r.id); return `<button data-room="${esc(r.id)}"><b>${esc(displayRoomName(r))}</b><small>${area ? `${area} ㎡` : "定位"}</small></button>`; }).join("")}</div></section>` : ""}
+    ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => { const area = roomArea(plan, r.id); return `<div class="overview-room-row"><button data-room="${esc(r.id)}"><b>${esc(displayRoomName(r))}</b><small>${area ? `${area} ㎡` : "定位"}</small></button><button class="room-repair" data-repair-room="${esc(r.id)}">修复</button></div>`; }).join("")}</div></section>` : ""}
     <section class="overview-section"><div class="overview-section-head"><h3>下一步</h3><span>AI 快捷入口</span></div><div class="overview-actions">${rooms.length ? `<button data-overview-action="check">全屋检查</button><button data-overview-action="catalog">添加家具</button><button data-overview-action="walk">进入漫游</button>` : `<button data-overview-action="start">从一句话开始</button><button data-overview-action="plan">上传户型图</button>`}</div></section>
     ${selectedCount ? `<p class="overview-note">当前选中的对象已在属性面板中展开。</p>` : rooms.length ? `<p class="overview-note">在画布中选择家具，或让 AI 继续帮你调整。</p>` : `<p class="overview-note">先描述一个房间，或上传一张户型图。</p>`}
   </div>`;
@@ -448,6 +448,9 @@ async function renderOverview(host: HTMLElement) {
       const room = rooms.find((r) => r.id === button.dataset.room);
       if (room) focusRoom(room);
     };
+  });
+  host.querySelectorAll<HTMLButtonElement>("[data-repair-room]").forEach((button) => {
+    button.onclick = () => void repairScene(button.dataset.repairRoom);
   });
   host.querySelectorAll<HTMLButtonElement>("[data-overview-action]").forEach((button) => {
     button.onclick = () => {
@@ -493,18 +496,75 @@ function layoutIssues(plan: Plan) {
     }
   return issues;
 }
-async function repairScene() {
+function roomRegion(plan: Plan, roomId: string) {
+  const regions = detectRooms(plan, wallGeometry(plan)).regions;
+  return (
+    regions.find((region: any) =>
+      region.labels.some((label: any) => label.id === roomId),
+    ) ||
+    regions.find((region: any) => {
+      const room = plan.rooms.find((r) => r.id === roomId);
+      return room
+        ? region.rects.some(
+            (rect: any) =>
+              room.x >= rect.x &&
+              room.x <= rect.x + rect.w &&
+              room.y >= rect.y &&
+              room.y <= rect.y + rect.h,
+          )
+        : false;
+    })
+  );
+}
+function furnitureInRegion(plan: Plan, region: any) {
+  if (!region) return new Set<string>();
+  return new Set(
+    plan.furniture
+      .filter((f) =>
+        region.rects.some(
+          (rect: any) =>
+            f.x >= rect.x &&
+            f.x <= rect.x + rect.w &&
+            f.y >= rect.y &&
+            f.y <= rect.y + rect.h,
+        ),
+      )
+      .map((f) => f.id),
+  );
+}
+async function repairScene(roomId?: string) {
   if (!project || busy || repairing) return;
   const target = project;
   const checks = await api(`/projects/${target.id}/checks`);
-  const overlaps = layoutIssues(target.plan);
-  if (!checks.issues.some((i: any) => i.level === "error") && !overlaps.length) {
-    message("当前场景没有需要修复的硬伤");
+  const region = roomId ? roomRegion(target.plan, roomId) : undefined;
+  const room = roomId ? target.plan.rooms.find((r) => r.id === roomId) : undefined;
+  const roomFurniture = furnitureInRegion(target.plan, region);
+  const issues = roomId
+    ? checks.issues.filter((i: any) =>
+        (i.objectIds || []).some((id: string) => roomFurniture.has(id)),
+      )
+    : checks.issues;
+  const overlaps = (
+    roomId
+      ? layoutIssues(target.plan).filter((i: any) =>
+          (i.objectIds || []).some((id: string) => roomFurniture.has(id)),
+        )
+      : layoutIssues(target.plan)
+  ) as any[];
+  if (!issues.some((i: any) => i.level === "error") && !overlaps.length) {
+    message(room ? `「${displayRoomName(room)}」没有需要修复的硬伤` : "当前场景没有需要修复的硬伤");
+    return;
+  }
+  const total = issues.length + overlaps.length;
+  if (!roomId && total > 8) {
+    message("全屋问题较多，请在右侧「空间导航」选择房间，逐个修复");
     return;
   }
   if (
     !window.confirm(
-      "AI 会分析当前布局，生成一个可检查的修复候选；不会改动墙体和门窗，也不会新增房间。继续吗？",
+      room
+        ? `AI 将只修复「${displayRoomName(room)}」内的 ${total} 项问题，不改墙体门窗、不新增房间。继续吗？`
+        : "AI 会分析当前布局，生成一个可检查的修复候选；不会改动墙体和门窗，也不会新增房间。继续吗？",
     )
   )
     return;
@@ -513,7 +573,7 @@ async function repairScene() {
     const repairIds = [
       ...new Set(
         [
-          ...checks.issues.slice(0, 8),
+          ...issues.slice(0, 8),
           ...overlaps.slice(0, 8),
         ]
           .flatMap((i: any) => i.objectIds || [])
@@ -525,7 +585,7 @@ async function repairScene() {
     // in prose made whole-home repairs exceed 4000 characters.
     const messages = [
       ...new Set(
-        [...checks.issues, ...overlaps].map((i: any) => i.message as string),
+        [...issues, ...overlaps].map((i: any) => i.message as string),
       ),
     ];
     const MAX_REPAIR_ISSUES = 8;
@@ -553,8 +613,10 @@ ${lines.join("\n")}
     if (started)
       message(
         messages.length > 8
-          ? "本次修复前 8 项，完成后可再次点击处理剩余问题"
-          : "AI 修复任务已提交，正在生成可检查候选…",
+          ? room
+          ? `AI 正在修复「${displayRoomName(room)}」的 ${Math.min(8, total)} 项问题…`
+          : "本次修复前 8 项，完成后可再次点击处理剩余问题"
+        : "AI 修复任务已提交，正在生成可检查候选…",
       );
   } catch (error) {
     fail(error);

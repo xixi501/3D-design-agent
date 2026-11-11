@@ -538,3 +538,8 @@ body.structure-open #structural-tools button { border-color: transparent; font-s
 .walk-map-head small { color: var(--muted); font-size: 9px; }
 #walk-map-canvas { width: 100%; height: 168px; display: block; border-radius: 7px; cursor: crosshair; }
 @media (max-width: 820px) { .walk-map { width: 176px; top: 12px; right: 12px; } #walk-map-canvas { height: 122px; } }
+.overview-room-row { display: flex; align-items: center; gap: 3px; }
+.overview-room-row > button[data-room] { flex: 1; min-width: 0; }
+.overview-room-row > button[data-room] b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-repair { flex: 0 0 auto; border: 1px solid var(--line-soft); border-radius: 6px; padding: 3px 7px; color: var(--copper); background: var(--surface-2); font-size: 9px; }
+.room-repair:hover { border-color: var(--copper); color: var(--copper); }

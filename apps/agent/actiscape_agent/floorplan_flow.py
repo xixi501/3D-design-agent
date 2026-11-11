@@ -136,31 +136,48 @@ class FloorplanFlow:
         return recognized
 
     async def ground(self, state, task):
-        if task["generation"].get("workflowVersion") == 4:
-            from .floorplan_v4 import FloorplanV4
-            from .floorplan_v4_2 import FloorplanV42
+        try:
+            if task["generation"].get("workflowVersion") == 4:
+                from .floorplan_v4 import FloorplanV4
+                from .floorplan_v4_2 import FloorplanV42
 
-            implementation = (
-                FloorplanV42
-                if task["generation"].get("floorplanVersion") == "s2c-floorplan-v4-2"
-                else FloorplanV4
-            )
-            return await implementation(self.store, self.client, self.roles.base).ground(
-                state, task, self._ground_legacy
-            )
-        if task["generation"].get("workflowVersion") == 3:
-            from .floorplan_v3 import FloorplanV3
+                implementation = (
+                    FloorplanV42
+                    if task["generation"].get("floorplanVersion") == "s2c-floorplan-v4-2"
+                    else FloorplanV4
+                )
+                return await implementation(self.store, self.client, self.roles.base).ground(
+                    state, task, self._ground_legacy
+                )
+            if task["generation"].get("workflowVersion") == 3:
+                from .floorplan_v3 import FloorplanV3
 
-            return await FloorplanV3(self.store, self.client, self.roles.base).ground(
-                state, task, self._ground_legacy
-            )
-        if task["generation"].get("workflowVersion") == 2:
-            from .floorplan_v2 import FloorplanV2
+                return await FloorplanV3(self.store, self.client, self.roles.base).ground(
+                    state, task, self._ground_legacy
+                )
+            if task["generation"].get("workflowVersion") == 2:
+                from .floorplan_v2 import FloorplanV2
 
-            return await FloorplanV2(self.store, self.client, self.roles.base).ground(
-                state, task, self._ground_legacy
-            )
-        return await self._ground_legacy(state, task)
+                return await FloorplanV2(self.store, self.client, self.roles.base).ground(
+                    state, task, self._ground_legacy
+                )
+            return await self._ground_legacy(state, task)
+        except TaskError as error:
+            g = self.store.task(task["id"], internal=True)["generation"]
+            if error.code == "VISION_MODEL_UNAVAILABLE" and g.get("draftId"):
+                g.update(phase="reviewing_floorplan")
+                self.store.update(task["id"], generation=g)
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "waiting_input",
+                        "phase": "reviewing_floorplan",
+                        "draftId": g["draftId"],
+                        "message": "结构草稿已生成，但本地视觉模型不可用；家具未自动加入。请先核对结构和比例尺，确认后可在编辑器中手动添加家具。",
+                        "report": g.get("previewChecks") or {},
+                    },
+                }
+            raise
 
     async def _ground_legacy(self, state, task):
         project = state["project"]

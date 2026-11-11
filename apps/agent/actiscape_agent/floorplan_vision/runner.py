@@ -9,6 +9,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -317,10 +318,7 @@ def run_floorplan_provider(
         try:
             result = subprocess.run(
                 [
-                    os.environ.get(
-                        "ACTISCAPE_PYTHON",
-                        str(pathlib.Path(__file__).resolve().parents[4] / ".venv/bin/python"),
-                    ),
+                    os.environ.get("ACTISCAPE_PYTHON", sys.executable),
                     "-m",
                     "actiscape_agent.floorplan_vision.hpd_worker",
                 ],

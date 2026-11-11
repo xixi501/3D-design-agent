@@ -9,6 +9,7 @@ import {
   catalog,
   furnitureElevation,
   openEnvelope,
+  openableSpec,
   checkScene,
   toggleActionCommand,
   type Plan,
@@ -96,6 +97,7 @@ export class ThreeView {
     ) => Promise<void>,
     public onWalkChange?: (on: boolean) => void,
     public onInteractionChange?: (info?: { label: string }) => void,
+    public onInteractionNotice?: (text: string) => void,
   ) {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -874,6 +876,7 @@ export class ThreeView {
       });
       this.root.add(group);
       this.furniture.set(f.id, group);
+      if (f.opt?.open) this.openFrontPanels(group, f);
     }
     this.drawActionEnvelopes(plan);
     this.rebuildInteractionMarkers(plan);
@@ -969,6 +972,36 @@ export class ThreeView {
     sprite.scale.set(2.0, 0.5, 1);
     sprite.renderOrder = 20;
     return sprite;
+  }
+  private openFrontPanels(group: THREE.Group, f: Furniture) {
+    if (!openableSpec(f)) return;
+    const w = f.w / 1000,
+      h = f.h / 1000,
+      d = f.d / 1000;
+    const count = w > 1.35 ? 2 : 1;
+    const panelW = (w / count) * 0.92,
+      panelH = h * 0.86;
+    const material = this.material({ color: f.color || "#eee9df", roughness: 0.8 });
+    for (let i = 0; i < count; i++) {
+      const left = i === 0;
+      const pivot = new THREE.Group();
+      pivot.position.set(
+        left ? -w / 2 : w / 2,
+        panelH / 2 + 0.02,
+        d / 2 + 0.012,
+      );
+      const panel = new THREE.Mesh(
+        new THREE.BoxGeometry(panelW, panelH, 0.018),
+        material,
+      );
+      panel.position.x = (left ? 1 : -1) * panelW / 2;
+      panel.castShadow = true;
+      panel.userData.fid = f.id;
+      panel.userData.collection = "furniture";
+      pivot.add(panel);
+      pivot.rotation.y = (left ? 1 : -1) * (Math.PI * 0.44);
+      group.add(pivot);
+    }
   }
   private markerSprite() {
     const canvas = document.createElement("canvas");
@@ -1191,6 +1224,21 @@ export class ThreeView {
       [command],
       collection === "openings" ? "开关门扇" : "开关柜门/抽屉/电器",
     );
+    if (this.walking) {
+      const entity =
+        collection === "furniture"
+          ? this.plan.furniture.find((f) => f.id === id)
+          : this.plan.openings.find((o) => o.id === id);
+      if (entity) {
+        const before =
+          collection === "furniture"
+            ? Boolean((entity as Furniture).opt?.open)
+            : Boolean((entity as any).open);
+        this.onInteractionNotice?.(
+          `${entity.name || (collection === "openings" ? "门" : "家具")}已${before ? "关闭" : "打开"}`,
+        );
+      }
+    }
     return true;
   }
   preview(f: Furniture) {
@@ -1208,6 +1256,9 @@ export class ThreeView {
     this.controls.enabled = !on;
     this.keys.clear();
     this.interactionLayer.visible = on;
+    // Layout clearance envelopes are an editing aid, not part of the room.
+    // Showing them in walkthrough makes an open cabinet look like a green mat.
+    this.envelopeLayer.visible = !on;
     this.clearWalkInteraction();
     if (on) {
       this.orbitSave = {

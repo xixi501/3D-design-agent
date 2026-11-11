@@ -72,7 +72,7 @@ root.innerHTML = `<header class="app-bar">
       <div id="plan-view"></div>
       <div id="three-view"></div>
       <div id="selection-actions" hidden><span id="selection-name"></span><button id="selection-toggle" hidden>打开柜门</button></div>
-      <div id="walk-hud" hidden><div class="walk-crosshair"></div><div class="walk-tip">WASD 移动 · 方向键转向 · 拖动环顾 · E 交互 · Esc 退出</div><div id="walk-target" class="walk-target" hidden><kbd>E</kbd><span id="walk-target-text"></span></div><div class="walk-marker-hint">场景中的 <b>E</b> 标记表示可开关的门/柜门/抽屉/电器</div></div>
+      <div id="walk-hud" hidden><div class="walk-crosshair"></div><div class="walk-tip">WASD 移动 · 方向键转向 · 拖动环顾 · E 交互 · Esc 退出</div><div id="walk-target" class="walk-target" hidden><kbd>E</kbd><span id="walk-target-text"></span></div><div id="walk-toast" class="walk-toast" hidden></div><div class="walk-marker-hint">场景中的 <b>E</b> 标记表示可开关的门/柜门/抽屉/电器</div></div>
       <div id="stage-busy" class="stage-busy" hidden><div class="stage-busy-card"><span class="agent-orb mini">AI</span><div><strong>AI 正在构建空间</strong><span id="stage-busy-label">理解空间与需求…</span></div><i aria-hidden="true"></i></div></div>
       <div id="empty-state" class="empty-state">
         <div class="empty-kicker">A NEW SPACE · 01</div>
@@ -146,6 +146,13 @@ const three = new ThreeView(
     }
     target.hidden = false;
     $("#walk-target-text").textContent = info.label;
+  },
+  (text) => {
+    const toast = $("#walk-toast");
+    toast.textContent = text;
+    toast.hidden = false;
+    clearTimeout((toast as any)._timer);
+    (toast as any)._timer = setTimeout(() => (toast.hidden = true), 1800);
   },
 );
 const planView = new PlanView(

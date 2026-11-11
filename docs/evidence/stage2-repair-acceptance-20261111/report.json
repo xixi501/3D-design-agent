@@ -1,0 +1,527 @@
+{
+  "liveModel": true,
+  "provider": "DeepSeek",
+  "base": "http://127.0.0.1:3121",
+  "repeats": 2,
+  "cases": [
+    "openable",
+    "wall",
+    "circulation"
+  ],
+  "results": [
+    {
+      "name": "openable",
+      "repeat": 1,
+      "liveModel": true,
+      "status": "passed",
+      "projectId": "f24688e9-0984-4696-9abf-1a21992c36e3",
+      "taskId": "5540cc00-df62-4c14-ba34-51ef72b6d01f",
+      "task": {
+        "id": "5540cc00-df62-4c14-ba34-51ef72b6d01f",
+        "status": "completed",
+        "modelCalls": 7,
+        "elapsedSeconds": 30.39878749847412,
+        "error": null
+      },
+      "selectedIds": [
+        "openable-wardrobe",
+        "openable-bed"
+      ],
+      "beforeChecks": {
+        "revision": 0,
+        "issues": [
+          {
+            "code": "POSSIBLE_OVERLAP",
+            "objectIds": [
+              "openable-wardrobe",
+              "openable-bed"
+            ],
+            "message": "衣柜 与 双人床 1.8m 的参数化轮廓及高度区间重叠，请检查实际形状",
+            "level": "warning",
+            "metric": 550,
+            "category": "overlap",
+            "fixableByFurniture": true,
+            "owner": "furniture"
+          },
+          {
+            "code": "OPENABLE_FRONT_BLOCKED",
+            "objectIds": [
+              "openable-wardrobe",
+              "openable-bed"
+            ],
+            "message": "衣柜 正前方开启净空仅 0 mm（需 600 mm），被 双人床 1.8m 占用",
+            "level": "error",
+            "metric": 600,
+            "category": "furniture",
+            "fixableByFurniture": true,
+            "owner": "furniture"
+          }
+        ],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "afterChecks": {
+        "revision": 1,
+        "issues": [],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "changed": {
+        "added": [],
+        "deleted": [],
+        "updated": [
+          "openable-bed"
+        ]
+      }
+    },
+    {
+      "name": "openable",
+      "repeat": 2,
+      "liveModel": true,
+      "status": "passed",
+      "projectId": "52de103e-371f-4adb-b72e-7f357f92b293",
+      "taskId": "0a97ff88-3c8e-4ef4-94db-41780e221548",
+      "task": {
+        "id": "0a97ff88-3c8e-4ef4-94db-41780e221548",
+        "status": "completed",
+        "modelCalls": 7,
+        "elapsedSeconds": 30.881067514419556,
+        "error": null
+      },
+      "selectedIds": [
+        "openable-wardrobe",
+        "openable-bed"
+      ],
+      "beforeChecks": {
+        "revision": 0,
+        "issues": [
+          {
+            "code": "POSSIBLE_OVERLAP",
+            "objectIds": [
+              "openable-wardrobe",
+              "openable-bed"
+            ],
+            "message": "衣柜 与 双人床 1.8m 的参数化轮廓及高度区间重叠，请检查实际形状",
+            "level": "warning",
+            "metric": 550,
+            "category": "overlap",
+            "fixableByFurniture": true,
+            "owner": "furniture"
+          },
+          {
+            "code": "OPENABLE_FRONT_BLOCKED",
+            "objectIds": [
+              "openable-wardrobe",
+              "openable-bed"
+            ],
+            "message": "衣柜 正前方开启净空仅 0 mm（需 600 mm），被 双人床 1.8m 占用",
+            "level": "error",
+            "metric": 600,
+            "category": "furniture",
+            "fixableByFurniture": true,
+            "owner": "furniture"
+          }
+        ],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "afterChecks": {
+        "revision": 1,
+        "issues": [],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "changed": {
+        "added": [],
+        "deleted": [],
+        "updated": [
+          "openable-bed"
+        ]
+      }
+    },
+    {
+      "name": "wall",
+      "repeat": 1,
+      "liveModel": true,
+      "status": "passed",
+      "projectId": "af0c47f6-1408-444c-a4ce-f7f1039f7468",
+      "taskId": "b882c616-e2d3-44a6-ba7d-68096e0be39d",
+      "task": {
+        "id": "b882c616-e2d3-44a6-ba7d-68096e0be39d",
+        "status": "completed",
+        "modelCalls": 6,
+        "elapsedSeconds": 25.444345712661743,
+        "error": null
+      },
+      "selectedIds": [
+        "wall-box"
+      ],
+      "beforeChecks": {
+        "revision": 0,
+        "issues": [
+          {
+            "code": "FURNITURE_IN_WALL",
+            "objectIds": [
+              "wall-box",
+              "wall-west"
+            ],
+            "message": "立方体 的轮廓进入墙体",
+            "level": "error",
+            "metric": 200,
+            "category": "furniture",
+            "fixableByFurniture": true,
+            "owner": "furniture"
+          }
+        ],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "afterChecks": {
+        "revision": 1,
+        "issues": [],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "changed": {
+        "added": [],
+        "deleted": [],
+        "updated": [
+          "wall-box"
+        ]
+      }
+    },
+    {
+      "name": "wall",
+      "repeat": 2,
+      "liveModel": true,
+      "status": "passed",
+      "projectId": "40110e89-3b95-43bd-a85a-7a966cfd806f",
+      "taskId": "3608a596-275a-4c4f-8412-7d63b8b0ef79",
+      "task": {
+        "id": "3608a596-275a-4c4f-8412-7d63b8b0ef79",
+        "status": "completed",
+        "modelCalls": 7,
+        "elapsedSeconds": 37.59570360183716,
+        "error": null
+      },
+      "selectedIds": [
+        "wall-box"
+      ],
+      "beforeChecks": {
+        "revision": 0,
+        "issues": [
+          {
+            "code": "FURNITURE_IN_WALL",
+            "objectIds": [
+              "wall-box",
+              "wall-west"
+            ],
+            "message": "立方体 的轮廓进入墙体",
+            "level": "error",
+            "metric": 200,
+            "category": "furniture",
+            "fixableByFurniture": true,
+            "owner": "furniture"
+          }
+        ],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "afterChecks": {
+        "revision": 1,
+        "issues": [],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "changed": {
+        "added": [],
+        "deleted": [],
+        "updated": [
+          "wall-box"
+        ]
+      }
+    },
+    {
+      "name": "circulation",
+      "repeat": 1,
+      "liveModel": true,
+      "status": "passed",
+      "projectId": "a44b1ad9-908f-47b0-b69c-d84f6119b653",
+      "taskId": "2b2b7027-5f0e-4a41-8c15-094afc06bcd0",
+      "task": {
+        "id": "2b2b7027-5f0e-4a41-8c15-094afc06bcd0",
+        "status": "completed",
+        "modelCalls": 6,
+        "elapsedSeconds": 24.937023162841797,
+        "error": null
+      },
+      "selectedIds": [
+        "circulation-sofa"
+      ],
+      "beforeChecks": {
+        "revision": 0,
+        "issues": [
+          {
+            "code": "CIR-02",
+            "objectIds": [
+              "circulation-door",
+              "circulation-sofa"
+            ],
+            "roomId": "circulation-room",
+            "message": "circulation 内侧没有连续 700 mm 宽的可达区域",
+            "level": "error",
+            "category": "furniture",
+            "fixableByFurniture": true,
+            "owner": "furniture"
+          }
+        ],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "afterChecks": {
+        "revision": 1,
+        "issues": [],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "changed": {
+        "added": [],
+        "deleted": [],
+        "updated": [
+          "circulation-sofa"
+        ]
+      }
+    },
+    {
+      "name": "circulation",
+      "repeat": 2,
+      "liveModel": true,
+      "status": "passed",
+      "projectId": "1830be67-a2a2-4842-835b-17dbee96cee8",
+      "taskId": "cb417fc7-c5fa-443f-b49c-2ef3acea4778",
+      "task": {
+        "id": "cb417fc7-c5fa-443f-b49c-2ef3acea4778",
+        "status": "completed",
+        "modelCalls": 7,
+        "elapsedSeconds": 31.92186665534973,
+        "error": null
+      },
+      "selectedIds": [
+        "circulation-sofa"
+      ],
+      "beforeChecks": {
+        "revision": 0,
+        "issues": [
+          {
+            "code": "CIR-02",
+            "objectIds": [
+              "circulation-door",
+              "circulation-sofa"
+            ],
+            "roomId": "circulation-room",
+            "message": "circulation 内侧没有连续 700 mm 宽的可达区域",
+            "level": "error",
+            "category": "furniture",
+            "fixableByFurniture": true,
+            "owner": "furniture"
+          }
+        ],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "afterChecks": {
+        "revision": 1,
+        "issues": [],
+        "coverage": [
+          "结构引用与尺寸校验",
+          "结构问题分类（门净宽、空房间 700 mm 连续通行区）",
+          "原版参数化轮廓 SAT 相交与垂直区间",
+          "家具轮廓与墙体及洞口",
+          "窗帘前 150 mm 与窗前 400 mm 净空",
+          "门洞内侧 800 mm 局部净空（项目布局规则）",
+          "门内 700 mm 宽连续可达区（近似栅格）",
+          "柜门/抽屉前 450–600 mm 开启包络（OPENABLE_FRONT_BLOCKED）",
+          "门扇扫掠区与柜门包络冲突（DOOR_CABINET_CONFLICT）",
+          "台面宿主 z = host.z + host.h、越界与同台面碰撞"
+        ],
+        "limitations": [
+          "不等同于精确网格碰撞检测；GLB 使用矩形占地",
+          "通道检查为 100 mm 栅格近似，不替代建筑规范；未检查照明或法规",
+          "开启包络为矩形/四分之一圆弧近似，不做刚体动力学或地震模拟；台面碰撞为矩形占地近似"
+        ]
+      },
+      "changed": {
+        "added": [],
+        "deleted": [],
+        "updated": [
+          "circulation-sofa"
+        ]
+      }
+    }
+  ]
+}

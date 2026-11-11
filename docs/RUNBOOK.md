@@ -50,6 +50,18 @@ npm run test:all
 
 新结果保存在 `test-results/`，当前交付证据在 `docs/evidence/`。浏览器测试使用独立临时数据库并实际重启服务，不访问日常 `data/`。原版参考 HTML 永不加载进产品应用。
 
+### 真实 Agent 修复验收（手动，不在 CI）
+
+阶段 2 的真实修复验收需要正在运行的真实 DeepSeek Agent，不会进入 `npm run test:all` 或 CI：
+
+```bash
+npm run start:all
+# 另开终端
+npm run test:repair:live
+```
+
+默认对 `fixtures/repair-cases/` 的净空、CIR-02、穿墙三个案例各跑 2 次；可用 `ACTISCAPE_REPAIR_REPEATS`、`ACTISCAPE_REPAIR_CASE` 调整，报告写入 `test-results/repair-acceptance/`。结构问题由 `npm run test:repair:ui` 验证，不调用真实模型。真实验收失败时不要放宽门禁，先修 fixture 或 Agent 提示。
+
 ## 保存、导出与资产
 
 编辑事务在服务端持久化后才显示保存成功。拖动期间是预览，松开后提交一次事务。项目列表中的“打开”恢复同一项目及其撤销位置；不同浏览器连接同一服务也能恢复。

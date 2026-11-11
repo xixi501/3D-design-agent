@@ -322,14 +322,17 @@ async function renderOverview(host: HTMLElement) {
   try {
     health = await api(`/projects/${snapshot.id}/checks`);
   } catch {}
+  const layout = layoutIssues(plan);
+  const issueCount = (health?.issues?.length || 0) + layout.length;
+  const firstIssue = health?.issues?.[0]?.message || layout[0]?.message;
   host.innerHTML = `<div class="overview">
     <div class="overview-hero"><span class="eyebrow">PROJECT OVERVIEW</span><h2>${esc(displayProjectName(plan.name))}</h2><p>${rooms.length ? `${rooms.length} 个空间 · ${plan.furniture.length} 件家具 · 版本 ${project.revision}` : "从一个想法开始，AI 会帮你完成第一版空间。"}</p></div>
     <div class="metric-grid">
       <div><b>${rooms.length}</b><span>空间</span></div>
       <div><b>${plan.furniture.length}</b><span>家具</span></div>
-      <div><b>${health?.issues?.length || 0}</b><span>待处理</span></div>
+      <div><b>${issueCount}</b><span>待处理</span></div>
     </div>
-    ${health && rooms.length ? `<div class="health-row"><button class="health-card ${health.issues?.length ? "has-issues" : "is-clear"}" data-overview-action="check"><span>${health.issues?.length ? `${health.issues.length} 项需要处理` : "设计检查通过"}</span><small>${health.issues?.length ? esc(health.issues[0].message) : "没有发现结构、净空或台面问题"}</small><b>查看</b></button>${health.issues?.length ? `<button class="repair-button" data-overview-action="repair">一键修复</button>` : ""}</div>` : ""}
+    ${health && rooms.length ? `<div class="health-row"><button class="health-card ${issueCount ? "has-issues" : "is-clear"}" data-overview-action="check"><span>${issueCount ? `${issueCount} 项需要处理` : "设计检查通过"}</span><small>${issueCount ? esc(firstIssue) : "没有发现结构、净空或台面问题"}</small><b>查看</b></button>${issueCount ? `<button class="repair-button" data-overview-action="repair">一键修复</button>` : ""}</div>` : ""}
     ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => { const area = roomArea(plan, r.id); return `<button data-room="${esc(r.id)}"><b>${esc(displayRoomName(r))}</b><small>${area ? `${area} ㎡` : "定位"}</small></button>`; }).join("")}</div></section>` : ""}
     <section class="overview-section"><div class="overview-section-head"><h3>下一步</h3><span>AI 快捷入口</span></div><div class="overview-actions">${rooms.length ? `<button data-overview-action="check">全屋检查</button><button data-overview-action="catalog">添加家具</button><button data-overview-action="walk">进入漫游</button>` : `<button data-overview-action="start">从一句话开始</button><button data-overview-action="plan">上传户型图</button>`}</div></section>
     ${selectedCount ? `<p class="overview-note">当前选中的对象已在属性面板中展开。</p>` : rooms.length ? `<p class="overview-note">在画布中选择家具，或让 AI 继续帮你调整。</p>` : `<p class="overview-note">先描述一个房间，或上传一张户型图。</p>`}
@@ -356,30 +359,94 @@ async function renderOverview(host: HTMLElement) {
   });
 }
 let repairing = false;
-function errorCount(plan: Plan) {
-  return checkScene(plan).issues.filter((issue) => issue.level === "error").length;
+function layoutIssues(plan: Plan) {
+  const items = plan.furniture.filter(
+    (f) => !f.parentObjectId && f.placement !== "surface",
+  );
+  const issues: {
+    code: string;
+    objectIds: string[];
+    message: string;
+    level: string;
+  }[] = [];
+  for (let i = 0; i < items.length; i++)
+    for (let j = i + 1; j < items.length; j++) {
+      const a = rotatedAabb(items[i]),
+        b = rotatedAabb(items[j]);
+      const overlap =
+        Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) >
+          40 &&
+        Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 40;
+      if (overlap)
+        issues.push({
+          code: "FURNITURE_OVERLAP",
+          objectIds: [items[i].id, items[j].id],
+          message: `${items[i].name} 与 ${items[j].name} 重叠`,
+          level: "error",
+        });
+    }
+  return issues;
 }
+function repairIssues(plan: Plan) {
+  return [...checkScene(plan).issues, ...layoutIssues(plan)].filter(
+    (issue) => issue.level === "error",
+  );
+}
+function errorCount(plan: Plan) {
+  return repairIssues(plan).length;
+}
+
 function repairCommands(plan: Plan): Command[] {
   const working = clone(plan);
   const original = new Map(working.furniture.map((f) => [f.id, clone(f)]));
   const room = working.rooms[0];
   const offsets = [0, 250, -250, 500, -500, 800, -800, 1200, -1200];
   for (let pass = 0; pass < 6; pass++) {
-    const errors = checkScene(working).issues.filter(
-      (issue) => issue.level === "error",
-    );
+    const errors = repairIssues(working);
     if (!errors.length) break;
     let improved = false;
     for (const issue of errors) {
-      const item = working.furniture.find((f) =>
-        issue.objectIds.includes(f.id),
-      );
+      const surfaceIssue = issue.code === "SURFACE_ITEM_OVERHANG";
+      // For an overhang, move the item that sits on the host, never the host
+      // itself. Moving the table under a misplaced vase is not a design fix.
+      const overlapIssue = issue.code === "FURNITURE_OVERLAP";
+      let item =
+        working.furniture.find(
+          (f) =>
+            issue.objectIds.includes(f.id) &&
+            (!surfaceIssue || f.parentObjectId || f.placement === "surface"),
+        ) ||
+        working.furniture.find((f) => issue.objectIds.includes(f.id));
+      if (overlapIssue) {
+        const partners = issue.objectIds
+          .map((id) => working.furniture.find((f) => f.id === id))
+          .filter(Boolean) as typeof item[];
+        const movable = partners.find(
+          (f) =>
+            f &&
+            !/table|cabinet|wardrobe|sofa/i.test(`${f.type} ${f.key}`),
+        );
+        if (movable) item = movable;
+      }
       if (!item) continue;
       const current = errorCount(working);
       const candidates: { x: number; y: number; z?: number; host?: string }[] =
         [];
-      if (item.parentObjectId || item.placement === "surface") {
-        const host = working.furniture.find((f) => f.id === item.parentObjectId);
+      const host = item.parentObjectId
+        ? working.furniture.find((f) => f.id === item.parentObjectId)
+        : undefined;
+      if (surfaceIssue && host) {
+        const maxX = Math.max(0, (host.w - item.w) / 2 - 20);
+        const maxY = Math.max(0, (host.d - item.d) / 2 - 20);
+        for (const dx of [0, maxX, -maxX])
+          for (const dy of [0, maxY, -maxY])
+            candidates.push({
+              x: host.x + dx,
+              y: host.y + dy,
+              z: (host.z || 0) + host.h,
+              host: host.id,
+            });
+      } else if (item.parentObjectId || item.placement === "surface") {
         if (host)
           candidates.push({
             x: host.x,
@@ -388,14 +455,35 @@ function repairCommands(plan: Plan): Command[] {
             host: host.id,
           });
       }
-      for (const dx of offsets)
-        for (const dy of offsets) {
-          if (!dx && !dy) continue;
-          candidates.push({ x: item.x + dx, y: item.y + dy });
-          if (room) candidates.push({ x: room.x + dx, y: room.y + dy });
+      if (!surfaceIssue && /chair|stool/i.test(`${item.type} ${item.key}`)) {
+        const table = working.furniture.find((f) =>
+          /diningTable|roundTable|table/i.test(`${f.type} ${f.key}`),
+        );
+        if (table) {
+          const rotated = Math.abs(table.rot % 180) === 90;
+          const halfX = (rotated ? table.d : table.w) / 2,
+            halfY = (rotated ? table.w : table.d) / 2;
+          for (const [dx, dy] of [
+            [halfX + item.w / 2 + 90, 0],
+            [-halfX - item.w / 2 - 90, 0],
+            [0, halfY + item.d / 2 + 90],
+            [0, -halfY - item.d / 2 - 90],
+          ])
+            candidates.push({ x: table.x + dx, y: table.y + dy });
         }
+      }
+      if (!surfaceIssue) {
+        for (const dx of offsets)
+          for (const dy of offsets) {
+            if (!dx && !dy) continue;
+            candidates.push({ x: item.x + dx, y: item.y + dy });
+            if (room) candidates.push({ x: room.x + dx, y: room.y + dy });
+          }
+      }
       let best: typeof candidates[number] | undefined,
-        bestCount = current;
+        bestCount = current,
+        bestOverlap = layoutIssues(working).length,
+        bestDistance = Number.POSITIVE_INFINITY;
       for (const candidate of candidates) {
         const test = clone(working);
         const target = test.furniture.find((f) => f.id === item.id)!;
@@ -406,13 +494,21 @@ function repairCommands(plan: Plan): Command[] {
           target.parentObjectId = candidate.host;
           target.placement = "surface";
         }
-        const count = errorCount(test);
-        if (count < bestCount) {
+        const count = errorCount(test),
+          distance = Math.hypot(candidate.x - item.x, candidate.y - item.y);
+        // Prefer zero-error positions, then no unexplained overlaps, then the
+        // smallest move. A repair must reduce real conflicts.
+        const overlap = layoutIssues(test).length;
+        const score = count * 1_000_000 + overlap * 10_000 + distance;
+        const bestScore = bestCount * 1_000_000 + bestOverlap * 10_000 + bestDistance;
+        if (score < bestScore) {
           best = candidate;
           bestCount = count;
+          bestOverlap = overlap;
+          bestDistance = distance;
         }
       }
-      if (best) {
+      if (best && bestCount < current) {
         item.x = best.x;
         item.y = best.y;
         if (best.z !== undefined) {
@@ -463,7 +559,10 @@ async function repairScene() {
     }
     if (
       !window.confirm(
-        `将自动调整 ${commandsToFix.length} 件家具，修复最近的碰撞/越界问题。继续吗？`,
+        `建议调整：${commandsToFix
+          .slice(0, 5)
+          .map((c: any) => target.plan.furniture.find((f) => f.id === c.id)?.name || "家具")
+          .join("、")}。只处理碰撞/越界，不改变风格。继续吗？`,
       )
     )
       return;

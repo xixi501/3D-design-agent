@@ -2366,6 +2366,11 @@ def _assemble_structure_v3(
         )
         from_feature = f"auto_anchor_{index}_a"
         to_feature = f"auto_anchor_{index}_b"
+        if horizontal:
+            from_endpoint = "a" if wall["a"]["x"] <= wall["b"]["x"] else "b"
+        else:
+            from_endpoint = "a" if wall["a"]["y"] <= wall["b"]["y"] else "b"
+        to_endpoint = "b" if from_endpoint == "a" else "a"
         features.extend(
             [
                 {
@@ -2373,7 +2378,7 @@ def _assemble_structure_v3(
                     "objectId": wall["id"],
                     "kind": "wall_end",
                     "axis": axis,
-                    "endpoint": "a",
+                    "endpoint": from_endpoint,
                     "evidenceRefs": ["auto:outline"],
                 },
                 {
@@ -2381,7 +2386,7 @@ def _assemble_structure_v3(
                     "objectId": wall["id"],
                     "kind": "wall_end",
                     "axis": axis,
-                    "endpoint": "b",
+                    "endpoint": to_endpoint,
                     "evidenceRefs": ["auto:outline"],
                 },
             ]

@@ -1243,6 +1243,10 @@ async function examples(name: string) {
 }
 async function openProjectGallery(welcome = false) {
   try {
+    if (!project) {
+      $<HTMLInputElement>("#project-name").value = "";
+      $("#save-state").textContent = "请选择或新建空间";
+    }
     const projects = (await api<any[]>("/projects")).filter(
       (p) =>
         !(p.name || "").startsWith("Evaluation only:") &&

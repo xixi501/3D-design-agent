@@ -1,0 +1,120 @@
+{
+  "version": 2,
+  "name": "openable",
+  "height": 2800,
+  "phase": "renovate",
+  "nodes": [
+    {
+      "id": "openable-n0",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "openable-n1",
+      "x": 6000,
+      "y": 0
+    },
+    {
+      "id": "openable-n2",
+      "x": 6000,
+      "y": 5000
+    },
+    {
+      "id": "openable-n3",
+      "x": 0,
+      "y": 5000
+    }
+  ],
+  "walls": [
+    {
+      "id": "openable-north",
+      "a": "openable-n0",
+      "b": "openable-n1",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "openable-east",
+      "a": "openable-n1",
+      "b": "openable-n2",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "openable-south",
+      "a": "openable-n2",
+      "b": "openable-n3",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "openable-west",
+      "a": "openable-n3",
+      "b": "openable-n0",
+      "t": 200,
+      "status": "existing"
+    }
+  ],
+  "openings": [
+    {
+      "id": "openable-door",
+      "wall": "openable-south",
+      "type": "door",
+      "pos": 3000,
+      "width": 900,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0
+    }
+  ],
+  "furniture": [
+    {
+      "id": "openable-wardrobe",
+      "key": "wardrobe",
+      "type": "wardrobe",
+      "name": "衣柜",
+      "w": 2000,
+      "d": 600,
+      "h": 2400,
+      "color": "#ece7df",
+      "x": 2000,
+      "y": 800,
+      "rot": 0
+    },
+    {
+      "id": "openable-bed",
+      "key": "bed18",
+      "type": "bed",
+      "name": "双人床 1.8m",
+      "w": 1800,
+      "d": 2100,
+      "h": 1050,
+      "color": "#a9bccf",
+      "x": 2000,
+      "y": 1600,
+      "rot": 0
+    }
+  ],
+  "structs": [],
+  "beams": [],
+  "rooms": [
+    {
+      "id": "openable-room",
+      "x": 3000,
+      "y": 2500,
+      "name": "openable",
+      "mat": "oak",
+      "ceil": {
+        "type": "none",
+        "drop": 0,
+        "edgeW": 400,
+        "cove": false
+      }
+    }
+  ],
+  "measures": [],
+  "elec": [],
+  "prices": {},
+  "voids": [],
+  "comments": []
+}

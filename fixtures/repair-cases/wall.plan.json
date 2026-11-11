@@ -1,0 +1,111 @@
+{
+  "version": 2,
+  "name": "wall",
+  "height": 2800,
+  "phase": "renovate",
+  "nodes": [
+    {
+      "id": "wall-n0",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "wall-n1",
+      "x": 4000,
+      "y": 0
+    },
+    {
+      "id": "wall-n2",
+      "x": 4000,
+      "y": 4000
+    },
+    {
+      "id": "wall-n3",
+      "x": 0,
+      "y": 4000
+    }
+  ],
+  "walls": [
+    {
+      "id": "wall-north",
+      "a": "wall-n0",
+      "b": "wall-n1",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "wall-east",
+      "a": "wall-n1",
+      "b": "wall-n2",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "wall-south",
+      "a": "wall-n2",
+      "b": "wall-n3",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "wall-west",
+      "a": "wall-n3",
+      "b": "wall-n0",
+      "t": 200,
+      "status": "existing"
+    }
+  ],
+  "openings": [
+    {
+      "id": "wall-door",
+      "wall": "wall-south",
+      "type": "door",
+      "pos": 2000,
+      "width": 900,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0
+    }
+  ],
+  "furniture": [
+    {
+      "id": "wall-box",
+      "key": "freeBox",
+      "type": "free",
+      "name": "立方体",
+      "w": 1000,
+      "d": 1000,
+      "h": 1000,
+      "color": "#eeeae3",
+      "x": 100,
+      "y": 2000,
+      "rot": 0,
+      "opt": {
+        "shape": "box",
+        "mat": "paint"
+      }
+    }
+  ],
+  "structs": [],
+  "beams": [],
+  "rooms": [
+    {
+      "id": "wall-room",
+      "x": 2000,
+      "y": 2000,
+      "name": "wall",
+      "mat": "oak",
+      "ceil": {
+        "type": "none",
+        "drop": 0,
+        "edgeW": 400,
+        "cove": false
+      }
+    }
+  ],
+  "measures": [],
+  "elec": [],
+  "prices": {},
+  "voids": [],
+  "comments": []
+}

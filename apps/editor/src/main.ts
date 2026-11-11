@@ -41,7 +41,8 @@ root.innerHTML = `<header class="app-bar">
   <div class="bar-actions">
     <button id="new-project" class="quiet">新建空间</button>
     <button id="open-project" class="quiet">打开项目</button>
-    <details class="more-actions"><summary aria-label="更多项目操作">•••</summary><button id="open-structure">结构编辑（高级）</button><button id="import-project">导入 JSON</button><button id="export-project">导出项目 JSON</button><button id="export-image">导出当前视图 PNG</button><button id="export-pdf">打印 / 保存为 PDF</button></details>
+    <details class="export-actions"><summary>导出 <span aria-hidden="true">⌄</span></summary><button id="export-image">导出当前视图 PNG</button><button id="export-pdf">打印 / 保存为 PDF</button><button id="export-project">导出项目 JSON</button></details>
+    <details class="more-actions"><summary aria-label="更多项目操作">•••</summary><button id="open-structure">结构编辑（高级）</button><button id="import-project">导入 JSON</button></details>
     <button id="mobile-agent" class="mobile-only" title="打开 AI 设计搭档">AI</button>
     <button id="context-toggle" class="mobile-only" title="打开项目上下文">属性</button>
     <button id="save-project" class="primary">保存</button>
@@ -109,7 +110,7 @@ root.innerHTML = `<header class="app-bar">
     <aside class="library"><div class="side-heading">家具与模型 <span id="catalog-count"></span></div><input id="catalog-search" placeholder="搜索家具 / 造型" aria-label="搜索家具"><button id="upload-model" class="wide subtle">＋ 导入 GLB 模型</button><button id="upload-photo" class="wide subtle" data-testid="upload-photo">＋ 上传物品照片转 3D</button><div id="catalog"></div></aside>
   </aside>
 </div>
-<input id="json-file" type="file" accept=".json,application/json" hidden><input id="glb-file" type="file" accept=".glb" hidden><input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><dialog id="dialog"><div id="dialog-body"></div><button id="close-dialog">关闭</button></dialog>`;
+<input id="json-file" type="file" accept=".json,application/json" hidden><input id="glb-file" type="file" accept=".glb" hidden><input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><dialog id="dialog"><div id="dialog-body"></div><button id="close-dialog">关闭</button></dialog><dialog id="repair-confirm" class="repair-confirm"><div id="repair-confirm-body"></div></dialog>`;
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
 document.body.dataset.mode = "ai";
@@ -615,6 +616,39 @@ async function openRepairScope() {
     () => dialog.close();
   dialog.showModal();
 }
+function confirmRepair(
+  roomName: string | undefined,
+  total: number,
+  targetNames: string[],
+  structural: number,
+) {
+  const dialog = $<HTMLDialogElement>("#repair-confirm");
+  const body = $("#repair-confirm-body");
+  const names = [...new Set(targetNames)];
+  body.innerHTML = `<div class="dialog-kicker">AI REPAIR</div>
+    <h2>${roomName ? `修复「${esc(roomName)}」` : "修复当前空间"}</h2>
+    <p class="muted">AI 会生成一个可检查的修复候选。只有目标问题真正消失，候选才会提交。</p>
+    <div class="repair-confirm-block"><b>本次允许调整的家具</b><ul>${names.map((name) => `<li>${esc(name)}</li>`).join("")}</ul></div>
+    <p class="muted">${total} 项可移动家具问题。不会移动墙体、门窗，也不会新增房间。${structural ? `另有 ${structural} 项结构问题需要进入结构编辑。` : ""}</p>
+    <div class="actions"><button id="repair-confirm-cancel">取消</button><button id="repair-confirm-submit" class="primary">确认并开始修复</button></div>`;
+  dialog.showModal();
+  return new Promise<boolean>((resolve) => {
+    let settled = false;
+    const finish = (value: boolean) => {
+      if (settled) return;
+      settled = true;
+      dialog.oncancel = null;
+      if (dialog.open) dialog.close();
+      resolve(value);
+    };
+    $("#repair-confirm-cancel").onclick = () => finish(false);
+    $("#repair-confirm-submit").onclick = () => finish(true);
+    dialog.oncancel = (event) => {
+      event.preventDefault();
+      finish(false);
+    };
+  });
+}
 async function repairScene(roomId?: string) {
   if (!project || busy || repairing) return;
   const target = project;
@@ -645,36 +679,38 @@ async function repairScene(roomId?: string) {
     await openRepairScope();
     return;
   }
-  const note = structural.length
-    ? `另有 ${structural.length} 项结构问题不会交给家具 Agent，需要手动调整。`
-    : "";
+  const repairIds: string[] = [
+    ...new Set<string>(
+      issues
+        .slice(0, 8)
+        .flatMap((i: any): string[] =>
+          (i.objectIds || []).filter((id: unknown): id is string =>
+            typeof id === "string",
+          ),
+        )
+        .filter((id: string) => target.plan.furniture.some((f) => f.id === id))
+        .filter((id: string) => !roomId || roomFurniture.has(id)),
+    ),
+  ].slice(0, 12);
+  if (!repairIds.length) {
+    message("当前问题没有可授权的家具目标，请在画布中选中家具后再试。");
+    return;
+  }
+  const targetNames = repairIds.map((id) => {
+    const item = target.plan.furniture.find((f) => f.id === id);
+    return item?.name || item?.type || id;
+  });
   if (
-    !window.confirm(
-      room
-        ? `AI 将只修复「${displayRoomName(room)}」内的 ${total} 项可移动家具问题，不改墙体门窗、不新增房间。${note}继续吗？`
-        : `AI 会分析当前布局，生成一个可检查的修复候选；不会改动墙体和门窗，也不会新增房间。${note}继续吗？`,
-    )
+    !(await confirmRepair(
+      room ? displayRoomName(room) : undefined,
+      total,
+      targetNames,
+      structural.length,
+    ))
   )
     return;
   repairing = true;
   try {
-    const repairIds: string[] = [
-      ...new Set<string>(
-        issues
-          .slice(0, 8)
-          .flatMap((i: any): string[] =>
-            (i.objectIds || []).filter((id: unknown): id is string =>
-              typeof id === "string",
-            ),
-          )
-          .filter((id: string) => target.plan.furniture.some((f) => f.id === id))
-          .filter((id: string) => !roomId || roomFurniture.has(id)),
-      ),
-    ].slice(0, 12);
-    if (!repairIds.length) {
-      message("当前问题没有可授权的家具目标，请在画布中选中家具后再试。");
-      return;
-    }
     const messages = [...new Set(issues.map((i: any) => i.message as string))];
     const MAX_REPAIR_ISSUES = 8;
     const lines = messages

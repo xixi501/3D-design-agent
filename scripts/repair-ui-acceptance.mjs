@@ -114,7 +114,18 @@ try {
   const page = await browser.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  page.on("dialog", (dialog) => void dialog.accept());
+
+  // The desktop export entry is explicit, not hidden behind the overflow menu.
+  await page.goto(`${base}/?debug`, { waitUntil: "load" });
+  await page.waitForSelector(".export-actions summary");
+  await page.click(".export-actions summary");
+  for (const id of ["#export-image", "#export-pdf", "#export-project"])
+    assert.equal(
+      await page.$eval(id, (element) => element.offsetParent !== null),
+      true,
+      `${id} should be visible in the export menu`,
+    );
+  await page.click(".export-actions summary");
 
   // Structural fixture: diagnosis is visible, but AI repair is not offered.
   const structural = await importCase("structural.plan.json");
@@ -134,6 +145,13 @@ try {
   await ready(page);
   await page.waitForSelector('[data-repair-room="openable-room"]');
   await page.$eval('[data-repair-room="openable-room"]', (element) => element.click());
+  await page.waitForSelector("#repair-confirm[open]");
+  assert.equal(captured.length, 0, "repair task must wait for confirmation");
+  const confirmation = await page.$eval("#repair-confirm-body", (element) => element.innerText);
+  assert.match(confirmation, /衣柜/);
+  assert.match(confirmation, /双人床/);
+  assert.match(confirmation, /不会移动墙体、门窗/);
+  await page.click("#repair-confirm-submit");
   await new Promise((resolve) => setTimeout(resolve, 1500));
   assert.equal(captured.length, 1, JSON.stringify(captured));
   const task = captured[0];

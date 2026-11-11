@@ -50,11 +50,7 @@ def scene_url() -> str:
 
 def model_api_key() -> str:
     """DeepSeek first, official AgentArts MODEL_API_KEY fallback."""
-    return (
-        os.environ.get("DEEPSEEK_API_KEY")
-        or os.environ.get("MODEL_API_KEY")
-        or ""
-    )
+    return os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("MODEL_API_KEY") or ""
 
 
 def _thinking_enabled(base_url: str) -> bool:
@@ -76,20 +72,14 @@ def model_settings() -> dict:
     ).rstrip("/")
     settings = {
         "model": (
-            os.environ.get("DEEPSEEK_MODEL")
-            or os.environ.get("MODEL_NAME")
-            or "deepseek-flash"
+            os.environ.get("DEEPSEEK_MODEL") or os.environ.get("MODEL_NAME") or "deepseek-flash"
         ),
         "base_url": base_url,
         "reasoning_effort": os.environ.get("DEEPSEEK_REASONING_EFFORT", "high"),
         "timeout": 120,
         "max_retries": 0,
         "max_tokens": 8192,
-        "extra_body": (
-            {"thinking": {"type": "enabled"}}
-            if _thinking_enabled(base_url)
-            else {}
-        ),
+        "extra_body": ({"thinking": {"type": "enabled"}} if _thinking_enabled(base_url) else {}),
     }
     key = model_api_key()
     if key:

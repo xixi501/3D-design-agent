@@ -1,7 +1,6 @@
 import asyncio
 import contextlib
 import json
-import os
 from contextlib import asynccontextmanager
 from importlib.metadata import version
 from pathlib import Path

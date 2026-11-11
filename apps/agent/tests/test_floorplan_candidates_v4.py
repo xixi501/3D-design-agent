@@ -369,14 +369,13 @@ def test_v4_geometry_only_policy_removes_legacy_category_guesses():
     assert graph["suppressedObjectCandidateCount"] > 0
     assert all(not item["categoryHints"] for item in graph["objectCandidates"])
     assert all(
-        not {
-            tag.get("tag") for tag in item.get("contextTags") or []
-        }.intersection({"fixed_run", "fixed_entry"})
+        not {tag.get("tag") for tag in item.get("contextTags") or []}.intersection(
+            {"fixed_run", "fixed_entry"}
+        )
         for item in graph["objectCandidates"]
     )
     allowed_rooms = set(draft["targetRoomIds"])
     assert all(
-        item.get("roomIds")
-        and set(item["roomIds"]).issubset(allowed_rooms)
+        item.get("roomIds") and set(item["roomIds"]).issubset(allowed_rooms)
         for item in graph["objectCandidates"]
     )

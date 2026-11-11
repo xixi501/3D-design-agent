@@ -77,9 +77,7 @@ def test_circulation_has_a_safe_generic_layout():
         }
     }
     task = {"generation": {"brief": {"roomType": "circulation"}}}
-    proposal = deterministic_proposal(
-        task, layout, {"allowAddKeys": ["consoleTable", "plant"]}
-    )
+    proposal = deterministic_proposal(task, layout, {"allowAddKeys": ["consoleTable", "plant"]})
     assert proposal is not None
     assert [edit["key"] for edit in proposal["edits"]] == [
         "consoleTable",

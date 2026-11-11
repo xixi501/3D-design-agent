@@ -6,7 +6,7 @@ from .roles import objects_summary
 from .scene_projection import sync_text_scene_program
 from .scene_registry import get_scene_registry
 from .schemas import Edit, Proposal, Review
-from .skill_registry import get_registry, stage_skill
+from .skill_registry import stage_skill
 from .store import fingerprint
 
 VERSION = "s2b-rectangular-3"
@@ -145,7 +145,9 @@ class GenerationRoles:
                         task["generation"].get("skillSnapshot"),
                     ),
                     "repairDirective": task["generation"].get("repairDirective"),
-                    "requests": [{"request_index": i, **a} for i, a in enumerate(intent["additions"])],
+                    "requests": [
+                        {"request_index": i, **a} for i, a in enumerate(intent["additions"])
+                    ],
                     **(
                         {"sourceSymbols": task["generation"].get("compiledSymbols", [])}
                         if task.get("mode") == "reconstruct_floorplan"

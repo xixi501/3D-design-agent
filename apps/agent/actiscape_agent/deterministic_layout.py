@@ -72,7 +72,7 @@ def _load_template(room_type):
 def _generic_room(room_type, target, allow):
     """Last-resort layouts for rooms without a positive Skill example."""
     x0, y0, x1, y1 = target
-    width, depth = x1 - x0, y1 - y0
+    width, _depth = x1 - x0, y1 - y0
     edits = []
     if room_type == "circulation":
         for key, x, y, rot in (
@@ -103,11 +103,7 @@ def deterministic_proposal(task: dict, layout: dict, scope: dict) -> dict | None
     template = _load_template(room_type)
     if template is None:
         edits = _generic_room(room_type, target, allow)
-        return (
-            {"summary": f"确定性兜底布局：{room_type}", "edits": edits}
-            if edits
-            else None
-        )
+        return {"summary": f"确定性兜底布局：{room_type}", "edits": edits} if edits else None
     scene = template.get("scene") or {}
     source = _template_box(scene)
     if not source:
@@ -138,11 +134,7 @@ def deterministic_proposal(task: dict, layout: dict, scope: dict) -> dict | None
         edits.append({"type": "create", "key": key, "values": values})
     if not edits:
         edits = _generic_room(room_type, target, allow)
-    return (
-        {"summary": f"确定性兜底布局：{room_type}", "edits": edits}
-        if edits
-        else None
-    )
+    return {"summary": f"确定性兜底布局：{room_type}", "edits": edits} if edits else None
 
 
 ASSET_KEYWORDS = {
@@ -174,9 +166,7 @@ def deterministic_assets(intent: dict, catalogue: dict) -> dict | None:
         key = next(
             (
                 value
-                for token, value in sorted(
-                    ASSET_KEYWORDS.items(), key=lambda item: -len(item[0])
-                )
+                for token, value in sorted(ASSET_KEYWORDS.items(), key=lambda item: -len(item[0]))
                 if token in query
             ),
             None,
@@ -185,7 +175,8 @@ def deterministic_assets(intent: dict, catalogue: dict) -> dict | None:
             matches = [
                 item
                 for item in catalogue.values()
-                if query and query.casefold() in (item.get("name", "") + item.get("type", "")).casefold()
+                if query
+                and query.casefold() in (item.get("name", "") + item.get("type", "")).casefold()
             ]
             key = matches[0]["key"] if matches else None
         if key is None:

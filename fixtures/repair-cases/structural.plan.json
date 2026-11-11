@@ -1,0 +1,93 @@
+{
+  "version": 2,
+  "name": "structural",
+  "height": 2800,
+  "phase": "renovate",
+  "nodes": [
+    {
+      "id": "structural-n0",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "structural-n1",
+      "x": 4000,
+      "y": 0
+    },
+    {
+      "id": "structural-n2",
+      "x": 4000,
+      "y": 4000
+    },
+    {
+      "id": "structural-n3",
+      "x": 0,
+      "y": 4000
+    }
+  ],
+  "walls": [
+    {
+      "id": "structural-north",
+      "a": "structural-n0",
+      "b": "structural-n1",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "structural-east",
+      "a": "structural-n1",
+      "b": "structural-n2",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "structural-south",
+      "a": "structural-n2",
+      "b": "structural-n3",
+      "t": 200,
+      "status": "existing"
+    },
+    {
+      "id": "structural-west",
+      "a": "structural-n3",
+      "b": "structural-n0",
+      "t": 200,
+      "status": "existing"
+    }
+  ],
+  "openings": [
+    {
+      "id": "structural-door",
+      "wall": "structural-south",
+      "type": "door",
+      "pos": 2000,
+      "width": 650,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0
+    }
+  ],
+  "furniture": [],
+  "structs": [],
+  "beams": [],
+  "rooms": [
+    {
+      "id": "structural-room",
+      "x": 2000,
+      "y": 2000,
+      "name": "structural",
+      "mat": "oak",
+      "ceil": {
+        "type": "none",
+        "drop": 0,
+        "edgeW": 400,
+        "cove": false
+      }
+    }
+  ],
+  "measures": [],
+  "elec": [],
+  "prices": {},
+  "voids": [],
+  "comments": []
+}

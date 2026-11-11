@@ -215,15 +215,8 @@ async def test_generation_clarifies_then_resumes_same_task_without_changing_proj
         assert result["generation"]["sceneDraftId"] == "scene-draft-1"
         assert result["generation"]["sceneDraftRevision"] >= 2
         assert result["result"]["skillSelection"]["primarySkillId"] == "rectangular-living-reading"
-        primary = next(
-            item
-            for item in result["result"]["skillsUsed"]
-            if item["role"] == "primary"
-        )
-        assert (
-            primary["contentHash"]
-            == load_design_skill(GENERATION_TOOLS)["contentHash"]
-        )
+        primary = next(item for item in result["result"]["skillsUsed"] if item["role"] == "primary")
+        assert primary["contentHash"] == load_design_skill(GENERATION_TOOLS)["contentHash"]
         assert [item["role"] for item in result["result"]["skillsUsed"]] == [
             "universal",
             "primary",
@@ -332,6 +325,7 @@ async def test_scene_patch_identity_is_candidate_bound_not_round_bound(tmp_path)
     client = PatchRecordingScene()
     store = TaskStore(tmp_path)
     try:
+
         class Base:
             pass
 

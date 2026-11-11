@@ -960,11 +960,7 @@ def furniture_object_candidates(
     def append_object(members, kind):
         bbox = _union_bbox(members)
         room_ids = sorted(
-            {
-                room_id
-                for member in members
-                for room_id in (member.get("roomIds") or [])
-            }
+            {room_id for member in members for room_id in (member.get("roomIds") or [])}
         )
         objects.append(
             {
@@ -1549,16 +1545,12 @@ def contour_candidates(
     # stable object candidates, not their unbounded intermediate evidence.
     raw_contour_limit = 3000 if geometry_only else 80
     if len(candidates) > raw_contour_limit:
-        raise ValueError(
-            f"家具原始轮廓候选 {len(candidates)} 个，超过 {raw_contour_limit} 个上限"
-        )
+        raise ValueError(f"家具原始轮廓候选 {len(candidates)} 个，超过 {raw_contour_limit} 个上限")
     for candidate in candidates:
         x, y, width, height = candidate["bbox"]
         cx, cy = x + width / 2, y + height / 2
         candidate["roomIds"] = [
-            room_id
-            for room_id, mask in regions.items()
-            if _inside_region(mask, cx, cy)
+            room_id for room_id, mask in regions.items() if _inside_region(mask, cx, cy)
         ]
     overlay = image.convert("RGB").copy()
     draw = ImageDraw.Draw(overlay, "RGBA")
@@ -1603,12 +1595,8 @@ def contour_candidates(
     )
     if geometry_only:
         all_objects = graph["objectCandidates"]
-        selectable_objects = [
-            candidate for candidate in all_objects if candidate.get("selectable")
-        ]
-        selectable_ids = {
-            candidate["objectCandidateId"] for candidate in selectable_objects
-        }
+        selectable_objects = [candidate for candidate in all_objects if candidate.get("selectable")]
+        selectable_ids = {candidate["objectCandidateId"] for candidate in selectable_objects}
         for candidate in selectable_objects:
             candidate["containsObjectCandidateIds"] = [
                 object_id
@@ -1620,9 +1608,7 @@ def contour_candidates(
                 for object_id in candidate.get("containedByObjectCandidateIds") or []
                 if object_id in selectable_ids
             ]
-        graph["suppressedObjectCandidateCount"] = len(all_objects) - len(
-            selectable_objects
-        )
+        graph["suppressedObjectCandidateCount"] = len(all_objects) - len(selectable_objects)
         graph["objectCandidates"] = selectable_objects
         graph["activityGroupCandidates"] = [
             group
@@ -1634,9 +1620,7 @@ def contour_candidates(
             <= selectable_ids
         ]
     if len(graph["objectCandidates"]) > 300:
-        raise ValueError(
-            f"可分类家具对象候选 {len(graph['objectCandidates'])} 个，超过 300 个上限"
-        )
+        raise ValueError(f"可分类家具对象候选 {len(graph['objectCandidates'])} 个，超过 300 个上限")
     selectable_objects = [
         candidate for candidate in graph["objectCandidates"] if candidate.get("selectable")
     ]

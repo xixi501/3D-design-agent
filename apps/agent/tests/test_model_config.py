@@ -56,6 +56,7 @@ async def test_health_accepts_model_api_key_without_deepseek_key(monkeypatch, tm
     monkeypatch.setenv("MODEL_API_KEY", "maas-key")
     for key in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"):
         monkeypatch.setenv(key, "")
+
     async def fake_vision():
         return {"configured": False, "available": False, "model": "test", "baseUrl": "test"}
 

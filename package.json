@@ -21,7 +21,7 @@
     "test:reference": "node scripts/verify-reference.mjs",
     "test:baseline:extended": "node scripts/baseline-extended.mjs",
     "test:parity": "node --import tsx scripts/modeling-parity.mjs",
-    "test:all": "npm run test:reference && npm test && npm run build && npm run reference:build && npm run test:baseline && npm run test:baseline:extended && npm run test:browser && npm run test:ui:redesign && npm run test:parity && npm run test:catalog && npm run test:visual",
+    "test:all": "npm run test:reference && npm test && npm run build && npm run reference:build && npm run test:baseline && npm run test:baseline:extended && npm run test:browser && npm run test:ui:redesign && npm run test:repair:ui && npm run test:parity && npm run test:catalog && npm run test:visual",
     "fixtures:gallery": "tsx scripts/prepare-gallery.ts",
     "tools:demo": "node scripts/tool-demo.mjs",
     "reference:build": "node scripts/prepare-reference.mjs",
@@ -61,7 +61,9 @@
     "pretest": "node scripts/image-runtime.mjs",
     "build:agentarts-bundle": "node scripts/prepare-agentarts-bundle.mjs",
     "verify:agentarts:live": "node --import tsx scripts/verify-agentarts-live.mjs",
-    "test:ui:redesign": "node scripts/ui-redesign-acceptance.mjs"
+    "test:ui:redesign": "node scripts/ui-redesign-acceptance.mjs",
+    "test:repair:ui": "node scripts/repair-ui-acceptance.mjs",
+    "test:repair:live": "node scripts/repair-live-acceptance.mjs"
   },
   "dependencies": {
     "@fastify/multipart": "10.1.7",

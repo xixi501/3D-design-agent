@@ -9,6 +9,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -207,9 +208,7 @@ def _remote_run(
         with httpx.Client(timeout=timeout, trust_env=False) as client:
             response = client.post(
                 base + "/api/tools/floorplan-candidate",
-                headers=(
-                    {"Authorization": "Bearer " + token} if token else {}
-                ),
+                headers=({"Authorization": "Bearer " + token} if token else {}),
                 json={
                     "imageBase64": base64.b64encode(image).decode(),
                     "scope": scope,
@@ -319,10 +318,7 @@ def run_floorplan_provider(
         try:
             result = subprocess.run(
                 [
-                    os.environ.get(
-                        "ACTISCAPE_PYTHON",
-                        str(pathlib.Path(__file__).resolve().parents[4] / ".venv/bin/python"),
-                    ),
+                    os.environ.get("ACTISCAPE_PYTHON", sys.executable),
                     "-m",
                     "actiscape_agent.floorplan_vision.hpd_worker",
                 ],

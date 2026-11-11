@@ -86,9 +86,7 @@ def test_floorplan_scope_is_pinned_on_task_creation(tmp_path):
                 },
             },
         )
-        assert store.task(task["id"], internal=True)["generation"][
-            "floorplanScope"
-        ] == {
+        assert store.task(task["id"], internal=True)["generation"]["floorplanScope"] == {
             "roomSelection": "functional_areas",
             "functionalAreas": ["bedroom", "bathroom"],
             "excludeFunctionalAreas": [],
@@ -145,15 +143,15 @@ def test_v4_room_normalization_preserves_bedroom_and_kitchen_labels():
     normalized = _normalize_v4_rooms(normalized)
     assert {room["name"] for room in normalized} == {"客餐厅", "主卧", "厨房"}
     assert set(targets) == {"living", "bedroom", "kitchen"}
-    assert next(room for room in normalized if room["id"] == "bedroom")[
-        "roomType"
-    ] == "master_bedroom"
-    assert next(room for room in normalized if room["id"] == "bedroom")[
-        "functionalArea"
-    ] == "bedroom"
-    assert next(room for room in normalized if room["id"] == "kitchen")[
-        "functionalArea"
-    ] == "kitchen"
+    assert (
+        next(room for room in normalized if room["id"] == "bedroom")["roomType"] == "master_bedroom"
+    )
+    assert (
+        next(room for room in normalized if room["id"] == "bedroom")["functionalArea"] == "bedroom"
+    )
+    assert (
+        next(room for room in normalized if room["id"] == "kitchen")["functionalArea"] == "kitchen"
+    )
     assert _v4_target_room_ids(
         normalized,
         {
@@ -169,7 +167,7 @@ def test_v4_room_normalization_preserves_bedroom_and_kitchen_labels():
             "functionalAreas": [],
             "excludeFunctionalAreas": ["other"],
         },
-        ) == ["living", "bedroom", "kitchen"]
+    ) == ["living", "bedroom", "kitchen"]
 
 
 def activity_objects():
@@ -271,9 +269,7 @@ def test_v4_activity_group_can_model_bed_and_nightstands():
     value = FurnitureActivityRecognition.model_validate(activity_value()).model_dump(
         exclude_none=True, by_alias=True
     )
-    symbols, saved = _assemble_activity_symbols(
-        value, objects, groups, draft, "objects"
-    )
+    symbols, saved = _assemble_activity_symbols(value, objects, groups, draft, "objects")
     assert {symbol["categoryCode"] for symbol in symbols} == {
         "bed",
         "nightstand",
@@ -305,12 +301,6 @@ def test_v4_room_normalization_keeps_functional_area_when_type_is_missing():
             },
         ]
     )
-    assert next(room for room in normalized if room["id"] == "bed")[
-        "roomType"
-    ] == "guest_bedroom"
-    assert next(room for room in normalized if room["id"] == "bed")[
-        "functionalArea"
-    ] == "bedroom"
-    assert next(room for room in normalized if room["id"] == "hall")[
-        "roomType"
-    ] == "circulation"
+    assert next(room for room in normalized if room["id"] == "bed")["roomType"] == "guest_bedroom"
+    assert next(room for room in normalized if room["id"] == "bed")["functionalArea"] == "bedroom"
+    assert next(room for room in normalized if room["id"] == "hall")["roomType"] == "circulation"

@@ -4,12 +4,12 @@ from langgraph.graph import END, START, StateGraph
 
 from .client import SceneClient, SceneFailure
 from .floorplan_flow import FloorplanFlow
-from .interactive_flow import InteractiveFlow
-from .photo_flow import PhotoFlow
-from .policy import PolicyController, RepairPolicyRouter
 from .floorplan_roles import FloorplanRoles
 from .generation_flow import COLLECTIONS, GenerationFlow
 from .generation_roles import GenerationRoles
+from .interactive_flow import InteractiveFlow
+from .photo_flow import PhotoFlow
+from .policy import PolicyController, RepairPolicyRouter
 from .role_contracts import (
     RepairBudgetState,
     ReviewIssueV1,
@@ -316,11 +316,15 @@ class Workflow:
     async def policy(self, state: State):
         task = self.task(state, "policy")
         conversation = self.store.conversation(task["conversationId"])
-        decision = PolicyController().decide(
-            task,
-            state["project"],
-            conversation,
-        ).model_dump()
+        decision = (
+            PolicyController()
+            .decide(
+                task,
+                state["project"],
+                conversation,
+            )
+            .model_dump()
+        )
         generation = dict(task.get("generation") or {})
         generation["policy"] = decision
         self.store.update(
@@ -597,9 +601,7 @@ class Workflow:
             # without spending a model call.
             review = {
                 "passed": bool(state["candidate"]["checks"]["passed"]),
-                "summary": (
-                    "快速动作/照片资产放置已通过确定性检查与两张证据渲染。"
-                ),
+                "summary": ("快速动作/照片资产放置已通过确定性检查与两张证据渲染。"),
                 "issues": [],
             }
         else:
@@ -732,8 +734,7 @@ class Workflow:
                         "final": {
                             "status": "waiting_input",
                             "message": (
-                                f"检查问题需要人工确认：{directive.message}；"
-                                "正式项目未改变。"
+                                f"检查问题需要人工确认：{directive.message}；正式项目未改变。"
                             ),
                             "candidateId": (state.get("candidate") or {}).get("id"),
                             "report": state.get("last_report"),

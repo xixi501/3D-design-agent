@@ -34,9 +34,7 @@ def test_full_home_candidate_pool_is_hash_bound_and_not_marked_verified():
                 candidate["workingHeight"],
             )
         assert len(candidate["originalSha256"]) == 64
-        assert candidate["sourcePage"].startswith(
-            "https://commons.wikimedia.org/wiki/File:"
-        )
+        assert candidate["sourcePage"].startswith("https://commons.wikimedia.org/wiki/File:")
         assert candidate["license"] in {
             "CC BY-SA 4.0",
             "Public domain",
@@ -54,12 +52,8 @@ def test_full_home_candidate_pool_is_hash_bound_and_not_marked_verified():
             assert reference["image"]["sha256"] == candidate["workingSha256"]
             assert reference["image"]["width"] == candidate["workingWidth"]
             assert reference["image"]["height"] == candidate["workingHeight"]
-            assert set(reference["targetRoomIds"]) == {
-                room["id"] for room in reference["rooms"]
-            }
-            assert (
-                candidate["evaluationReferenceFile"] == reference_path.name
-            )
+            assert set(reference["targetRoomIds"]) == {room["id"] for room in reference["rooms"]}
+            assert candidate["evaluationReferenceFile"] == reference_path.name
             assert candidate["evaluationReferenceSha256"] == digest(reference_path)
             assert candidate["evaluationManifestFile"] == manifest_path.name
             assert (
@@ -71,9 +65,7 @@ def test_full_home_candidate_pool_is_hash_bound_and_not_marked_verified():
             overlay = manifest["overlayReview"]
             assert overlay["completed"] is True
             assert digest(DIRECTORY / overlay["file"]) == overlay["sha256"]
-            assert {
-                key: overlay[key] for key in ("walls", "openings", "rooms", "symbols")
-            } == {
+            assert {key: overlay[key] for key in ("walls", "openings", "rooms", "symbols")} == {
                 "walls": len(reference["walls"]),
                 "openings": len(reference["openings"]),
                 "rooms": len(reference["rooms"]),

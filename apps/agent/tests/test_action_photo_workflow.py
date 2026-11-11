@@ -7,7 +7,6 @@ import pytest
 
 from actiscape_agent.manager import TaskManager
 
-
 PLAN = {
     "version": 2,
     "name": "主卧",
@@ -177,8 +176,7 @@ class FlowScene:
                 "scope": body["scope"],
                 "checks": {
                     "passed": not (
-                        self.blocked
-                        or (self.block_once and not self.blocked_once_used)
+                        self.blocked or (self.block_once and not self.blocked_once_used)
                     ),
                     "issues": (
                         [
@@ -191,8 +189,7 @@ class FlowScene:
                                 "metric": 0,
                             }
                         ]
-                        if self.blocked
-                        or (self.block_once and not self.blocked_once_used)
+                        if self.blocked or (self.block_once and not self.blocked_once_used)
                         else []
                     ),
                     "coverage": [],

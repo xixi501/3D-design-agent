@@ -69,9 +69,7 @@ def resolve_request(value: dict, user_input: str) -> dict:
         if label_id != "other":
             room = get_scene_registry().room(label_id)
     if request.purpose and room is None:
-        supported = "、".join(
-            item["label"] for item in get_scene_registry().public_rooms()
-        )
+        supported = "、".join(item["label"] for item in get_scene_registry().public_rooms())
         return {
             "brief": {},
             "furniture": [],

@@ -113,7 +113,11 @@ def test_remote_runner_uses_gateway_envelope_and_never_spawns_node(monkeypatch):
         "candidates": {"walls": [], "openings": [], "dimensions": [], "rooms": [], "symbols": []},
         "evidenceFiles": [],
         "limitations": [],
-        "audit": {"modelCalls": 0, "referenceAccess": "denied-and-audited", "candidateInputs": ["image.bytes"]},
+        "audit": {
+            "modelCalls": 0,
+            "referenceAccess": "denied-and-audited",
+            "candidateInputs": ["image.bytes"],
+        },
     }
     envelope = {
         "schemaVersion": "actiscape.artifact-envelope.v1",

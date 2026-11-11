@@ -306,9 +306,7 @@ class SkillRegistry:
             try:
                 priors = json.loads(priors_path.read_text(encoding="utf-8"))
             except (OSError, ValueError) as exc:
-                raise TaskError(
-                    "SKILL_POOL_INVALID", f"Skill {skill_id} priors.json 无效"
-                ) from exc
+                raise TaskError("SKILL_POOL_INVALID", f"Skill {skill_id} priors.json 无效") from exc
         judgments = [self._judgements[jid] for jid in manifest.judgements]
         payload = {
             "manifest": manifest.model_dump(mode="json"),
@@ -668,9 +666,7 @@ class SkillRegistry:
         for line in content.splitlines():
             if line.startswith("## "):
                 if heading is not None:
-                    sections.append(
-                        {"heading": heading, "content": "\n".join(body).strip()}
-                    )
+                    sections.append({"heading": heading, "content": "\n".join(body).strip()})
                 heading = line[3:].strip()
                 body = []
             elif heading is not None:
@@ -713,9 +709,7 @@ class SkillRegistry:
         fallback = False
         if headings is not None:
             selected = [item for item in sections if item["heading"] in headings]
-            content = "\n\n".join(
-                f"## {item['heading']}\n{item['content']}" for item in selected
-            )
+            content = "\n\n".join(f"## {item['heading']}\n{item['content']}" for item in selected)
             chosen_headings = [item["heading"] for item in selected]
         else:
             hints = (snapshot.get("stageHints") or {}).get(stage) or []
@@ -768,26 +762,20 @@ class SkillRegistry:
                 if item["heading"] == "怎么做" and stage in ("asset", "layout", "repair"):
                     steps = self._step_blocks(item["content"])
                     matched = [
-                        step
-                        for step in steps
-                        if any(rule in step["title"] for rule in rules)
+                        step for step in steps if any(rule in step["title"] for rule in rules)
                     ]
                     if matched:
                         chosen_headings.append(item["heading"])
                         parts.append(
                             "\n\n".join(
-                                f"**{step['title']}**\n{step['content']}"
-                                for step in matched
+                                f"**{step['title']}**\n{step['content']}" for step in matched
                             )
                         )
                     else:
                         chosen_headings.append(item["heading"])
                         parts.append(item["content"])
                         fallback = True
-                elif (
-                    item["heading"] in ("怎么验证", "依赖什么")
-                    and stage in ("check", "repair")
-                ):
+                elif item["heading"] in ("怎么验证", "依赖什么") and stage in ("check", "repair"):
                     chosen_headings.append(item["heading"])
                     parts.append(f"## {item['heading']}\n{item['content']}")
                 elif item["heading"] == "怎么验证" and stage == "repair":
@@ -852,9 +840,7 @@ class SkillRegistry:
         return {
             "schemaVersion": "actiscape.skill-slice.v1",
             "stage": stage,
-            "contentHash": hashlib.sha256(
-                f"{current.contentHash}:{stage}".encode()
-            ).hexdigest(),
+            "contentHash": hashlib.sha256(f"{current.contentHash}:{stage}".encode()).hexdigest(),
             "instructions": instructions,
             "judgements": current.judgements,
             "selection": current.selection,

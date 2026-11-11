@@ -45,12 +45,17 @@ def test_pool_is_strict_v1_and_active_allowlist_is_exact():
         "bathroom-standard",
         "entry-storage",
     }
-    assert active == MEMBER3_ACTIVE | {
-        "rectangular-living-reading",
-        "floorplan-reconstruction",
-        "photo-object-import",
-        "universal-spatial-base",
-    } | whole_home
+    assert (
+        active
+        == MEMBER3_ACTIVE
+        | {
+            "rectangular-living-reading",
+            "floorplan-reconstruction",
+            "photo-object-import",
+            "universal-spatial-base",
+        }
+        | whole_home
+    )
     reserved = {item["id"] for item in snapshots if item["activation"] == "reserved"}
     assert len(reserved) == 16
     assert "photo-object-import" in active

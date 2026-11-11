@@ -1062,10 +1062,7 @@ def _assemble_activity_symbols(
             )
         if (
             legacy_semantics
-            and any(
-                tag.get("tag") == "fixed_run"
-                for tag in candidate.get("contextTags", [])
-            )
+            and any(tag.get("tag") == "fixed_run" for tag in candidate.get("contextTags", []))
             and symbol["categoryCode"] in ("cabinet", "sideboard", "tvCabinet")
         ):
             validation_errors.append(
@@ -1164,10 +1161,7 @@ def _assemble_activity_symbols(
             )
         if (
             legacy_semantics
-            and any(
-                tag.get("tag") == "fixed_run"
-                for tag in candidate.get("contextTags", [])
-            )
+            and any(tag.get("tag") == "fixed_run" for tag in candidate.get("contextTags", []))
             and symbol["categoryCode"] in ("cabinet", "sideboard", "tvCabinet")
         ):
             raise TaskError(
@@ -1325,9 +1319,7 @@ def _assemble_activity_symbols(
                     details={"objectIds": [group["id"], *members]},
                 )
         elif group["type"] == "group_sleep":
-            satellites = [
-                item for item in members if item != group["primarySymbolId"]
-            ]
+            satellites = [item for item in members if item != group["primarySymbolId"]]
             if (
                 primary_category not in ("bed", "crib")
                 or not satellites
@@ -1812,10 +1804,7 @@ def _consolidate_open_room_labels(
             and any(member["id"] in targets for member in members)
             and (
                 not whole_home
-                or any(
-                    member.get("functionalArea") in {"living", "dining"}
-                    for member in members
-                )
+                or any(member.get("functionalArea") in {"living", "dining"} for member in members)
             )
         ):
             output.extend(members)
@@ -1958,17 +1947,13 @@ def _normalize_v4_rooms(rooms):
         if room_type == "other":
             # Keep the recognised functional area (bedroom / kitchen / circulation
             # ...) instead of collapsing every unnamed room into "other".
-            room_type = FUNCTIONAL_AREA_ROOM_TYPE.get(
-                room.get("functionalArea") or "", "other"
-            )
+            room_type = FUNCTIONAL_AREA_ROOM_TYPE.get(room.get("functionalArea") or "", "other")
         inferred_area = ROOM_TYPE_FUNCTIONAL_AREA.get(room_type)
         normalized.append(
             {
                 **room,
                 "roomType": room_type,
-                "functionalArea": inferred_area
-                or room.get("functionalArea")
-                or "other",
+                "functionalArea": inferred_area or room.get("functionalArea") or "other",
             }
         )
     return normalized
@@ -2284,11 +2269,7 @@ def _assemble_structure_v3(
         "status": "draft",
         "question": recognition.get("question", ""),
         "recognitionVersion": recognition_version,
-        **(
-            {"candidatePolicyVersion": "geometry-only"}
-            if recognition_version >= 4
-            else {}
-        ),
+        **({"candidatePolicyVersion": "geometry-only"} if recognition_version >= 4 else {}),
         "measurementVersion": 2,
         "name": recognition["name"],
         **{
@@ -2528,11 +2509,7 @@ def _assemble_structure(
         "status": "draft",
         "question": recognition.get("question", ""),
         "recognitionVersion": recognition_version,
-        **(
-            {"candidatePolicyVersion": "geometry-only"}
-            if recognition_version >= 4
-            else {}
-        ),
+        **({"candidatePolicyVersion": "geometry-only"} if recognition_version >= 4 else {}),
         "measurementVersion": 2,
         "name": recognition["name"],
         **{
@@ -2623,9 +2600,7 @@ class FloorplanV3(FloorplanV2):
                 bounded_schema=True,
                 model_options=FLOORPLAN_RECOGNITION_OPTIONS,
             )
-            return schema.model_validate(result).model_dump(
-                exclude_none=True, by_alias=True
-            )
+            return schema.model_validate(result).model_dump(exclude_none=True, by_alias=True)
 
         payload = {
             "userRequest": task["input"],
@@ -2677,16 +2652,12 @@ class FloorplanV3(FloorplanV2):
         value = repaired_value if repaired_value else pending_value if resuming_repair else None
         if value is None:
             value = await invoke(self.prompt("STRUCTURE", task), payload)
-            value = schema.model_validate(value).model_dump(
-                exclude_none=True, by_alias=True
-            )
+            value = schema.model_validate(value).model_dump(exclude_none=True, by_alias=True)
             attempts = generation.setdefault("structureAttempts", [])
             attempts.append(value)
             self.patch(task["id"], structureAttempts=attempts, pendingStructure=value)
         else:
-            value = schema.model_validate(value).model_dump(
-                exclude_none=True, by_alias=True
-            )
+            value = schema.model_validate(value).model_dump(exclude_none=True, by_alias=True)
         if value["status"] == "unsupported":
             self.patch(
                 task["id"],
@@ -2827,9 +2798,7 @@ class FloorplanV3(FloorplanV2):
                 )
                 raise
         schema = RecognitionV4 if self.recognition_version(task) >= 4 else RecognitionV3
-        assembled = schema.model_validate(assembled).model_dump(
-            exclude_none=True, by_alias=True
-        )
+        assembled = schema.model_validate(assembled).model_dump(exclude_none=True, by_alias=True)
         self.patch(
             task["id"],
             rawStructure=value,

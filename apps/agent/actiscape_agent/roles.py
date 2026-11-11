@@ -17,7 +17,7 @@ from .config import model_settings
 from .model import create_model
 from .role_contracts import StageResultV1
 from .schemas import AssetSelection, Edit, Intent, Proposal, Review
-from .skill_registry import get_registry, stage_skill
+from .skill_registry import stage_skill
 from .store import TaskError, TaskStore, fingerprint
 
 PROMPT_VERSION = "s2a-local-edit-3"

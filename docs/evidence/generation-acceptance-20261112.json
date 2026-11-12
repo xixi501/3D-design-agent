@@ -2,7 +2,7 @@
   "schemaVersion": "actiscape.generation-acceptance.v1",
   "date": "2026-11-12",
   "status": "passed",
-  "codeCommit": "17b1f015588f827f295f425ba50db1e4053afd78",
+  "codeCommit": "a6f66c5fa65f3b3a064d1c148849989eed6039b0",
   "branch": "feat/floorplan-auto-completion",
   "environment": {
     "node": "24.22.2",
@@ -270,149 +270,9 @@
       "name": "living-dining",
       "repeat": 1,
       "status": "passed",
-      "projectId": "6499de9c-1125-4961-b392-bf24efe2c85e",
-      "taskId": "036c34c0-d7a4-4c2b-8389-7589c0e88ca4",
-      "candidateId": "39e3b2b7-609f-40c3-aa61-8e2d8bbd527f",
-      "stats": {
-        "modelCalls": 9,
-        "modelCallsByRole": {
-          "main": 3,
-          "assets": 2,
-          "design": 2,
-          "check": 2
-        },
-        "renderCount": 2,
-        "repairCount": 0,
-        "fallbackCount": 0,
-        "stageSeconds": {
-          "reading": 0.065,
-          "policy": 0.006,
-          "understanding": 11.908,
-          "choosing_assets": 4.573,
-          "scoping": 0.191,
-          "designing": 49.123,
-          "prechecking": 0.412,
-          "rendering": 5.386,
-          "checking": 18.581,
-          "committing": 0.25
-        },
-        "activeSeconds": 90.533,
-        "fallbackEvents": []
-      },
-      "artifacts": {
-        "result.json": {
-          "path": "test-results/generation-final-20261112/living-dining-1/result.json",
-          "sha256": "e749363a0bdcb9d4b062b1bb16e9c2e82af1276efcaf46b6ae91d578943b61c0"
-        },
-        "task.json": {
-          "path": "test-results/generation-final-20261112/living-dining-1/task.json",
-          "sha256": "9aca41a38fbaad25c3b0ff6fd702622312a1587f6e75cbdab8dd2fd3b44dd7c3"
-        },
-        "candidate.json": {
-          "path": "test-results/generation-final-20261112/living-dining-1/candidate.json",
-          "sha256": "c5cf9978f45deb3225b56ad3dc8f8acdcdab0e45445a54c4b058b331ddaf825e"
-        },
-        "project-before.json": {
-          "path": "test-results/generation-final-20261112/living-dining-1/project-before.json",
-          "sha256": "73028ffb452d9ac707afe8f0c535f45f8b857e12c5723d448af51b7d6143aef0"
-        },
-        "project-after.json": {
-          "path": "test-results/generation-final-20261112/living-dining-1/project-after.json",
-          "sha256": "f07d1e85b030022b8e8edd749cf381e96a08b6ce3b1c568b2b764b8a3d4972fa"
-        },
-        "trace.json": {
-          "path": "test-results/generation-final-20261112/living-dining-1/trace.json",
-          "sha256": "a5a7ed168bbdba8afd023a4e236955295d8bb23a9510f21506e5ae34b65d5fed"
-        }
-      },
-      "evidence": [
-        {
-          "path": "test-results/generation-final-20261112/living-dining-1/evidence/oblique.png",
-          "sha256": "60df7adccd75ae500ef399f2308c00c118264001461e44ceed72311743fe7c91"
-        },
-        {
-          "path": "test-results/generation-final-20261112/living-dining-1/evidence/top.png",
-          "sha256": "c2367363cf2f9a061af186332e4752c661934d3f6c00439edc8c1fee1958a523"
-        }
-      ]
-    },
-    {
-      "name": "living-dining",
-      "repeat": 2,
-      "status": "passed",
-      "projectId": "f7e4df62-8b79-4b28-9785-3ed44eeeec43",
-      "taskId": "4dfe1558-7cdd-4df7-ba40-cce64569e0e8",
-      "candidateId": "c3a1f520-6969-401c-ad34-3ffb33066a35",
-      "stats": {
-        "modelCalls": 9,
-        "modelCallsByRole": {
-          "main": 2,
-          "assets": 2,
-          "design": 3,
-          "check": 2
-        },
-        "renderCount": 2,
-        "repairCount": 0,
-        "fallbackCount": 0,
-        "stageSeconds": {
-          "reading": 0.039,
-          "policy": 0.009,
-          "understanding": 9.865,
-          "choosing_assets": 4.894,
-          "scoping": 0.133,
-          "designing": 50.118,
-          "prechecking": 0.256,
-          "rendering": 5.113,
-          "checking": 16.534,
-          "committing": 0.263
-        },
-        "activeSeconds": 87.229,
-        "fallbackEvents": []
-      },
-      "artifacts": {
-        "result.json": {
-          "path": "test-results/generation-final-20261112/living-dining-2/result.json",
-          "sha256": "e73e7eeecd060e01d57c963b8b4d8564c48e85fd81b01a52f7d700c3f011eaff"
-        },
-        "task.json": {
-          "path": "test-results/generation-final-20261112/living-dining-2/task.json",
-          "sha256": "d69dd09b443ee09c982c5d19eee329e36b5ebf0ba14550b37866a42b5f143fe9"
-        },
-        "candidate.json": {
-          "path": "test-results/generation-final-20261112/living-dining-2/candidate.json",
-          "sha256": "74601e756347f10df6a0b58fb23918aee105371f04241c64fc1dfe0ff736bb64"
-        },
-        "project-before.json": {
-          "path": "test-results/generation-final-20261112/living-dining-2/project-before.json",
-          "sha256": "78d67dbeba329f12898315dbc51324261a279462819eb77f27c927e1e366cdc2"
-        },
-        "project-after.json": {
-          "path": "test-results/generation-final-20261112/living-dining-2/project-after.json",
-          "sha256": "1e20bf895837f51d344dbe3ca801ad7b07d663acda0f06226d5b5c55e8d63804"
-        },
-        "trace.json": {
-          "path": "test-results/generation-final-20261112/living-dining-2/trace.json",
-          "sha256": "069a8659e6f304d816b389e2ee2dd1e9b12aeff50d47f3673743d5e11b643711"
-        }
-      },
-      "evidence": [
-        {
-          "path": "test-results/generation-final-20261112/living-dining-2/evidence/oblique.png",
-          "sha256": "88f8457d5be64f8aa15756bdd351867a581df7605f9c75df8a9d66f94d8dcd3a"
-        },
-        {
-          "path": "test-results/generation-final-20261112/living-dining-2/evidence/top.png",
-          "sha256": "e2fa3d9f564c9a608343303708c11b7256bfa8bb6c3e1795117afbd61a8a463d"
-        }
-      ]
-    },
-    {
-      "name": "reading-lounge",
-      "repeat": 1,
-      "status": "passed",
-      "projectId": "2144bbb7-685a-41fe-80e2-623916629d25",
-      "taskId": "6e049ea4-e945-42e3-b25d-1bdd85e5a655",
-      "candidateId": "12eea93f-5daf-40d6-99ce-749697fb8d8a",
+      "projectId": "65a5dae1-0af9-4052-a611-4e5fa6287cdf",
+      "taskId": "75ab6ac0-8953-4a55-b845-de801cad4f96",
+      "candidateId": "b00fa29e-645a-43d8-81ec-40b82bd36254",
       "stats": {
         "modelCalls": 8,
         "modelCallsByRole": {
@@ -425,54 +285,194 @@
         "repairCount": 0,
         "fallbackCount": 0,
         "stageSeconds": {
-          "reading": 0.06,
+          "reading": 0.033,
           "policy": 0.002,
-          "understanding": 6.562,
-          "choosing_assets": 7.037,
-          "scoping": 0.077,
-          "designing": 19.614,
-          "prechecking": 0.32,
-          "rendering": 4.509,
-          "checking": 37.412,
-          "committing": 0.117
+          "understanding": 6.142,
+          "choosing_assets": 7.351,
+          "scoping": 0.213,
+          "designing": 38.658,
+          "prechecking": 0.317,
+          "rendering": 3.286,
+          "checking": 37.915,
+          "committing": 0.204
         },
-        "activeSeconds": 75.713,
+        "activeSeconds": 94.128,
+        "fallbackEvents": []
+      },
+      "artifacts": {
+        "result.json": {
+          "path": "test-results/generation-final-20261112/living-dining-1/result.json",
+          "sha256": "c4ec402e56074825fee3be5afcfc2d4a35a3372decdb6cca11b0e5e7ee17d0dc"
+        },
+        "task.json": {
+          "path": "test-results/generation-final-20261112/living-dining-1/task.json",
+          "sha256": "3a8fa49d6b5b82ee3efc4aa6b7b9b4ef75cc204c9051b40415839ed8ef350717"
+        },
+        "candidate.json": {
+          "path": "test-results/generation-final-20261112/living-dining-1/candidate.json",
+          "sha256": "e5bf7e5f7e7436f764ca22c3226f99d9edc8d120a8d707f27b28be5d998f6eb3"
+        },
+        "project-before.json": {
+          "path": "test-results/generation-final-20261112/living-dining-1/project-before.json",
+          "sha256": "32fa8e07eeb1d3c9df671630d4155b737ac7fb2d8f82ec03bb85131c8bdf34b4"
+        },
+        "project-after.json": {
+          "path": "test-results/generation-final-20261112/living-dining-1/project-after.json",
+          "sha256": "ae8fc4dc7e445e8b1403aeb528acb4807d0caf72b523693c4367cf5ec78c502f"
+        },
+        "trace.json": {
+          "path": "test-results/generation-final-20261112/living-dining-1/trace.json",
+          "sha256": "8dbbe8bbc5f256d99cbcdb36a8ce48530f2e74497dbf1855d295dfee0de97f50"
+        }
+      },
+      "evidence": [
+        {
+          "path": "test-results/generation-final-20261112/living-dining-1/evidence/oblique.png",
+          "sha256": "0fc54e76ba032d14bf8f27d102b7f42604cd7d14e9e6d580588d8014e8f353b9"
+        },
+        {
+          "path": "test-results/generation-final-20261112/living-dining-1/evidence/top.png",
+          "sha256": "7112ea138dd0dfa9c5d413b8fb5c11be70801dc746a6106af5f59ec114b2ce02"
+        }
+      ]
+    },
+    {
+      "name": "living-dining",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "46940004-60b3-4072-bb19-bb5b45b78653",
+      "taskId": "671ff039-5ff6-44bc-8745-5a349726bbae",
+      "candidateId": "19222a30-c11a-4db7-985e-9fc8191f31fd",
+      "stats": {
+        "modelCalls": 9,
+        "modelCallsByRole": {
+          "main": 2,
+          "assets": 2,
+          "design": 3,
+          "check": 2
+        },
+        "renderCount": 2,
+        "repairCount": 0,
+        "fallbackCount": 0,
+        "stageSeconds": {
+          "reading": 0.024,
+          "policy": 0.002,
+          "understanding": 7.068,
+          "choosing_assets": 6.734,
+          "scoping": 0.105,
+          "designing": 53.47,
+          "prechecking": 0.235,
+          "rendering": 3.355,
+          "checking": 27.752,
+          "committing": 0.12
+        },
+        "activeSeconds": 98.868,
+        "fallbackEvents": []
+      },
+      "artifacts": {
+        "result.json": {
+          "path": "test-results/generation-final-20261112/living-dining-2/result.json",
+          "sha256": "d968552594d6968d51fb80a3ec517a875fd70d2f78c1113b9c831c2a3096cc85"
+        },
+        "task.json": {
+          "path": "test-results/generation-final-20261112/living-dining-2/task.json",
+          "sha256": "43ef50df8ab47c17573d342cf525c06ed19cad1a458b788976a51188ec04aa94"
+        },
+        "candidate.json": {
+          "path": "test-results/generation-final-20261112/living-dining-2/candidate.json",
+          "sha256": "f705dd3b6f5fedc3907ff9177fbf0f4b718c90b8c5ca03b0cc073ea2984a186b"
+        },
+        "project-before.json": {
+          "path": "test-results/generation-final-20261112/living-dining-2/project-before.json",
+          "sha256": "6131a31a77d9f9aa9e8ea8d18951068a1b5c85019c5250b190d8a868639d7477"
+        },
+        "project-after.json": {
+          "path": "test-results/generation-final-20261112/living-dining-2/project-after.json",
+          "sha256": "e4fd87768140f3d908338af19b461ba7d421f11921dfeaf9975767a415eed712"
+        },
+        "trace.json": {
+          "path": "test-results/generation-final-20261112/living-dining-2/trace.json",
+          "sha256": "8513ddddeecd0064e2aa6a2a3b63d73c8345e236a0c0d4b1fa14a44218c8af09"
+        }
+      },
+      "evidence": [
+        {
+          "path": "test-results/generation-final-20261112/living-dining-2/evidence/oblique.png",
+          "sha256": "a4a30bb97e896dd4efddd7ba269659271d424aa648ee63457241521a8f9c1f55"
+        },
+        {
+          "path": "test-results/generation-final-20261112/living-dining-2/evidence/top.png",
+          "sha256": "a6cb6a59e132f486ec44253cc5e3c8e5a029bb224d0654ec6b276ed98e6fcf0e"
+        }
+      ]
+    },
+    {
+      "name": "reading-lounge",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "170afb63-c488-4c70-ba03-68ce93291e8f",
+      "taskId": "86131d98-f16d-4a2d-8d82-3d547e1bffd6",
+      "candidateId": "1afe3da4-5a51-4f10-90f4-15d2c09aceec",
+      "stats": {
+        "modelCalls": 9,
+        "modelCallsByRole": {
+          "main": 2,
+          "assets": 2,
+          "design": 2,
+          "check": 3
+        },
+        "renderCount": 2,
+        "repairCount": 0,
+        "fallbackCount": 0,
+        "stageSeconds": {
+          "reading": 0.017,
+          "policy": 0.001,
+          "understanding": 6.158,
+          "choosing_assets": 5.89,
+          "scoping": 0.084,
+          "designing": 43.891,
+          "prechecking": 0.203,
+          "rendering": 3.353,
+          "checking": 51.816,
+          "committing": 0.075
+        },
+        "activeSeconds": 111.491,
         "fallbackEvents": []
       },
       "artifacts": {
         "result.json": {
           "path": "test-results/generation-final-20261112/reading-lounge-1/result.json",
-          "sha256": "01950c615ca5d867758df8cbce57019d2a6ca8b9211ceb0aac3e7953462a3986"
+          "sha256": "53930a501ea4ca140fc212c078718fc5d438b3394a687e008c6e1a8742d64ffc"
         },
         "task.json": {
           "path": "test-results/generation-final-20261112/reading-lounge-1/task.json",
-          "sha256": "4514294b66cca82063e13b11c7bc7d5020643a7794cd6e10d241f606204140d8"
+          "sha256": "51b4341f463a0bd6d3ce22defb25a073ccdf07175a57049cdc74e421c447e335"
         },
         "candidate.json": {
           "path": "test-results/generation-final-20261112/reading-lounge-1/candidate.json",
-          "sha256": "f5b5369c125a45dfcf93644985edb8a1dc8c04ef27232fde02e2cced840c0878"
+          "sha256": "c1c4c0452eea8512088eb1d54075d0f6df617fb3abf01221ffe6ca41838136df"
         },
         "project-before.json": {
           "path": "test-results/generation-final-20261112/reading-lounge-1/project-before.json",
-          "sha256": "725c3daf617e6c677250d88a10fdfe0eee8972b8ccc11346f7a0ec98d9bdbd29"
+          "sha256": "72105113dbcb3a8437ac7c0d6300ebbc51e84de6fccaa7113d6fd05a68945cfa"
         },
         "project-after.json": {
           "path": "test-results/generation-final-20261112/reading-lounge-1/project-after.json",
-          "sha256": "a63e63a9021c896e6d4f6528124018c3622f100ece657af99593678700be13e0"
+          "sha256": "b70692f70842bce1ae51ffcc9ac6b4781f80c838c2c572cbac8872b194a1bfd2"
         },
         "trace.json": {
           "path": "test-results/generation-final-20261112/reading-lounge-1/trace.json",
-          "sha256": "8e4199b2eb5125d358540712b08f918c4fce272778a8f5f656322f7d13e11768"
+          "sha256": "e6f90856d1d459ed9ac1466877192098e69a1895342e755204beceb3540f63ae"
         }
       },
       "evidence": [
         {
           "path": "test-results/generation-final-20261112/reading-lounge-1/evidence/oblique.png",
-          "sha256": "069ebc5d6e2e068e0a6f1a2a94ad4858cecdbeda54a7ed65528510c1075e203f"
+          "sha256": "303faa9da8a5180dbfc09395920a021c5101bac6bd8e890c6c8ed7379c7e6196"
         },
         {
           "path": "test-results/generation-final-20261112/reading-lounge-1/evidence/top.png",
-          "sha256": "32500cda5ada358bbd974e44f02dcb4c04e9d2aa9a833273ad541cfadd8e338f"
+          "sha256": "8d4fc7913fde1c99c337161e5bb954bd6a8f8c0cdf897cb29e1279d4c9d3e35d"
         }
       ]
     },
@@ -480,83 +480,13 @@
       "name": "reading-lounge",
       "repeat": 2,
       "status": "passed",
-      "projectId": "d077dc8b-684e-481c-946e-b8513f61f081",
-      "taskId": "ae46f12c-6826-4d2b-b8a6-9c6ad583b347",
-      "candidateId": "7da7664d-4910-4b55-9e60-8a65df361824",
+      "projectId": "a9138cfe-8db0-42c5-9ced-d76a5f9616ff",
+      "taskId": "a8f09b5d-f866-46e6-b25f-2ebddcdad038",
+      "candidateId": "2393b249-8b42-4a54-91ff-e78a477d10df",
       "stats": {
-        "modelCalls": 10,
+        "modelCalls": 8,
         "modelCallsByRole": {
           "main": 2,
-          "assets": 2,
-          "design": 4,
-          "check": 2
-        },
-        "renderCount": 2,
-        "repairCount": 0,
-        "fallbackCount": 0,
-        "stageSeconds": {
-          "reading": 0.028,
-          "policy": 0.002,
-          "understanding": 6.603,
-          "choosing_assets": 3.991,
-          "scoping": 0.094,
-          "designing": 87.419,
-          "prechecking": 0.236,
-          "rendering": 5.52,
-          "checking": 35.631,
-          "committing": 0.122
-        },
-        "activeSeconds": 139.656,
-        "fallbackEvents": []
-      },
-      "artifacts": {
-        "result.json": {
-          "path": "test-results/generation-final-20261112/reading-lounge-2/result.json",
-          "sha256": "8c57ad439e1f05e20e2f81ded7f61fe1f290f03bfb76fe60541a40467807eee0"
-        },
-        "task.json": {
-          "path": "test-results/generation-final-20261112/reading-lounge-2/task.json",
-          "sha256": "082b7a6204a623eac459f4c3c70c3c15c5f45a6eed836d93159cc1cc8af493dd"
-        },
-        "candidate.json": {
-          "path": "test-results/generation-final-20261112/reading-lounge-2/candidate.json",
-          "sha256": "3ec29fc1ec1206909533e912134925f1049a79de98aa0f9b459776bc21131fca"
-        },
-        "project-before.json": {
-          "path": "test-results/generation-final-20261112/reading-lounge-2/project-before.json",
-          "sha256": "662cee036b42ffb65a025065e6396ff45452d470eb63a2d18cbb29e952bbe557"
-        },
-        "project-after.json": {
-          "path": "test-results/generation-final-20261112/reading-lounge-2/project-after.json",
-          "sha256": "c64185369bf97a669476d77233863eecee74f61fa2d751dd98165924818a25d3"
-        },
-        "trace.json": {
-          "path": "test-results/generation-final-20261112/reading-lounge-2/trace.json",
-          "sha256": "c67edf51cfbf7e16a077ae85250e38df8af6832b8b16faf1d9f2b6d65fe79952"
-        }
-      },
-      "evidence": [
-        {
-          "path": "test-results/generation-final-20261112/reading-lounge-2/evidence/oblique.png",
-          "sha256": "0ef8d2cd2c3f13ea22c304aa5c08e07a89ad5c05b6fc072ae19905724dec030b"
-        },
-        {
-          "path": "test-results/generation-final-20261112/reading-lounge-2/evidence/top.png",
-          "sha256": "d0bbb50a93058a38479524499a37e18bd4fd4b66b7850daf80e8e78b682d5fb3"
-        }
-      ]
-    },
-    {
-      "name": "master-bedroom",
-      "repeat": 1,
-      "status": "passed",
-      "projectId": "4f93f782-95a7-40a4-9e95-4faa58767c6a",
-      "taskId": "d76fe48f-5c80-4113-b6df-68b3b66ce814",
-      "candidateId": "033f716b-c1c8-4274-834b-9b9ac9c7bc46",
-      "stats": {
-        "modelCalls": 9,
-        "modelCallsByRole": {
-          "main": 3,
           "assets": 2,
           "design": 2,
           "check": 2
@@ -565,54 +495,124 @@
         "repairCount": 0,
         "fallbackCount": 0,
         "stageSeconds": {
-          "reading": 0.027,
+          "reading": 0.035,
           "policy": 0.002,
-          "understanding": 9.365,
-          "choosing_assets": 6.687,
-          "scoping": 0.092,
-          "designing": 16.025,
-          "prechecking": 0.243,
-          "rendering": 3.493,
-          "checking": 15.404,
-          "committing": 0.253
+          "understanding": 5.225,
+          "choosing_assets": 4.399,
+          "scoping": 0.121,
+          "designing": 22.106,
+          "prechecking": 0.186,
+          "rendering": 3.233,
+          "checking": 23.169,
+          "committing": 0.078
         },
-        "activeSeconds": 51.597,
+        "activeSeconds": 58.559,
+        "fallbackEvents": []
+      },
+      "artifacts": {
+        "result.json": {
+          "path": "test-results/generation-final-20261112/reading-lounge-2/result.json",
+          "sha256": "239dd5123203ca47cdbefc44a47c93ab48187b0e565ff3ea3d79a222b35e1f0d"
+        },
+        "task.json": {
+          "path": "test-results/generation-final-20261112/reading-lounge-2/task.json",
+          "sha256": "a4c67e3809dbb89a34f9ea468715d2c6fc94038872ebd663e516737f3ce7e73c"
+        },
+        "candidate.json": {
+          "path": "test-results/generation-final-20261112/reading-lounge-2/candidate.json",
+          "sha256": "fc875a8981105fc8e77d913cf2ad86764440cac7cc44cdd38ac22cc4a9b1f2d1"
+        },
+        "project-before.json": {
+          "path": "test-results/generation-final-20261112/reading-lounge-2/project-before.json",
+          "sha256": "9fcd16bc5bf6ce699f20599605bb28ef74630586f3b6d416538dea870633f809"
+        },
+        "project-after.json": {
+          "path": "test-results/generation-final-20261112/reading-lounge-2/project-after.json",
+          "sha256": "775f8b3d00f062ffcd6037d886228a2bf34c93231e010aae9e334e2e1437f27c"
+        },
+        "trace.json": {
+          "path": "test-results/generation-final-20261112/reading-lounge-2/trace.json",
+          "sha256": "d2605e21b4b748681835bb1e0ee896a41afabaaae3cdb998a59d3463be4b5b39"
+        }
+      },
+      "evidence": [
+        {
+          "path": "test-results/generation-final-20261112/reading-lounge-2/evidence/oblique.png",
+          "sha256": "6f0f0819e9bd0e48a3ca8a2157c34aafcc383c8d4740114c4c0be32789290ebc"
+        },
+        {
+          "path": "test-results/generation-final-20261112/reading-lounge-2/evidence/top.png",
+          "sha256": "02d5a9189808ea9208b75a491862a394c44850a34efea7d577f3b02b8f553856"
+        }
+      ]
+    },
+    {
+      "name": "master-bedroom",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "6056193c-6b28-43fe-a830-d85c8772b331",
+      "taskId": "26757995-5017-42e9-a93c-c5722ccbd1c7",
+      "candidateId": "7d698de4-02d9-49db-89c2-09c9f88071aa",
+      "stats": {
+        "modelCalls": 8,
+        "modelCallsByRole": {
+          "main": 2,
+          "assets": 2,
+          "design": 2,
+          "check": 2
+        },
+        "renderCount": 2,
+        "repairCount": 0,
+        "fallbackCount": 0,
+        "stageSeconds": {
+          "reading": 0.024,
+          "policy": 0.002,
+          "understanding": 6.184,
+          "choosing_assets": 13.85,
+          "scoping": 0.097,
+          "designing": 18.997,
+          "prechecking": 0.214,
+          "rendering": 2.693,
+          "checking": 22.544,
+          "committing": 0.112
+        },
+        "activeSeconds": 64.719,
         "fallbackEvents": []
       },
       "artifacts": {
         "result.json": {
           "path": "test-results/generation-final-20261112/master-bedroom-1/result.json",
-          "sha256": "2144bddc9437906b85d3d6975e15623d73e3895c3b6a5058ae44a551e299e7b0"
+          "sha256": "b2cec8cf21877cf1e539aac15a38aee9adb343c775effc3e5307c68f514c2e1d"
         },
         "task.json": {
           "path": "test-results/generation-final-20261112/master-bedroom-1/task.json",
-          "sha256": "04fa52e5f930ff5d4256e7c2733428bdf747c9d86744c41ce63edf1ee3f6f671"
+          "sha256": "b4c214e199ecfd3c2b5652f26a12c17f62a73159199ad2fa50ffcc6a8da7dee0"
         },
         "candidate.json": {
           "path": "test-results/generation-final-20261112/master-bedroom-1/candidate.json",
-          "sha256": "3fd9ba0e65345fd2049b81f8ee2ff30427b50adcdf71b76d99bd9530ccc6284a"
+          "sha256": "e3907bdbd741f84757d74b8de653f88359fb9dcf1abb6788b8eaa39f389a2d0a"
         },
         "project-before.json": {
           "path": "test-results/generation-final-20261112/master-bedroom-1/project-before.json",
-          "sha256": "00eed21a11e2e24d80452f38de09d81162a69a1492dae2ec55c5b5e29faae492"
+          "sha256": "e0976845ddf4f5aeebc5cc1b4d611020f460a573810c3e805a7ef03d4b4f8823"
         },
         "project-after.json": {
           "path": "test-results/generation-final-20261112/master-bedroom-1/project-after.json",
-          "sha256": "90fe7da1da0f622d6450cf5497d52bcb0c6933628860ffc15ee5e5feb0741ca5"
+          "sha256": "7e687bed97821e07ca47b3eb3ec6e287723f65207f54890c4cf2096d98ff442a"
         },
         "trace.json": {
           "path": "test-results/generation-final-20261112/master-bedroom-1/trace.json",
-          "sha256": "56e9ede7ca09a6fea0cb613e1d4fb5a5d7513b658e80905bd47cfa6417946ea0"
+          "sha256": "b4dc58482338efc82d3bf73d70d4f4ce43c8000d0a375f9430a0afdf7b3bb161"
         }
       },
       "evidence": [
         {
           "path": "test-results/generation-final-20261112/master-bedroom-1/evidence/oblique.png",
-          "sha256": "bc639995d359ea789e615743547075cdba8bae1a2526e29dc850a0022dc718e1"
+          "sha256": "17c353291a9d966766120c15193cc16285a4b0775f52151e58d77489f3586ffa"
         },
         {
           "path": "test-results/generation-final-20261112/master-bedroom-1/evidence/top.png",
-          "sha256": "dcb6d7ee74900a674aeeb255007e01eebfa061f4edfd16ec24ec3960793c5ca8"
+          "sha256": "9de4b2fb1f82419fa4195c1aad0d59420fb572746b733e1de8320f22f5f11004"
         }
       ]
     },
@@ -620,9 +620,149 @@
       "name": "master-bedroom",
       "repeat": 2,
       "status": "passed",
-      "projectId": "e7f3078f-9459-4335-b5b1-f98ba01ce982",
-      "taskId": "dd88534b-3ed6-4a9a-af35-8ad777e9fd3d",
-      "candidateId": "1c328657-8d92-478c-a00a-62fb787e4602",
+      "projectId": "6b8a495f-5be4-4b43-b805-87b081c6ec0e",
+      "taskId": "2cbca14d-1729-4a02-bdad-67274c03f164",
+      "candidateId": "33e8b913-50bc-4dee-b995-7b190a25b33b",
+      "stats": {
+        "modelCalls": 8,
+        "modelCallsByRole": {
+          "main": 2,
+          "assets": 2,
+          "design": 2,
+          "check": 2
+        },
+        "renderCount": 2,
+        "repairCount": 0,
+        "fallbackCount": 0,
+        "stageSeconds": {
+          "reading": 0.036,
+          "policy": 0.002,
+          "understanding": 5.311,
+          "choosing_assets": 17.874,
+          "scoping": 0.109,
+          "designing": 14.485,
+          "prechecking": 0.166,
+          "rendering": 3.388,
+          "checking": 10.982,
+          "committing": 0.155
+        },
+        "activeSeconds": 52.511,
+        "fallbackEvents": []
+      },
+      "artifacts": {
+        "result.json": {
+          "path": "test-results/generation-final-20261112/master-bedroom-2/result.json",
+          "sha256": "3716a2a60c9e87c34edac09276aef35ab85801ee6e11202a44f22d4079fb8d2e"
+        },
+        "task.json": {
+          "path": "test-results/generation-final-20261112/master-bedroom-2/task.json",
+          "sha256": "f991dc1a37756cc3230c2268469785083e4485573dc5754f8e887147ed678cfa"
+        },
+        "candidate.json": {
+          "path": "test-results/generation-final-20261112/master-bedroom-2/candidate.json",
+          "sha256": "5e90399a5b8ec318306c9ad6300545c9e0e7ca9f45e0e92282f7caf4d0f3d076"
+        },
+        "project-before.json": {
+          "path": "test-results/generation-final-20261112/master-bedroom-2/project-before.json",
+          "sha256": "fc66a7ca91dafb96800888bf683487e7bc3a075a6b405a46c74b49badfbe8db3"
+        },
+        "project-after.json": {
+          "path": "test-results/generation-final-20261112/master-bedroom-2/project-after.json",
+          "sha256": "4203828b5634de0d719178d6906890d282c23a3f121478414acc98c6f0820d0b"
+        },
+        "trace.json": {
+          "path": "test-results/generation-final-20261112/master-bedroom-2/trace.json",
+          "sha256": "bbdd2bb5bc5ee65aff3ac935cdf8a730f85c623779d2dd6ba70665e90e3d4a85"
+        }
+      },
+      "evidence": [
+        {
+          "path": "test-results/generation-final-20261112/master-bedroom-2/evidence/oblique.png",
+          "sha256": "2e3bf3e692129e99987799fed200990ad56bc12d7b8d463367fcfa9c61e32e0a"
+        },
+        {
+          "path": "test-results/generation-final-20261112/master-bedroom-2/evidence/top.png",
+          "sha256": "cc1aca82a4e0985d6e1e45f6d557c8028a459aec8102e1b120e100c57fa6cf78"
+        }
+      ]
+    },
+    {
+      "name": "guest-bedroom",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "e6bc3606-21b1-4a67-8a5f-8249c1e0b811",
+      "taskId": "94d9dff2-9526-4511-b0bd-51f37413438c",
+      "candidateId": "86803181-98b3-4121-acfe-621e8e8ec261",
+      "stats": {
+        "modelCalls": 9,
+        "modelCallsByRole": {
+          "main": 2,
+          "assets": 2,
+          "design": 3,
+          "check": 2
+        },
+        "renderCount": 2,
+        "repairCount": 0,
+        "fallbackCount": 0,
+        "stageSeconds": {
+          "reading": 0.033,
+          "policy": 0.002,
+          "understanding": 10,
+          "choosing_assets": 7.599,
+          "scoping": 0.099,
+          "designing": 55.853,
+          "prechecking": 0.158,
+          "rendering": 2.605,
+          "checking": 30.303,
+          "committing": 0.103
+        },
+        "activeSeconds": 106.758,
+        "fallbackEvents": []
+      },
+      "artifacts": {
+        "result.json": {
+          "path": "test-results/generation-final-20261112/guest-bedroom-1/result.json",
+          "sha256": "2d6ed3f75c9d37c9fb685c9ca6c89f6529badd82d353ee11c39cac8a07245290"
+        },
+        "task.json": {
+          "path": "test-results/generation-final-20261112/guest-bedroom-1/task.json",
+          "sha256": "837d61b6349dbf5d25ff5ab14095f4409ac391c2831daf93026876122c1f2850"
+        },
+        "candidate.json": {
+          "path": "test-results/generation-final-20261112/guest-bedroom-1/candidate.json",
+          "sha256": "9bb0031ff7699efe469d715aac242f62271d5581ef2fcbf764766c956a1321e3"
+        },
+        "project-before.json": {
+          "path": "test-results/generation-final-20261112/guest-bedroom-1/project-before.json",
+          "sha256": "43cf241a3ecbd0d933d25c002b44f5d665acd2498971f1816b19035d421bb5bd"
+        },
+        "project-after.json": {
+          "path": "test-results/generation-final-20261112/guest-bedroom-1/project-after.json",
+          "sha256": "8fb7935d4edd7f12e7f11a1c11e2c036f762b5ce231a280ab1de88c108538fd5"
+        },
+        "trace.json": {
+          "path": "test-results/generation-final-20261112/guest-bedroom-1/trace.json",
+          "sha256": "63ac39a441b031f58a7596caf6ec065db2ef350065b88071641926164a709f7a"
+        }
+      },
+      "evidence": [
+        {
+          "path": "test-results/generation-final-20261112/guest-bedroom-1/evidence/oblique.png",
+          "sha256": "563fb0a512a45c20cb497bbd84ef27bf1446af0a4cc42d7e4a4ecbf5cf8d9595"
+        },
+        {
+          "path": "test-results/generation-final-20261112/guest-bedroom-1/evidence/top.png",
+          "sha256": "3c66542d60710206da7fea62d44ac939b238089ffed16cfe8a1d2675287ed907"
+        }
+      ]
+    },
+    {
+      "name": "guest-bedroom",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "e504d702-f365-4a24-aa83-e008f062db9c",
+      "taskId": "ba4a5876-b437-4214-b3c4-ff2b71f82c4a",
+      "candidateId": "d3d59779-156b-420b-9500-de6103b84c0c",
       "stats": {
         "modelCalls": 8,
         "modelCallsByRole": {
@@ -637,62 +777,62 @@
         "stageSeconds": {
           "reading": 0.031,
           "policy": 0.001,
-          "understanding": 6.881,
-          "choosing_assets": 7.139,
-          "scoping": 0.107,
-          "designing": 18.138,
-          "prechecking": 0.209,
-          "rendering": 4.962,
-          "checking": 14.064,
-          "committing": 0.152
+          "understanding": 5.714,
+          "choosing_assets": 9.423,
+          "scoping": 0.061,
+          "designing": 40.203,
+          "prechecking": 0.139,
+          "rendering": 2.993,
+          "checking": 19.717,
+          "committing": 0.118
         },
-        "activeSeconds": 51.688,
+        "activeSeconds": 78.404,
         "fallbackEvents": []
       },
       "artifacts": {
         "result.json": {
-          "path": "test-results/generation-final-20261112/master-bedroom-2/result.json",
-          "sha256": "a7e87644759fb1a0218aca06aa86b4dc34aa8d65c5b84f717fe5e64cb8e1e39c"
+          "path": "test-results/generation-final-20261112/guest-bedroom-2/result.json",
+          "sha256": "b11ec1aed87eaa2c756207b9aaa884f6d9cfd24c02fcb32ff7accb4fa2163644"
         },
         "task.json": {
-          "path": "test-results/generation-final-20261112/master-bedroom-2/task.json",
-          "sha256": "7c19783bad39117159a5e061d45afa05479b4eac151e9ffb1d991d623a73e236"
+          "path": "test-results/generation-final-20261112/guest-bedroom-2/task.json",
+          "sha256": "23b6cb16599ea00c9efb5360e06188094f660181786f05823675ccb0c18adec0"
         },
         "candidate.json": {
-          "path": "test-results/generation-final-20261112/master-bedroom-2/candidate.json",
-          "sha256": "8fd459ba7e31e0c7278420e2740b1ae5d69eaf52b39dbbd5a4260eb7e9c64651"
+          "path": "test-results/generation-final-20261112/guest-bedroom-2/candidate.json",
+          "sha256": "943242723322eb639a06cca2ae7308032f8f9e33730a31fe17f7b5fe6a6443ee"
         },
         "project-before.json": {
-          "path": "test-results/generation-final-20261112/master-bedroom-2/project-before.json",
-          "sha256": "fa013f2eca2027b1271ddbae4fb0640c4d66725857c3223f247c73102ef7ed6e"
+          "path": "test-results/generation-final-20261112/guest-bedroom-2/project-before.json",
+          "sha256": "5c412c4eafa317ba77f33ee0852710eac904f83c18693abdd53f1d61734c18b4"
         },
         "project-after.json": {
-          "path": "test-results/generation-final-20261112/master-bedroom-2/project-after.json",
-          "sha256": "2165241c67c5b27c4ed2d14c59a866e12a3a2e52ddfd272405d0c19234972121"
+          "path": "test-results/generation-final-20261112/guest-bedroom-2/project-after.json",
+          "sha256": "96dd6a6e184b2f58317469c6ce1ef1ea0f68b1b0d8db36f8271edf247d2dfa3b"
         },
         "trace.json": {
-          "path": "test-results/generation-final-20261112/master-bedroom-2/trace.json",
-          "sha256": "9df23b6b8e5c5c8a6a57b98b5c8019d61bbe8eb9ca6ea3d2ba726b703a2cbe29"
+          "path": "test-results/generation-final-20261112/guest-bedroom-2/trace.json",
+          "sha256": "f503b65be3fd548ef4004757af534c85ffabdf7e469030d334d527eeb9ab40b9"
         }
       },
       "evidence": [
         {
-          "path": "test-results/generation-final-20261112/master-bedroom-2/evidence/oblique.png",
-          "sha256": "aa77fada259ed2895793cc09a5c7b9f71332f306f48a31cf5c41ad771cf824e0"
+          "path": "test-results/generation-final-20261112/guest-bedroom-2/evidence/oblique.png",
+          "sha256": "c1b468377af8d4078642480cc72eca06eb4330cd71e557296a5ecfc6cc57b23c"
         },
         {
-          "path": "test-results/generation-final-20261112/master-bedroom-2/evidence/top.png",
-          "sha256": "5939469f6b53bcb9f6c3ddf9e2e7daee459b10bf6a490bcc87fce8929885ecdc"
+          "path": "test-results/generation-final-20261112/guest-bedroom-2/evidence/top.png",
+          "sha256": "7250c04518bbaf6bd7a05abe3c695507a103388b838610897296a596a8a2e933"
         }
       ]
     },
     {
-      "name": "guest-bedroom",
+      "name": "study",
       "repeat": 1,
       "status": "passed",
-      "projectId": "6302524f-6a61-4758-9370-d54fab47d4cb",
-      "taskId": "e2665bd8-0b86-472c-b960-d0ef1dc7f734",
-      "candidateId": "25e06b8d-1e94-43bb-81e9-16429fd9a561",
+      "projectId": "c2e14222-b4cf-4977-b6ef-42d245adb205",
+      "taskId": "cfb52bd5-343f-4423-b2ef-4838ce222415",
+      "candidateId": "c3a250f7-b0e5-4f47-8a0e-a8af7035bae4",
       "stats": {
         "modelCalls": 9,
         "modelCallsByRole": {
@@ -705,69 +845,139 @@
         "repairCount": 0,
         "fallbackCount": 0,
         "stageSeconds": {
-          "reading": 0.048,
-          "policy": 0.008,
-          "understanding": 8.383,
-          "choosing_assets": 13.666,
-          "scoping": 0.216,
-          "designing": 51.875,
-          "prechecking": 0.162,
-          "rendering": 3.722,
-          "checking": 18.821,
-          "committing": 0.202
+          "reading": 0.024,
+          "policy": 0.001,
+          "understanding": 6.706,
+          "choosing_assets": 4.914,
+          "scoping": 0.079,
+          "designing": 20.362,
+          "prechecking": 0.158,
+          "rendering": 3.169,
+          "checking": 20.027,
+          "committing": 0.068
         },
-        "activeSeconds": 97.118,
+        "activeSeconds": 55.512,
         "fallbackEvents": []
       },
       "artifacts": {
         "result.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-1/result.json",
-          "sha256": "71950dad0f82ca218965698ee4eba28fc42c6a344b2ad7a46ac0b899e81096c2"
+          "path": "test-results/generation-final-20261112/study-1/result.json",
+          "sha256": "93513632ab4ab0f555b630df370c7482178278fcba777e44e7aaecef1d371205"
         },
         "task.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-1/task.json",
-          "sha256": "6c9972849f48b618ce475f89ff08a8f7718687a3b622a7399d87d3bfc47c5d87"
+          "path": "test-results/generation-final-20261112/study-1/task.json",
+          "sha256": "d4af2a8ddea443433354a9a806404bafceb84f3316caec1363e5915125d0765d"
         },
         "candidate.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-1/candidate.json",
-          "sha256": "47f36e13ec3c0f6fc4bfdafd9b990878470315bb4bc6bb341bff25638c3658c7"
+          "path": "test-results/generation-final-20261112/study-1/candidate.json",
+          "sha256": "225d61fd710080e0195626aee7410db2eb8b819601237554cde1ae665be0910b"
         },
         "project-before.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-1/project-before.json",
-          "sha256": "7c920f467f75afa1e99bf2641810536546190662d720bec6f8d355121229768a"
+          "path": "test-results/generation-final-20261112/study-1/project-before.json",
+          "sha256": "9fce11bf5343200e1acc2ac151532b32d4cf24b3aeb067aa53f7479d272b9088"
         },
         "project-after.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-1/project-after.json",
-          "sha256": "f20529cb07dc49dd7a4c0483bca4257800ac642f5a16b4a5e3e0d600c63e8a91"
+          "path": "test-results/generation-final-20261112/study-1/project-after.json",
+          "sha256": "321b1e26dbc698ac8e13d4eae917fabdaca8ec9a0d0774742dc44f780b27f994"
         },
         "trace.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-1/trace.json",
-          "sha256": "ac347ef87acb0d5802cfab246d2789d5e3d13a4828915958d48a012c43e5014b"
+          "path": "test-results/generation-final-20261112/study-1/trace.json",
+          "sha256": "8902f5ee43d8cdf2c87e9fb98f9508fcda6c2f76ec192908801c2be092d28596"
         }
       },
       "evidence": [
         {
-          "path": "test-results/generation-final-20261112/guest-bedroom-1/evidence/oblique.png",
-          "sha256": "872ef8812e5d04b395bc5fbe29971ce2338a6c6a9effa742d0b0822a888e237a"
+          "path": "test-results/generation-final-20261112/study-1/evidence/oblique.png",
+          "sha256": "eca0962911b7a003d980a8a6cb725a6232948a481cf16278f2fd71abb125d2ff"
         },
         {
-          "path": "test-results/generation-final-20261112/guest-bedroom-1/evidence/top.png",
-          "sha256": "f7ff4bf72e17b6babac308c8850588717a555add1479d6c4e39d0298a6756892"
+          "path": "test-results/generation-final-20261112/study-1/evidence/top.png",
+          "sha256": "9ce8309b24dd90a56adf333b83754ba6aa23bb9ad3ccab20bdd84f1e514e19c9"
         }
       ]
     },
     {
-      "name": "guest-bedroom",
+      "name": "study",
       "repeat": 2,
       "status": "passed",
-      "projectId": "fde1650b-5141-4713-801f-15bf991a49da",
-      "taskId": "02e3272e-47df-4a58-9896-2149ec360ee0",
-      "candidateId": "a441acb0-8ac2-4dba-a721-993de84ea916",
+      "projectId": "83a9fe89-f7ef-4389-bccd-3c5f34b9ecea",
+      "taskId": "32b5e4a8-c9b9-4d61-8542-a4157169d97e",
+      "candidateId": "f938c802-0050-4e25-8fff-19958bf575aa",
       "stats": {
-        "modelCalls": 11,
+        "modelCalls": 8,
         "modelCallsByRole": {
           "main": 2,
-          "assets": 3,
+          "assets": 2,
+          "design": 2,
+          "check": 2
+        },
+        "renderCount": 2,
+        "repairCount": 0,
+        "fallbackCount": 0,
+        "stageSeconds": {
+          "reading": 0.023,
+          "policy": 0.001,
+          "understanding": 6.147,
+          "choosing_assets": 5.971,
+          "scoping": 0.105,
+          "designing": 22.666,
+          "prechecking": 0.15,
+          "rendering": 2.457,
+          "checking": 22.659,
+          "committing": 0.092
+        },
+        "activeSeconds": 60.275,
+        "fallbackEvents": []
+      },
+      "artifacts": {
+        "result.json": {
+          "path": "test-results/generation-final-20261112/study-2/result.json",
+          "sha256": "9f14dfa918938a81a4738534f80500e7044e9d917b668b3a8303573daea4fee9"
+        },
+        "task.json": {
+          "path": "test-results/generation-final-20261112/study-2/task.json",
+          "sha256": "5086c33b5d94facb15faf6c494a3c5ce9437e0e45d4b0511e09d9e2a382322d9"
+        },
+        "candidate.json": {
+          "path": "test-results/generation-final-20261112/study-2/candidate.json",
+          "sha256": "b713eb0ecf40739202907d01ff495e2478f00940a5a447f98d8da3b29756941b"
+        },
+        "project-before.json": {
+          "path": "test-results/generation-final-20261112/study-2/project-before.json",
+          "sha256": "e3b71346f24540e9edc194837dd5e00df93dbcd19d4519e372e14fb399de8397"
+        },
+        "project-after.json": {
+          "path": "test-results/generation-final-20261112/study-2/project-after.json",
+          "sha256": "ca3bfff9e2faa714627825b2b02c64bed2e4df5aad7e1c0349e906d23beeb304"
+        },
+        "trace.json": {
+          "path": "test-results/generation-final-20261112/study-2/trace.json",
+          "sha256": "086bc572c68ef6c74b82a8a9b09633233fd6e017087725b0a25db7cc658949c7"
+        }
+      },
+      "evidence": [
+        {
+          "path": "test-results/generation-final-20261112/study-2/evidence/oblique.png",
+          "sha256": "60cbc9e6e0c1f4e4024452e0890d0433af600817e9006e850c65ae538ed5922a"
+        },
+        {
+          "path": "test-results/generation-final-20261112/study-2/evidence/top.png",
+          "sha256": "261bc8f21f6c318a9163d1d55373ecf8ed1bf2e91b32cb4700d323a46bff4697"
+        }
+      ]
+    },
+    {
+      "name": "kitchen",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "d73da61e-94f0-48e0-96f4-94b79a761fad",
+      "taskId": "881cf7d6-bc4d-4dae-8ffd-83fa5669be53",
+      "candidateId": "e6562aa9-3855-49d5-a3c7-429dca875a81",
+      "stats": {
+        "modelCalls": 10,
+        "modelCallsByRole": {
+          "main": 2,
+          "assets": 2,
           "design": 4,
           "check": 2
         },
@@ -775,264 +985,54 @@
         "repairCount": 0,
         "fallbackCount": 0,
         "stageSeconds": {
-          "reading": 0.021,
-          "policy": 0.001,
-          "understanding": 6.648,
-          "choosing_assets": 12.891,
-          "scoping": 0.104,
-          "designing": 29.957,
-          "prechecking": 0.204,
-          "rendering": 4.882,
-          "checking": 37.343,
-          "committing": 0.102
+          "reading": 0.027,
+          "policy": 0.004,
+          "understanding": 6.701,
+          "choosing_assets": 3.065,
+          "scoping": 0.056,
+          "designing": 28.886,
+          "prechecking": 0.159,
+          "rendering": 2.967,
+          "checking": 40.197,
+          "committing": 0.052
         },
-        "activeSeconds": 92.157,
-        "fallbackEvents": []
-      },
-      "artifacts": {
-        "result.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-2/result.json",
-          "sha256": "062c75dfe014077de16ddd341c4e32145307d5412b6c6124061c0f10b9e4d6cd"
-        },
-        "task.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-2/task.json",
-          "sha256": "431ca7a0ff90a04ab379d5e9c177b53dd3ad7ea4d1f2b122625ad51a74a922df"
-        },
-        "candidate.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-2/candidate.json",
-          "sha256": "45b4c6c620a2051ca8fcb8b2b75ccee941956d3ab814353e95e41ecd2c823ed9"
-        },
-        "project-before.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-2/project-before.json",
-          "sha256": "7246fbd01837a48c8e28ff8e36f8cbd4e4e3d32d2465dcd36d829c479e9778a4"
-        },
-        "project-after.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-2/project-after.json",
-          "sha256": "3fea2cd8c6c87db722457baa4d49acb83ada0266b4cc31abb62d738855c8ca02"
-        },
-        "trace.json": {
-          "path": "test-results/generation-final-20261112/guest-bedroom-2/trace.json",
-          "sha256": "1318279708f3152ffd2589d8398d466ea7779b418df974c32bee55a97c47ca8f"
-        }
-      },
-      "evidence": [
-        {
-          "path": "test-results/generation-final-20261112/guest-bedroom-2/evidence/oblique.png",
-          "sha256": "8cb36a8d198f790393cf2760ddbc2cdcf721a7b59af731494c84252ef29e70f1"
-        },
-        {
-          "path": "test-results/generation-final-20261112/guest-bedroom-2/evidence/top.png",
-          "sha256": "b43f0261945db3f0dcfec3c18d59ab52eab7514e83ec174a165c09312dc26e43"
-        }
-      ]
-    },
-    {
-      "name": "study",
-      "repeat": 1,
-      "status": "passed",
-      "projectId": "0a4cbdf6-9896-49f2-9f5f-80d1e00f32dc",
-      "taskId": "0e10d4a2-c0a3-42f0-b761-03698908970a",
-      "candidateId": "4c7a8700-e729-42b6-8b0f-99ea5f35f07f",
-      "stats": {
-        "modelCalls": 8,
-        "modelCallsByRole": {
-          "main": 2,
-          "assets": 2,
-          "design": 2,
-          "check": 2
-        },
-        "renderCount": 2,
-        "repairCount": 0,
-        "fallbackCount": 0,
-        "stageSeconds": {
-          "reading": 0.026,
-          "policy": 0.002,
-          "understanding": 6.076,
-          "choosing_assets": 4.611,
-          "scoping": 0.097,
-          "designing": 21.882,
-          "prechecking": 0.11,
-          "rendering": 2.613,
-          "checking": 16.104,
-          "committing": 0.124
-        },
-        "activeSeconds": 51.647,
-        "fallbackEvents": []
-      },
-      "artifacts": {
-        "result.json": {
-          "path": "test-results/generation-final-20261112/study-1/result.json",
-          "sha256": "c75f94e086716bdaa51fd89c8915fda1e5c022176b62805b2b4b3136f204035a"
-        },
-        "task.json": {
-          "path": "test-results/generation-final-20261112/study-1/task.json",
-          "sha256": "734a3a8ff353fe0c92c31ff4c8e691f865707e67da90705988b617b3d9ff0e0c"
-        },
-        "candidate.json": {
-          "path": "test-results/generation-final-20261112/study-1/candidate.json",
-          "sha256": "f3c8111aa476247f1102ea230ddf7a260df06c60d45a5ce5332829e727bb04ef"
-        },
-        "project-before.json": {
-          "path": "test-results/generation-final-20261112/study-1/project-before.json",
-          "sha256": "3c332d7d0e9dbd0f03fd2b3233a47ad42b492ef718d75fa20b70b5af8654771a"
-        },
-        "project-after.json": {
-          "path": "test-results/generation-final-20261112/study-1/project-after.json",
-          "sha256": "725e31f164fd2690374aa25e81fa53f2e8ed78d7f26f1c7795bdd61dd562f290"
-        },
-        "trace.json": {
-          "path": "test-results/generation-final-20261112/study-1/trace.json",
-          "sha256": "1da7c4c79edf46ff22aba727ccd62e19d19ef205193c8ba2d172df3fe562a9df"
-        }
-      },
-      "evidence": [
-        {
-          "path": "test-results/generation-final-20261112/study-1/evidence/oblique.png",
-          "sha256": "9537e139a2126ecd5d64b872f516f47a5837933b380cc4c7d23a48ee5ca50eb1"
-        },
-        {
-          "path": "test-results/generation-final-20261112/study-1/evidence/top.png",
-          "sha256": "2419e4005d007292d0c0eb445e4aa2755e6d0faad2f5aa2ac1fa6b0570b88d23"
-        }
-      ]
-    },
-    {
-      "name": "study",
-      "repeat": 2,
-      "status": "passed",
-      "projectId": "edfcd156-ea65-4eb2-a128-af35f30921c8",
-      "taskId": "3de1bcdc-9a55-4345-bd2f-44f18924273b",
-      "candidateId": "5c788ee6-c86d-4a85-b67f-2d393dfec1ec",
-      "stats": {
-        "modelCalls": 8,
-        "modelCallsByRole": {
-          "main": 2,
-          "assets": 2,
-          "design": 2,
-          "check": 2
-        },
-        "renderCount": 2,
-        "repairCount": 0,
-        "fallbackCount": 0,
-        "stageSeconds": {
-          "reading": 0.032,
-          "policy": 0.002,
-          "understanding": 6.516,
-          "choosing_assets": 3.988,
-          "scoping": 0.07,
-          "designing": 17.587,
-          "prechecking": 0.13,
-          "rendering": 3.187,
-          "checking": 22.896,
-          "committing": 0.121
-        },
-        "activeSeconds": 54.532,
-        "fallbackEvents": []
-      },
-      "artifacts": {
-        "result.json": {
-          "path": "test-results/generation-final-20261112/study-2/result.json",
-          "sha256": "1b74751e80470a3cad9fc6362c7edc827447ffe2cc3eec6ae3cb5ceedf50f7b1"
-        },
-        "task.json": {
-          "path": "test-results/generation-final-20261112/study-2/task.json",
-          "sha256": "72b7a9ab9fde54996dcd62527b1bd77d4b4fc1fa8eb15fe3d6ef9404a8aeb9d8"
-        },
-        "candidate.json": {
-          "path": "test-results/generation-final-20261112/study-2/candidate.json",
-          "sha256": "2649f02d3bde63583df80afc8fba18cc80b03c397955e31b58a0d0d327c1376a"
-        },
-        "project-before.json": {
-          "path": "test-results/generation-final-20261112/study-2/project-before.json",
-          "sha256": "f8d27ece081cf77c9a6519eded7939ac4a12d8ca1339923dde197643b5454d26"
-        },
-        "project-after.json": {
-          "path": "test-results/generation-final-20261112/study-2/project-after.json",
-          "sha256": "242a2984de886119c6b86b10c99dd647a7251d11882706408aa938989604ed3f"
-        },
-        "trace.json": {
-          "path": "test-results/generation-final-20261112/study-2/trace.json",
-          "sha256": "19cbe844de254e79829db6b9375352e1b63c2e6180b45de9660362a8137363bc"
-        }
-      },
-      "evidence": [
-        {
-          "path": "test-results/generation-final-20261112/study-2/evidence/oblique.png",
-          "sha256": "67508558db34a21384c51d052ca55efc940819be5a4f3d576ccfd557513c5d48"
-        },
-        {
-          "path": "test-results/generation-final-20261112/study-2/evidence/top.png",
-          "sha256": "c218b48cda6d4162d3da9b7bd0e9825a808d08251107d61cc55dc89d836df7e0"
-        }
-      ]
-    },
-    {
-      "name": "kitchen",
-      "repeat": 1,
-      "status": "passed",
-      "projectId": "2f64c201-4778-4b5b-a731-ca345eee2f10",
-      "taskId": "80562669-fc10-45e0-91c3-cb2f38dc5fc3",
-      "candidateId": "fc7cb304-00dc-406e-8cd4-3c3ec675c101",
-      "stats": {
-        "modelCalls": 9,
-        "modelCallsByRole": {
-          "main": 2,
-          "assets": 2,
-          "design": 3,
-          "check": 2
-        },
-        "renderCount": 2,
-        "repairCount": 0,
-        "fallbackCount": 0,
-        "stageSeconds": {
-          "reading": 0.041,
-          "policy": 0.006,
-          "understanding": 6.07,
-          "choosing_assets": 3.169,
-          "scoping": 0.058,
-          "designing": 23.289,
-          "prechecking": 0.158,
-          "rendering": 3.618,
-          "checking": 17.557,
-          "committing": 0.101
-        },
-        "activeSeconds": 54.079,
+        "activeSeconds": 82.115,
         "fallbackEvents": []
       },
       "artifacts": {
         "result.json": {
           "path": "test-results/generation-final-20261112/kitchen-1/result.json",
-          "sha256": "430eed9c3a76e1f52a124ac02a3339d655835d9c67d52410529d3951a5ae2b42"
+          "sha256": "e360e1f81bedc771905695d75640ea38e2b49e2b8bf76422269312abf6e20c45"
         },
         "task.json": {
           "path": "test-results/generation-final-20261112/kitchen-1/task.json",
-          "sha256": "2fccf1f8b29fcd932970e16828b3fc6b8243116b43af8ad9681d08741ce5bd6c"
+          "sha256": "92deaf29b8bd360db1742a17b1cc7f2539d2f7ee92b7ccb08ee47c2dd1bdbe80"
         },
         "candidate.json": {
           "path": "test-results/generation-final-20261112/kitchen-1/candidate.json",
-          "sha256": "c67db89e256c1b0fd7764912e7f153636359b137fef0fe80e9aa84ee85bd0b6c"
+          "sha256": "92891a3a8086a7a33a6ebdfaf56bbb1cc79544647950a025f44f7961b40fe5d3"
         },
         "project-before.json": {
           "path": "test-results/generation-final-20261112/kitchen-1/project-before.json",
-          "sha256": "d3b87480b030efe697da5d2203152189d502d689a8140438151ab8a030b52326"
+          "sha256": "e00dabd3551159aaa4502d47ef4947133602c468106ca8c5b35952d9196061b0"
         },
         "project-after.json": {
           "path": "test-results/generation-final-20261112/kitchen-1/project-after.json",
-          "sha256": "6efbbe7f8e147c7e16d4907758c6f61d09e8b4f2c31158b451fe8659bdc1347e"
+          "sha256": "b2ceafcbf0a0e839f576dca95be3d2b4268753836c9273786cd22e85c1af4f6e"
         },
         "trace.json": {
           "path": "test-results/generation-final-20261112/kitchen-1/trace.json",
-          "sha256": "138534ea6e24722862b0f11de3ae3bf2536467282a6a473c213fffe56561d615"
+          "sha256": "b9a7b566b690830f7d59027095c33ff6f7e6dbd7609a8c48a65f79bd4478c8d8"
         }
       },
       "evidence": [
         {
           "path": "test-results/generation-final-20261112/kitchen-1/evidence/oblique.png",
-          "sha256": "19b6c3ba9060187ca90ce3b9dd6aa451218373b7750f2bb4d58e2ad00b6312fd"
+          "sha256": "91f2e2bb72c21331535140809914bf03df6ab57b020c98e80bcdc7db4a141c45"
         },
         {
           "path": "test-results/generation-final-20261112/kitchen-1/evidence/top.png",
-          "sha256": "2c84f3e568ebc684ee712ae57de09a8bb397a7de44901dfb4fbef07c4730d7f0"
+          "sha256": "be73105f320fc2b5b17f232162941abc9859779ee339d75f81f83c58fbba3650"
         }
       ]
     },
@@ -1040,69 +1040,69 @@
       "name": "kitchen",
       "repeat": 2,
       "status": "passed",
-      "projectId": "9511e426-176b-4cdf-ba55-e05bb5d8116a",
-      "taskId": "012c482d-5af8-4077-ac35-4ee91ba5218f",
-      "candidateId": "c51bb4ad-052d-4ec3-915d-87ddcc6c6fa3",
+      "projectId": "85fdb1f0-d0b3-4bab-9b8a-b557487aedeb",
+      "taskId": "86e6e4a2-2299-42f9-b533-522a023e5bfc",
+      "candidateId": "0aa7347b-2aca-4e22-8298-8890266ad654",
       "stats": {
-        "modelCalls": 9,
+        "modelCalls": 10,
         "modelCallsByRole": {
           "main": 2,
           "assets": 2,
           "design": 3,
-          "check": 2
+          "check": 3
         },
         "renderCount": 2,
         "repairCount": 0,
         "fallbackCount": 0,
         "stageSeconds": {
-          "reading": 0.028,
+          "reading": 0.029,
           "policy": 0.002,
-          "understanding": 5.367,
-          "choosing_assets": 3.43,
-          "scoping": 0.072,
-          "designing": 24.663,
-          "prechecking": 0.143,
-          "rendering": 3.054,
-          "checking": 20.549,
-          "committing": 0.077
+          "understanding": 6.178,
+          "choosing_assets": 3.499,
+          "scoping": 0.09,
+          "designing": 25.045,
+          "prechecking": 0.148,
+          "rendering": 3.086,
+          "checking": 50.754,
+          "committing": 0.102
         },
-        "activeSeconds": 57.389,
+        "activeSeconds": 88.94,
         "fallbackEvents": []
       },
       "artifacts": {
         "result.json": {
           "path": "test-results/generation-final-20261112/kitchen-2/result.json",
-          "sha256": "2a01d0ba958ac5736df14cbb58668c6f33381b1dbd6dd157f0e9c7e7ac8bec4c"
+          "sha256": "e8c052ce8439eba5f4211d96b4e371f9b8de9b62a859cc229b193b170457ffc8"
         },
         "task.json": {
           "path": "test-results/generation-final-20261112/kitchen-2/task.json",
-          "sha256": "0c1b9e4a547d28a1c56428599313da865b9dd8d2209adc8f7c12f10a78853f36"
+          "sha256": "8723149160f0ef982f3d35cb16bebbdad2b4357e3a25253f7d3630616b6842f7"
         },
         "candidate.json": {
           "path": "test-results/generation-final-20261112/kitchen-2/candidate.json",
-          "sha256": "f2441bfede3b811415f5d88ec15c44830195348ae20ebe8f6c470e45033efc3c"
+          "sha256": "8f6239cd27b9af1111446c5ebc5f60cd48ba3a5d398237292ccaf4c8a688c4fd"
         },
         "project-before.json": {
           "path": "test-results/generation-final-20261112/kitchen-2/project-before.json",
-          "sha256": "9b12bfa90dc98a8d035d096fe7d823d41b81445f0ed636ef8f1f10eb4fe0e4e2"
+          "sha256": "96b80a92bfe0bc5f8be882ec64f3d22295e06d0e61b3bab67de1e4460f3c75a8"
         },
         "project-after.json": {
           "path": "test-results/generation-final-20261112/kitchen-2/project-after.json",
-          "sha256": "0da51d306cb7cf4beb0e36e4983431dcdf9f769a5ea50160fb27de7186e272f9"
+          "sha256": "54849fb43df1a5fb5fd2e9781dece05c772f091af32d7d6bbd74ef586a6bb77c"
         },
         "trace.json": {
           "path": "test-results/generation-final-20261112/kitchen-2/trace.json",
-          "sha256": "59229df4d21ceeb713f0b45ecb55d04a2ad668ec86982dcedc558a7318c74334"
+          "sha256": "d11f4c950f64f56b34188fe7e1e93b56833797a3442264813cb61d2e90df766a"
         }
       },
       "evidence": [
         {
           "path": "test-results/generation-final-20261112/kitchen-2/evidence/oblique.png",
-          "sha256": "8b7eb5548252f38b02721ae5702c23aedc8f88057ca10c8e14dd8c54f9efc5ca"
+          "sha256": "6111c7706b33980d04ec1cb9d81c58598076d6413a10ca839564fba917a20488"
         },
         {
           "path": "test-results/generation-final-20261112/kitchen-2/evidence/top.png",
-          "sha256": "0db79b0604125bddc1b83cd3a5733e5922fca79f4df8b29552106abebfcf2f16"
+          "sha256": "dd04f73340a3651e906d756f61d81afeaaf1adf79992c104350206cade2ce1bf"
         }
       ]
     },
@@ -1110,9 +1110,247 @@
       "name": "bathroom",
       "repeat": 1,
       "status": "passed",
-      "projectId": "a24f7ece-36e1-4312-88f2-c786cafd0627",
-      "taskId": "21f417f2-c990-45f9-b74a-6b4aca33a699",
-      "candidateId": "c8d52704-e633-4b10-bf8f-0bd55e917681",
+      "projectId": "09b9f1d1-ac85-47bd-8c8e-a3f81c2ec47a",
+      "taskId": "2c46861f-4436-41d7-a051-ecf92f00c24b",
+      "candidateId": "0a18ce3b-8987-46b2-a9ee-8f403033f7a8",
+      "stats": {
+        "modelCalls": 17,
+        "modelCallsByRole": {
+          "main": 2,
+          "assets": 2,
+          "design": 9,
+          "check": 4
+        },
+        "renderCount": 4,
+        "repairCount": 1,
+        "fallbackCount": 1,
+        "stageSeconds": {
+          "reading": 0.021,
+          "policy": 0.001,
+          "understanding": 5.841,
+          "choosing_assets": 3.701,
+          "scoping": 0.099,
+          "designing": 237.095,
+          "prechecking": 0.318,
+          "rendering": 4.859,
+          "checking": 65.708,
+          "repairing": 0.01,
+          "committing": 0.067
+        },
+        "activeSeconds": 317.722,
+        "fallbackEvents": [
+          {
+            "reason": "TaskError",
+            "code": "MODEL_FORMAT",
+            "message": "模型在一次格式恢复后仍未返回可验证的结构化结果",
+            "fallback": true,
+            "summary": "确定性兜底布局：bathroom",
+            "editCount": 3
+          }
+        ]
+      },
+      "artifacts": {
+        "result.json": {
+          "path": "test-results/generation-final-20261112/bathroom-1/result.json",
+          "sha256": "e450ff98a9fd5d6a5f4b98d5cc82fa07fbe4108c0ceb7a00849b522f62a75a13"
+        },
+        "task.json": {
+          "path": "test-results/generation-final-20261112/bathroom-1/task.json",
+          "sha256": "9f9e23602c0b00bb8255ccaeb263daba5702952f8561f0756f2c93154c6a9542"
+        },
+        "candidate.json": {
+          "path": "test-results/generation-final-20261112/bathroom-1/candidate.json",
+          "sha256": "a7f399bb23c4be128789e23b5aa8d01fdbd6e08d6b9385b8598c9be1f0ba3c32"
+        },
+        "project-before.json": {
+          "path": "test-results/generation-final-20261112/bathroom-1/project-before.json",
+          "sha256": "8731f4f48d2b7fba7516a899a7854c887d786c3376445faba24204a49871b392"
+        },
+        "project-after.json": {
+          "path": "test-results/generation-final-20261112/bathroom-1/project-after.json",
+          "sha256": "7a0931de62372a4b50dd153d4e44faa35a4e1319b1bd7b65fbec7bb43092d75c"
+        },
+        "trace.json": {
+          "path": "test-results/generation-final-20261112/bathroom-1/trace.json",
+          "sha256": "546dc2679fee668d1022b0135d098096c845290a29139d92b3b498db4c184c30"
+        }
+      },
+      "evidence": [
+        {
+          "path": "test-results/generation-final-20261112/bathroom-1/evidence/oblique.png",
+          "sha256": "05df7eb3833ad626afa433948f75b8b723f1f8beb0ef5e0701cd1860a62b31b2"
+        },
+        {
+          "path": "test-results/generation-final-20261112/bathroom-1/evidence/top.png",
+          "sha256": "0905706a0d21d6cb5d42ba8808832f8ef474b1581d55222b35f8e238cc23af94"
+        }
+      ]
+    },
+    {
+      "name": "bathroom",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "ee997ac5-75b3-4c0e-a807-7d9418800a31",
+      "taskId": "9f2b9ee7-142b-4312-ae2b-e4aa60a1e3be",
+      "candidateId": "6d0ad694-31fa-43a7-a98c-7f30b912a754",
+      "stats": {
+        "modelCalls": 24,
+        "modelCallsByRole": {
+          "main": 3,
+          "assets": 2,
+          "design": 12,
+          "check": 7
+        },
+        "renderCount": 6,
+        "repairCount": 2,
+        "fallbackCount": 2,
+        "stageSeconds": {
+          "reading": 0.017,
+          "policy": 0.001,
+          "understanding": 8.64,
+          "choosing_assets": 3.76,
+          "scoping": 0.078,
+          "designing": 356.133,
+          "prechecking": 0.406,
+          "rendering": 6.97,
+          "checking": 117.77,
+          "repairing": 0.011,
+          "committing": 0.061
+        },
+        "activeSeconds": 493.852,
+        "fallbackEvents": [
+          {
+            "reason": "TaskError",
+            "code": "MODEL_FORMAT",
+            "message": "模型在一次格式恢复后仍未返回可验证的结构化结果",
+            "fallback": true,
+            "summary": "确定性兜底布局：bathroom",
+            "editCount": 3
+          },
+          {
+            "reason": "TaskError",
+            "code": "MODEL_FORMAT",
+            "message": "模型在一次格式恢复后仍未返回可验证的结构化结果",
+            "fallback": true,
+            "summary": "确定性兜底布局：bathroom",
+            "editCount": 3
+          }
+        ]
+      },
+      "artifacts": {
+        "result.json": {
+          "path": "test-results/generation-final-20261112/bathroom-2/result.json",
+          "sha256": "990a67a727842ebe75171633f80512482cc4ef3690e16f388831a7c303ade8c8"
+        },
+        "task.json": {
+          "path": "test-results/generation-final-20261112/bathroom-2/task.json",
+          "sha256": "4ba0e5f820eb03888caa51e63a3913148f2afd1eddf340c1cc3c3ea86ebf7243"
+        },
+        "candidate.json": {
+          "path": "test-results/generation-final-20261112/bathroom-2/candidate.json",
+          "sha256": "53b60c8a8b971038289b2a858f295ffe23bb8462975d533edf2a1720177b2875"
+        },
+        "project-before.json": {
+          "path": "test-results/generation-final-20261112/bathroom-2/project-before.json",
+          "sha256": "ef8f5d6361bf3d5148de34a9b513c985bf22ef9a3d0909655d8b253c90481e2d"
+        },
+        "project-after.json": {
+          "path": "test-results/generation-final-20261112/bathroom-2/project-after.json",
+          "sha256": "bb5fc214355e2450a97741e1b0479064b2ff6c67f01d957c2170ce2d7a4ef8f4"
+        },
+        "trace.json": {
+          "path": "test-results/generation-final-20261112/bathroom-2/trace.json",
+          "sha256": "4736b816909f3a3fd2600f749d78a76d91a9ea03c1051f25ef91d77c7adf1053"
+        }
+      },
+      "evidence": [
+        {
+          "path": "test-results/generation-final-20261112/bathroom-2/evidence/oblique.png",
+          "sha256": "83ccf1b58a0d1f8719c6a455d81ebb2b7a824e89ca56ec2ecff0b861661f9345"
+        },
+        {
+          "path": "test-results/generation-final-20261112/bathroom-2/evidence/top.png",
+          "sha256": "52744aead544d4bd1e807007e02f80fd5c6462c8c0c647d8bfaef1d27f468c19"
+        }
+      ]
+    },
+    {
+      "name": "entry",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "29336c96-dbb1-4325-80de-a71dc111bd9f",
+      "taskId": "0a64866a-0299-48c5-9f41-20fddf8fc729",
+      "candidateId": "c1157321-c944-4486-b69a-486ed4c21fee",
+      "stats": {
+        "modelCalls": 8,
+        "modelCallsByRole": {
+          "main": 2,
+          "assets": 2,
+          "design": 2,
+          "check": 2
+        },
+        "renderCount": 2,
+        "repairCount": 0,
+        "fallbackCount": 0,
+        "stageSeconds": {
+          "reading": 0.023,
+          "policy": 0.001,
+          "understanding": 6.217,
+          "choosing_assets": 2.987,
+          "scoping": 0.089,
+          "designing": 15.397,
+          "prechecking": 0.112,
+          "rendering": 1.728,
+          "checking": 12.084,
+          "committing": 0.068
+        },
+        "activeSeconds": 38.71,
+        "fallbackEvents": []
+      },
+      "artifacts": {
+        "result.json": {
+          "path": "test-results/generation-final-20261112/entry-1/result.json",
+          "sha256": "50ed74293c85b4dd0097d73236270024f08eb842c7f306c6286faaf90856fb3e"
+        },
+        "task.json": {
+          "path": "test-results/generation-final-20261112/entry-1/task.json",
+          "sha256": "1ff5efca6dd5a28256151c6f8943573664944945ea4b70c8f5fec2646b7aa537"
+        },
+        "candidate.json": {
+          "path": "test-results/generation-final-20261112/entry-1/candidate.json",
+          "sha256": "6290c6cd2ee4a6af786b435797a6c400a69b9b39db34caebbba845a3e2cb1efb"
+        },
+        "project-before.json": {
+          "path": "test-results/generation-final-20261112/entry-1/project-before.json",
+          "sha256": "613efcb2593cdbe86368ba34f0717d1c441eb71d5b740bf6c5d39bf149e5bec6"
+        },
+        "project-after.json": {
+          "path": "test-results/generation-final-20261112/entry-1/project-after.json",
+          "sha256": "6d18068444152c5e5d5826467bd52f7ec0758dcaa7d3267a69db6504880e110e"
+        },
+        "trace.json": {
+          "path": "test-results/generation-final-20261112/entry-1/trace.json",
+          "sha256": "9607654a22e124936d314d19794e6fa5401653ba096b6ed78b37b1eeb1bc1694"
+        }
+      },
+      "evidence": [
+        {
+          "path": "test-results/generation-final-20261112/entry-1/evidence/oblique.png",
+          "sha256": "bd4460be19e6965ca20072eb21297c1d6365c473584ef6992337f560d8143f1d"
+        },
+        {
+          "path": "test-results/generation-final-20261112/entry-1/evidence/top.png",
+          "sha256": "8bb3d57cd8044ad947cf5755b2d4586cf2ab61817045eed5f145d60ee27194b6"
+        }
+      ]
+    },
+    {
+      "name": "entry",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "76899af7-e625-424f-a4ee-87bff9969be9",
+      "taskId": "daad6542-20b4-4670-b3e0-0e7ffce904a9",
+      "candidateId": "d271efea-3c3d-47ba-9c9a-b3e340341fdf",
       "stats": {
         "modelCalls": 9,
         "modelCallsByRole": {
@@ -1127,263 +1365,52 @@
         "stageSeconds": {
           "reading": 0.03,
           "policy": 0.002,
-          "understanding": 5.991,
-          "choosing_assets": 5.13,
-          "scoping": 0.112,
-          "designing": 84.206,
-          "prechecking": 0.097,
-          "rendering": 2.915,
-          "checking": 23.12,
-          "committing": 0.052
-        },
-        "activeSeconds": 121.658,
-        "fallbackEvents": []
-      },
-      "artifacts": {
-        "result.json": {
-          "path": "test-results/generation-final-20261112/bathroom-1/result.json",
-          "sha256": "605811532e6ea6467e6c87e6aee647dffb68d4c125c96c6483a72cdd90fc184b"
-        },
-        "task.json": {
-          "path": "test-results/generation-final-20261112/bathroom-1/task.json",
-          "sha256": "681353b93a3e19f438f228993064fc15a0be2995675753723b6f97b397d8e022"
-        },
-        "candidate.json": {
-          "path": "test-results/generation-final-20261112/bathroom-1/candidate.json",
-          "sha256": "395c2e4948fd2c4392c2681974b5acc6ba38d546dd3380c72a3228b59ccc58ac"
-        },
-        "project-before.json": {
-          "path": "test-results/generation-final-20261112/bathroom-1/project-before.json",
-          "sha256": "2f58f70a1dfa84a9276ae4a8df59aa9ef77bfe274180f0f8a70e2925db550de9"
-        },
-        "project-after.json": {
-          "path": "test-results/generation-final-20261112/bathroom-1/project-after.json",
-          "sha256": "f671448e1ef712230dd737714962fa7c8c95bf8628e3934abfe8765d91f6fa41"
-        },
-        "trace.json": {
-          "path": "test-results/generation-final-20261112/bathroom-1/trace.json",
-          "sha256": "414a12432cc3e30c6d7c599da2c35fa82663d8315a2ddd6861827dfe94973e1b"
-        }
-      },
-      "evidence": [
-        {
-          "path": "test-results/generation-final-20261112/bathroom-1/evidence/oblique.png",
-          "sha256": "72b0a169a13db329154053d61e50dade7e14995507224663010b87fee84037c6"
-        },
-        {
-          "path": "test-results/generation-final-20261112/bathroom-1/evidence/top.png",
-          "sha256": "997b1d384ce897e2e4475932cd0bb8778056f95a490afc8c9006cade452d56a4"
-        }
-      ]
-    },
-    {
-      "name": "bathroom",
-      "repeat": 2,
-      "status": "passed",
-      "projectId": "c6c9686d-4f75-4918-a5f4-7352ad8ab19f",
-      "taskId": "2827afd4-9ae7-46dd-845b-3e51e3892883",
-      "candidateId": "4f983f5e-2173-4fc8-9289-84289f175bef",
-      "stats": {
-        "modelCalls": 16,
-        "modelCallsByRole": {
-          "main": 2,
-          "assets": 2,
-          "design": 7,
-          "check": 5
-        },
-        "renderCount": 4,
-        "repairCount": 1,
-        "fallbackCount": 0,
-        "stageSeconds": {
-          "reading": 0.024,
-          "policy": 0.004,
-          "understanding": 6.382,
-          "choosing_assets": 4.857,
-          "scoping": 0.127,
-          "designing": 153.478,
-          "prechecking": 0.259,
-          "rendering": 7.133,
-          "checking": 82.873,
-          "repairing": 0.044,
-          "committing": 0.071
-        },
-        "activeSeconds": 255.257,
-        "fallbackEvents": []
-      },
-      "artifacts": {
-        "result.json": {
-          "path": "test-results/generation-final-20261112/bathroom-2/result.json",
-          "sha256": "dc8bc4dd77d9d676c6a93754e4bfa20fad488759590347adbb4fb3b1c6c8e8ad"
-        },
-        "task.json": {
-          "path": "test-results/generation-final-20261112/bathroom-2/task.json",
-          "sha256": "a608aa8c4abeea8c7590a771ca726e7c15d23fd36a05942507016cac98fe1642"
-        },
-        "candidate.json": {
-          "path": "test-results/generation-final-20261112/bathroom-2/candidate.json",
-          "sha256": "c779970a63b38a05ffceee891cbcfd9e8cb02befd37ae56ae02ff6391f5bb26e"
-        },
-        "project-before.json": {
-          "path": "test-results/generation-final-20261112/bathroom-2/project-before.json",
-          "sha256": "bea98f164a5e8f2a8bdabe84d7c8e8925c9079992454f0abb588020f0487498b"
-        },
-        "project-after.json": {
-          "path": "test-results/generation-final-20261112/bathroom-2/project-after.json",
-          "sha256": "daaecff1e206b8d06595d0d0715688a61c259b9d9a61194edd2e22a2a7de710b"
-        },
-        "trace.json": {
-          "path": "test-results/generation-final-20261112/bathroom-2/trace.json",
-          "sha256": "b709562cb77d055e347bf394e319b0586ff64220ba6072d0ea8278a25dc7638e"
-        }
-      },
-      "evidence": [
-        {
-          "path": "test-results/generation-final-20261112/bathroom-2/evidence/oblique.png",
-          "sha256": "edca85bfe136da4b2f5c24075cecedd2e69bbde51a8484c953ebb4fb41c7d5c3"
-        },
-        {
-          "path": "test-results/generation-final-20261112/bathroom-2/evidence/top.png",
-          "sha256": "80d6d692ddf2448f2868b974d17ef6f93608e7b2622e67d62a1c2dad84fac42f"
-        }
-      ]
-    },
-    {
-      "name": "entry",
-      "repeat": 1,
-      "status": "passed",
-      "projectId": "6e842730-b84f-4a65-a7e0-33cb2aaf73b3",
-      "taskId": "679fd0e2-7813-4d6c-8683-e138a8d7adfd",
-      "candidateId": "7e6dd8b8-8b7e-4604-ae8d-3184197f5ea7",
-      "stats": {
-        "modelCalls": 8,
-        "modelCallsByRole": {
-          "main": 2,
-          "assets": 2,
-          "design": 2,
-          "check": 2
-        },
-        "renderCount": 2,
-        "repairCount": 0,
-        "fallbackCount": 0,
-        "stageSeconds": {
-          "reading": 0.036,
-          "policy": 0.019,
-          "understanding": 7.311,
-          "choosing_assets": 3.301,
-          "scoping": 0.094,
-          "designing": 16.416,
-          "prechecking": 0.116,
-          "rendering": 2.422,
-          "checking": 16.907,
-          "committing": 0.068
-        },
-        "activeSeconds": 46.693,
-        "fallbackEvents": []
-      },
-      "artifacts": {
-        "result.json": {
-          "path": "test-results/generation-final-20261112/entry-1/result.json",
-          "sha256": "47e8a41a762ed7856d430505cbbacb820e878a7e23d092ddfb3ac3535f42904d"
-        },
-        "task.json": {
-          "path": "test-results/generation-final-20261112/entry-1/task.json",
-          "sha256": "ea998de6705c5fafb12434bbd9c83ebdf4ce49f80c92443d0307dd6d2d99eff1"
-        },
-        "candidate.json": {
-          "path": "test-results/generation-final-20261112/entry-1/candidate.json",
-          "sha256": "bfae50cf4f36ea0e81e4a0d87e3037e9e501819137edec3d8ad1fd47d973239d"
-        },
-        "project-before.json": {
-          "path": "test-results/generation-final-20261112/entry-1/project-before.json",
-          "sha256": "dd916c52369b0b62a37fb072587351adefd0d9378b61ceb9b8952a0e9163b11c"
-        },
-        "project-after.json": {
-          "path": "test-results/generation-final-20261112/entry-1/project-after.json",
-          "sha256": "1ffa7ad7602ea0449c5bce4afecb09fae582f92b98674a18f63565e666a1b477"
-        },
-        "trace.json": {
-          "path": "test-results/generation-final-20261112/entry-1/trace.json",
-          "sha256": "c471cbee7563e7053cc973ff2b9708df499ab4fa9f47450c4dd886169d11a598"
-        }
-      },
-      "evidence": [
-        {
-          "path": "test-results/generation-final-20261112/entry-1/evidence/oblique.png",
-          "sha256": "cb410d5eee675fc8dc715aa2a59f6915b2039ab24ae94c4aaaa99ae8c05c78d1"
-        },
-        {
-          "path": "test-results/generation-final-20261112/entry-1/evidence/top.png",
-          "sha256": "c7e4ff87ac60596e826e3ef7ed8f625921d099eca91f1051619ac31d52c8b867"
-        }
-      ]
-    },
-    {
-      "name": "entry",
-      "repeat": 2,
-      "status": "passed",
-      "projectId": "cb2ce087-8fb6-4f1f-91c1-c1dd5c0399b6",
-      "taskId": "2fd02699-f7e4-4c64-9264-016a99c03ea8",
-      "candidateId": "ffaa0735-4fd0-4e9c-812e-7ff984c8108d",
-      "stats": {
-        "modelCalls": 9,
-        "modelCallsByRole": {
-          "main": 2,
-          "assets": 2,
-          "design": 3,
-          "check": 2
-        },
-        "renderCount": 2,
-        "repairCount": 0,
-        "fallbackCount": 0,
-        "stageSeconds": {
-          "reading": 0.043,
-          "policy": 0.001,
-          "understanding": 5.625,
-          "choosing_assets": 3.649,
+          "understanding": 5.896,
+          "choosing_assets": 4.217,
           "scoping": 0.081,
-          "designing": 17.317,
-          "prechecking": 0.102,
-          "rendering": 3.248,
-          "checking": 20.226,
-          "committing": 0.095
+          "designing": 28.853,
+          "prechecking": 0.108,
+          "rendering": 2.086,
+          "checking": 12.222,
+          "committing": 0.078
         },
-        "activeSeconds": 50.389,
+        "activeSeconds": 53.577,
         "fallbackEvents": []
       },
       "artifacts": {
         "result.json": {
           "path": "test-results/generation-final-20261112/entry-2/result.json",
-          "sha256": "279b29713effb542b2270796538bb495292509c379db23f391c3bda5c2c87bbb"
+          "sha256": "c498ecfd850a70aba0cfda0f538aef41c091fad558a3abda38de58ebea86e0c1"
         },
         "task.json": {
           "path": "test-results/generation-final-20261112/entry-2/task.json",
-          "sha256": "b79c43a77b269313fc9415bdb250857f356b3cc46f1ab51c716477f8f79f899f"
+          "sha256": "063bf26cd04d34c97c0d77ad8ad020cf1dca6185977f39d0ae070a302c74910e"
         },
         "candidate.json": {
           "path": "test-results/generation-final-20261112/entry-2/candidate.json",
-          "sha256": "612eae94386074456ddcdb18ed9baed90d902132a4353ed33a196447a35ddaba"
+          "sha256": "d83582ffc7b8d891b441693b11f9b87c3c3101ec21824dfc1fa5774d9bf6b60f"
         },
         "project-before.json": {
           "path": "test-results/generation-final-20261112/entry-2/project-before.json",
-          "sha256": "dd934d84f934594eced013520509c00548814e37fdfd1304f4b278c4b9f738f5"
+          "sha256": "44e6aa29eaf2c6a054f31baeb26ab0488d57add8bd455b7e546f378412050cd6"
         },
         "project-after.json": {
           "path": "test-results/generation-final-20261112/entry-2/project-after.json",
-          "sha256": "e01e441ba03ba9b927e53978edaedd54f8ad6d631fa5a193be8a7f224309c4c8"
+          "sha256": "5d22fc512840f40c0c5911005b0c1d4eac63d33fd1a5065360d3a480d0104ab6"
         },
         "trace.json": {
           "path": "test-results/generation-final-20261112/entry-2/trace.json",
-          "sha256": "c08a072e3db72698fe4dbb85f297dcd735c0b9d88d9e25767bf875b9717dc989"
+          "sha256": "4b79c0b5c69ce01671974eb07fa701feb0412ef0ee97bcb54a56ddf80a3d6178"
         }
       },
       "evidence": [
         {
           "path": "test-results/generation-final-20261112/entry-2/evidence/oblique.png",
-          "sha256": "742c47d6bd93f1466c56a675759502549e023467d848601be30a6e02b1e83190"
+          "sha256": "bd4460be19e6965ca20072eb21297c1d6365c473584ef6992337f560d8143f1d"
         },
         {
           "path": "test-results/generation-final-20261112/entry-2/evidence/top.png",
-          "sha256": "c3c69dc737ce743bd2fb8b525966e2acf224b9d9b3c1e59261b8a09108294c0d"
+          "sha256": "8bb3d57cd8044ad947cf5755b2d4586cf2ab61817045eed5f145d60ee27194b6"
         }
       ]
     },
@@ -1391,69 +1418,69 @@
       "name": "corridor",
       "repeat": 1,
       "status": "passed",
-      "projectId": "be8d138f-bb25-453e-af72-18bc97be17d5",
-      "taskId": "659f2687-941d-4a3f-932c-e88aa76b9019",
-      "candidateId": "77e3f6c6-110c-448d-8b01-b725b562e953",
+      "projectId": "0c199871-003b-4c23-9eed-5d5822ac7e47",
+      "taskId": "b5a6a7f3-605e-4c07-b95f-94375458587f",
+      "candidateId": "5971a730-38dc-469e-aae3-d0d54cfe64d5",
       "stats": {
-        "modelCalls": 8,
+        "modelCalls": 9,
         "modelCallsByRole": {
           "main": 2,
           "assets": 2,
           "design": 2,
-          "check": 2
+          "check": 3
         },
         "renderCount": 2,
         "repairCount": 0,
         "fallbackCount": 0,
         "stageSeconds": {
-          "reading": 0.077,
-          "policy": 0.006,
-          "understanding": 5.381,
-          "choosing_assets": 3.539,
-          "scoping": 0.113,
-          "designing": 13.969,
-          "prechecking": 0.103,
-          "rendering": 3.009,
-          "checking": 22.376,
-          "committing": 0.123
+          "reading": 0.026,
+          "policy": 0.001,
+          "understanding": 6.177,
+          "choosing_assets": 3.847,
+          "scoping": 0.052,
+          "designing": 18.216,
+          "prechecking": 0.136,
+          "rendering": 2.511,
+          "checking": 17.617,
+          "committing": 0.063
         },
-        "activeSeconds": 48.704,
+        "activeSeconds": 48.652,
         "fallbackEvents": []
       },
       "artifacts": {
         "result.json": {
           "path": "test-results/generation-final-20261112/corridor-1/result.json",
-          "sha256": "9491456eb48c44490d8a184ce617679ecabc6b888f9df4fbc177c19085fbe0ea"
+          "sha256": "d42ac4091c296d1718e0d4e7abd26ddc515b341ea979457f95a2b4ebc3b5af4a"
         },
         "task.json": {
           "path": "test-results/generation-final-20261112/corridor-1/task.json",
-          "sha256": "2bbec3bc1192c798d2ee55bef820d8a7126a5da2b5123fc67e99fbd20f83b2a9"
+          "sha256": "18e2686f0dc40c64fe0a714402d51d49d0cfb768805bdd3eacb91eaabe73a261"
         },
         "candidate.json": {
           "path": "test-results/generation-final-20261112/corridor-1/candidate.json",
-          "sha256": "d0bfbd28295719bb3a38261ad1dcc317805355569a53a6bc9e409e20d9389f38"
+          "sha256": "83f99247e92191a59f08ac21af5c645b3ae2690d7ac9a2df0b9fc30c082b1517"
         },
         "project-before.json": {
           "path": "test-results/generation-final-20261112/corridor-1/project-before.json",
-          "sha256": "25b5eac705d90c5cda4aa87c73ed24658f66663f266de094d7f57c3b34ad4c78"
+          "sha256": "d72940e63879dbbc882664303adf4d4f926476d732319d61a9f9d27e9f81b810"
         },
         "project-after.json": {
           "path": "test-results/generation-final-20261112/corridor-1/project-after.json",
-          "sha256": "f161ed88d099951ecf9515af01887877b2b2d3d7654ffdfbccc59897cfbb9487"
+          "sha256": "8af7b347fe37cec4c028925231d49fd0c047fafe887717a712f975ec64cc5f09"
         },
         "trace.json": {
           "path": "test-results/generation-final-20261112/corridor-1/trace.json",
-          "sha256": "03d27b0c50baefcb54dca2724247ab4a803a39f80292e14bf8121c717592d025"
+          "sha256": "b024c52f465c9a6e12544489b92c6a908a5794720717a21140fb96b98c7e9eb6"
         }
       },
       "evidence": [
         {
           "path": "test-results/generation-final-20261112/corridor-1/evidence/oblique.png",
-          "sha256": "33aa7e158fdd4cc595f730ff1de84ea19ddd0260748acf43fb67feb1dd65ec18"
+          "sha256": "8376b5e2994dbe1fecf574820ee1e2060f58d4bece36f5a46960bbb06116d43d"
         },
         {
           "path": "test-results/generation-final-20261112/corridor-1/evidence/top.png",
-          "sha256": "a105a9f71b48e4a6491b7ef6075cb0aa490a715f7a4256ccac798b23187406ea"
+          "sha256": "a80268655ee3793ec95f5cd5728118bb6d499ea90cacba7820a3c3f3b37c1e33"
         }
       ]
     },
@@ -1461,9 +1488,9 @@
       "name": "corridor",
       "repeat": 2,
       "status": "passed",
-      "projectId": "7db5f19d-1a4a-40f3-9eee-ba42933f6f6b",
-      "taskId": "a0ff1381-1819-42b7-b2bd-c50efc4cd311",
-      "candidateId": "4cd128d6-a0de-4462-8d08-1c8c143e1095",
+      "projectId": "a5009dad-c2b6-4462-8038-6788ecd016db",
+      "taskId": "1abd0fd6-e559-4789-b017-1078c43c15fd",
+      "candidateId": "201aa262-6e20-4ac4-9f8b-5177739ba934",
       "stats": {
         "modelCalls": 8,
         "modelCallsByRole": {
@@ -1476,54 +1503,54 @@
         "repairCount": 0,
         "fallbackCount": 0,
         "stageSeconds": {
-          "reading": 0.098,
-          "policy": 0.002,
-          "understanding": 6.89,
-          "choosing_assets": 3.395,
-          "scoping": 0.115,
-          "designing": 22.817,
-          "prechecking": 0.2,
-          "rendering": 4.448,
-          "checking": 11.454,
-          "committing": 0.117
+          "reading": 0.022,
+          "policy": 0.001,
+          "understanding": 4.355,
+          "choosing_assets": 3.528,
+          "scoping": 0.097,
+          "designing": 6.654,
+          "prechecking": 0.112,
+          "rendering": 2.456,
+          "checking": 19.225,
+          "committing": 0.074
         },
-        "activeSeconds": 49.54,
+        "activeSeconds": 36.529,
         "fallbackEvents": []
       },
       "artifacts": {
         "result.json": {
           "path": "test-results/generation-final-20261112/corridor-2/result.json",
-          "sha256": "4ae4cddc2ef41e79dd83e8d5035163a9410ef3dbc0f3d745619f40372af6889f"
+          "sha256": "fe7f7f96633453f6392c5dead9293faf36080d7c6ad9d875e19ed2a2f1d72d71"
         },
         "task.json": {
           "path": "test-results/generation-final-20261112/corridor-2/task.json",
-          "sha256": "1b2cf26b5a090f6f0aade6ee90db6e59ac48e3bb436bcc00d4f0345195e5d7f0"
+          "sha256": "b52f03fc0d532c131438e0ca40f78d3ef80e64c8b9dfb4b6e4153df40fb56da1"
         },
         "candidate.json": {
           "path": "test-results/generation-final-20261112/corridor-2/candidate.json",
-          "sha256": "83ee973e942475f501e3aa1e6a02b131043063a7649344ba76ae286486eeedb3"
+          "sha256": "9dec70ad66ab95e8ce507c4df92278f1f3da4166e01dff3b61303f39b649ca03"
         },
         "project-before.json": {
           "path": "test-results/generation-final-20261112/corridor-2/project-before.json",
-          "sha256": "d991555f2eeb0969c581090996daf02e31b863d395aec37a18a09042feb593c5"
+          "sha256": "55ec9da3561a572eef57c404448b7ce27e7bd3678a6cfb5a380e41972d7c1e75"
         },
         "project-after.json": {
           "path": "test-results/generation-final-20261112/corridor-2/project-after.json",
-          "sha256": "c72e25d6c99931d80dbacbf8fdb611d232148fc29648e2b1722ff7c5999afdca"
+          "sha256": "b5fa6b4d12004470d7400c2943613ee3c85f7478f74995eb8a2859bf8b5e1dac"
         },
         "trace.json": {
           "path": "test-results/generation-final-20261112/corridor-2/trace.json",
-          "sha256": "56e3c66b0ddf788a18b2a7efbe90453052e5c62ca6092cbc00cac3bf6ed85026"
+          "sha256": "e77c8687faeab1d8e63bbcbc17478888981b88316d0692b26d44ff539b49af46"
         }
       },
       "evidence": [
         {
           "path": "test-results/generation-final-20261112/corridor-2/evidence/oblique.png",
-          "sha256": "7ea1a9f8bdd99d7fd495c7472ab0afd0c2d2a10f3946633680011c396cd1e4a3"
+          "sha256": "b754f4eb21a25e563e1be1373c37780f98f5fe94bf42627d6f60090b5ca54dcc"
         },
         {
           "path": "test-results/generation-final-20261112/corridor-2/evidence/top.png",
-          "sha256": "a5ebd85e3a7f4d20586e2cd4f31a7515e1b0f620ccedb8b4625a1108bc94c0dc"
+          "sha256": "282106135e8d75c574565bfc0eb94a358eb34e87ec73e1a951b1de5ac001777d"
         }
       ]
     }
@@ -1533,24 +1560,24 @@
     "executed": 18,
     "passed": 18,
     "failed": 0,
-    "modelCalls": 165,
-    "renderImages": 38,
-    "repairs": 1,
-    "fallbacks": 0,
-    "activeSeconds": 1475.5789999999997
+    "modelCalls": 179,
+    "renderImages": 42,
+    "repairs": 3,
+    "fallbacks": 3,
+    "activeSeconds": 1941.322
   },
   "artifacts": {
     "matrixReport": {
       "path": "test-results/generation-final-20261112/report.json",
-      "sha256": "fabdd8196d635d5b8aad3ca23651de9d76eb2f2fa4365322e2d7a34436e24e11"
+      "sha256": "c5342983e0d8d134457bfc43c912e2c4257548756f733e71f949198e45ae711b"
     },
     "runtimeNodeLog": {
       "path": "test-results/generation-final-20261112-runtime/node.log",
-      "sha256": "3fa5b7dbcffa87ccfc1872f4df0f2ea3d905dcd4353ccdc71c28287b8cfd8407"
+      "sha256": "35fbae9ba0d62f947eec602d372046e5a65339e7511cfacb69b0b9ad968d7684"
     },
     "runtimeAgentLog": {
       "path": "test-results/generation-final-20261112-runtime/agent.log",
-      "sha256": "97042c4847b5c2c2c4a35e4cf2683cc3b1a8c4dbec303ef3a03246789a05709b"
+      "sha256": "9177fbc24c62616b784eff677b391eae230b31038f7af1f82de44d1761473363"
     }
   },
   "browser": {
@@ -1563,8 +1590,8 @@
       ],
       "errors": [],
       "report": {
-        "path": "test-results/generation-browser-before/report-before-restart.json",
-        "sha256": "717abc384065e7673fffc30473f374991e951152e5991663b45561a050a10147"
+        "path": "test-results/generation-browser-final2/report-before-restart.json",
+        "sha256": "e78fabc040ea967339ef35c3bcbf6e104b6d0a6d8aa6db795b9b4c449e9a4f6c"
       }
     },
     "afterRestart": {
@@ -1576,53 +1603,45 @@
       ],
       "errors": [],
       "report": {
-        "path": "test-results/generation-browser-before/report-after-restart.json",
-        "sha256": "bacbf4ac14761c6ba218366e1527ddd27dd1aa6fd9aaedc4ceac0c446b1c8299"
+        "path": "test-results/generation-browser-final2/report-after-restart.json",
+        "sha256": "3b88c27f275199f60a9cc19f1b3a3ce72db516b4b953635a311391ad46e8a3d7"
       }
     },
-    "generatedProjectId": "2de3bb11-96b2-4a5a-8d38-f4f5a8c163a4",
-    "clarificationProjectId": "306f3b90-4ea7-41f7-ae00-e0f29227842f",
+    "generatedProjectId": "04f19598-e957-4a21-9629-c45dbd705b65",
+    "clarificationProjectId": "505767b8-0cd8-4266-b670-e4b1806ac2d6",
     "finalRevision": 4,
     "screenshots": [
       {
-        "path": "test-results/generation-browser-before/01-recovered-generation.png",
-        "sha256": "8fdb52028a029e714353c68d77727a90d6be2d7bdc6c1b2e4bf05e1d6590be1e"
+        "path": "test-results/generation-browser-final2/01-recovered-generation.png",
+        "sha256": "3cf353612a2c9964c6ec9c019308f692410293efcfe71432fb3a1c16f763fd3b"
       },
       {
-        "path": "test-results/generation-browser-before/02-missing-information.png",
-        "sha256": "09bb3c24ca21891961c5a8b0dec4763b5fbc921ac68c5fdcb13f9f81033eb6e6"
+        "path": "test-results/generation-browser-final2/02-missing-information.png",
+        "sha256": "1afd35c99a97f46f7d29d73d97f7f4b2f850890a73db2a8ba676fe7fff77b15b"
       },
       {
-        "path": "test-results/generation-browser-before/03-generated-with-summary.png",
-        "sha256": "5d8dcd0242a064808652581910b05c7dbb2c335ccc7768f8a2ee8fed966dfe37"
+        "path": "test-results/generation-browser-final2/03-generated-with-summary.png",
+        "sha256": "5dc0f88809420e01c4114afbea8b2eafde3900a9064442ecbd4177898b0fc0e3"
       },
       {
-        "path": "test-results/generation-browser-before/04-undo-redo.png",
-        "sha256": "dfbb77f8ec2b111b8ca8444ac3d01dcc0fc34f5544067114f1db7d5605dd1246"
+        "path": "test-results/generation-browser-final2/04-undo-redo.png",
+        "sha256": "4fa87bd28cc058993e43b7fbe8c8da0bb3ff9077d7307c93f944b01b5eefd3e1"
       },
       {
-        "path": "test-results/generation-browser-before/05-compound-exact-edit.png",
-        "sha256": "fe415dca0f1325cc963d4d728e3e6a062581602480bb7674cbcc004dbe7b7b3d"
+        "path": "test-results/generation-browser-final2/05-compound-exact-edit.png",
+        "sha256": "da3e1220b44f481c14180f25732e5dd3631384ad3dd2853b19a15ff2617bbc53"
       },
       {
-        "path": "test-results/generation-browser-before/06-after-restart.png",
-        "sha256": "2f64db5281187af8395bc9f136191d06ef211f78ac7dfe5d8ad2998b9d6a2638"
+        "path": "test-results/generation-browser-final2/06-after-restart.png",
+        "sha256": "c57bfe9d2ce53baac46f31d25f28547fdb54fb8b6bb1d659bf84dc1d7e297f08"
       },
       {
-        "path": "test-results/generation-browser-before/07-continued-after-restart.png",
-        "sha256": "db0fd31694671e6817643456b219b242f445096ee51862d08dd8a52dd6776f37"
+        "path": "test-results/generation-browser-final2/07-continued-after-restart.png",
+        "sha256": "b150264e368f0d86b93670316bcd0622d0ada6d4d9fd19fbce6cc6cbf4c59804"
       },
       {
-        "path": "test-results/generation-browser-before/08-clarification-after-restart.png",
-        "sha256": "39334af4354846352cb01d38a096b243a8fdad04bad630115672b1218dff7417"
-      },
-      {
-        "path": "test-results/generation-browser-before/failure-2.png",
-        "sha256": "7ab36926eeb6fc577a91658c2c5d3aca77a48f427f3acd8d39882bb5d557a4c7"
-      },
-      {
-        "path": "test-results/generation-browser-before/failure-3.png",
-        "sha256": "40bd8c67fd14403d8713d5feb019ff4afb1f0e7a184a3d028b9a94ec5d0eafee"
+        "path": "test-results/generation-browser-final2/08-clarification-after-restart.png",
+        "sha256": "ba5caff20ea1d6413b8ee35a9693c48c311d000d1e031378b9d66858ca51d50c"
       }
     ],
     "fullServiceRestart": true
@@ -1632,8 +1651,8 @@
       "passed": 16,
       "total": 16,
       "manifest": {
-        "path": "test-results/phase1-recheck-live/manifest.json",
-        "sha256": "18d7f5da2aea9f8483d732d6725023cd8a8bbc126c480f0c83d42a551070bc4d"
+        "path": "test-results/phase1-final2-live/manifest.json",
+        "sha256": "550b1941637169895dd85c7e61f0b331cd146c92e56cf8e29c69011bd7427114"
       },
       "cases": [
         {
@@ -1739,8 +1758,8 @@
       "total": 5,
       "errors": [],
       "report": {
-        "path": "test-results/phase1-recheck-browser/report.json",
-        "sha256": "2b82e5ab1092e62ee6850dcd069bb58c85fccfaa47acb76ea3220cf6fbe152ad"
+        "path": "test-results/phase1-final2-browser/report.json",
+        "sha256": "b872c14f5fa6c500a8829e655efb75173bbb2b9bdad22378065329c4e5f9fd00"
       }
     },
     "originalEditorBrowser": {

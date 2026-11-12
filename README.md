@@ -1,9 +1,9 @@
 # 演境 ActiScape
 
-> **当前阶段（2026-11-12）**：阶段 1 已有场景可靠编辑已验收；文字生成收尾覆盖九类矩形空间。
+> **当前阶段（2026-11-12）**：阶段 1 已有场景可靠编辑已验收；九类矩形文字生成执行 Agent 自测 18/18。
 > 精确编辑走代码运算与几何检查，新房间生成先冻结需求并登记独立初始化授权，再经候选、渲染、视觉审核和一次提交。
 > 当前入口见 [文档索引](docs/README.md)、[实现状态](docs/IMPLEMENTATION_STATUS.md)、
-> [阶段 1 验收报告](docs/PHASE1_ACCEPTANCE_20261112.md) 和 [文字生成验收报告](docs/GENERATION_ACCEPTANCE_20261112.md)。
+> [阶段 1 验收报告](docs/PHASE1_ACCEPTANCE_20261112.md) 和 [文字生成验收报告](docs/GENERATION_ACCEPTANCE_20261112.md)（等待主 Agent 同一提交独立复跑）。
 > 户型、照片与云端入口保留为后续阶段能力。
 
 

@@ -67,6 +67,27 @@ export class EditAuthorizations {
           throw new SceneError("REVISION_CONFLICT", "授权基准版本已变化", 409);
         const scope = validateScope(request.scope, base.plan);
         if (
+          scope.targetIds.some(
+            (id) =>
+              !scope.actionIds?.includes(id) &&
+              (!scope.fieldMask ||
+                (!scope.allowDeleteIds.includes(id) &&
+                  !scope.fieldMask[id]?.length)),
+          )
+        )
+          throw new SceneError(
+            "INVALID_AUTHORIZATION",
+            "编辑目标需要明确的字段授权",
+          );
+        if (
+          scope.allowAddKeys.length &&
+          (!scope.assetPool?.length || !scope.additionRules?.length)
+        )
+          throw new SceneError(
+            "INVALID_AUTHORIZATION",
+            "新增授权必须固定资产候选池和数量",
+          );
+        if (
           scope.allowActivityGroups &&
           (!/(?:组成|创建|建立|设立|保存).{0,12}(?:阅读组|活动组|家具组)|编组/.test(
             request.requestText,

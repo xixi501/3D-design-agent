@@ -454,3 +454,35 @@ test("authorization and operation identity survive service storage restart", () 
     reopened.close();
   }
 });
+
+test("new authorizations require explicit field masks and addition quotas", () => {
+  const { store, p, candidates, scope, authorization } = setup();
+  try {
+    assert.throws(
+      () =>
+        candidates.authorize(p.id, {
+          ...authorization,
+          operations: [],
+          scope: { ...scope, fieldMask: undefined },
+        }),
+      /明确的字段授权/,
+    );
+    assert.throws(
+      () =>
+        candidates.authorize(p.id, {
+          ...authorization,
+          operations: [],
+          scope: {
+            targetIds: [],
+            allowDeleteIds: [],
+            allowAddKeys: ["floorLamp"],
+            requirements: [],
+          },
+        }),
+      /候选池和数量/,
+    );
+    assert.equal(store.get(p.id).revision, 0);
+  } finally {
+    store.close();
+  }
+});

@@ -61,6 +61,34 @@ def test_deterministic_layout_covers_all_main_room_types(room_type):
         assert isinstance(edit["values"]["y"], float)
 
 
+def test_bathroom_fallback_uses_catalogue_sizes_and_avoids_the_door_strip():
+    layout = {
+        "plan": {
+            "rooms": [
+                {
+                    "polygon": [
+                        [0, 0],
+                        [1800, 0],
+                        [1800, 2500],
+                        [0, 2500],
+                    ]
+                }
+            ]
+        }
+    }
+    task = {"generation": {"brief": {"roomType": "bathroom"}}}
+    keys = ["shower", "vanity", "toilet"]
+    proposal = deterministic_proposal(task, layout, {"allowAddKeys": keys})
+    assert proposal is not None
+    assert {edit["key"] for edit in proposal["edits"]} == set(keys)
+    for edit in proposal["edits"]:
+        assert "w" not in edit["values"] and "d" not in edit["values"] and "h" not in edit["values"]
+        assert 0 <= edit["values"]["x"] <= 1800
+        assert 0 <= edit["values"]["y"] <= 2500
+    vanity = next(edit for edit in proposal["edits"] if edit["key"] == "vanity")
+    assert vanity["values"]["y"] < 1700
+
+
 def test_circulation_has_a_safe_generic_layout():
     layout = {
         "plan": {

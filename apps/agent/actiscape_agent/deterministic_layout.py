@@ -72,8 +72,37 @@ def _load_template(room_type):
 def _generic_room(room_type, target, allow):
     """Last-resort layouts for rooms without a positive Skill example."""
     x0, y0, x1, y1 = target
-    width, _depth = x1 - x0, y1 - y0
+    width, depth = x1 - x0, y1 - y0
     edits = []
+    if room_type == "bathroom":
+        # Fixed bathroom shell: shower on the east wall clear of the north
+        # window strip, vanity on the west wall, toilet in the south-east
+        # corner clear of the centred door. Values use catalogue defaults.
+        if "shower" in allow:
+            edits.append(
+                {
+                    "type": "create",
+                    "key": "shower",
+                    "values": {"x": x1 - 450, "y": y0 + 700, "rot": 0},
+                }
+            )
+        if "vanity" in allow:
+            edits.append(
+                {
+                    "type": "create",
+                    "key": "vanity",
+                    "values": {"x": x0 + 250, "y": y0 + depth / 2, "rot": 270},
+                }
+            )
+        if "toilet" in allow:
+            edits.append(
+                {
+                    "type": "create",
+                    "key": "toilet",
+                    "values": {"x": x1 - 220, "y": y1 - 400, "rot": 0},
+                }
+            )
+        return edits
     if room_type == "circulation":
         for key, x, y, rot in (
             ("consoleTable", x0 + width / 2, y0 + 350, 0),
@@ -101,6 +130,9 @@ def deterministic_proposal(task: dict, layout: dict, scope: dict) -> dict | None
     if not target or not allow:
         return None
     template = _load_template(room_type)
+    if room_type == "bathroom":
+        edits = _generic_room(room_type, target, allow)
+        return {"summary": f"确定性兜底布局：{room_type}", "edits": edits} if edits else None
     if template is None:
         edits = _generic_room(room_type, target, allow)
         return {"summary": f"确定性兜底布局：{room_type}", "edits": edits} if edits else None
@@ -124,7 +156,9 @@ def deterministic_proposal(task: dict, layout: dict, scope: dict) -> dict | None
             "y": target[1] + (float(at[1]) - source[1]) * sy,
             "rot": float(raw.get("rot") or 0),
         }
-        for field in ("w", "d", "h", "color"):
+        # Initialization must use catalogue default sizes; template recipes
+        # may carry older custom dimensions and must not shrink furniture.
+        for field in ("color",):
             if raw.get(field) is not None:
                 values[field] = raw[field]
         # The shell has no pre-existing host objects; surface metadata from the

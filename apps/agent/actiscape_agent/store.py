@@ -338,6 +338,7 @@ class TaskStore:
             ).fetchall()
         durations = {}
         render_count = repairs = 0
+        rendered = set()
         phase = None
         started = None
         for event in events:
@@ -347,7 +348,15 @@ class TaskStore:
                     durations[phase] = durations.get(phase, 0) + max(0, event["created"] - started)
                 phase, started = data["phase"], event["created"]
             elif event["kind"] == "evidence":
-                render_count += len(data.get("evidence") or [])
+                for evidence in data.get("evidence") or []:
+                    identity = (
+                        data.get("candidateId"),
+                        evidence.get("view"),
+                        evidence.get("sha256"),
+                    )
+                    if identity not in rendered:
+                        render_count += 1
+                        rendered.add(identity)
             elif event["kind"] == "repair":
                 repairs += 1
             elif phase and started is not None:

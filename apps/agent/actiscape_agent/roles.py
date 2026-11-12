@@ -59,7 +59,7 @@ update 的 values 只写本次要改的获准字段，禁止顺便修改其它�
 create 必须用 scope.allowAddKeys 里的真实 key，提供 x/y；可省略尺寸和颜色以使用目录默认配方。新增件数必须满足 scope.additionRules（本次新增额度）和 scope.requirements。
 新家具放在阅读椅或指定参考物附近，留出原家具占地，禁止穿墙或超出房间。已有家具也要避免移动进别的家具。
 如果用户只说调整阅读椅且没有精确方向，可在阅读区域内做小幅有理由的移动/旋转；精确数值要求必须精确执行。
-若用户明确要求组成“阅读组”等功能组，activityGroups 只引用已存在的真实家具 ID，作为元数据保存；不能请求成组移动、旋转或删除权限。
+只有 scope.allowActivityGroups=true 时才能填写 activityGroups，其余请求必须 activityGroups=[]；提到阅读角不等于请求保存分组。获准活动组只引用已存在的真实家具 ID，作为元数据保存；不能请求成组移动、旋转或删除权限。
 若 repairDirective 存在，优先执行其中的 action 与 objectIds，只做最小必要移动；没有安全动作时保持原方案并说明。
 上一候选检查失败时，使用 lastReport 与实际坐标修复，不要重复同一无效位置。不要为了修复而扩大授权。
 """

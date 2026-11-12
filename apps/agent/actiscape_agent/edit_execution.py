@@ -1,5 +1,7 @@
 """Editing authorization and candidate execution, independent of graph orchestration."""
 
+import re
+
 from .store import TaskError, fingerprint
 
 
@@ -106,6 +108,11 @@ def compile_scope(
         "fieldMask": permissions,
         "requirements": [],
     }
+    if re.search(
+        r"(?:组成|创建|建立|设立|保存).{0,12}(?:阅读组|活动组|家具组)|编组",
+        (task or {}).get("input", ""),
+    ):
+        scope["allowActivityGroups"] = True
     if pools:
         # Overlapping semantic requests are merged so one added object cannot
         # satisfy two quotas at once.

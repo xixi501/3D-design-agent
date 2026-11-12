@@ -88,6 +88,7 @@ export interface EditScope {
   /** Bounded replacement pool selected during asset grounding. */
   assetPool?: string[];
   additionRules?: { keys: string[]; count: number }[];
+  allowActivityGroups?: boolean;
 }
 export interface CandidateIssue {
   code: string;
@@ -139,7 +140,13 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     "allowedAssets",
     "assetPool",
     "additionRules",
+    "allowActivityGroups",
   ]);
+  if (
+    s.allowActivityGroups !== undefined &&
+    typeof s.allowActivityGroups !== "boolean"
+  )
+    fail("活动组元数据授权无效");
   if (
     s.checkProfile !== undefined &&
     !["legacy", "strict-repair"].includes(s.checkProfile)

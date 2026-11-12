@@ -307,10 +307,13 @@ export class CandidateStore {
           request.activityGroups !== undefined &&
           request.activityGroups.length
         ) {
-          if (authorization?.operations?.length)
+          if (
+            authorization &&
+            (!scope.allowActivityGroups || authorization.operations?.length)
+          )
             throw new SceneError(
               "INVALID_AUTHORIZATION",
-              "精确编辑不能附带未授权的活动组元数据",
+              "候选不能附带未授权的活动组元数据",
             );
           if (
             !Array.isArray(request.activityGroups) ||

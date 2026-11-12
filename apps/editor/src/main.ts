@@ -170,13 +170,20 @@ function startWalkMap(on: boolean) {
   walkMapTimer = setInterval(drawWalkMap, 220);
 }
 function walkMapTransform(plan: Plan) {
-  const xs = plan.nodes.map((n) => n.x), ys = plan.nodes.map((n) => n.y);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const xs = plan.nodes.map((n) => n.x),
+    ys = plan.nodes.map((n) => n.y);
+  const minX = Math.min(...xs),
+    maxX = Math.max(...xs);
+  const minY = Math.min(...ys),
+    maxY = Math.max(...ys);
   const canvas = $("#walk-map-canvas") as HTMLCanvasElement;
-  const w = canvas.width, h = canvas.height, pad = 12;
-  const sx = (x: number) => pad + ((x - minX) / Math.max(1, maxX - minX)) * (w - pad * 2);
-  const sy = (y: number) => pad + ((y - minY) / Math.max(1, maxY - minY)) * (h - pad * 2);
+  const w = canvas.width,
+    h = canvas.height,
+    pad = 12;
+  const sx = (x: number) =>
+    pad + ((x - minX) / Math.max(1, maxX - minX)) * (w - pad * 2);
+  const sy = (y: number) =>
+    pad + ((y - minY) / Math.max(1, maxY - minY)) * (h - pad * 2);
   return { canvas, w, h, sx, sy, minX, minY, maxX, maxY };
 }
 function drawWalkMap() {
@@ -188,11 +195,17 @@ function drawWalkMap() {
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = "#fffdf8e8";
   ctx.fillRect(0, 0, w, h);
-  const geo = wallGeometry(plan), rooms = detectRooms(plan, geo).regions;
+  const geo = wallGeometry(plan),
+    rooms = detectRooms(plan, geo).regions;
   ctx.fillStyle = "#e9e1d4";
   for (const room of rooms) {
     const bb = room.bb;
-    ctx.fillRect(sx(bb.x), sy(bb.y), sx(bb.x + bb.w) - sx(bb.x), sy(bb.y + bb.h) - sy(bb.y));
+    ctx.fillRect(
+      sx(bb.x),
+      sy(bb.y),
+      sx(bb.x + bb.w) - sx(bb.x),
+      sy(bb.y + bb.h) - sy(bb.y),
+    );
   }
   ctx.strokeStyle = "#5d625f";
   ctx.lineWidth = 2;
@@ -208,10 +221,15 @@ function drawWalkMap() {
   for (const room of rooms) {
     const label = room.labels[0];
     if (!label) continue;
-    ctx.fillText(displayRoomName(label), sx(room.bb.x + room.bb.w / 2), sy(room.bb.y + room.bb.h / 2));
+    ctx.fillText(
+      displayRoomName(label),
+      sx(room.bb.x + room.bb.w / 2),
+      sy(room.bb.y + room.bb.h / 2),
+    );
   }
   const cam = three.camera.position;
-  const px = sx(cam.x * 1000), py = sy(cam.z * 1000);
+  const px = sx(cam.x * 1000),
+    py = sy(cam.z * 1000);
   const yaw = three.yaw;
   ctx.fillStyle = "#b8613c";
   ctx.beginPath();
@@ -237,7 +255,13 @@ function drawWalkMap() {
     y: minY + y * (maxY - minY),
   };
   const room = detectRooms(plan, wallGeometry(plan)).regions.find((r: any) =>
-    r.rects.some((rect: any) => p.x >= rect.x && p.x <= rect.x + rect.w && p.y >= rect.y && p.y <= rect.y + rect.h),
+    r.rects.some(
+      (rect: any) =>
+        p.x >= rect.x &&
+        p.x <= rect.x + rect.w &&
+        p.y >= rect.y &&
+        p.y <= rect.y + rect.h,
+    ),
   );
   if (room) {
     three.walkTo(room.bb.x + room.bb.w / 2, room.bb.y + room.bb.h / 2);
@@ -282,7 +306,8 @@ const chat = new ChatPanel(
     $("#agent-rail").classList.toggle("is-working", state.active);
     $("#stage-busy").hidden = !state.active || !!state.waiting;
     $("#stage-busy-label").textContent = state.label;
-    if (state.active || state.waiting) $("#empty-state").classList.add("is-hidden");
+    if (state.active || state.waiting)
+      $("#empty-state").classList.add("is-hidden");
   },
 );
 chat.onPhotoImport = () => $<HTMLInputElement>("#photo-file").click();
@@ -315,8 +340,7 @@ function updateSelectionActions() {
       ? (item as import("../../../packages/scene-core/src/index.js").Furniture)
       : undefined;
   const openable = !!furniture && isOpenableFurniture(furniture);
-  const togglable =
-    !!furniture && !openable && isTogglableFurniture(furniture);
+  const togglable = !!furniture && !openable && isTogglableFurniture(furniture);
   const canOpen = openable || togglable;
   button.hidden = !canOpen;
   if (canOpen) {
@@ -347,10 +371,13 @@ function setSelection(s?: Selection) {
   if (!s && panel === "properties") panel = "overview";
   syncPanel();
   updateSelectionActions();
+  if (project) chat.mount($("#agent-host"), project.id);
   if (s?.collection === "furniture") {
     const f = project?.plan.furniture.find((x) => x.id === s.id);
     if (f && isOpenableFurniture(f))
-      message(`${f.name}已选中。按 E 或点上方“${f.opt?.open ? "关闭柜门" : "打开柜门"}”开关柜门。`);
+      message(
+        `${f.name}已选中。按 E 或点上方“${f.opt?.open ? "关闭柜门" : "打开柜门"}”开关柜门。`,
+      );
   }
   void inspector().catch(fail);
 }
@@ -399,7 +426,8 @@ async function inspector() {
     const issues = data.issues || [];
     const fixable = issues.filter(isFixableError);
     const structural = issues.filter(
-      (issue: any) => issue.level === "error" && issue.fixableByFurniture === false,
+      (issue: any) =>
+        issue.level === "error" && issue.fixableByFurniture === false,
     );
     const tagFor = (issue: any) =>
       issue.category === "structure"
@@ -492,7 +520,8 @@ async function renderOverview(host: HTMLElement) {
   const issueCount = issues.length;
   const fixableErrors = issues.filter(isFixableError);
   const structuralErrors = issues.filter(
-    (issue: any) => issue.level === "error" && issue.fixableByFurniture === false,
+    (issue: any) =>
+      issue.level === "error" && issue.fixableByFurniture === false,
   );
   const firstIssue = issues[0]?.message;
   host.innerHTML = `<div class="overview">
@@ -503,14 +532,23 @@ async function renderOverview(host: HTMLElement) {
       <div><b>${issueCount}</b><span>待处理</span></div>
     </div>
     ${health && rooms.length ? `<div class="health-row"><button class="health-card ${issueCount ? "has-issues" : "is-clear"}" data-overview-action="check"><span>${issueCount ? `${issueCount} 项需要处理` : "设计检查通过"}</span><small>${issueCount ? esc(firstIssue) : "没有发现结构、净空或台面问题"}</small><b>查看</b></button>${fixableErrors.length ? `<button class="repair-button" data-overview-action="repair">一键修复</button>` : structuralErrors.length ? `<button class="repair-button muted-repair" data-overview-action="check">结构问题</button>` : ""}</div>` : ""}
-    ${rooms.length ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms.map((r) => {
-      const area = roomArea(plan, r.id);
-      const roomIssues = issuesInRoom(plan, r, issues);
-      const fixable = roomIssues.filter(isFixableError).length;
-      const structural = roomIssues.filter((issue: any) => issue.level === "error" && issue.fixableByFurniture === false).length;
-      const label = fixable ? "修复" : structural ? "结构" : "无";
-      return `<div class="overview-room-row"><button data-room="${esc(r.id)}"><b>${esc(displayRoomName(r))}</b><small>${area ? `${area} ㎡` : "定位"}</small></button><button class="room-repair" data-repair-room="${esc(r.id)}" ${fixable ? "" : "disabled"}>${label}</button></div>`;
-    }).join("")}</div></section>` : ""}
+    ${
+      rooms.length
+        ? `<section class="overview-section"><div class="overview-section-head"><h3>空间导航</h3><span>点击定位</span></div><div class="overview-rooms">${rooms
+            .map((r) => {
+              const area = roomArea(plan, r.id);
+              const roomIssues = issuesInRoom(plan, r, issues);
+              const fixable = roomIssues.filter(isFixableError).length;
+              const structural = roomIssues.filter(
+                (issue: any) =>
+                  issue.level === "error" && issue.fixableByFurniture === false,
+              ).length;
+              const label = fixable ? "修复" : structural ? "结构" : "无";
+              return `<div class="overview-room-row"><button data-room="${esc(r.id)}"><b>${esc(displayRoomName(r))}</b><small>${area ? `${area} ㎡` : "定位"}</small></button><button class="room-repair" data-repair-room="${esc(r.id)}" ${fixable ? "" : "disabled"}>${label}</button></div>`;
+            })
+            .join("")}</div></section>`
+        : ""
+    }
     <section class="overview-section"><div class="overview-section-head"><h3>下一步</h3><span>AI 快捷入口</span></div><div class="overview-actions">${rooms.length ? `<button data-overview-action="check">全屋检查</button><button data-overview-action="catalog">添加家具</button><button data-overview-action="walk">进入漫游</button>` : `<button data-overview-action="start">从一句话开始</button><button data-overview-action="plan">上传户型图</button>`}</div></section>
     ${selectedCount ? `<p class="overview-note">当前选中的对象已在属性面板中展开。</p>` : rooms.length ? `<p class="overview-note">在画布中选择家具，或让 AI 继续帮你调整。</p>` : `<p class="overview-note">先描述一个房间，或上传一张户型图。</p>`}
   </div>`;
@@ -520,23 +558,27 @@ async function renderOverview(host: HTMLElement) {
       if (room) focusRoom(room);
     };
   });
-  host.querySelectorAll<HTMLButtonElement>("[data-repair-room]").forEach((button) => {
-    button.onclick = () => void repairScene(button.dataset.repairRoom);
-  });
-  host.querySelectorAll<HTMLButtonElement>("[data-overview-action]").forEach((button) => {
-    button.onclick = () => {
-      const action = button.dataset.overviewAction;
-      if (action === "check") {
-        panel = "checks";
-        syncPanel();
-        void inspector().catch(fail);
-      } else if (action === "catalog") openCatalog();
-      else if (action === "walk") $("#walk").click();
-      else if (action === "start") chat.focus();
-      else if (action === "plan") chat.openFloorplan();
-      else if (action === "repair") void repairScene();
-    };
-  });
+  host
+    .querySelectorAll<HTMLButtonElement>("[data-repair-room]")
+    .forEach((button) => {
+      button.onclick = () => void repairScene(button.dataset.repairRoom);
+    });
+  host
+    .querySelectorAll<HTMLButtonElement>("[data-overview-action]")
+    .forEach((button) => {
+      button.onclick = () => {
+        const action = button.dataset.overviewAction;
+        if (action === "check") {
+          panel = "checks";
+          syncPanel();
+          void inspector().catch(fail);
+        } else if (action === "catalog") openCatalog();
+        else if (action === "walk") $("#walk").click();
+        else if (action === "start") chat.focus();
+        else if (action === "plan") chat.openFloorplan();
+        else if (action === "repair") void repairScene();
+      };
+    });
 }
 let repairing = false;
 function roomRegion(plan: Plan, roomId: string) {
@@ -594,7 +636,11 @@ async function openRepairScope() {
     body = $("#dialog-body");
   body.innerHTML = `<div class="dialog-kicker">REPAIR SCOPE</div><h2>选择要修复的房间</h2><p class="muted">AI 只调整该房间内可移动的家具，不改墙体门窗。结构问题需要进入结构编辑。</p><div class="repair-room-list">${rows
     .map(({ room, fixable, structural, roomIssues }) => {
-      const label = fixable.length ? "修复" : structural.length ? "结构" : "通过";
+      const label = fixable.length
+        ? "修复"
+        : structural.length
+          ? "结构"
+          : "通过";
       const detail = fixable.length
         ? `${fixable.length} 项可修复`
         : structural.length
@@ -604,7 +650,9 @@ async function openRepairScope() {
             : "没有硬伤";
       return `<button data-scope-room="${esc(room.id)}" ${fixable.length ? "" : "disabled"}><span><b>${esc(displayRoomName(room))}</b><small>${detail}</small></span><b>${label}</b></button>`;
     })
-    .join("")}</div><div class="actions"><button id="repair-scope-cancel">先不修</button></div>`;
+    .join(
+      "",
+    )}</div><div class="actions"><button id="repair-scope-cancel">先不修</button></div>`;
   body.querySelectorAll<HTMLButtonElement>("[data-scope-room]").forEach(
     (button) =>
       (button.onclick = () => {
@@ -612,8 +660,8 @@ async function openRepairScope() {
         void repairScene(button.dataset.scopeRoom);
       }),
   );
-  body.querySelector<HTMLButtonElement>("#repair-scope-cancel")!.onclick =
-    () => dialog.close();
+  body.querySelector<HTMLButtonElement>("#repair-scope-cancel")!.onclick = () =>
+    dialog.close();
   dialog.showModal();
 }
 function confirmRepair(
@@ -654,7 +702,9 @@ async function repairScene(roomId?: string) {
   const target = project;
   const checks = await api(`/projects/${target.id}/checks`);
   const region = roomId ? roomRegion(target.plan, roomId) : undefined;
-  const room = roomId ? target.plan.rooms.find((r) => r.id === roomId) : undefined;
+  const room = roomId
+    ? target.plan.rooms.find((r) => r.id === roomId)
+    : undefined;
   const roomFurniture = furnitureInRegion(target.plan, region);
   const allIssues = roomId
     ? issuesInRoom(target.plan, room!, checks.issues || [])
@@ -684,8 +734,8 @@ async function repairScene(roomId?: string) {
       issues
         .slice(0, 8)
         .flatMap((i: any): string[] =>
-          (i.objectIds || []).filter((id: unknown): id is string =>
-            typeof id === "string",
+          (i.objectIds || []).filter(
+            (id: unknown): id is string => typeof id === "string",
           ),
         )
         .filter((id: string) => target.plan.furniture.some((f) => f.id === id))
@@ -730,7 +780,9 @@ ${lines.join("\n")}
 4. 本次目标问题必须真正消失；若无法修复，明确告诉我原因，不要提交一个只改几毫米的候选；
 5. 只能修改本次授权的 target 家具，不得把墙体/门窗 ID 当作家具。`;
     if (brief.length > 4000)
-      throw new Error("当前问题过多，修复说明超过任务上限；请先处理当前视图附近的问题");
+      throw new Error(
+        "当前问题过多，修复说明超过任务上限；请先处理当前视图附近的问题",
+      );
     const started = await chat.requestRepair(
       brief,
       repairIds,
@@ -753,9 +805,9 @@ function focusRoom(room: any) {
   if (three.focusRoom) three.focusRoom(room);
 }
 function syncPanel() {
-  document.querySelectorAll<HTMLButtonElement>("[data-panel]").forEach((b) =>
-    b.classList.toggle("active", b.dataset.panel === panel),
-  );
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-panel]")
+    .forEach((b) => b.classList.toggle("active", b.dataset.panel === panel));
 }
 function updateEmptyState() {
   const blank =
@@ -771,7 +823,10 @@ function renderSpaceNav() {
   nav.hidden = rooms.length < 2 || rooms.length > 5;
   nav.innerHTML = rooms
     .slice(0, 8)
-    .map((r) => `<button data-space="${esc(r.id)}">${esc(displayRoomName(r))}</button>`)
+    .map(
+      (r) =>
+        `<button data-space="${esc(r.id)}">${esc(displayRoomName(r))}</button>`,
+    )
     .join("");
   nav.querySelectorAll<HTMLButtonElement>("[data-space]").forEach((b) => {
     b.onclick = () => {
@@ -924,7 +979,9 @@ async function mutate(
   busy = true;
   lastFailure = false;
   document.body.classList.add("saving");
-  saved(kind === "undo" ? "正在撤销…" : kind === "redo" ? "正在重做…" : "正在保存…");
+  saved(
+    kind === "undo" ? "正在撤销…" : kind === "redo" ? "正在重做…" : "正在保存…",
+  );
   const id = project.id,
     request = {
       operationId: newId(),
@@ -1098,8 +1155,7 @@ function surfaceSpot(host: any, asset: AssetRecord, plan: Plan) {
         y0: y - halfD,
         y1: y + halfD,
       };
-    if (item.x0 < x0 || item.x1 > x1 || item.y0 < y0 || item.y1 > y1)
-      continue;
+    if (item.x0 < x0 || item.x1 > x1 || item.y0 < y0 || item.y1 > y1) continue;
     const overlap = siblings.some((sibling) => {
       const b = rotatedAabb(sibling);
       return (
@@ -1322,7 +1378,12 @@ function currentSnapshot() {
   ctx.fillStyle = "#f3efe7";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(source, 0, 0);
-  return { canvas, name: displayProjectName(project.plan.name), revision: project.revision, mode };
+  return {
+    canvas,
+    name: displayProjectName(project.plan.name),
+    revision: project.revision,
+    mode,
+  };
 }
 function download(name: string, url: string) {
   const link = document.createElement("a");
@@ -1348,7 +1409,9 @@ $("#export-pdf").onclick = () => {
     return;
   }
   const data = shot.canvas.toDataURL("image/png");
-  win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(shot.name)} · 演境</title><style>@page{size:A4;margin:12mm}body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#1e2724;margin:0}header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #d9d1c4;padding-bottom:8px;margin-bottom:14px}h1{font-size:22px;margin:0}small{color:#81796c}img{display:block;width:100%;height:auto;border:1px solid #d9d1c4;border-radius:6px}p{color:#81796c;font-size:10px;margin-top:10px}</style></head><body><header><div><small>演境 ACTISCAPE · AI DESIGN</small><h1>${esc(shot.name)}</h1></div><small>版本 ${shot.revision} · ${new Date().toLocaleDateString("zh-CN")}</small></header><img src="${data}"><p>由演境 AI Studio 生成 · 当前视图 · ${shot.mode === "3d" ? "三维" : "二维"}</p><script>window.onload=()=>window.print()</script></body></html>`);
+  win.document.write(
+    `<!doctype html><html><head><meta charset="utf-8"><title>${esc(shot.name)} · 演境</title><style>@page{size:A4;margin:12mm}body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#1e2724;margin:0}header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #d9d1c4;padding-bottom:8px;margin-bottom:14px}h1{font-size:22px;margin:0}small{color:#81796c}img{display:block;width:100%;height:auto;border:1px solid #d9d1c4;border-radius:6px}p{color:#81796c;font-size:10px;margin-top:10px}</style></head><body><header><div><small>演境 ACTISCAPE · AI DESIGN</small><h1>${esc(shot.name)}</h1></div><small>版本 ${shot.revision} · ${new Date().toLocaleDateString("zh-CN")}</small></header><img src="${data}"><p>由演境 AI Studio 生成 · 当前视图 · ${shot.mode === "3d" ? "三维" : "二维"}</p><script>window.onload=()=>window.print()</script></body></html>`,
+  );
   win.document.close();
 };
 $("#import-project").onclick = () => $<HTMLInputElement>("#json-file").click();
@@ -1454,13 +1517,20 @@ $("#context-toggle").onclick = () => {
   $("#agent-rail").classList.remove("mobile-open");
   $("#context-panel").classList.toggle("open");
 };
-$("#context-close").onclick = () => $("#context-panel").classList.remove("open");
+$("#context-close").onclick = () =>
+  $("#context-panel").classList.remove("open");
 $("#empty-prompt").onclick = () => {
-  if (!project) void newProject().then(() => chat.focus()).catch(fail);
+  if (!project)
+    void newProject()
+      .then(() => chat.focus())
+      .catch(fail);
   else chat.focus();
 };
 $("#empty-floorplan").onclick = () => {
-  if (!project) void newProject().then(() => chat.openFloorplan()).catch(fail);
+  if (!project)
+    void newProject()
+      .then(() => chat.openFloorplan())
+      .catch(fail);
   else chat.openFloorplan();
 };
 $("#empty-example").onclick = () => $("#open-project").click();
@@ -1511,9 +1581,7 @@ $("#open-all").onclick = async () => {
   if (!project || busy) return;
   const next = allDoorCabinetCommands(project.plan, "toggle");
   if (!next.commands.length) {
-    message(
-      next.mode === "open" ? "所有门/柜门已打开" : "所有门/柜门已复位",
-    );
+    message(next.mode === "open" ? "所有门/柜门已打开" : "所有门/柜门已复位");
     return;
   }
   panel = "checks";

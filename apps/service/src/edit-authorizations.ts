@@ -66,6 +66,19 @@ export class EditAuthorizations {
         if (base.revision !== request.baseRevision)
           throw new SceneError("REVISION_CONFLICT", "授权基准版本已变化", 409);
         const scope = validateScope(request.scope, base.plan);
+        if (
+          scope.allowActivityGroups &&
+          (!/(?:组成|创建|建立|设立|保存).{0,12}(?:阅读组|活动组|家具组)|编组/.test(
+            request.requestText,
+          ) ||
+            /(?:不要|别|无需|不必).{0,20}(?:阅读组|活动组|家具组|编组)/.test(
+              request.requestText,
+            ))
+        )
+          throw new SceneError(
+            "INVALID_AUTHORIZATION",
+            "活动组元数据缺少用户明确授权",
+          );
         const ids = new Set(base.plan.furniture.map((f) => f.id));
         const referenceIds = request.referenceIds || [];
         if (

@@ -360,3 +360,97 @@ test("layout targets remain inside the independently authorized local boundary",
     store.close();
   }
 });
+
+test("layout candidates cannot add unrequested grouping metadata", () => {
+  const { store, p, candidates, chair, scope } = setup();
+  try {
+    const request = {
+      taskId: "metadata",
+      version: 1,
+      baseRevision: 0,
+      scope,
+      requestText: "调整阅读角的位置",
+    };
+    assert.throws(
+      () =>
+        candidates.authorize(p.id, {
+          ...request,
+          scope: { ...scope, allowActivityGroups: true },
+        }),
+      /缺少用户明确授权/,
+    );
+    const auth = candidates.authorize(p.id, request);
+    assert.throws(
+      () =>
+        candidates.create(p.id, {
+          taskId: "metadata",
+          requestId: "unsolicited-group",
+          baseRevision: 0,
+          scope,
+          authorizationVersion: 1,
+          authorizationScopeHash: auth.scopeHash,
+          edits: [
+            { type: "update", id: chair.id, values: { x: chair.x - 100 } },
+          ],
+          activityGroups: [{ name: "阅读组", memberIds: [chair.id] }],
+        }),
+      /未授权的活动组/,
+    );
+    assert.deepEqual(store.get(p.id).plan, p.plan);
+    assert.equal(store.get(p.id).revision, 0);
+  } finally {
+    store.close();
+  }
+});
+
+test("authorization and operation identity survive service storage restart", () => {
+  const { store, p, candidates, chair, scope, authorization } = setup();
+  const directory = store.directory;
+  const auth = candidates.authorize(p.id, authorization);
+  const c = candidates.create(p.id, {
+    taskId: "t",
+    requestId: "restart",
+    baseRevision: 0,
+    scope,
+    authorizationVersion: 1,
+    authorizationScopeHash: auth.scopeHash,
+    edits: [
+      {
+        type: "update",
+        id: chair.id,
+        values: { x: chair.x - 200, rot: (chair.rot + 90) % 360 },
+      },
+    ],
+  });
+  candidates.review(p.id, c.id, {
+    passed: true,
+    source: "deterministic",
+    summary: "ok",
+    objectIds: [],
+    evidenceHashes: [],
+    issues: [],
+  });
+  store.close();
+  const reopened = new ProjectStore(directory),
+    recovered = new CandidateStore(reopened);
+  try {
+    assert.equal(recovered.get(p.id, c.id).hash, c.hash);
+    const request = {
+      operationId: c.operationId,
+      baseRevision: 0,
+      candidateHash: c.hash,
+    };
+    assert.equal(recovered.commit(p.id, c.id, request).project.revision, 1);
+    assert.equal(recovered.commit(p.id, c.id, request).replayed, true);
+    assert.equal(reopened.get(p.id).revision, 1);
+    assert.deepEqual(
+      reopened.mutate(p.id, "undo", {
+        operationId: "undo-reopened",
+        baseRevision: 1,
+      }).project.plan,
+      p.plan,
+    );
+  } finally {
+    reopened.close();
+  }
+});

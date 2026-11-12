@@ -45,12 +45,17 @@ class TaskManager:
         task = self.store.resume(id, body)
         # The new user requirement invalidates old candidate references even
         # while grounding/clarification has not produced a replacement yet.
-        if task["mode"] in ("edit", "repair_layout", "interactive_action", "photo_to_scene"):
-            await self.client.request(
-                f"/projects/{task['projectId']}/edit-authorizations/invalidate",
-                {"taskId": id, "version": task["generation"]["authorizationVersion"]},
-            )
-        self.enqueue(id)
+        try:
+            if task["mode"] in ("edit", "repair_layout", "interactive_action", "photo_to_scene"):
+                await self.client.request(
+                    f"/projects/{task['projectId']}/edit-authorizations/invalidate",
+                    {"taskId": id, "version": task["generation"]["authorizationVersion"]},
+                )
+        finally:
+            # A lost invalidation response must not leave a persisted queued
+            # task without a worker. Registering the same version before the
+            # next candidate also advances the service authorization head.
+            self.enqueue(id)
         return task
 
     async def confirm_floorplan(self, id: str, body: dict):

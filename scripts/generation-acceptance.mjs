@@ -207,9 +207,23 @@ const CASES = [
 
 const DEFAULT_DOOR = { width: 900, sill: 0, head: 2100 };
 const DEFAULT_WINDOW = { width: 1500, sill: 900, head: 2400 };
-const FRONT = (rot) => {
+const FRONT = (type, rot) => {
   const r = ((Math.round(rot / 90) * 90) % 360 + 360) % 360;
-  return { 0: { x: 0, y: 1 }, 90: { x: -1, y: 0 }, 180: { x: 0, y: -1 }, 270: { x: 1, y: 0 } }[r];
+  // The dining-chair mesh is authored with its back on +y, unlike the other
+  // seat meshes; its plan-data front is therefore north at rot=0.
+  const chair = {
+    0: { x: 0, y: -1 },
+    90: { x: 1, y: 0 },
+    180: { x: 0, y: 1 },
+    270: { x: -1, y: 0 },
+  };
+  const standard = {
+    0: { x: 0, y: 1 },
+    90: { x: -1, y: 0 },
+    180: { x: 0, y: -1 },
+    270: { x: 1, y: 0 },
+  };
+  return (type === "chair" ? chair : standard)[r];
 };
 
 function catalogName(f) {
@@ -290,7 +304,7 @@ function seatRelations(plan) {
   for (const seat of plan.furniture.filter((f) => tableTypes[f.type])) {
     const targets = plan.furniture.filter((f) => f.type === tableTypes[seat.type]);
     if (!targets.length) throw Error(`${seat.name} 没有对应桌面`);
-    const front = FRONT(seat.rot);
+    const front = FRONT(seat.type, seat.rot);
     if (!front) throw Error(`${seat.name} 朝向不是 90° 倍数`);
     let best = null;
     for (const target of targets) {

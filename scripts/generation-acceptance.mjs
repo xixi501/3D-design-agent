@@ -209,21 +209,7 @@ const DEFAULT_DOOR = { width: 900, sill: 0, head: 2100 };
 const DEFAULT_WINDOW = { width: 1500, sill: 900, head: 2400 };
 const FRONT = (type, rot) => {
   const r = ((Math.round(rot / 90) * 90) % 360 + 360) % 360;
-  // The dining-chair mesh is authored with its back on +y, unlike the other
-  // seat meshes; its plan-data front is therefore north at rot=0.
-  const chair = {
-    0: { x: 0, y: -1 },
-    90: { x: 1, y: 0 },
-    180: { x: 0, y: 1 },
-    270: { x: -1, y: 0 },
-  };
-  const standard = {
-    0: { x: 0, y: 1 },
-    90: { x: -1, y: 0 },
-    180: { x: 0, y: -1 },
-    270: { x: 1, y: 0 },
-  };
-  return (type === "chair" ? chair : standard)[r];
+  return { 0: { x: 0, y: 1 }, 90: { x: -1, y: 0 }, 180: { x: 0, y: -1 }, 270: { x: 1, y: 0 } }[r];
 };
 
 function catalogName(f) {

@@ -354,7 +354,45 @@ export function checkInitialization(
       level: "error",
       blocking: true,
     });
-  report.coverage = ["净尺寸、固定门窗与单个封闭矩形", ...report.coverage];
+  const seatTargets: Record<string, string> = {
+    chair: "diningTable",
+    officeChair: "desk",
+    armchair: "coffeeTable",
+  };
+  for (const seat of after.plan.furniture) {
+    const targetType = seatTargets[seat.type];
+    if (!targetType) continue;
+    const targets = after.plan.furniture.filter((f) => f.type === targetType);
+    if (!targets.length) continue;
+    const radians = ((seat.rot || 0) * Math.PI) / 180,
+      front = { x: -Math.sin(radians), y: Math.cos(radians) };
+    let best = -Infinity,
+      bestTarget: any;
+    for (const target of targets) {
+      const dx = target.x - seat.x,
+        dy = target.y - seat.y,
+        distance = Math.hypot(dx, dy) || 1,
+        dot = (dx * front.x + dy * front.y) / distance;
+      if (dot > best) {
+        best = dot;
+        bestTarget = target;
+      }
+    }
+    if (bestTarget && best < 0.2)
+      report.issues.push({
+        code: "SEAT_FACING",
+        objectIds: [seat.id, bestTarget.id],
+        message: `${seat.name} 没有朝向${bestTarget.name}，初始座椅朝向与基本使用关系不符`,
+        level: "error",
+        metric: Math.round((1 - best) * 1000),
+        blocking: true,
+      });
+  }
+  report.coverage = [
+    "净尺寸、固定门窗与单个封闭矩形",
+    "座椅朝向对应餐桌/书桌/茶几",
+    ...report.coverage,
+  ];
   report.passed = !report.issues.some((i) => i.blocking);
   return report;
 }

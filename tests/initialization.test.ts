@@ -5,10 +5,12 @@ import os from "node:os";
 import path from "node:path";
 import {
   blankPlan,
+  createFurniture,
   detectRooms,
   applyCommands,
 } from "../packages/scene-core/src/index.js";
 import {
+  checkInitialization,
   compileRectangular,
   millimetres,
 } from "../packages/scene-core/src/rectangular.js";
@@ -268,6 +270,46 @@ test("initialization previews and candidates leave projects unchanged; enforce q
     await s.app.close();
   }
 });
+test("initialization rejects a seat that turns away from its table", () => {
+  const roomBrief = {
+    roomType: "living_dining",
+    width: { value: 4000, unit: "mm" as const },
+    depth: { value: 4000, unit: "mm" as const },
+    doors: [{ side: "south" as const, position: "center" as const }],
+    windows: [],
+  };
+  const seed = "seat-facing-check";
+  const shell = compileRectangular(roomBrief, seed).state;
+  const before = { plan: blankPlan(), roomLabelArchive: [] };
+  const scope = {
+    targetIds: [],
+    allowDeleteIds: [],
+    allowAddKeys: ["diningTable", "chair"],
+    requirements: [
+      { key: "diningTable", count: 1, scope: "project" as const },
+      { key: "chair", count: 1, scope: "project" as const },
+    ],
+  };
+  const withChair = (rot: number) => {
+    const plan = structuredClone(shell.plan);
+    plan.furniture = [
+      createFurniture("diningTable", 2000, 1700),
+      createFurniture("chair", 2000, 2400, { rot }),
+    ];
+    return { plan, roomLabelArchive: [] };
+  };
+  const facing = checkInitialization(before, withChair(180), roomBrief, seed, scope);
+  assert.equal(
+    facing.issues.some((issue) => issue.code === "SEAT_FACING"),
+    false,
+    JSON.stringify(facing.issues),
+  );
+  const reversed = checkInitialization(before, withChair(0), roomBrief, seed, scope);
+  assert.ok(
+    reversed.issues.some((issue) => issue.code === "SEAT_FACING" && issue.blocking),
+  );
+});
+
 test("initialization commits are one durable transaction and migrate without changing old candidate hashes", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "init-recovery-"));
   let store = new ProjectStore(dir),

@@ -28,6 +28,32 @@ def test_missing_geometry_cannot_be_filled_by_model_defaults():
     assert resolved["furniture"] and "层高 2800 mm" in resolved["defaults"]
 
 
+def test_dimension_quote_recovers_a_null_structured_value_without_inventing():
+    text = "卫生间室内横向净宽180厘米、纵向净深250厘米。入口在南墙居中；窗在北墙居中。"
+    value = {
+        "status": "ready",
+        "purpose": "bathroom",
+        "width": {"value": 180, "unit": "cm"},
+        "depth": None,
+        "doors": [{"side": "south", "position": "center"}],
+        "windows": [{"side": "north", "position": "center"}],
+        "evidence": {
+            "purpose": "卫生间",
+            "width": "室内横向净宽180厘米",
+            "depth": "纵向净深250厘米",
+            "doors": "入口在南墙居中",
+            "windows": "窗在北墙居中",
+        },
+    }
+    resolved = resolve_request(value, text)
+    assert resolved["missing"] == []
+    assert resolved["brief"]["depth"] == {"value": 250.0, "unit": "cm"}
+
+    value["evidence"]["depth"] = "编造"
+    unresolved = resolve_request(value, text)
+    assert "纵向净深" in unresolved["missing"]
+
+
 def test_asset_choices_are_per_request_not_per_instance():
     schema = asset_selection_schema(2, {"chair", "floorLamp"})
     good = [

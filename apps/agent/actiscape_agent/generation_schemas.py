@@ -1,3 +1,4 @@
+import re
 from typing import Literal
 
 from pydantic import Field, FiniteFloat, field_validator
@@ -59,6 +60,36 @@ class GenerationRequest(StrictModel):
     skillSelection: SkillSelection = Field(default_factory=SkillSelection)
 
 
+_UNIT_ALIASES = {
+    "毫米": "mm",
+    "mm": "mm",
+    "厘米": "cm",
+    "cm": "cm",
+    "米": "m",
+    "m": "m",
+}
+
+
+def _dimension_from_quote(quote: str) -> Dimension | None:
+    """Recover a dimension only when the model's own verbatim evidence has it.
+
+    This is a code-side repair for a model that returns the evidence quote but
+    leaves the structured value null. It never invents a dimension: the quote
+    has already been checked to be a contiguous part of the user request.
+    """
+    match = re.search(
+        r"(\d+(?:\.\d+)?)\s*(毫米|mm|厘米|cm|米|m)(?![a-zA-Z])",
+        quote,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+    return Dimension(
+        value=float(match.group(1)),
+        unit=_UNIT_ALIASES[match.group(2).casefold()],
+    )
+
+
 def resolve_request(value: dict, user_input: str) -> dict:
     """Preserve raw units; geometry and conversion remain in TypeScript."""
     request = GenerationRequest.model_validate(value)
@@ -104,6 +135,10 @@ def resolve_request(value: dict, user_input: str) -> dict:
     for key, label in labels.items():
         supplied = getattr(request, key)
         quote = request.evidence.get(key, "")
+        if supplied is None and key in ("width", "depth") and quote and quote in user_input:
+            supplied = _dimension_from_quote(quote)
+            if supplied is not None:
+                setattr(request, key, supplied)
         if supplied is None or not quote or quote not in user_input:
             missing.append(label)
             setattr(request, key, None)

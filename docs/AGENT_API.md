@@ -119,9 +119,9 @@ POST `/api/projects/:id/initialization-preview`：只读编译空白项目的矩
 }
 ```
 
-实际 taskId 为最多 100 字符的字母、数字、下划线或连字符，Agent 使用 UUID。purpose 支持 living_dining / reading_lounge；尺寸支持 mm/cm/m。门窗必须给墙面和 center/offset 位置；doors 至少一项，windows=[] 明确表示没有窗。未提供窗数组不能当作无窗。
+实际 taskId 为最多 100 字符的字母、数字、下划线或连字符，Agent 使用 UUID。purpose 支持 living_dining、reading_lounge、master_bedroom、guest_bedroom、study、kitchen、bathroom、entry、circulation；尺寸支持 mm/cm/m。门窗必须给墙面和 center/offset 位置；doors 至少一项，windows=[] 明确表示没有窗。未提供窗数组不能当作无窗。
 
-创建候选仍使用 `/api/projects/:id/candidates`，增加 `kind:"initialize"` 和同一份 brief，scope/edits/requestId/taskId/baseRevision 继续必需。scope 仅允许新增目录家具，并包含每项配方的数量。初始化不接受通过改变目录默认尺寸来绕过空间要求。
+创建候选仍使用 `/api/projects/:id/candidates`，增加 `kind:"initialize"`、同一份 brief、`authorizationVersion` 和 `authorizationScopeHash`，scope/edits/requestId/taskId/baseRevision 继续必需。scope 仅允许新增目录家具，包含每项配方的数量、固定资产池和新增额度。没有独立初始化授权的新候选会被拒绝；初始化不接受通过改变目录默认尺寸来绕过空间要求。
 
 结构身份由同一任务固定；家具身份在候选创建时固定。响应保留原家具 diff，并增加 structure 中各集合的 added/deleted/updated 身份；generation 返回输入 brief、毫米尺寸、门窗和默认值。复用同一渲染、检查、review 和 commit 子入口。
 

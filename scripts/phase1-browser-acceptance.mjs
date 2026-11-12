@@ -235,6 +235,8 @@ try {
       const before = await current(),
         door = before.plan.openings.find((o) => o.type === "door");
       await select(door.id, "openings");
+      await page.click('[data-panel="properties"]');
+      await page.waitForSelector('[data-field="open"]', { timeout: 30000 });
       await page.$eval('[data-field="open"]', (el) => {
         el.checked = true;
         el.dispatchEvent(new Event("change", { bubbles: true }));
@@ -250,6 +252,8 @@ try {
       await ready();
       assert.deepEqual((await current()).plan, opened.plan);
       await select(door.id, "openings");
+      await page.click('[data-panel="properties"]');
+      await page.waitForSelector('[data-field="open"]', { timeout: 30000 });
       assert.equal(
         await page.$eval('[data-field="open"]', (el) => el.checked),
         true,

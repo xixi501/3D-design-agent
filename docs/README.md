@@ -1,6 +1,6 @@
 # 文档入口
 
-日常开发先阅读 [阶段 1 验收报告](PHASE1_ACCEPTANCE_20261112.md)、[当前实现状态](IMPLEMENTATION_STATUS.md) 和 [架构](ARCHITECTURE.md)。
+日常开发先阅读 [阶段 1 验收报告](PHASE1_ACCEPTANCE_20261112.md)、[文字生成验收报告](GENERATION_ACCEPTANCE_20261112.md)、[当前实现状态](IMPLEMENTATION_STATUS.md) 和 [架构](ARCHITECTURE.md)。
 历史报告只证明其中注明的提交、样本与运行环境；当前工作树的验收结果以实现状态顶部为准。
 
 | 用途 | 文档 |
@@ -11,10 +11,12 @@
 | 启动、验证和恢复 | [运行手册](RUNBOOK.md)、[环境](ENVIRONMENT.md) |
 | 对外接口 | [场景 API](API.md)、[Agent API](AGENT_API.md) |
 | 当前编辑边界与验收问题 | [阶段 1 验收](PHASE1_ACCEPTANCE_20261112.md) |
+| 九类矩形文字生成与初始化授权 | [文字生成验收](GENERATION_ACCEPTANCE_20261112.md)、[Agent 与候选 API](AGENT_API.md)、[编辑协议](PHASE1_EDIT_PROTOCOL.md) |
 
 `S2*`、带日期的评审/交接报告以及 `evidence/` 保存历史开发记录和证据，保留原位置以维持回放脚本和文档引用。
 新增运行输出写入被 Git 忽略的 `test-results/`；仅将阶段验收摘要和必要证据索引纳入文档。
 测试数据、模型缓存和用户项目不属于文档整理的删除范围。
 
 阶段 1 编辑协议与复现入口见 [编辑协议](PHASE1_EDIT_PROTOCOL.md) 和 [阶段验收](PHASE1_ACCEPTANCE_20261112.md)。
-户型图的统一几何编译、照片与云端扩展在编辑阶段验收后推进。
+九类矩形文字生成的冻结案例、初始化授权协议和复现入口见 [文字生成验收](GENERATION_ACCEPTANCE_20261112.md)。
+户型图的统一几何编译、照片与云端扩展在本轮文字生成验收后推进。

@@ -42,7 +42,7 @@
     "tools:agent-demo": "node scripts/agent-demo.mjs",
     "test:initialization": "node --import tsx scripts/initialization-acceptance.mjs",
     "tools:generation-demo": "node scripts/generation-demo.mjs",
-    "test:generation:live": "node scripts/generation-acceptance.mjs",
+    "test:generation:live": "node --import tsx scripts/generation-acceptance.mjs",
     "test:generation:browser": "node scripts/generation-browser-acceptance.mjs",
     "test:floorplan": "node --import tsx scripts/floorplan-acceptance.mjs",
     "test:floorplan:v3": "node --import tsx scripts/floorplan-acceptance.mjs --v3",

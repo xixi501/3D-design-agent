@@ -280,6 +280,7 @@ export function actionCommand(
   collection: "openings" | "furniture",
   id: string,
   desiredState?: boolean,
+  action?: "toggle_open" | "toggle_on",
 ): Command | undefined {
   if (collection === "openings") {
     const opening = plan.openings.find((o) => o.id === id);
@@ -293,14 +294,30 @@ export function actionCommand(
   }
   const f = plan.furniture.find((f) => f.id === id);
   if (!f) return;
-  if (isOpenableFurniture(f))
+  if (action === "toggle_on" && isTogglableFurniture(f))
+    return {
+      type: "update",
+      collection: "furniture",
+      id,
+      patch: {
+        opt: { ...(f.opt || {}), on: desiredState ?? f.opt?.on === false },
+      },
+    };
+  if (action === "toggle_open" && isOpenableFurniture(f))
     return {
       type: "update",
       collection: "furniture",
       id,
       patch: { opt: { ...(f.opt || {}), open: desiredState ?? !f.opt?.open } },
     };
-  if (isTogglableFurniture(f)) {
+  if (!action && isOpenableFurniture(f))
+    return {
+      type: "update",
+      collection: "furniture",
+      id,
+      patch: { opt: { ...(f.opt || {}), open: desiredState ?? !f.opt?.open } },
+    };
+  if (!action && isTogglableFurniture(f)) {
     const isOn = f.opt?.on !== false;
     return {
       type: "update",

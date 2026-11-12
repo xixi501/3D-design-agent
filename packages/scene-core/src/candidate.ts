@@ -76,6 +76,7 @@ export interface EditScope {
   allowAddKeys: string[];
   fieldMask?: Record<string, string[]>;
   additionBounds?: { x0: number; y0: number; x1: number; y1: number };
+  targetBounds?: { x0: number; y0: number; x1: number; y1: number };
   allowedRoomIds?: string[];
   /** strict-repair requires every target-related error to disappear. */
   checkProfile?: "legacy" | "strict-repair";
@@ -84,6 +85,9 @@ export interface EditScope {
   /** Photo-generated models the actor may place; dimensions come from AssetRecord. */
   allowedAssets?: AllowedAsset[];
   requirements: { key: string; count: number; scope: "project" | "targets" }[];
+  /** Bounded replacement pool selected during asset grounding. */
+  assetPool?: string[];
+  additionRules?: { keys: string[]; count: number }[];
 }
 export interface CandidateIssue {
   code: string;
@@ -127,11 +131,14 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     "allowAddKeys",
     "requirements",
     "additionBounds",
+    "targetBounds",
     "fieldMask",
     "allowedRoomIds",
     "checkProfile",
     "actionIds",
     "allowedAssets",
+    "assetPool",
+    "additionRules",
   ]);
   if (
     s.checkProfile !== undefined &&
@@ -156,6 +163,41 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     fail("目标身份无效或删除授权超出目标范围");
   if (s.allowAddKeys.some((key) => !Object.hasOwn(catalog, key)))
     fail("新增配方不在家具目录内");
+  if (
+    s.assetPool !== undefined &&
+    (!Array.isArray(s.assetPool) ||
+      s.assetPool.length > 25 ||
+      s.assetPool.some(
+        (key) => typeof key !== "string" || !Object.hasOwn(catalog, key),
+      ) ||
+      new Set(s.assetPool).size !== s.assetPool.length)
+  )
+    fail("资产替换池无效");
+  if (s.assetPool && s.allowAddKeys.some((key) => !s.assetPool!.includes(key)))
+    fail("新增配方必须来自已冻结的资产替换池");
+  if (s.additionRules !== undefined) {
+    if (!Array.isArray(s.additionRules) || s.additionRules.length > 20)
+      fail("新增额度无效");
+    const used = new Set<string>();
+    for (const rule of s.additionRules) {
+      keys(rule, ["keys", "count"]);
+      if (
+        !Array.isArray(rule.keys) ||
+        !rule.keys.length ||
+        new Set(rule.keys).size !== rule.keys.length ||
+        rule.keys.some(
+          (key) => !s.allowAddKeys.includes(key) || used.has(key),
+        ) ||
+        !Number.isInteger(rule.count) ||
+        rule.count < 1 ||
+        rule.count > 120
+      )
+        fail("新增额度或替换池无效");
+      rule.keys.forEach((key) => used.add(key));
+    }
+    if (s.allowAddKeys.some((key) => !used.has(key)))
+      fail("每个新增配方都需要对应额度");
+  }
   if (s.actionIds !== undefined) {
     const actionable = new Set([
       ...plan.furniture.map((f) => f.id),
@@ -225,17 +267,18 @@ export function validateScope(value: unknown, plan: Plan): EditScope {
     )
       fail("目标房间身份无效");
   }
-  if (s.additionBounds) {
-    keys(s.additionBounds, ["x0", "y0", "x1", "y1"]);
+  for (const bounds of [s.additionBounds, s.targetBounds]) {
+    if (!bounds) continue;
+    keys(bounds, ["x0", "y0", "x1", "y1"]);
     if (
-      Object.values(s.additionBounds).length !== 4 ||
-      Object.values(s.additionBounds).some(
+      Object.values(bounds).length !== 4 ||
+      Object.values(bounds).some(
         (n) => !Number.isFinite(n) || Math.abs(n) > 100000,
       ) ||
-      s.additionBounds.x1 <= s.additionBounds.x0 ||
-      s.additionBounds.y1 <= s.additionBounds.y0
+      bounds.x1 <= bounds.x0 ||
+      bounds.y1 <= bounds.y0
     )
-      fail("新增区域无效");
+      fail("局部编辑区域无效");
   }
   return clone(s);
 }
@@ -334,6 +377,7 @@ export function materializeEdits(
         edit.collection,
         edit.id,
         edit.desiredState,
+        edit.action,
       );
       if (!toggled) fail("该对象没有可切换的开启或电器状态");
       command = toggled as Command;
@@ -482,6 +526,16 @@ export function checkCandidate(
   for (const id of diff.deleted)
     if (!scope.allowDeleteIds.includes(id))
       add("PROTECTED_OBJECT", [id], "删除了未授权对象");
+  for (const id of diff.updated) {
+    const f = after.plan.furniture.find((f) => f.id === id)!;
+    const b = scope.targetBounds;
+    if (
+      b &&
+      scope.targetIds.includes(id) &&
+      (f.x < b.x0 || f.x > b.x1 || f.y < b.y0 || f.y > b.y1)
+    )
+      add("OUTSIDE_EDIT_REGION", [id], "目标对象超出已授权的局部编辑区域");
+  }
   for (const id of diff.added) {
     const f = after.plan.furniture.find((f) => f.id === id)!;
     const allowedModel =
@@ -506,6 +560,17 @@ export function checkCandidate(
         "QUANTITY_REQUIREMENT",
         matching.map((f) => f.id),
         `${catalog[rule.key].name} 数量需为 ${rule.count}，实际 ${matching.length}`,
+      );
+  }
+  for (const rule of scope.additionRules || []) {
+    const added = after.plan.furniture.filter(
+      (f) => diff.added.includes(f.id) && rule.keys.includes(f.key),
+    );
+    if (added.length !== rule.count)
+      add(
+        "QUANTITY_REQUIREMENT",
+        added.map((f) => f.id),
+        `本次新增数量需为 ${rule.count}，实际 ${added.length}`,
       );
   }
   const regions = detectRooms(after.plan).regions;

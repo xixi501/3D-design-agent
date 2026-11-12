@@ -54,6 +54,12 @@ export interface CandidateReview {
   evidenceHashes: string[];
   issues: string[];
 }
+import {
+  EditAuthorizations,
+  checkExpected,
+  type AuthorizationRequest,
+} from "./edit-authorizations.js";
+
 export class CandidateStore {
   constructor(
     public projects: ProjectStore,
@@ -103,6 +109,9 @@ export class CandidateStore {
       };
     });
   }
+  authorize(project: string, request: AuthorizationRequest) {
+    return new EditAuthorizations(this.projects).register(project, request);
+  }
   create(
     project: string,
     request: {
@@ -118,6 +127,8 @@ export class CandidateStore {
       brief?: RectangularBrief;
       activityGroups?: { name: string; memberIds: string[] }[];
       verification?: "screenshots" | "deterministic";
+      authorizationVersion?: number;
+      authorizationScopeHash?: string;
     },
   ) {
     if (
@@ -139,20 +150,9 @@ export class CandidateStore {
       (typeof request.summary !== "string" || request.summary.length > 200)
     )
       throw new SceneError("INVALID_REQUEST", "摘要必须是最多 200 字的字符串");
-    const verification = request.verification || "screenshots";
+    let verification = request.verification || "screenshots";
     if (!["screenshots", "deterministic"].includes(verification))
       throw new SceneError("INVALID_REQUEST", "候选检查策略无效");
-    if (
-      verification === "deterministic" &&
-      (!request.edits?.length ||
-        request.edits.some(
-          (edit) => edit.type !== "action" && edit.type !== "placeAsset",
-        ))
-    )
-      throw new SceneError(
-        "INVALID_REQUEST",
-        "只有纯动作或照片资产落位候选可以跳过截图",
-      );
     const requestHash = sha256(request);
     return this.projects.db
       .transaction(() => {
@@ -227,8 +227,73 @@ export class CandidateStore {
           : undefined;
         const source = compiled?.state || before;
         const scope =
-            reconstructed?.scope || validateScope(request.scope, source.plan),
-          edits = reconstructed
+          reconstructed?.scope || validateScope(request.scope, source.plan);
+        const authorizationVersion = request.authorizationVersion;
+        let authorizationScopeHash = request.authorizationScopeHash;
+        let authorization: any;
+        if (!initialization && !reconstruction) {
+          if (
+            authorizationVersion !== undefined ||
+            authorizationScopeHash !== undefined
+          ) {
+            if (!authorizationVersion || !authorizationScopeHash)
+              throw new SceneError(
+                "INVALID_AUTHORIZATION",
+                "候选必须同时携带授权版本和哈希",
+              );
+            authorization = new EditAuthorizations(this.projects).assert(
+              project,
+              request.taskId,
+              authorizationVersion,
+              request.baseRevision,
+              authorizationScopeHash,
+              scope,
+            );
+            verification = authorization.verification;
+          } else {
+            if (
+              this.projects.db
+                .prepare(
+                  "SELECT 1 FROM edit_authorization_heads WHERE project=? AND task_id=?",
+                )
+                .get(project, request.taskId)
+            )
+              throw new SceneError(
+                "AUTHORIZATION_REQUIRED",
+                "此任务候选必须引用独立授权",
+                409,
+              );
+            // The legacy protocol is retained for existing tools and stored
+            // candidates. It never grants the new exact-edit exemption.
+            authorizationScopeHash = sha256(scope);
+            this.projects.freezeCandidateAuthorization(
+              project,
+              request.taskId,
+              authorizationScopeHash,
+              scope,
+            );
+            verification =
+              request.edits?.length &&
+              request.edits.every(
+                (edit) => edit.type === "action" || edit.type === "placeAsset",
+              )
+                ? "deterministic"
+                : "screenshots";
+          }
+        } else verification = "screenshots";
+        if (
+          verification === "deterministic" &&
+          !request.edits?.every((edit) =>
+            authorization?.operations?.length
+              ? edit.type === "update" || edit.type === "delete"
+              : edit.type === "action" || edit.type === "placeAsset",
+          )
+        )
+          throw new SceneError(
+            "INVALID_AUTHORIZATION",
+            "候选编辑与确定性授权类型不一致",
+          );
+        const edits = reconstructed
             ? []
             : materializeEdits(source, scope, request.edits!),
           contentCommands = reconstructed?.commands || [
@@ -242,6 +307,11 @@ export class CandidateStore {
           request.activityGroups !== undefined &&
           request.activityGroups.length
         ) {
+          if (authorization?.operations?.length)
+            throw new SceneError(
+              "INVALID_AUTHORIZATION",
+              "精确编辑不能附带未授权的活动组元数据",
+            );
           if (
             !Array.isArray(request.activityGroups) ||
             request.activityGroups.length > 100
@@ -305,17 +375,8 @@ export class CandidateStore {
           state = applyCommands(contentState, [projectCommand]);
         }
         for (const id of assetReferences(state.plan)) this.projects.asset(id);
-        const id = newId(),
-          authorizationScopeHash =
-            !initialization && !reconstruction ? sha256(scope) : undefined;
-        if (authorizationScopeHash)
-          this.projects.freezeCandidateAuthorization(
-            project,
-            request.taskId,
-            authorizationScopeHash,
-            scope,
-          );
-        const checks = reconstructed
+        const id = newId();
+        const rawChecks = reconstructed
             ? checkFloorplanInitialization(
                 before,
                 state,
@@ -334,6 +395,7 @@ export class CandidateStore {
                 )
               : checkCandidate(before, state, scope),
           diff = businessDiff(base.plan, state.plan);
+        const checks = checkExpected(rawChecks, state, authorization);
         if (!diff.added.length && !diff.updated.length && !diff.deleted.length)
           throw new SceneError("NO_CHANGE", "候选没有产生业务修改");
         const frozen = {
@@ -343,6 +405,7 @@ export class CandidateStore {
           baseRevision: base.revision,
           scope,
           ...(authorizationScopeHash ? { authorizationScopeHash } : {}),
+          ...(authorizationVersion ? { authorizationVersion } : {}),
           commands,
           state,
           diff,
@@ -470,11 +533,20 @@ export class CandidateStore {
     return evidence;
   }
   review(project: string, id: string, review: CandidateReview) {
-    const c = this.get(project, id),
-      evidence =
-        c.verification === "deterministic"
-          ? []
-          : this.verifyEvidence(project, id);
+    const c = this.get(project, id);
+    if (c.authorizationVersion)
+      new EditAuthorizations(this.projects).assert(
+        project,
+        c.taskId,
+        c.authorizationVersion,
+        c.baseRevision,
+        c.authorizationScopeHash,
+        c.scope,
+      );
+    const evidence =
+      c.verification === "deterministic"
+        ? []
+        : this.verifyEvidence(project, id);
     if (
       !review ||
       typeof review.passed !== "boolean" ||
@@ -542,7 +614,30 @@ export class CandidateStore {
         const { hash, before, ...frozen } = c;
         if (sha256(frozen) !== hash)
           throw new SceneError("CANDIDATE_INVALID", "候选内容校验失败", 409);
-        if (c.authorizationScopeHash)
+        const authorization = c.authorizationVersion
+          ? new EditAuthorizations(this.projects).assert(
+              project,
+              c.taskId,
+              c.authorizationVersion,
+              c.baseRevision,
+              c.authorizationScopeHash,
+              c.scope,
+            )
+          : undefined;
+        if (
+          !c.authorizationVersion &&
+          this.projects.db
+            .prepare(
+              "SELECT 1 FROM edit_authorization_heads WHERE project=? AND task_id=?",
+            )
+            .get(project, c.taskId)
+        )
+          throw new SceneError(
+            "AUTHORIZATION_CONFLICT",
+            "旧协议候选已被新的需求版本替代",
+            409,
+          );
+        if (c.authorizationScopeHash && !c.authorizationVersion)
           this.projects.assertCandidateAuthorization(
             project,
             c.taskId,
@@ -577,7 +672,11 @@ export class CandidateStore {
                     c.taskId,
                     c.scope,
                   )
-                : checkCandidate(before, replay, c.scope)
+                : checkExpected(
+                    checkCandidate(before, replay, c.scope),
+                    replay,
+                    authorization,
+                  )
           ).passed
         )
           throw new SceneError("CHECK_FAILED", "候选未通过确定性检查", 409);

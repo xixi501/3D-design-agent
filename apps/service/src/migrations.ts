@@ -3,7 +3,7 @@ import { SceneError } from "../../../packages/scene-core/src/index.js";
 /** Ordered, transactional migrations. Opening an existing database never rewrites request/candidate hashes. */
 export function migrate(db: Database.Database) {
   const current = Number(db.pragma("user_version", { simple: true }));
-  if (current > 6)
+  if (current > 7)
     throw new SceneError(
       "UNSUPPORTED_DATABASE",
       "数据库版本高于当前业务版本，请使用对应版本恢复",
@@ -27,6 +27,9 @@ export function migrate(db: Database.Database) {
     if (current < 6)
       db.exec(`CREATE TABLE IF NOT EXISTS candidate_authorizations(project TEXT NOT NULL REFERENCES projects(id),task_id TEXT NOT NULL,scope_hash TEXT NOT NULL,scope TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(project,task_id));
       CREATE INDEX IF NOT EXISTS candidate_authorizations_task ON candidate_authorizations(task_id);`);
-    db.pragma("user_version = 6");
+    if (current < 7)
+      db.exec(`CREATE TABLE IF NOT EXISTS edit_authorizations(project TEXT NOT NULL REFERENCES projects(id),task_id TEXT NOT NULL,version INTEGER NOT NULL,base_revision INTEGER NOT NULL,scope_hash TEXT NOT NULL,scope TEXT NOT NULL,request_hash TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(project,task_id,version));
+      CREATE TABLE IF NOT EXISTS edit_authorization_heads(project TEXT NOT NULL REFERENCES projects(id),task_id TEXT NOT NULL,version INTEGER NOT NULL,PRIMARY KEY(project,task_id));`);
+    db.pragma("user_version = 7");
   }).immediate();
 }

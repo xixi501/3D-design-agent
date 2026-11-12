@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import fs from "node:fs";
+import { EditAuthorizations } from "./edit-authorizations.js";
 import { CandidateStore } from "./candidates.js";
 import { ProjectStore } from "./store.js";
 import { RenderWorker } from "./render-worker.js";
@@ -21,6 +22,71 @@ export function candidateRoutes(
   const root = "/api/projects/:id/candidates",
     item = root + "/:candidate";
   const params = (req: any) => [req.params.id, req.params.candidate] as const;
+  app.post(
+    "/api/projects/:id/edit-authorizations",
+    {
+      schema: {
+        description:
+          "Register the least-privilege edit scope before a candidate is created.",
+        body: {
+          type: "object",
+          required: [
+            "taskId",
+            "baseRevision",
+            "version",
+            "requestText",
+            "scope",
+          ],
+          properties: {
+            taskId: { type: "string", minLength: 1, maxLength: 200 },
+            baseRevision: { type: "integer", minimum: 0 },
+            version: { type: "integer", minimum: 1 },
+            requestText: { type: "string", minLength: 1, maxLength: 8000 },
+            referenceIds: {
+              type: "array",
+              maxItems: 20,
+              items: { type: "string" },
+            },
+            operations: {
+              type: "array",
+              maxItems: 100,
+              items: { type: "object", additionalProperties: true },
+            },
+            scope: { type: "object", additionalProperties: true },
+          },
+          additionalProperties: false,
+        },
+      },
+    },
+    async (req, reply) =>
+      reply
+        .code(201)
+        .send(candidates.authorize((req.params as any).id, req.body as any)),
+  );
+  app.post(
+    "/api/projects/:id/edit-authorizations/invalidate",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["taskId", "version"],
+          additionalProperties: false,
+          properties: {
+            taskId: { type: "string", minLength: 1 },
+            version: { type: "integer", minimum: 1 },
+          },
+        },
+      },
+    },
+    async (req) => {
+      const body = req.body as any;
+      return new EditAuthorizations(store).invalidate(
+        (req.params as any).id,
+        body.taskId,
+        body.version,
+      );
+    },
+  );
   app.post(
     "/api/projects/:id/initialization-preview",
     {
@@ -88,6 +154,11 @@ export function candidateRoutes(
               type: "string",
               enum: ["screenshots", "deterministic"],
             },
+            authorizationVersion: { type: "integer", minimum: 1 },
+            authorizationScopeHash: {
+              type: "string",
+              pattern: "^[a-f0-9]{64}$",
+            },
             kind: {
               type: "string",
               enum: ["edit", "initialize", "initialize_floorplan"],
@@ -152,10 +223,20 @@ export function candidateRoutes(
         .send(candidates.create((req.params as any).id, req.body as any)),
   );
   app.get(item, async (req) => candidates.get(...params(req)));
-  app.get(
-    item + "/checks",
-    async (req) => candidates.get(...params(req)).checks,
-  );
+  app.get(item + "/checks", async (req) => {
+    const [project, id] = params(req),
+      c = candidates.get(project, id);
+    if (c.authorizationVersion)
+      new EditAuthorizations(store).assert(
+        project,
+        c.taskId,
+        c.authorizationVersion,
+        c.baseRevision,
+        c.authorizationScopeHash,
+        c.scope,
+      );
+    return c.checks;
+  });
   app.post(
     item + "/render",
     {

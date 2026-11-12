@@ -113,6 +113,18 @@ class FlowScene:
         self.blocked_once_used = False
 
     async def request(self, path, body=None):
+        if path == "/catalog":
+            return {"items": {}}
+        if path == "/projects/p/edit-authorizations":
+            return {
+                "version": body["version"],
+                "scopeHash": "a" * 64,
+                "verification": "deterministic",
+            }
+        if path == "/projects/p/scene-drafts":
+            return {"id": "draft", "revision": 0, "hash": "b" * 64}
+        if path.endswith("/scene-drafts/draft/patches"):
+            return {"id": "draft", "revision": 1, "hash": "c" * 64}
         if path == "/projects/p":
             return copy.deepcopy(self.project)
         if path == "/assets/asset-demo":
@@ -207,6 +219,7 @@ class FlowScene:
                 "diff": {"added": added, "deleted": [], "updated": updated},
                 "summary": body.get("summary", ""),
                 "committed": None,
+                "verification": "deterministic",
             }
             self.candidates[c["id"]] = c
             if self.block_once and not self.blocked_once_used:
@@ -443,7 +456,8 @@ async def test_fast_single_object_move_commits_without_model(tmp_path):
             },
         )
         assert task["status"] == "completed", task
-        assert task["result"]["policy"]["fastEdit"]["values"]["x"] == 1800
+        assert task["modelCalls"] == 0
+        assert task["result"]["evidence"] == []
         table = next(f for f in client.project["plan"]["furniture"] if f["id"] == "t1")
         assert table["x"] == 1800
         assert client.project["revision"] == 1
@@ -467,6 +481,7 @@ async def test_fast_single_object_dimension_commits_without_model(tmp_path):
         assert task["status"] == "completed", task
         table = next(f for f in client.project["plan"]["furniture"] if f["id"] == "t1")
         assert table["w"] == 1200
-        assert client.project["revision"] == 1
+        assert client.project["revision"] == 0
+        assert task["result"]["noChange"] is True
     finally:
         await manager.close()

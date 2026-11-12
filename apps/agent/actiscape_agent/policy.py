@@ -99,18 +99,6 @@ OPENABLE_KEYS = {
 }
 DOOR_TYPES = {"door", "double", "unequal", "sliding", "folding", "pocket", "garage"}
 TOGGLE_WORDS = ("灯", "电视", "窗帘", "屏幕")
-COLOR_NAMES = {
-    "红色": "#c0392b",
-    "蓝色": "#2f5f9f",
-    "绿色": "#3f7d5a",
-    "黄色": "#d4a72c",
-    "黑色": "#222222",
-    "白色": "#f2f0ea",
-    "灰色": "#8a8f92",
-    "米色": "#d8c9ae",
-    "原木色": "#b58a5a",
-    "胡桃木色": "#6f4e37",
-}
 
 
 class PolicyDecision(StrictModel):
@@ -124,7 +112,6 @@ class PolicyDecision(StrictModel):
     desiredState: bool | None = None
     assetId: str | None = None
     hostId: str | None = None
-    fastEdit: dict | None = None
 
 
 def _names(furniture: dict) -> str:
@@ -199,9 +186,6 @@ class PolicyController:
                 ),
             )
 
-        fast = self._fast_edit(text, task, project)
-        if fast is not None:
-            return fast
         action = self._action(text, task, project)
         if action is not None:
             return action
@@ -243,135 +227,6 @@ class PolicyController:
             and any(word in text for word in ROOM_WORDS)
             and any(word in text for word in DIMENSION_WORDS)
         )
-
-    def _target_furniture(self, text: str, task: dict, project: dict):
-        plan = project["plan"]
-        # An explicit object name outranks the current selection; only fall back
-        # to selection for "它/这把" style commands.
-        matches = [f for f in plan.get("furniture", []) if _names(f) and _names(f) in text]
-        unique = {f["id"]: f for f in matches}
-        if len(unique) > 1:
-            return None
-        if len(unique) == 1:
-            return next(iter(unique.values()))
-        selected = list(task.get("selectedIds") or [])
-        if len(selected) == 1:
-            return next(
-                (f for f in plan.get("furniture", []) if f["id"] == selected[0]),
-                None,
-            )
-        return None
-
-    @staticmethod
-    def _consumed(text: str, match: re.Match, item: dict) -> bool:
-        """Only execute a single command when no semantic text is left over."""
-        prefix, suffix = text[: match.start()], text[match.end() :]
-        name = _names(item)
-        targets = ["它", "这个", "这件", "这把", "选中的对象"]
-        if name:
-            targets.insert(0, name)
-        target = "(?:" + "|".join(re.escape(value) for value in targets) + ")"
-        return bool(
-            re.fullmatch(r"\s*(?:请)?(?:帮我)?(?:把|将)?(?:" + target + r")?\s*", prefix)
-            and re.fullmatch(r"\s*[。！!]?\s*", suffix)
-        )
-
-    def _fast_edit(self, text: str, task: dict, project: dict) -> PolicyDecision | None:
-        """Single-object transform/color/dimension edit without a model call."""
-        # A negated or compound request must go through the normal intent
-        # path.  Applying only the first regex match would silently execute a
-        # partial command (for example, move but ignore a color change).
-        if re.search(r"(?:不要|别|不必|无需)\s*(?:向|往|把|将)?", text):
-            return None
-        if re.search(r"(?:并|同时|然后|以及|且|之后)", text):
-            return None
-        item = self._target_furniture(text, task, project)
-        if item is None:
-            return None
-        dimension = re.search(
-            r"(宽(?:度)?|深(?:度)?|高(?:度)?)(?:改为|调整为|设为|设置为|变成|为)\s*"
-            r"(\d+(?:\.\d+)?)\s*(毫米|mm|厘米|cm|米|m)",
-            text,
-            re.IGNORECASE,
-        )
-        if dimension and self._consumed(text, dimension, item):
-            label, raw, unit = dimension.groups()
-            field = "w" if label.startswith("宽") else "d" if label.startswith("深") else "h"
-            amount = float(raw) * (
-                10 if unit.lower() in ("厘米", "cm") else 1000 if unit.lower() in ("米", "m") else 1
-            )
-            if not 1 <= amount <= 50000:
-                return None
-            return PolicyDecision(
-                route="interactive_action",
-                mode="interactive_action",
-                reason="单件快速调整尺寸",
-                targetId=item["id"],
-                collection="furniture",
-                fastEdit={"kind": "update", "values": {field: amount}},
-            )
-        move = re.search(
-            r"(?:向|往)(左|右|上|下|东|西|北|南)(?:边|侧)?(?:移|移动|挪|平移|推)?\s*"
-            r"(\d+(?:\.\d+)?)\s*(毫米|mm|厘米|cm|米|m)?",
-            text,
-        )
-        if move and self._consumed(text, move, item):
-            direction, raw, unit = move.groups()
-            amount = float(raw) * (
-                10 if unit in ("厘米", "cm") else 1000 if unit in ("米", "m") else 1
-            )
-            values = {}
-            if direction in ("左", "西"):
-                values["x"] = item["x"] - amount
-            elif direction in ("右", "东"):
-                values["x"] = item["x"] + amount
-            elif direction in ("上", "北"):
-                values["y"] = item["y"] - amount
-            else:
-                values["y"] = item["y"] + amount
-            return PolicyDecision(
-                route="interactive_action",
-                mode="interactive_action",
-                reason="单件快速平移",
-                targetId=item["id"],
-                collection="furniture",
-                fastEdit={"kind": "update", "values": values},
-            )
-        rotate = re.search(
-            r"(顺时针|逆时针|向左|向右)?\s*旋转\s*(\d+(?:\.\d+)?)\s*度",
-            text,
-        )
-        if rotate and self._consumed(text, rotate, item):
-            direction, raw = rotate.groups()
-            amount = float(raw)
-            if direction in ("逆时针", "向左"):
-                amount = -amount
-            return PolicyDecision(
-                route="interactive_action",
-                mode="interactive_action",
-                reason="单件快速旋转",
-                targetId=item["id"],
-                collection="furniture",
-                fastEdit={
-                    "kind": "update",
-                    "values": {"rot": (float(item.get("rot") or 0) + amount) % 360},
-                },
-            )
-        color = re.search(
-            r"(?:改成|换成|变成|刷成|涂成)\s*(红色|蓝色|绿色|黄色|黑色|白色|灰色|米色|原木色|胡桃木色|#[0-9a-fA-F]{6})",
-            text,
-        )
-        if color and self._consumed(text, color, item):
-            value = COLOR_NAMES.get(color.group(1), color.group(1))
-            return PolicyDecision(
-                route="interactive_action",
-                mode="interactive_action",
-                reason="单件快速改色",
-                targetId=item["id"],
-                collection="furniture",
-                fastEdit={"kind": "update", "values": {"color": value}},
-            )
-        return None
 
     def _action(self, text: str, task: dict, project: dict) -> PolicyDecision | None:
         if not any(word in text for word in ACTION_WORDS):

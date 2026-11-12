@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from .capability_registry import capability_document
+from .client import SceneFailure
 from .config import model_api_key, model_settings, state_directory
 from .floorplan_vision import get_provider_registry
 from .manager import TaskManager
@@ -55,6 +56,10 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
                 **({"details": error.details} if error.details else {}),
             },
         )
+
+    @app.exception_handler(SceneFailure)
+    async def scene_failure(_request: Request, error: SceneFailure):
+        return JSONResponse(status_code=error.status, content=error.data)
 
     def manager():
         return app.state.manager
@@ -180,9 +185,7 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
 
     @app.post("/tasks/{id}/resume", status_code=202)
     async def resume(id: str, body: ResumeInput):
-        task = manager().store.resume(id, body.model_dump())
-        manager().enqueue(id)
-        return task
+        return await manager().resume(id, body.model_dump())
 
     @app.post("/tasks/{id}/cancel")
     async def cancel(id: str):

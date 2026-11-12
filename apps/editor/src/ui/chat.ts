@@ -17,6 +17,7 @@ const phases: Record<string, string> = {
   prechecking: "检查参数与几何",
   rendering: "生成检查视图",
   checking: "核对需求与截图",
+  checking_parameters: "核对精确要求与几何",
   repairing: "修复候选",
   committing: "确认提交",
 };
@@ -112,8 +113,11 @@ export class ChatPanel {
         this.styleHint = this.styleHint === style ? "" : style;
         this.stylePicker
           .querySelectorAll(".chat-style")
-          .forEach((b) => b.classList.toggle("active", b.textContent === this.styleHint));
-        if (this.styleHint) this.input.placeholder = `描述空间，AI 会按「${style}」方向设计`;
+          .forEach((b) =>
+            b.classList.toggle("active", b.textContent === this.styleHint),
+          );
+        if (this.styleHint)
+          this.input.placeholder = `描述空间，AI 会按「${style}」方向设计`;
       };
       this.stylePicker.append(button);
     }
@@ -201,8 +205,7 @@ export class ChatPanel {
     );
   }
   private renderMode() {
-    this.floorplanUpload.hidden =
-      !this.getContext().blank || !!this.current();
+    this.floorplanUpload.hidden = !this.getContext().blank || !!this.current();
     this.floorplanUpload.disabled =
       this.sending || !this.getContext().blank || !!this.current();
     this.floorplanUpload.title = this.getContext().blank
@@ -392,7 +395,11 @@ export class ChatPanel {
     const visibleTasks = this.tasks.slice(-4);
     if (this.tasks.length > visibleTasks.length)
       this.messages.append(
-        node("p", `更早的 ${this.tasks.length - visibleTasks.length} 条记录已收起`, "chat-older"),
+        node(
+          "p",
+          `更早的 ${this.tasks.length - visibleTasks.length} 条记录已收起`,
+          "chat-older",
+        ),
       );
     for (const task of visibleTasks) {
       const entry = node("article", undefined, "chat-task");
@@ -401,7 +408,11 @@ export class ChatPanel {
       const reply = node("div", undefined, "chat-assistant"),
         badge = node(
           "strong",
-          statusLabels[task.status] || task.status,
+          (task.result?.noChange
+            ? "无需修改"
+            : task.result?.reason === "check_failed"
+              ? "检查未通过，等待调整"
+              : statusLabels[task.status]) || task.status,
           "chat-status",
         );
       badge.dataset.status = task.status;
@@ -416,7 +427,12 @@ export class ChatPanel {
             : /生成|设计|选择|理解/.test(label)
               ? 1
               : 0;
-        for (const [index, text] of ["理解", "生成", "检查", "保存"].entries()) {
+        for (const [index, text] of [
+          "理解",
+          "生成",
+          "检查",
+          "保存",
+        ].entries()) {
           const step = node("span", text);
           if (index === currentIndex) step.className = "current";
           rail.append(step);
@@ -429,7 +445,7 @@ export class ChatPanel {
           (active.has(task.status) && task.status !== "waiting_input"
             ? task.phaseLabel || "正在处理已保存的任务…"
             : task.status === "completed"
-              ? "本次空间修改已经提交，下面是摘要。"
+              ? task.result?.message || "本次空间修改已经提交，下面是摘要。"
               : task.result?.message) ||
             task.error ||
             task.phaseLabel ||
@@ -550,7 +566,11 @@ export class ChatPanel {
         const card = node("div", undefined, "chat-result-card");
         card.append(
           node("span", "AI 设计完成", "chat-result-kicker"),
-          node("p", result.message || "本次空间修改已经提交。", "chat-result-copy"),
+          node(
+            "p",
+            result.message || "本次空间修改已经提交。",
+            "chat-result-copy",
+          ),
           node(
             "div",
             `${result.changes?.length || 0} 项变更 · 版本 ${result.committedRevision || task.result?.committedRevision || ""} · ${checkLabel}`,
@@ -668,8 +688,7 @@ export class ChatPanel {
         reply.append(problems);
       }
       if (
-        task.status === "failed" &&
-        result?.errorCode &&
+        ["failed", "conflict"].includes(task.status) &&
         !task.cancelRequested
       ) {
         if (task.modelCalls >= 24 || task.elapsedSeconds >= 600)
@@ -677,7 +696,10 @@ export class ChatPanel {
             node("p", "本任务预算已耗尽，请重新提交完整需求。", "muted"),
           );
         else {
-          const retry = node("button", "重试此任务");
+          const retry = node(
+            "button",
+            task.status === "conflict" ? "读取最新场景后重试" : "重试此任务",
+          );
           retry.onclick = () => void this.retry(task.id);
           reply.append(retry);
         }
@@ -809,9 +831,10 @@ export class ChatPanel {
   }
   private async submit() {
     const typed = this.input.value.trim();
-    const input = this.styleHint && typed
-      ? `${typed}\n\n设计方向：${this.styleHint}`
-      : typed;
+    const input =
+      this.styleHint && typed
+        ? `${typed}\n\n设计方向：${this.styleHint}`
+        : typed;
     if (!input || this.sending) return;
     const context = this.getContext();
     if (context.projectId !== this.projectId) return;

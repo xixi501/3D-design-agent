@@ -7,9 +7,10 @@ import httpx
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from .client import SceneClient, SceneFailure
+from .edit_results import completion_result, conversation_focus
 from .roles import Roles
 from .store import TaskError, TaskStore, fingerprint
-from .workflow import Workflow, completion_result, conversation_focus
+from .workflow import Workflow
 
 
 class TaskManager:
@@ -39,6 +40,18 @@ class TaskManager:
         ).fetchall():
             with contextlib.suppress(SceneFailure, TaskError, httpx.HTTPError):
                 await self.reconcile_floorplan_confirmation(row["id"])
+
+    async def resume(self, id, body):
+        task = self.store.resume(id, body)
+        # The new user requirement invalidates old candidate references even
+        # while grounding/clarification has not produced a replacement yet.
+        if task["mode"] in ("edit", "repair_layout", "interactive_action", "photo_to_scene"):
+            await self.client.request(
+                f"/projects/{task['projectId']}/edit-authorizations/invalidate",
+                {"taskId": id, "version": task["generation"]["authorizationVersion"]},
+            )
+        self.enqueue(id)
+        return task
 
     async def confirm_floorplan(self, id: str, body: dict):
         task = self.store.task(id, internal=True)
@@ -282,6 +295,7 @@ class TaskManager:
             revision = response["project"]["revision"]
         else:
             revision = current["committed"]
+        task = self.store.task(id, internal=True)
         result = completion_result(task, state, c, revision)
         self.store.focus(task["conversationId"], conversation_focus(c))
         self.store.event(id, "commit_reconciled", {"candidateId": c["id"], "revision": revision})
@@ -310,7 +324,13 @@ class TaskManager:
                         )
                         continue
                 previous = await self.graph.aget_state(config)
-                input_hash = fingerprint({"input": task["input"], "selected": task["selectedIds"]})
+                input_hash = fingerprint(
+                    {
+                        "input": task["input"],
+                        "selected": task["selectedIds"],
+                        "resumeNonce": task["generation"].get("resumeNonce"),
+                    }
+                )
                 if task.get("mode") in ("generate_rectangular", "reconstruct_floorplan"):
                     input_hash = fingerprint(
                         {
@@ -341,6 +361,11 @@ class TaskManager:
                         "evidence": [],
                         "last_report": None,
                         "final": None,
+                        "authorization": None,
+                        "intent": {},
+                        "scope": {},
+                        "assets": {},
+                        "proposal": {},
                     }
                     result = await asyncio.wait_for(
                         self.graph.ainvoke(state, config),
@@ -373,7 +398,7 @@ class TaskManager:
                     id, "interrupted", {"message": "服务关闭，任务检查点保留，重启后恢复"}
                 )
                 raise
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001 -- task boundary persists all failures
                 if self.store.task(id)["status"] == "committing":
                     try:
                         reconciled = await self.reconcile_commit(id, config)
@@ -411,8 +436,12 @@ class TaskManager:
                                 id, "status", {"status": "failed", "message": str(commit_error)}
                             )
                             continue
-                    except Exception:
-                        pass
+                    except Exception as reconcile_error:  # noqa: BLE001 -- keep uncertain commits recoverable
+                        self.store.event(
+                            id,
+                            "commit_confirmation_error",
+                            {"type": type(reconcile_error).__name__},
+                        )
                     self.store.update(id, error="正在确认原子提交结果，恢复时复用原操作身份")
                     self.store.event(
                         id, "confirming_commit", {"message": "提交结果待确认，不会重复新增"}

@@ -147,21 +147,10 @@ def test_repair_router_maps_action_and_surface_codes():
     assert stop is not None and stop.targetRole == "coordinator"
 
 
-def test_fast_edit_parses_move_rotate_and_color():
+def test_precise_edits_use_the_shared_edit_path():
     controller = PolicyController()
-    move = controller.decide(task("把茶几往左移200毫米", selected=["w1"]), scene())
-    # Explicit object name outranks the current wardrobe selection.
-    assert move.route == "interactive_action"
-    assert move.targetId == "t1"
-    assert move.fastEdit["values"]["x"] == 1600
-
-    rotate = controller.decide(task("顺时针旋转90度", selected=["w1"]), scene())
-    assert rotate.route == "interactive_action"
-    assert rotate.fastEdit["values"]["rot"] == 90
-
-    color = controller.decide(task("把它改成蓝色", selected=["w1"]), scene())
-    assert color.route == "interactive_action"
-    assert color.fastEdit["values"]["color"] == "#2f5f9f"
+    for text in ("把茶几往左移200毫米", "顺时针旋转90度", "把它改成蓝色", "把茶几宽度改为1.2米"):
+        assert controller.decide(task(text, selected=["t1"]), scene()).route == "edit"
 
 
 def test_fast_edit_rejects_negated_and_compound_requests():
@@ -170,14 +159,6 @@ def test_fast_edit_rejects_negated_and_compound_requests():
     compound = controller.decide(task("把茶几往左移200毫米并改成蓝色", selected=["t1"]), scene())
     assert negated.route == "edit"
     assert compound.route == "edit"
-
-
-def test_fast_edit_parses_explicit_dimensions():
-    controller = PolicyController()
-    width = controller.decide(task("把茶几宽度改为1.2米", selected=["t1"]), scene())
-    depth = controller.decide(task("把茶几深调整为55厘米", selected=["t1"]), scene())
-    assert width.fastEdit["values"] == {"w": 1200}
-    assert depth.fastEdit["values"] == {"d": 550}
 
 
 def test_action_has_explicit_desired_state_and_rejects_compounds():

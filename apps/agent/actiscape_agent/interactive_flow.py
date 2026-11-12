@@ -8,6 +8,7 @@ formal project.
 from __future__ import annotations
 
 from .client import SceneFailure
+from .edit_execution import authorize_edit
 from .policy import DOOR_TYPES, OPENABLE_KEYS
 from .store import TaskError, fingerprint
 
@@ -23,40 +24,6 @@ class InteractiveFlow:
         action_ids = []
         target_ids = []
         action = decision.get("action")
-        fast_edit = decision.get("fastEdit")
-        if fast_edit:
-            target_id = decision.get("targetId")
-            item = next(
-                (f for f in plan.get("furniture", []) if f["id"] == target_id),
-                None,
-            )
-            if item is None:
-                raise TaskError("ACTION_TARGET_UNRESOLVED", "快速编辑缺少真实目标", 409)
-            values = dict(fast_edit.get("values") or {})
-            if not values or any(
-                key not in ("x", "y", "rot", "w", "d", "h", "color") for key in values
-            ):
-                raise TaskError("ACTION_INVALID", "快速编辑字段无效", 409)
-            edits = [{"type": "update", "id": target_id, "values": values}]
-            target_ids = [target_id]
-            scope = {
-                "targetIds": target_ids,
-                "allowDeleteIds": [],
-                "allowAddKeys": [],
-                "fieldMask": {target_id: list(values)},
-                "requirements": [],
-            }
-            request = {
-                "taskId": task["id"],
-                "requestId": f"{task['id']}:fast:"
-                + fingerprint({"scope": scope, "edits": edits})[:20],
-                "baseRevision": project["revision"],
-                "kind": "edit",
-                "scope": scope,
-                "edits": edits,
-                "summary": "单件快速编辑",
-            }
-            return await self._submit(task, request, decision)
         if action == "open_all":
             for opening in plan.get("openings", []):
                 if opening.get("type") in DOOR_TYPES and not opening.get("open"):
@@ -158,6 +125,18 @@ class InteractiveFlow:
 
     async def _submit(self, task, request, decision):
         try:
+            authorization = await authorize_edit(
+                self.store,
+                self.client,
+                task,
+                {"revision": request["baseRevision"]},
+                request["scope"],
+                {},
+            )
+            request.update(
+                authorizationVersion=authorization["version"],
+                authorizationScopeHash=authorization["scopeHash"],
+            )
             candidate = await self.client.request(
                 f"/projects/{task['projectId']}/candidates", request
             )

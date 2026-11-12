@@ -35,8 +35,17 @@ class FakeScene:
         self.ground_calls = 0
         self.design_calls = 0
         self.scene_draft = None
+        self.authorizations = {}
 
     async def request(self, path, body=None):
+        if path == "/projects/p/edit-authorizations":
+            auth = {
+                "version": body["version"],
+                "scopeHash": "a" * 64,
+                "verification": "deterministic" if body.get("operations") else "screenshots",
+            }
+            self.authorizations[body["version"]] = auth
+            return auth
         if path == "/projects/p/scene-drafts" and body is not None:
             if self.scene_draft is None:
                 self.scene_draft = {
@@ -60,7 +69,11 @@ class FakeScene:
                 return copy.deepcopy(self.candidates[id])
             state = {"plan": copy.deepcopy(self.project["plan"]), "roomLabelArchive": []}
             chair = next(f for f in state["plan"]["furniture"] if f["id"] == CHAIR)
-            chair["x"] = body["x"]
+            for edit in body["edits"]:
+                if edit["type"] == "update":
+                    next(f for f in state["plan"]["furniture"] if f["id"] == edit["id"]).update(
+                        edit["values"]
+                    )
             c = {
                 "id": id,
                 "state": state,
@@ -94,7 +107,7 @@ class FakeScene:
             if self.conflicts:
                 self.conflicts -= 1
                 self.project["revision"] += 1
-                next(f for f in self.project["plan"]["furniture"] if f["id"] == CHAIR)["x"] += 100
+                next(f for f in self.project["plan"]["furniture"] if f["id"] == CHAIR)["y"] += 100
                 raise SceneFailure(409, {"error": "REVISION_CONFLICT", "message": "changed"})
             self.project["plan"] = copy.deepcopy(c["state"]["plan"])
             self.project["revision"] += 1
@@ -132,17 +145,10 @@ class FakeRoles:
             self.client.design_entered.set()
             await asyncio.Event().wait()
         chair = next(f for f in project["plan"]["furniture"] if f["id"] == CHAIR)
-        return {"summary": "controlled", "x": chair["x"] - 200}
-
-    async def candidate(self, task, project, scope, proposal, round):
-        return await self.client.request(
-            "/projects/p/candidates",
-            {
-                "requestId": task["id"] + ":" + str(project["revision"]) + ":" + str(round),
-                "x": proposal["x"],
-                "scope": scope,
-            },
-        )
+        return {
+            "summary": "controlled",
+            "edits": [{"type": "update", "id": CHAIR, "values": {"x": chair["x"] - 200}}],
+        }
 
     async def inspect(self, *args):
         return {"passed": True, "summary": "controlled check", "issues": []}
@@ -245,7 +251,7 @@ async def test_only_one_revision_replan_is_allowed(tmp_path, conflicts, expected
         result = await finished(manager, task["id"])
         assert result["status"] == expected, result
         assert len(client.ledger) == (1 if expected == "completed" else 0)
-        assert client.ground_calls == 2
+        assert client.ground_calls == 1
     finally:
         await manager.close()
 
@@ -297,5 +303,58 @@ async def test_render_failure_reports_error_without_commit(tmp_path):
         assert result["result"]["errorCode"] == "RENDER_FAILED"
         assert client.project["revision"] == 0 and not client.ledger
         assert len(client.candidates) == 1
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_cancel_during_atomic_commit_reports_actual_saved_result(tmp_path):
+    class DelayedCommit(FakeScene):
+        async def request(self, path, body=None):
+            result = await super().request(path, body)
+            if path.endswith("/commit"):
+                entered.set()
+                await release.wait()
+            return result
+
+    entered, release = asyncio.Event(), asyncio.Event()
+    client = DelayedCommit()
+    manager = TaskManager(tmp_path, client, FakeRoles)
+    try:
+        task = await start_task(manager)
+        await asyncio.wait_for(entered.wait(), 5)
+        pending = manager.store.cancel(task["id"])
+        assert pending["status"] == "committing"
+        release.set()
+        result = await finished(manager, task["id"])
+        assert result["status"] == "completed"
+        assert result["result"]["committedRevision"] == 1
+        assert "已核对实际保存结果" in result["result"]["message"]
+        assert len(client.ledger) == 1
+    finally:
+        release.set()
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_rebase_does_not_overwrite_manual_change_to_requested_field(tmp_path):
+    class ManualChange(FakeScene):
+        async def request(self, path, body=None):
+            if path.endswith("/commit"):
+                self.project["revision"] += 1
+                self.project["plan"]["furniture"][-1]["color"] = "#123456"
+                next(f for f in self.project["plan"]["furniture"] if f["id"] == CHAIR)["x"] += 50
+                raise SceneFailure(409, {"error": "REVISION_CONFLICT", "message": "manual change"})
+            return await super().request(path, body)
+
+    client = ManualChange()
+    manager = TaskManager(tmp_path, client, FakeRoles)
+    try:
+        task = await start_task(manager)
+        result = await finished(manager, task["id"])
+        assert result["status"] == "conflict"
+        assert "手工编辑" in result["result"]["message"]
+        assert not client.ledger
+        assert client.design_calls == 1
     finally:
         await manager.close()

@@ -3,6 +3,9 @@ from typing import TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from .client import SceneClient, SceneFailure
+from .edit_execution import authorize_edit, compile_scope, submit_candidate
+from .edit_results import completion_result, conversation_focus
+from .exact_edits import exact_proposal, no_change, parse_exact
 from .floorplan_flow import FloorplanFlow
 from .floorplan_roles import FloorplanRoles
 from .generation_flow import COLLECTIONS, GenerationFlow
@@ -40,12 +43,11 @@ class State(TypedDict, total=False):
     generation: dict
     layout_project: dict
     policy: dict
+    authorization: dict | None
 
 
 def ambiguous_name(task: dict, project: dict, conversation: dict) -> str | None:
     """Conservative guard for duplicated, unqualified display names, independent of model confidence."""
-    if task["selectedIds"]:
-        return None
     text = task["input"]
     if conversation["focusIds"] and any(
         word in text for word in ("它", "这把", "这盏", "这件", "刚才")
@@ -57,6 +59,8 @@ def ambiguous_name(task: dict, project: dict, conversation: dict) -> str | None:
         groups.setdefault(name, []).append(f["id"])
     for name, ids in groups.items():
         if len(ids) < 2 or name not in text:
+            continue
+        if len(set(ids) & set(task["selectedIds"])) == 1:
             continue
         if any(word in text for word in ("所有", "全部", "每一", "一起")):
             continue
@@ -83,192 +87,6 @@ def ambiguous_name(task: dict, project: dict, conversation: dict) -> str | None:
     return None
 
 
-def conversation_focus(candidate: dict):
-    if (
-        candidate.get("kind") == "initialize"
-        and candidate["generation"]["brief"]["purpose"] == "reading_lounge"
-    ):
-        chairs = [f for f in candidate["state"]["plan"]["furniture"] if f["type"] == "armchair"]
-        g = candidate["generation"]
-        if chairs:
-            windows = [o for o in g["openings"] if o["type"] == "window"]
-            if windows:
-                o = windows[0]
-                w, d = g["dimensions"]["width"], g["dimensions"]["depth"]
-                x, y = {
-                    "north": (o["from"] + o["width"] / 2, 0),
-                    "south": (o["from"] + o["width"] / 2, d),
-                    "east": (w, o["from"] + o["width"] / 2),
-                    "west": (0, o["from"] + o["width"] / 2),
-                }[o["side"]]
-                chairs.sort(key=lambda f: (f["x"] - x) ** 2 + (f["y"] - y) ** 2)
-            return [chairs[0]["id"]]
-    return candidate["diff"]["added"] or candidate["diff"]["updated"]
-
-
-def completion_result(task: dict, state: dict, candidate: dict, revision: int):
-    before = {f["id"]: f for f in state["project"]["plan"]["furniture"]}
-    after = {f["id"]: f for f in candidate["state"]["plan"]["furniture"]}
-    changes = []
-    for action, ids in candidate["diff"].items():
-        for id in ids:
-            old, new = before.get(id), after.get(id)
-            fields = [
-                {"field": key, "before": (old or {}).get(key), "after": (new or {}).get(key)}
-                for key in ("x", "y", "z", "rot", "w", "d", "h", "color")
-                if (old or {}).get(key) != (new or {}).get(key)
-            ]
-            changes.append(
-                {"action": action, "id": id, "name": (new or old)["name"], "fields": fields}
-            )
-    path = f"/api/projects/{task['projectId']}/candidates/{candidate['id']}"
-    result = {
-        "status": "completed",
-        "message": f"已保存：{candidate['summary'].rstrip('。；; .')}。本次修改作为一个事务提交，可撤销。",
-        "projectId": task["projectId"],
-        "candidateId": candidate["id"],
-        "baseRevision": candidate["baseRevision"],
-        "committedRevision": revision,
-        "diff": candidate["diff"],
-        "changes": changes,
-        "checks": candidate["checks"],
-        "review": state.get("review") or candidate.get("review"),
-        "evidence": [
-            {**e, "url": path + f"/evidence/{e['view']}"}
-            for e in state.get("evidence") or candidate.get("evidence", [])
-        ],
-        "repairs": state.get("repairs", 0),
-        "versionRetries": state.get("version_retries", 0),
-    }
-    if candidate.get("kind") == "initialize_floorplan":
-        g = task.get("generation", {})
-        result.update(
-            generation={**candidate["generation"], "skillsUsed": g.get("skillsUsed", [])},
-            skillsUsed=g.get("skillsUsed", []),
-            structure=candidate["structure"],
-            focusIds=conversation_focus(candidate),
-        )
-        result["message"] += (
-            " 整层结构及全屋原图家具布局已保留，可继续选择家具进行局部编辑。"
-            if task["generation"].get("workflowVersion") == 4
-            else " 整层结构及客餐厅原图布局已保留，可继续选择家具进行局部编辑。"
-        )
-    if candidate.get("kind") == "initialize":
-        g = task.get("generation", {})
-        result.update(
-            generation={
-                **candidate["generation"],
-                "style": g.get("style"),
-                "furniture": g.get("furniture", []),
-                "skillsUsed": g.get("skillsUsed", []),
-            },
-            skillsUsed=g.get("skillsUsed", []),
-            structure=candidate["structure"],
-            focusIds=conversation_focus(candidate),
-        )
-        if candidate["generation"]["brief"]["purpose"] == "reading_lounge" and result["focusIds"]:
-            result["message"] += " 已将一把单人沙发设为主要阅读座位，可继续说“把它……”调整。"
-    return result
-
-
-def compile_scope(
-    project: dict,
-    intent: dict,
-    assets: dict,
-    catalogue: dict,
-    *,
-    task_mode: str | None = None,
-    task: dict | None = None,
-) -> dict:
-    furniture = {f["id"]: f for f in project["plan"]["furniture"]}
-    if task_mode == "repair_layout":
-        # A repair must only target furniture, even if the model saw wall/opening
-        # IDs in a generated issue description.
-        authorized = set((task or {}).get("selectedIds") or [])
-        if not authorized:
-            raise TaskError(
-                "NEEDS_INPUT",
-                "修复任务需要至少一个已授权的家具目标",
-            )
-        targets = [
-            i
-            for i in intent["target_ids"]
-            if i in furniture and (not authorized or i in authorized)
-        ]
-        intent = {
-            **intent,
-            "target_ids": targets,
-            "reference_ids": [i for i in intent["reference_ids"] if i in furniture],
-            "field_permissions": {
-                key: value
-                for key, value in (intent.get("field_permissions") or {}).items()
-                if key in targets
-            },
-            "delete_ids": [i for i in intent["delete_ids"] if i in targets],
-        }
-        if authorized and not intent["target_ids"]:
-            raise TaskError(
-                "NEEDS_INPUT",
-                "本次修复没有获得授权的家具目标，请重新选择房间或对象",
-            )
-    targets = intent["target_ids"]
-    references = intent["reference_ids"]
-    if (
-        len(targets) > 20
-        or len(set(targets)) != len(targets)
-        or any(id not in furniture for id in targets + references)
-    ):
-        raise TaskError("NEEDS_INPUT", "目标不存在或不够明确，请重新选择家具")
-    if any(id not in targets for id in intent["delete_ids"]):
-        raise TaskError("NEEDS_INPUT", "删除对象未获得明确授权")
-    permissions = intent.get("field_permissions", {})
-    if any(id not in targets for id in permissions):
-        raise TaskError("NEEDS_INPUT", "字段授权与目标不一致")
-    if any(not permissions.get(id) for id in targets if id not in intent["delete_ids"]):
-        raise TaskError("NEEDS_INPUT", "请说明这些对象需要移动、旋转、改尺寸还是改颜色")
-    choices = assets.get("choices", [])
-    if len(choices) != len(intent["additions"]) or {c["request_index"] for c in choices} != set(
-        range(len(intent["additions"]))
-    ):
-        raise TaskError("ASSET_SELECTION", "新增请求与目录选择不一致")
-    counts = {}
-    for choice in choices:
-        key = choice["key"]
-        if key not in catalogue:
-            raise TaskError("ASSET_SELECTION", "资产角色返回了不存在的目录配方")
-        counts[key] = counts.get(key, 0) + intent["additions"][choice["request_index"]]["count"]
-    scope = {
-        "targetIds": targets,
-        "allowDeleteIds": intent["delete_ids"],
-        "allowAddKeys": list(counts),
-        "fieldMask": permissions,
-        "requirements": [
-            {
-                "key": key,
-                "count": sum(f["key"] == key for f in furniture.values()) + count,
-                "scope": "project",
-            }
-            for key, count in counts.items()
-        ],
-    }
-    if task_mode == "repair_layout":
-        scope["checkProfile"] = "strict-repair"
-    allowed_room_ids = (task or {}).get("allowedRoomIds") or []
-    if allowed_room_ids:
-        scope["allowedRoomIds"] = list(dict.fromkeys(allowed_room_ids))
-    if counts and intent["area"] == "local":
-        anchors = [furniture[id] for id in set(references + targets)]
-        if not anchors:
-            raise TaskError("NEEDS_INPUT", "请选中新增家具附近的参考对象，或说明放在房间哪个区域")
-        scope["additionBounds"] = {
-            "x0": min(f["x"] - f["w"] / 2 for f in anchors) - 1000,
-            "y0": min(f["y"] - f["d"] / 2 for f in anchors) - 1000,
-            "x1": max(f["x"] + f["w"] / 2 for f in anchors) + 1000,
-            "y1": max(f["y"] + f["d"] / 2 for f in anchors) + 1000,
-        }
-    return scope
-
-
 class Workflow:
     def __init__(self, store: TaskStore, client: SceneClient, roles: Roles):
         self.store, self.client, self.roles = store, client, roles
@@ -293,6 +111,10 @@ class Workflow:
                     "candidateId": (state.get("candidate") or {}).get("id"),
                 },
             }
+        task = self.store.task(state["task_id"], internal=True)
+        generation = dict(task.get("generation") or {})
+        generation["authorizationVersion"] = int(generation.get("authorizationVersion", 1)) + 1
+        self.store.update(task["id"], generation=generation)
         return {
             "route": "rebase",
             "version_retries": state.get("version_retries", 0) + 1,
@@ -305,6 +127,37 @@ class Workflow:
     async def snapshot(self, state: State):
         task = self.task(state, "reading")
         project = await self.client.request(f"/projects/{task['projectId']}")
+        if state.get("version_retries") and state.get("intent"):
+            old = {f["id"]: f for f in state["project"]["plan"]["furniture"]}
+            current = {f["id"]: f for f in project["plan"]["furniture"]}
+            # Relative operations may be recalculated from the latest scene.
+            # Absolute values and model placements must not overwrite a manual
+            # change to an authorized field while the task was running.
+            operations = state["intent"].get("operations") or []
+            protected = {}
+            for op in operations:
+                protected.setdefault(op["target_id"], set()).update(
+                    old.get(op["target_id"], {})
+                    if op["action"] == "delete"
+                    else op.get("values") or {}
+                )
+            if not operations:
+                protected = {
+                    id: set(fields)
+                    for id, fields in state["intent"].get("field_permissions", {}).items()
+                }
+            if any(
+                id not in current
+                or any(old.get(id, {}).get(key) != current[id].get(key) for key in fields)
+                for id, fields in protected.items()
+            ):
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "conflict",
+                        "message": "目标或待修改字段已被手工编辑，请确认最新状态后继续。",
+                    },
+                }
         return {
             "project": project,
             "candidate": None,
@@ -380,13 +233,19 @@ class Workflow:
         ][-6:]
         registry = get_registry()
         skill_candidates = registry.candidates("edit", project_state="existing")
-        intent = await self.roles.ground(
-            task,
-            state["project"],
-            conversation,
-            history,
-            skill_candidates,
+        intent = (
+            parse_exact(task, state["project"], conversation)
+            if task.get("mode") == "edit"
+            else None
         )
+        if intent and intent.get("noChange"):
+            return {"route": "end", "final": no_change(state["project"], intent["summary"])}
+        if state.get("version_retries", 0) and state.get("intent"):
+            intent = state["intent"]
+        if intent is None:
+            intent = await self.roles.ground(
+                task, state["project"], conversation, history, skill_candidates
+            )
         if intent["status"] == "ready":
             selection = registry.validate_selection(
                 intent.get("skillSelection", {}),
@@ -472,26 +331,44 @@ class Workflow:
         task = self.task(state, "scoping")
         if task.get("mode") == "reconstruct_floorplan":
             return await FloorplanFlow(self.store, self.client, self.roles).scope(state, task)
-        catalogue = (await self.client.request("/catalog"))["items"]
-        try:
-            scope = compile_scope(
-                state["project"],
-                state["intent"],
-                state["assets"],
-                catalogue,
-                task_mode=task.get("mode"),
-                task=task,
-            )
-        except TaskError as e:
-            return {
-                "route": "end",
-                "final": {
-                    "status": "waiting_input" if e.code == "NEEDS_INPUT" else "failed",
-                    "message": str(e),
-                },
-            }
+        task_generation = self.store.task(task["id"], internal=True).get("generation") or {}
+        authorization_version = int(task_generation.get("authorizationVersion", 1))
+        if task_generation.get("authorizationScope") and (
+            task_generation.get("authorizationScopeVersion") == authorization_version
+            or state.get("version_retries", 0)
+        ):
+            # Repairs reuse the exact original authorization. Asset repair may
+            # choose another item only inside the pool already recorded there.
+            scope = task_generation["authorizationScope"]
+        else:
+            catalogue = (await self.client.request("/catalog"))["items"]
+            try:
+                scope = compile_scope(
+                    state["project"],
+                    state["intent"],
+                    state["assets"],
+                    catalogue,
+                    task_mode=task.get("mode"),
+                    task=task,
+                )
+            except TaskError as e:
+                return {
+                    "route": "end",
+                    "final": {
+                        "status": "waiting_input" if e.code == "NEEDS_INPUT" else "failed",
+                        "message": str(e),
+                    },
+                }
         self.store.event(state["task_id"], "scope", scope)
-        return {"scope": scope, "route": "design"}
+        try:
+            authorization = await authorize_edit(
+                self.store, self.client, task, state["project"], scope, state["intent"]
+            )
+        except SceneFailure as error:
+            if error.code == "REVISION_CONFLICT":
+                return self.conflict(state)
+            raise
+        return {"scope": scope, "authorization": authorization, "route": "design"}
 
     async def design(self, state: State):
         task = self.task(state, "designing")
@@ -515,6 +392,10 @@ class Workflow:
                     state.get("repairs", 0),
                 )
             }
+        # Grounding has already produced absolute values/deltas.  Keep the
+        # execution path code-only so a design model cannot reinterpret them.
+        if state.get("intent", {}).get("operations") and not state["intent"].get("additions"):
+            return {"proposal": exact_proposal(state["project"], state["intent"])}
         proposal = await self.roles.design(
             task,
             state["project"],
@@ -527,6 +408,8 @@ class Workflow:
 
     async def prepare(self, state: State):
         task = self.task(state, "prechecking")
+        if state.get("proposal", {}).get("noChange"):
+            return {"route": "end", "final": no_change(state["project"])}
         try:
             role = (
                 FloorplanRoles(self.roles)
@@ -535,9 +418,24 @@ class Workflow:
                 if task.get("mode") == "generate_rectangular"
                 else self.roles
             )
-            c = await role.candidate(
-                task, state["project"], state["scope"], state["proposal"], state.get("repairs", 0)
-            )
+            if task.get("mode") in ("edit", "repair_layout"):
+                c = await submit_candidate(
+                    self.client,
+                    task,
+                    state["project"],
+                    state["scope"],
+                    state["proposal"],
+                    state.get("repairs", 0),
+                    state.get("authorization"),
+                )
+            else:
+                c = await role.candidate(
+                    task,
+                    state["project"],
+                    state["scope"],
+                    state["proposal"],
+                    state.get("repairs", 0),
+                )
             if task.get("mode") not in (
                 "reconstruct_floorplan",
                 "generate_rectangular",
@@ -568,6 +466,8 @@ class Workflow:
                 }
             raise
         except SceneFailure as e:
+            if e.code == "NO_CHANGE":
+                return {"route": "end", "final": no_change(state["project"])}
             if e.code == "REVISION_CONFLICT":
                 return self.conflict(state)
             if e.status in (400, 404, 422):
@@ -583,7 +483,12 @@ class Workflow:
             raise
 
     async def render(self, state: State):
-        task = self.task(state, "rendering")
+        task = self.task(
+            state,
+            "checking_parameters"
+            if state["candidate"].get("verification") == "deterministic"
+            else "rendering",
+        )
         if state["candidate"].get("verification") == "deterministic":
             self.store.event(
                 task["id"],
@@ -600,15 +505,19 @@ class Workflow:
         return {"evidence": evidence}
 
     async def inspect(self, state: State):
-        task = self.task(state, "checking")
-        if task.get("mode") in ("interactive_action", "photo_to_scene"):
-            # Fast action/photo paths have no user-facing design intent to
-            # review; the deterministic candidate checks + two rendered views
-            # are the evidence. This keeps the same commit/review protocol
-            # without spending a model call.
+        task = self.task(
+            state,
+            "checking_parameters"
+            if state["candidate"].get("verification") == "deterministic"
+            else "checking",
+        )
+        if state["candidate"].get("verification") == "deterministic":
+            # Code-derived exact edits and manual action/photo paths have no
+            # visual design judgment to perform. The immutable candidate and
+            # deterministic checks are the review evidence.
             review = {
                 "passed": bool(state["candidate"]["checks"]["passed"]),
-                "summary": ("快速动作/照片资产放置已通过确定性检查与两张证据渲染。"),
+                "summary": "精确编辑已通过确定性字段与几何检查。",
                 "issues": [],
             }
         else:
@@ -656,6 +565,17 @@ class Workflow:
 
     async def repair(self, state: State):
         self.task(state, "repairing")
+        if state.get("intent", {}).get("operations"):
+            return {
+                "route": "end",
+                "final": {
+                    "status": "waiting_input",
+                    "reason": "check_failed",
+                    "message": "精确要求未通过检查；请调整要求或目标后继续，正式场景未改变。",
+                    "candidateId": (state.get("candidate") or {}).get("id"),
+                    "report": state.get("last_report"),
+                },
+            }
         count = state.get("repairs", 0)
         if count >= 3:
             if self.store.task(state["task_id"])["mode"] == "reconstruct_floorplan":
@@ -902,29 +822,8 @@ class Workflow:
             if e.code == "REVISION_CONFLICT":
                 return self.conflict(state)
             raise
+        task = self.store.task(task["id"], internal=True)
         result = completion_result(task, state, c, committed["project"]["revision"])
-        generation = task.get("generation", {})
-        if task.get("mode") == "interactive_action":
-            policy = generation.get("policy") or {}
-            if policy.get("fastEdit"):
-                result["message"] = "局部快速编辑已提交，可撤销。"
-            else:
-                result["message"] = "门/柜门/抽屉/电器的开启状态已提交，可撤销。"
-            result["policy"] = policy
-        elif task.get("mode") == "repair_layout":
-            result["message"] = "AI 已完成布局修复并通过检查，可撤销。"
-            result["policy"] = generation.get("policy")
-        elif task.get("mode") == "photo_to_scene":
-            added = [
-                f
-                for f in c["state"]["plan"]["furniture"]
-                if f["id"] in (c.get("diff") or {}).get("added", [])
-            ]
-            label = added[0]["name"] if added else "照片物品"
-            result["message"] = f"已把 {label} 放入场景并提交，可撤销。"
-            result["policy"] = generation.get("policy")
-        result["skillsUsed"] = generation.get("skillsUsed", [])
-        result["skillSelection"] = generation.get("skillSelection")
         self.store.event(
             task["id"],
             "committed",
@@ -956,7 +855,9 @@ class Workflow:
         ):
             builder.add_node(name, getattr(self, name))
         builder.add_edge(START, "snapshot")
-        builder.add_edge("snapshot", "policy")
+        builder.add_conditional_edges(
+            "snapshot", lambda s: s["route"], {"policy": "policy", "end": END}
+        )
         builder.add_conditional_edges(
             "policy",
             lambda s: s["route"],
@@ -987,7 +888,7 @@ class Workflow:
         )
         builder.add_edge("assets", "scope")
         builder.add_conditional_edges(
-            "scope", lambda s: s["route"], {"end": END, "design": "design"}
+            "scope", lambda s: s["route"], {"end": END, "design": "design", "rebase": "snapshot"}
         )
         builder.add_edge("design", "prepare")
         builder.add_conditional_edges(

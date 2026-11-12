@@ -14,6 +14,22 @@ class Addition(StrictModel):
     count: int = Field(ge=1, le=6, description="需要新增的件数，不是已有总数")
 
 
+class ExactOperation(StrictModel):
+    """A code-executable operation extracted from an unambiguous request.
+
+    Values are deliberately kept separate from the prose summary.  The
+    workflow may execute these values directly after checking the target and
+    field authorization, so a design model does not get a second chance to
+    reinterpret an already precise number.
+    """
+
+    target_id: str
+    action: Literal["update", "delete"]
+    values: dict[str, FiniteFloat | str] = Field(default_factory=dict)
+    deltas: dict[str, FiniteFloat] = Field(default_factory=dict)
+    source_quote: str = Field(default="", max_length=500)
+
+
 class Intent(StrictModel):
     status: Literal["ready", "clarify", "unsupported"]
     summary: str
@@ -32,6 +48,11 @@ class Intent(StrictModel):
         )
     )
     additions: list[Addition] = Field(default_factory=list)
+    operations: list[ExactOperation] = Field(
+        default_factory=list,
+        max_length=100,
+        description="已完成解析、可由代码直接执行的精确编辑；无法完整解析时留空",
+    )
     area: Literal["local", "room"] = "local"
     skillSelection: SkillSelection = Field(default_factory=SkillSelection)
 
@@ -50,6 +71,21 @@ class Intent(StrictModel):
             for id in self.target_ids
         ):
             raise ValueError("非删除目标需要明确字段授权；只作参考的对象放 reference_ids")
+        operation_targets = {operation.target_id for operation in self.operations}
+        if not operation_targets.issubset(set(self.target_ids)):
+            raise ValueError("精确操作目标必须已经获得目标授权")
+        for operation in self.operations:
+            if operation.action == "delete":
+                if (
+                    operation.target_id not in self.delete_ids
+                    or operation.values
+                    or operation.deltas
+                ):
+                    raise ValueError("删除精确操作必须对应删除授权且不能带字段")
+            elif not operation.values and not operation.deltas:
+                raise ValueError("更新精确操作至少需要一个绝对值或相对变化")
+            if set(operation.values) & set(operation.deltas):
+                raise ValueError("同一字段不能同时给绝对值和相对变化")
         return self
 
 
@@ -61,6 +97,7 @@ class AssetChoice(StrictModel):
 
 class AssetSelection(StrictModel):
     choices: list[AssetChoice]
+    candidate_keys: list[str] = Field(default_factory=list, max_length=25)
 
 
 class Patch(StrictModel):

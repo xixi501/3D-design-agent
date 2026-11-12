@@ -327,6 +327,46 @@ class TaskStore:
             for row in rows
         ]
 
+    def metrics(self, id: str):
+        with self.lock:
+            row = self.db.execute(
+                "SELECT model_calls,elapsed,active_started FROM tasks WHERE id=?", (id,)
+            ).fetchone()
+            events = self.db.execute(
+                "SELECT kind,data,created FROM events WHERE task_id=? AND kind IN ('phase','evidence','repair','status','interrupted') ORDER BY seq",
+                (id,),
+            ).fetchall()
+        durations = {}
+        render_count = repairs = 0
+        phase = None
+        started = None
+        for event in events:
+            data = json.loads(event["data"])
+            if event["kind"] == "phase":
+                if phase and started is not None:
+                    durations[phase] = durations.get(phase, 0) + max(0, event["created"] - started)
+                phase, started = data["phase"], event["created"]
+            elif event["kind"] == "evidence":
+                render_count += len(data.get("evidence") or [])
+            elif event["kind"] == "repair":
+                repairs += 1
+            elif phase and started is not None:
+                durations[phase] = durations.get(phase, 0) + max(0, event["created"] - started)
+                phase, started = None, None
+        if phase and started is not None:
+            durations[phase] = durations.get(phase, 0) + max(0, time.time() - started)
+        return {
+            "modelCalls": row["model_calls"],
+            "renderCount": render_count,
+            "repairCount": repairs,
+            "stageSeconds": {key: round(value, 3) for key, value in durations.items()},
+            "elapsedSeconds": round(
+                row["elapsed"]
+                + (max(0, time.time() - row["active_started"]) if row["active_started"] else 0),
+                3,
+            ),
+        }
+
     def update(self, id: str, **fields):
         allowed = {
             "status",
@@ -342,6 +382,8 @@ class TaskStore:
         }
         if set(fields) - allowed:
             raise ValueError("Unknown task fields")
+        if fields.get("result") and fields.get("status") in (*TERMINAL, "waiting_input"):
+            fields["result"] = {**fields["result"], "metrics": self.metrics(id)}
         values = {
             k: json.dumps(v, ensure_ascii=False)
             if k in ("result", "selected", "generation") and v is not None
@@ -424,7 +466,7 @@ class TaskStore:
                 if old["hash"] != fingerprint(body):
                     raise TaskError("OPERATION_CONFLICT", "恢复身份对应不同内容", 409)
                 return self.task(id)
-            task = self.task(id)
+            task = self.task(id, internal=True)
             if task["status"] not in ("waiting_input", "failed", "conflict"):
                 raise TaskError("INVALID_STATE", "当前任务不能恢复", 409)
             if task["modelCalls"] >= 24 or task["elapsedSeconds"] >= 600:
@@ -433,16 +475,21 @@ class TaskStore:
                 "INSERT INTO actions VALUES(?,?,?)", (id, body["requestId"], fingerprint(body))
             )
             message = task["input"] + ("\n用户补充：" + body["input"] if body.get("input") else "")
+            generation = dict(task.get("generation") or {})
+            # A user supplement is a new authorization version. Old
+            # candidates remain immutable records but can no longer be used for
+            # this task once the new grounding pass starts.
+            generation["resumeNonce"] = body["requestId"]
+            generation["authorizationVersion"] = int(generation.get("authorizationVersion", 1)) + 1
             if task["mode"] == "reconstruct_floorplan":
-                generation = self.task(id, internal=True)["generation"]
                 generation["resumeNonce"] = body["requestId"]
-                self.update(id, generation=generation)
             try:
                 self.update(
                     id,
                     status="queued",
                     input=message,
                     selected=body.get("selectedIds") or task["selectedIds"],
+                    generation=generation,
                     cancel_requested=0,
                     error=None,
                 )

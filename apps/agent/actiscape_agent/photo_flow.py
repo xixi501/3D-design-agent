@@ -8,6 +8,7 @@ z = host.z + host.h.
 from __future__ import annotations
 
 from .client import SceneFailure
+from .edit_execution import authorize_edit
 from .store import TaskError, fingerprint
 
 SURFACE_KEYS = {
@@ -144,6 +145,13 @@ class PhotoFlow:
             "summary": f"照片物品入场：{asset['name']}",
         }
         try:
+            authorization = await authorize_edit(
+                self.store, self.client, task, {"revision": request["baseRevision"]}, scope, {}
+            )
+            request.update(
+                authorizationVersion=authorization["version"],
+                authorizationScopeHash=authorization["scopeHash"],
+            )
             candidate = await self.client.request(
                 f"/projects/{task['projectId']}/candidates", request
             )

@@ -53,7 +53,7 @@ def runtime_versions():
         "model": model_settings()["model"],
         "modelProvider": urlparse(model_settings()["base_url"]).netloc,
         "reasoningEffort": model_settings()["reasoning_effort"],
-        "tools": "scene-candidate-v3",
+        "tools": "scene-candidate-v4-edit-authorization",
         "structuredOutputRecovery": "one-bounded-continuation-1",
         "modelConfigVersion": "per-role-output-budget-3",
         "floorplanRecognitionOptions": FLOORPLAN_RECOGNITION_OPTIONS,
@@ -75,6 +75,6 @@ def runtime_versions():
         "skillPoolVersion": "2026-11-09",
         "pillow": version("Pillow"),
         "opencv": version("opencv-python-headless"),
-        "promptVersion": "s2a-local-edit-3",
+        "promptVersion": "phase1-edit-authorization-1",
         "generationPromptVersion": "s2b-rectangular-3",
     }

@@ -138,6 +138,7 @@ class PhotoFlow:
             + fingerprint({"scope": scope, "edits": [edit]})[:20],
             "baseRevision": project["revision"],
             "kind": "edit",
+            "verification": "deterministic",
             "scope": scope,
             "edits": [edit],
             "summary": f"照片物品入场：{asset['name']}",

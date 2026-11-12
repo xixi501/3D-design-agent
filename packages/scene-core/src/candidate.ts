@@ -10,7 +10,11 @@ import {
   isSurfaceHost,
 } from "./index.js";
 import { Zg } from "./inherited/footprints.js";
-import { toggleActionCommand } from "./actions.js";
+import {
+  actionCommand,
+  isOpenableFurniture,
+  isTogglableFurniture,
+} from "./actions.js";
 import { furnitureElevation } from "./placement.js";
 import {
   SceneError,
@@ -52,6 +56,8 @@ export type CandidateEdit =
       collection: "openings" | "furniture";
       id: string;
       action: "toggle_open" | "toggle_on";
+      /** When present, make the request idempotent by setting this state. */
+      desiredState?: boolean;
     }
   | {
       type: "placeAsset";
@@ -250,7 +256,7 @@ export function materializeEdits(
         : edit.type === "update"
           ? ["type", "id", "values"]
           : edit.type === "action"
-            ? ["type", "collection", "id", "action"]
+            ? ["type", "collection", "id", "action", "desiredState"]
             : edit.type === "placeAsset"
               ? ["type", "assetId", "values"]
               : ["type", "id"],
@@ -299,19 +305,37 @@ export function materializeEdits(
         fail("删除对象没有获得任务授权");
       command = { type: "delete", collection: "furniture", id: edit.id };
     } else if (edit.type === "action") {
-      if (!scope.actionIds?.includes(edit.id))
-        fail("动作对象没有获得任务授权");
+      if (!scope.actionIds?.includes(edit.id)) fail("动作对象没有获得任务授权");
       if (!["openings", "furniture"].includes(edit.collection))
         fail("动作集合无效");
       if (!["toggle_open", "toggle_on"].includes(edit.action))
         fail("动作类型无效");
-      const toggled = toggleActionCommand(
+      if (
+        edit.desiredState !== undefined &&
+        typeof edit.desiredState !== "boolean"
+      )
+        fail("动作目标状态必须是布尔值");
+      if (edit.collection === "openings") {
+        if (!working.plan.openings.some((item) => item.id === edit.id))
+          fail("动作对象不存在");
+        if (edit.action !== "toggle_open") fail("门窗只能使用开启动作");
+      } else {
+        const target =
+          working.plan.furniture.find((item) => item.id === edit.id) ??
+          fail("动作对象不存在");
+        if (
+          (edit.action === "toggle_open" && !isOpenableFurniture(target)) ||
+          (edit.action === "toggle_on" && !isTogglableFurniture(target))
+        )
+          fail("动作类型与家具能力不匹配");
+      }
+      const toggled = actionCommand(
         working.plan,
         edit.collection,
         edit.id,
+        edit.desiredState,
       );
-      if (!toggled)
-        fail("该对象没有可切换的开启或电器状态");
+      if (!toggled) fail("该对象没有可切换的开启或电器状态");
       command = toggled as Command;
     } else if (edit.type === "placeAsset") {
       const asset = scope.allowedAssets?.find(
@@ -319,10 +343,7 @@ export function materializeEdits(
       );
       if (!asset) fail("照片资产没有获得任务授权");
       keys(edit.values, ["x", "y", "z", "placement", "parentObjectId"]);
-      if (
-        !Number.isFinite(edit.values.x) ||
-        !Number.isFinite(edit.values.y)
-      )
+      if (!Number.isFinite(edit.values.x) || !Number.isFinite(edit.values.y))
         fail("照片资产需要 x/y 坐标");
       if (!["floor", "surface"].includes(edit.values.placement))
         fail("照片资产放置类型无效");
@@ -456,10 +477,7 @@ export function checkCandidate(
   )
     add("PROTECTED_STRUCTURE", [], "修改了受保护的结构或项目字段");
   for (const id of diff.updated)
-    if (
-      !scope.targetIds.includes(id) &&
-      !scope.actionIds?.includes(id)
-    )
+    if (!scope.targetIds.includes(id) && !scope.actionIds?.includes(id))
       add("PROTECTED_OBJECT", [id], "修改了未授权对象");
   for (const id of diff.deleted)
     if (!scope.allowDeleteIds.includes(id))
@@ -541,8 +559,13 @@ export function checkCandidate(
     );
     const affected = issue.objectIds.some((id) => changed.has(id));
     const targetRelevant = issue.objectIds.some((id) => targetIds.has(id));
-    const actionAffected = issue.objectIds.some((id) =>
-      scope.actionIds?.includes(id),
+    const actionAffected = issue.objectIds.some(
+      (id) =>
+        scope.actionIds?.includes(id) &&
+        (after.plan.openings.some((o) => o.id === id && o.open === true) ||
+          after.plan.furniture.some(
+            (f) => f.id === id && f.opt?.open === true,
+          )),
     );
     const actionConflict =
       actionAffected &&
@@ -559,11 +582,13 @@ export function checkCandidate(
   }
   const targetIssuesBefore = baseline.filter(
     (issue) =>
-      issue.level === "error" && issue.objectIds.some((id) => targetIds.has(id)),
+      issue.level === "error" &&
+      issue.objectIds.some((id) => targetIds.has(id)),
   ).length;
   const targetIssuesAfter = afterIssues.filter(
     (issue) =>
-      issue.level === "error" && issue.objectIds.some((id) => targetIds.has(id)),
+      issue.level === "error" &&
+      issue.objectIds.some((id) => targetIds.has(id)),
   ).length;
   return {
     passed: !issues.some((i) => i.blocking),

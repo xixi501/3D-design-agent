@@ -88,6 +88,7 @@ test("scoped candidates freeze IDs, preserve projects/history, check boundaries 
     const outside = server.candidates.create(p.id, {
       ...request,
       requestId: "outside",
+      taskId: "task-outside",
       scope: { ...scope, requirements: [] },
       edits: [{ type: "update", id: chair.id, values: { x: 50000, y: 50000 } }],
     });
@@ -99,6 +100,7 @@ test("scoped candidates freeze IDs, preserve projects/history, check boundaries 
     const tall = server.candidates.create(p.id, {
       ...request,
       requestId: "height",
+      taskId: "task-height",
       scope: { ...scope, requirements: [] },
       edits: [{ type: "update", id: chair.id, values: { z: 2500 } }],
     });
@@ -110,6 +112,7 @@ test("scoped candidates freeze IDs, preserve projects/history, check boundaries 
     const grouped = server.candidates.create(p.id, {
       ...request,
       requestId: "activity-group",
+      taskId: "task-grouped",
       scope: { ...scope, requirements: [] },
       edits: [{ type: "update", id: chair.id, values: { x: 6600 } }],
       activityGroups: [
@@ -224,6 +227,98 @@ test("candidate commits require matching evidence/review, are atomic, replay-saf
       () =>
         candidates.commit(p.id, c.id, { ...body, candidateHash: "different" }),
       /同一个固定候选/,
+    );
+  } finally {
+    store.close();
+  }
+});
+
+test("candidate authorization is frozen per task on the service side", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "candidate-auth-"));
+  const store = new ProjectStore(directory);
+  const candidates = new CandidateStore(store);
+  try {
+    const p = store.create(fixture);
+    const first = candidates.create(p.id, {
+      requestId: "auth-1",
+      taskId: "auth-task",
+      baseRevision: 0,
+      scope,
+      edits,
+    });
+    assert.ok(first.authorizationScopeHash);
+    assert.doesNotThrow(() =>
+      candidates.create(p.id, {
+        requestId: "auth-2",
+        taskId: "auth-task",
+        baseRevision: 0,
+        scope,
+        edits: [edits[0]],
+      }),
+    );
+    assert.throws(
+      () =>
+        candidates.create(p.id, {
+          requestId: "auth-3",
+          taskId: "auth-task",
+          baseRevision: 0,
+          scope: { ...scope, allowAddKeys: [] },
+          edits: [edits[0]],
+        }),
+      /授权范围已经冻结/,
+    );
+  } finally {
+    store.close();
+  }
+});
+
+test("deterministic action candidates commit without screenshot evidence", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "candidate-fast-"));
+  const store = new ProjectStore(directory);
+  const candidates = new CandidateStore(store);
+  try {
+    const p = store.create(fixture);
+    const cabinet = p.plan.furniture.find((item) => item.key === "cabTall")!;
+    const c = candidates.create(p.id, {
+      requestId: "fast-action",
+      taskId: "fast-task",
+      baseRevision: 0,
+      verification: "deterministic",
+      scope: {
+        targetIds: [],
+        allowDeleteIds: [],
+        allowAddKeys: [],
+        actionIds: [cabinet.id],
+        requirements: [],
+      },
+      edits: [
+        {
+          type: "action",
+          collection: "furniture",
+          id: cabinet.id,
+          action: "toggle_open",
+        },
+      ],
+    });
+    assert.deepEqual(c.evidence, []);
+    candidates.review(p.id, c.id, {
+      passed: true,
+      source: "deterministic",
+      summary: "确定性动作检查通过",
+      objectIds: [cabinet.id],
+      evidenceHashes: [],
+      issues: [],
+    });
+    const result = candidates.commit(p.id, c.id, {
+      operationId: c.operationId,
+      baseRevision: 0,
+      candidateHash: c.hash,
+    });
+    assert.equal(result.project.revision, 1);
+    assert.equal(
+      result.project.plan.furniture.find((item: any) => item.id === cabinet.id)
+        ?.opt?.open,
+      true,
     );
   } finally {
     store.close();

@@ -65,7 +65,12 @@ test("action candidates toggle a door without weakening the check gate", () => {
   const plan = room();
   const scope = validateScope({ ...baseScope, actionIds: ["door"] }, plan);
   const commands = materializeEdits(state(plan), scope, [
-    { type: "action", collection: "openings", id: "door", action: "toggle_open" },
+    {
+      type: "action",
+      collection: "openings",
+      id: "door",
+      action: "toggle_open",
+    },
   ]);
   const after = applyCommands(state(plan), commands);
   assert.equal(after.plan.openings[0].open, true);
@@ -73,15 +78,65 @@ test("action candidates toggle a door without weakening the check gate", () => {
   assert.equal(report.passed, true, JSON.stringify(report.issues));
 });
 
+test("action candidates honor an explicit desired state across retries", () => {
+  const plan = room();
+  plan.openings[0].open = true;
+  const scope = validateScope({ ...baseScope, actionIds: ["door"] }, plan);
+  const commands = materializeEdits(state(plan), scope, [
+    {
+      type: "action",
+      collection: "openings",
+      id: "door",
+      action: "toggle_open",
+      desiredState: false,
+    },
+  ]);
+  const after = applyCommands(state(plan), commands);
+  assert.equal(after.plan.openings[0].open, false);
+  const replay = materializeEdits(after, scope, [
+    {
+      type: "action",
+      collection: "openings",
+      id: "door",
+      action: "toggle_open",
+      desiredState: false,
+    },
+  ]);
+  assert.equal(applyCommands(after, replay).plan.openings[0].open, false);
+});
+
+test("action candidates reject malformed state and mismatched capabilities", () => {
+  const plan = room();
+  const scope = validateScope({ ...baseScope, actionIds: ["door"] }, plan);
+  assert.throws(() =>
+    materializeEdits(state(plan), scope, [
+      {
+        type: "action",
+        collection: "openings",
+        id: "door",
+        action: "toggle_open",
+        desiredState: "true" as unknown as boolean,
+      },
+    ]),
+  );
+  assert.throws(() =>
+    materializeEdits(state(plan), scope, [
+      {
+        type: "action",
+        collection: "openings",
+        id: "door",
+        action: "toggle_on",
+      },
+    ]),
+  );
+});
+
 test("an action candidate is blocked when the wardrobe envelope is occupied", () => {
   const plan = room();
   const wardrobe = createFurniture("wardrobe", 2000, 400, { rot: 0 });
   const bed = createFurniture("bed18", 2000, 1200, { rot: 0 });
   plan.furniture = [wardrobe, bed];
-  const scope = validateScope(
-    { ...baseScope, actionIds: [wardrobe.id] },
-    plan,
-  );
+  const scope = validateScope({ ...baseScope, actionIds: [wardrobe.id] }, plan);
   const commands = materializeEdits(state(plan), scope, [
     {
       type: "action",
@@ -99,6 +154,30 @@ test("an action candidate is blocked when the wardrobe envelope is occupied", ()
     ),
     JSON.stringify(report.issues),
   );
+});
+
+test("closing a blocked cabinet preserves layout and can pass the action gate", () => {
+  const plan = room();
+  const wardrobe = createFurniture("wardrobe", 2000, 400, {
+    rot: 0,
+    opt: { open: true },
+  });
+  const bed = createFurniture("bed18", 2000, 1200, { rot: 0 });
+  plan.furniture = [wardrobe, bed];
+  const scope = validateScope({ ...baseScope, actionIds: [wardrobe.id] }, plan);
+  const commands = materializeEdits(state(plan), scope, [
+    {
+      type: "action",
+      collection: "furniture",
+      id: wardrobe.id,
+      action: "toggle_open",
+      desiredState: false,
+    },
+  ]);
+  const after = applyCommands(state(plan), commands);
+  assert.equal(after.plan.furniture[0].opt?.open, false);
+  assert.deepEqual(after.plan.furniture[1], bed);
+  assert.equal(checkCandidate(state(plan), after, scope).passed, true);
 });
 
 test("placeAsset creates a model at the host top and checks overhang", () => {

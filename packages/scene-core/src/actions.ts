@@ -96,9 +96,14 @@ export function isSurfaceHost(f: Furniture): boolean {
   if (!Number.isFinite(f.h) || f.h <= 0 || f.h > 1400) return false;
   if (SURFACE_HOST_KEYS.has(f.key)) return true;
   const type = f.type || (q0 as Record<string, any>)[f.key]?.type;
-  return ["table", "desk", "counter", "nightstand", "cabinet", "island"].includes(
-    type,
-  );
+  return [
+    "table",
+    "desk",
+    "counter",
+    "nightstand",
+    "cabinet",
+    "island",
+  ].includes(type);
 }
 
 export interface Aabb {
@@ -137,7 +142,7 @@ export interface OpenEnvelope {
 export function openEnvelope(f: Furniture): OpenEnvelope | undefined {
   const spec = openableSpec(f);
   if (!spec) return undefined;
-  const rot = ((Math.round(f.rot / 90) * 90) % 360 + 360) % 360;
+  const rot = (((Math.round(f.rot / 90) * 90) % 360) + 360) % 360;
   const halfW = f.w / 2;
   const halfD = f.d / 2;
   let polygon: { x: number; y: number }[];
@@ -250,7 +255,8 @@ export interface SceneActionState {
 export function sceneActionState(plan: Plan): SceneActionState {
   const state: SceneActionState = { open: {}, on: {} };
   for (const opening of plan.openings)
-    if (opening.open !== undefined) state.open[opening.id] = Boolean(opening.open);
+    if (opening.open !== undefined)
+      state.open[opening.id] = Boolean(opening.open);
   for (const f of plan.furniture) {
     if (f.opt?.open !== undefined) state.open[f.id] = Boolean(f.opt.open);
     if (f.opt?.on !== undefined) state.on[f.id] = Boolean(f.opt.on);
@@ -268,11 +274,12 @@ const OPENING_TYPES = new Set([
   "garage",
 ]);
 
-/** Toggle command for a door, cabinet, drawer, lamp, TV or curtain. */
-export function toggleActionCommand(
+/** Set or toggle a door, cabinet, drawer, lamp, TV or curtain state. */
+export function actionCommand(
   plan: Plan,
   collection: "openings" | "furniture",
   id: string,
+  desiredState?: boolean,
 ): Command | undefined {
   if (collection === "openings") {
     const opening = plan.openings.find((o) => o.id === id);
@@ -281,7 +288,7 @@ export function toggleActionCommand(
       type: "update",
       collection: "openings",
       id,
-      patch: { open: !opening.open },
+      patch: { open: desiredState ?? !opening.open },
     };
   }
   const f = plan.furniture.find((f) => f.id === id);
@@ -291,7 +298,7 @@ export function toggleActionCommand(
       type: "update",
       collection: "furniture",
       id,
-      patch: { opt: { ...(f.opt || {}), open: !f.opt?.open } },
+      patch: { opt: { ...(f.opt || {}), open: desiredState ?? !f.opt?.open } },
     };
   if (isTogglableFurniture(f)) {
     const isOn = f.opt?.on !== false;
@@ -299,9 +306,18 @@ export function toggleActionCommand(
       type: "update",
       collection: "furniture",
       id,
-      patch: { opt: { ...(f.opt || {}), on: !isOn } },
+      patch: { opt: { ...(f.opt || {}), on: desiredState ?? !isOn } },
     };
   }
+}
+
+/** Backwards-compatible toggle used by the editor and legacy API callers. */
+export function toggleActionCommand(
+  plan: Plan,
+  collection: "openings" | "furniture",
+  id: string,
+): Command | undefined {
+  return actionCommand(plan, collection, id);
 }
 
 /** One-click open/close of all doors and openable furniture for layout checks. */

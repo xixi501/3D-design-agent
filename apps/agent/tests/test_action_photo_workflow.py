@@ -132,11 +132,20 @@ class FlowScene:
                 if edit["type"] == "action":
                     if edit["collection"] == "furniture":
                         f = next(x for x in state["furniture"] if x["id"] == edit["id"])
-                        f.setdefault("opt", {})["open"] = not (f.get("opt") or {}).get("open")
+                        current = bool((f.get("opt") or {}).get("open"))
+                        f.setdefault("opt", {})["open"] = (
+                            edit["desiredState"]
+                            if isinstance(edit.get("desiredState"), bool)
+                            else not current
+                        )
                         updated.append(f["id"])
                     else:
                         o = next(x for x in state["openings"] if x["id"] == edit["id"])
-                        o["open"] = not o.get("open")
+                        o["open"] = (
+                            edit["desiredState"]
+                            if isinstance(edit.get("desiredState"), bool)
+                            else not o.get("open")
+                        )
                 elif edit["type"] == "update":
                     f = next(x for x in state["furniture"] if x["id"] == edit["id"])
                     f.update(edit["values"])
@@ -186,7 +195,7 @@ class FlowScene:
                                 "message": "衣柜开启净空仅 0 mm（需 600 mm），被 双人床 1.8m 占用",
                                 "level": "error",
                                 "blocking": True,
-                                "metric": 0,
+                                "metric": 600,
                             }
                         ]
                         if self.blocked or (self.block_once and not self.blocked_once_used)
@@ -356,7 +365,7 @@ async def test_policy_auto_routes_an_edit_request_with_asset_to_photo_flow(tmp_p
 
 
 @pytest.mark.asyncio
-async def test_blocked_action_repairs_blocker_by_minimum_clearance(tmp_path):
+async def test_compound_quick_action_waits_without_expanding_scope(tmp_path):
     client = FlowScene(block_once=True)
     manager = TaskManager(tmp_path, client, NoopRoles)
     try:
@@ -369,11 +378,53 @@ async def test_blocked_action_repairs_blocker_by_minimum_clearance(tmp_path):
                 "selectedIds": ["w1"],
             },
         )
-        assert task["status"] == "completed", task
-        assert client.project["revision"] == 1
-        assert client.project["plan"]["furniture"][0]["opt"]["open"] is True
+        assert task["status"] == "waiting_input", task
+        assert client.project["revision"] == 0
         bed = next(f for f in client.project["plan"]["furniture"] if f["id"] == "bed")
-        assert bed["y"] == 1950  # 0mm remaining + 600mm clearance + 50mm buffer
+        assert bed["y"] == 1300
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_blocked_action_without_repair_authorization_does_not_move_blocker(tmp_path):
+    client = FlowScene(block_once=True)
+    manager = TaskManager(tmp_path, client, NoopRoles)
+    try:
+        task = await start(
+            manager,
+            {
+                "requestId": "action-no-repair-auth",
+                "input": "打开衣柜门",
+                "mode": "interactive_action",
+                "selectedIds": ["w1"],
+            },
+        )
+        assert task["status"] == "waiting_input", task
+        assert client.project["revision"] == 0
+        bed = next(f for f in client.project["plan"]["furniture"] if f["id"] == "bed")
+        assert bed["y"] == 1300
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_close_already_closed_is_idempotent_without_revision(tmp_path):
+    client = FlowScene()
+    manager = TaskManager(tmp_path, client, NoopRoles)
+    try:
+        task = await start(
+            manager,
+            {
+                "requestId": "action-close-idempotent",
+                "input": "关闭衣柜门",
+                "mode": "interactive_action",
+                "selectedIds": ["w1"],
+            },
+        )
+        assert task["status"] == "completed", task
+        assert client.project["revision"] == 0
+        assert client.project["plan"]["furniture"][0]["opt"]["open"] is False
     finally:
         await manager.close()
 
@@ -395,6 +446,27 @@ async def test_fast_single_object_move_commits_without_model(tmp_path):
         assert task["result"]["policy"]["fastEdit"]["values"]["x"] == 1800
         table = next(f for f in client.project["plan"]["furniture"] if f["id"] == "t1")
         assert table["x"] == 1800
+        assert client.project["revision"] == 1
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_fast_single_object_dimension_commits_without_model(tmp_path):
+    client = FlowScene()
+    manager = TaskManager(tmp_path, client, NoopRoles)
+    try:
+        task = await start(
+            manager,
+            {
+                "requestId": "fast-width",
+                "input": "把茶几宽度改为1.2米",
+                "selectedIds": ["t1"],
+            },
+        )
+        assert task["status"] == "completed", task
+        table = next(f for f in client.project["plan"]["furniture"] if f["id"] == "t1")
+        assert table["w"] == 1200
         assert client.project["revision"] == 1
     finally:
         await manager.close()

@@ -8,7 +8,7 @@ Scene writes still go through Candidate -> CheckScene -> Commit.
 from __future__ import annotations
 
 import re
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import Field
 
@@ -121,6 +121,7 @@ class PolicyDecision(StrictModel):
     targetId: str | None = None
     collection: Literal["openings", "furniture"] | None = None
     action: Literal["toggle_open", "toggle_on", "open_all"] | None = None
+    desiredState: bool | None = None
     assetId: str | None = None
     hostId: str | None = None
     fastEdit: dict | None = None
@@ -249,6 +250,8 @@ class PolicyController:
         # to selection for "它/这把" style commands.
         matches = [f for f in plan.get("furniture", []) if _names(f) and _names(f) in text]
         unique = {f["id"]: f for f in matches}
+        if len(unique) > 1:
+            return None
         if len(unique) == 1:
             return next(iter(unique.values()))
         selected = list(task.get("selectedIds") or [])
@@ -259,17 +262,60 @@ class PolicyController:
             )
         return None
 
+    @staticmethod
+    def _consumed(text: str, match: re.Match, item: dict) -> bool:
+        """Only execute a single command when no semantic text is left over."""
+        prefix, suffix = text[: match.start()], text[match.end() :]
+        name = _names(item)
+        targets = ["它", "这个", "这件", "这把", "选中的对象"]
+        if name:
+            targets.insert(0, name)
+        target = "(?:" + "|".join(re.escape(value) for value in targets) + ")"
+        return bool(
+            re.fullmatch(r"\s*(?:请)?(?:帮我)?(?:把|将)?(?:" + target + r")?\s*", prefix)
+            and re.fullmatch(r"\s*[。！!]?\s*", suffix)
+        )
+
     def _fast_edit(self, text: str, task: dict, project: dict) -> PolicyDecision | None:
-        """Single-object move/rotate/color without a model call."""
+        """Single-object transform/color/dimension edit without a model call."""
+        # A negated or compound request must go through the normal intent
+        # path.  Applying only the first regex match would silently execute a
+        # partial command (for example, move but ignore a color change).
+        if re.search(r"(?:不要|别|不必|无需)\s*(?:向|往|把|将)?", text):
+            return None
+        if re.search(r"(?:并|同时|然后|以及|且|之后)", text):
+            return None
         item = self._target_furniture(text, task, project)
         if item is None:
             return None
+        dimension = re.search(
+            r"(宽(?:度)?|深(?:度)?|高(?:度)?)(?:改为|调整为|设为|设置为|变成|为)\s*"
+            r"(\d+(?:\.\d+)?)\s*(毫米|mm|厘米|cm|米|m)",
+            text,
+            re.IGNORECASE,
+        )
+        if dimension and self._consumed(text, dimension, item):
+            label, raw, unit = dimension.groups()
+            field = "w" if label.startswith("宽") else "d" if label.startswith("深") else "h"
+            amount = float(raw) * (
+                10 if unit.lower() in ("厘米", "cm") else 1000 if unit.lower() in ("米", "m") else 1
+            )
+            if not 1 <= amount <= 50000:
+                return None
+            return PolicyDecision(
+                route="interactive_action",
+                mode="interactive_action",
+                reason="单件快速调整尺寸",
+                targetId=item["id"],
+                collection="furniture",
+                fastEdit={"kind": "update", "values": {field: amount}},
+            )
         move = re.search(
             r"(?:向|往)(左|右|上|下|东|西|北|南)(?:边|侧)?(?:移|移动|挪|平移|推)?\s*"
             r"(\d+(?:\.\d+)?)\s*(毫米|mm|厘米|cm|米|m)?",
             text,
         )
-        if move:
+        if move and self._consumed(text, move, item):
             direction, raw, unit = move.groups()
             amount = float(raw) * (
                 10 if unit in ("厘米", "cm") else 1000 if unit in ("米", "m") else 1
@@ -295,7 +341,7 @@ class PolicyController:
             r"(顺时针|逆时针|向左|向右)?\s*旋转\s*(\d+(?:\.\d+)?)\s*度",
             text,
         )
-        if rotate:
+        if rotate and self._consumed(text, rotate, item):
             direction, raw = rotate.groups()
             amount = float(raw)
             if direction in ("逆时针", "向左"):
@@ -315,7 +361,7 @@ class PolicyController:
             r"(?:改成|换成|变成|刷成|涂成)\s*(红色|蓝色|绿色|黄色|黑色|白色|灰色|米色|原木色|胡桃木色|#[0-9a-fA-F]{6})",
             text,
         )
-        if color:
+        if color and self._consumed(text, color, item):
             value = COLOR_NAMES.get(color.group(1), color.group(1))
             return PolicyDecision(
                 route="interactive_action",
@@ -331,7 +377,35 @@ class PolicyController:
         if not any(word in text for word in ACTION_WORDS):
             return None
         plan = project["plan"]
-        if any(word in text for word in ("一键全开", "全开", "全部打开")):
+        # Negation, multiple actions and unconsumed qualifiers require the
+        # normal intent/authorization flow, never a partial quick action.
+        names = sorted(
+            {_names(f) for f in plan.get("furniture", []) if _names(f)}, key=len, reverse=True
+        )
+        target = (
+            "(?:"
+            + "|".join(
+                re.escape(n) for n in names + ["它", "门", "柜门", "抽屉", "灯", "电视", "窗帘"]
+            )
+            + ")(?:门)?"
+        )
+        verb = r"(?:打开|关闭|关上|关掉|开启|拉开|拉出)"
+        simple = re.fullmatch(
+            r"\s*(?:请)?(?:帮我)?(?:把|将)?(?:"
+            + verb
+            + target
+            + "|"
+            + target
+            + verb
+            + r"|开灯|关灯|开电视|关电视|开窗帘|关窗帘)\s*[。！!]?\s*",
+            text,
+        )
+        all_open = re.fullmatch(
+            r"\s*(?:一键全开(?:门柜检验布局)?|全开|全部打开)\s*[。！!]?\s*", text
+        )
+        if not simple and not all_open:
+            return None
+        if all_open:
             return PolicyDecision(
                 route="interactive_action",
                 mode="interactive_action",
@@ -339,10 +413,25 @@ class PolicyController:
                 action="open_all",
             )
         action = "toggle_on" if any(word in text for word in TOGGLE_WORDS) else "toggle_open"
+        closing = any(word in text for word in ("关闭", "关上", "关掉", "关灯", "关电视", "关窗帘"))
+        opening = any(word in text for word in ("打开", "开启", "拉开", "开灯", "开电视", "开窗帘"))
+        desired_state = not (closing and not opening)
         selected = list(task.get("selectedIds") or [])
+        named = [f for f in plan.get("furniture", []) if _names(f) and _names(f) in text]
         target_id = None
         collection = None
-        if len(selected) == 1:
+        if len(named) == 1:
+            target_id, collection = named[0]["id"], "furniture"
+        elif len(named) > 1 and len(selected) == 1 and any(f["id"] == selected[0] for f in named):
+            target_id, collection = selected[0], "furniture"
+        elif len(named) > 1:
+            return PolicyDecision(
+                route="waiting",
+                mode="interactive_action",
+                reason="同名对象不唯一",
+                question="请明确要操作的对象，或选中后用“它”指代。",
+            )
+        elif len(selected) == 1:
             target_id = selected[0]
             if any(f["id"] == target_id for f in plan.get("furniture", [])):
                 collection = "furniture"
@@ -371,6 +460,7 @@ class PolicyController:
                     reason="快速动作目标不唯一",
                     question=f"场景里有多个可能目标（{names}），请先选中要操作的那一个。",
                     action=action,
+                    desiredState=desired_state,
                 )
         if target_id is None:
             return PolicyDecision(
@@ -379,6 +469,7 @@ class PolicyController:
                 reason="快速动作没有目标",
                 question="请先选中要打开/关闭的门、柜门、抽屉或电器。",
                 action=action,
+                desiredState=desired_state,
             )
         item = (
             next(
@@ -398,6 +489,7 @@ class PolicyController:
                 reason="快速动作目标不在当前场景",
                 question="目标对象已不存在，请重新选择。",
                 action=action,
+                desiredState=desired_state,
             )
         if collection == "furniture":
             if action == "toggle_open" and item.get("key") not in OPENABLE_KEYS:
@@ -409,7 +501,7 @@ class PolicyController:
                     action=action,
                 )
             if action == "toggle_on" and not (
-                re.search(r"lamp|light|tv|curtain|screen", item.get("type", ""), re.I)
+                re.search(r"lamp|light|tv|curtain|screen", item.get("type", ""), re.IGNORECASE)
                 or "on" in (item.get("opt") or {})
             ):
                 return PolicyDecision(
@@ -434,6 +526,7 @@ class PolicyController:
             targetId=target_id,
             collection=collection,
             action=action,
+            desiredState=desired_state,
         )
 
 
@@ -449,7 +542,7 @@ class RepairDirective(StrictModel):
 class RepairPolicyRouter:
     """Map deterministic check codes to the smallest role-scoped repair."""
 
-    ROUTES: dict[str, tuple[str, str]] = {
+    ROUTES: ClassVar[dict[str, tuple[str, str]]] = {
         "OPENABLE_FRONT_BLOCKED": ("design", "clear_openable_envelope"),
         "DOOR_CABINET_CONFLICT": ("design", "move_cabinet_out_of_door_swing"),
         "SURFACE_ITEM_OVERHANG": ("design", "rehost_or_floor_surface_item"),

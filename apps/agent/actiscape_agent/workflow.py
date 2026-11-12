@@ -584,6 +584,13 @@ class Workflow:
 
     async def render(self, state: State):
         task = self.task(state, "rendering")
+        if state["candidate"].get("verification") == "deterministic":
+            self.store.event(
+                task["id"],
+                "evidence",
+                {"candidateId": state["candidate"]["id"], "evidence": [], "mode": "deterministic"},
+            )
+            return {"evidence": []}
         evidence = await self.client.request(
             self.path(state) + f"/candidates/{state['candidate']['id']}/render", {}
         )
@@ -630,7 +637,9 @@ class Workflow:
         passed = review["passed"] and not blocking_issues and state["candidate"]["checks"]["passed"]
         body = {
             "passed": passed,
-            "source": "agent",
+            "source": "deterministic"
+            if state["candidate"].get("verification") == "deterministic"
+            else "agent",
             "summary": review["summary"],
             "objectIds": list(dict.fromkeys(reported)),
             "issues": [i["description"] for i in blocking_issues],

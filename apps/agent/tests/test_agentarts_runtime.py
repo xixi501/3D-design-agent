@@ -1,5 +1,6 @@
 """AgentArts /invocations adapter: probe compatibility + full Workflow task."""
 
+import asyncio
 import importlib.util
 import sys
 from pathlib import Path
@@ -9,7 +10,7 @@ import pytest
 from actiscape_agent.manager import TaskManager
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from test_action_photo_workflow import FlowScene, NoopRoles  # noqa: E402
+from test_action_photo_workflow import FlowScene, NoopRoles
 
 ROOT = Path(__file__).resolve().parents[3]
 RUNTIME_DIR = ROOT / "deploy/agentarts-minimal"
@@ -27,6 +28,13 @@ def load(name: str, file: str):
 
 task_runtime = load("agentarts_task_runtime", "task_runtime.py")
 agentarts_agent = load("agentarts_agent_entry", "agent.py")
+
+
+class SlowFlowScene(FlowScene):
+    async def request(self, path, body=None):
+        if path == "/projects/p/candidates" and body is not None:
+            await asyncio.sleep(0.2)
+        return await super().request(path, body)
 
 
 @pytest.mark.asyncio
@@ -116,5 +124,28 @@ async def test_agentarts_run_task_is_idempotent_for_same_project_request(tmp_pat
         assert first["status"] == "completed" and second["status"] == "completed"
         assert first["taskId"] == second["taskId"]
         assert client.project["revision"] == revision == 1
+    finally:
+        await manager.close()
+
+
+@pytest.mark.asyncio
+async def test_agentarts_timeout_requests_cancellation_before_returning(tmp_path):
+    client = SlowFlowScene()
+    manager = TaskManager(tmp_path, client, NoopRoles)
+    payload = {
+        "action": "run_task",
+        "projectId": "p",
+        "requestId": "agentarts-timeout-1",
+        "mode": "interactive_action",
+        "input": "打开衣柜门",
+        "selectedIds": ["w1"],
+    }
+    try:
+        result = await task_runtime.run_task(payload, manager=manager, timeout=0.03)
+        assert result["status"] in {"timeout", "cancelled"}
+        await asyncio.sleep(0.25)
+        current = manager.store.task(result["taskId"], internal=True)
+        assert current["status"] == "cancelled"
+        assert client.project["revision"] == 0
     finally:
         await manager.close()

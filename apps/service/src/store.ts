@@ -93,6 +93,56 @@ export class ProjectStore {
     if (!row) throw new SceneError("NOT_FOUND", "资产不存在", 404);
     return JSON.parse(row.record);
   }
+  freezeCandidateAuthorization(
+    project: string,
+    taskId: string,
+    scopeHash: string,
+    scope: unknown,
+  ) {
+    const existing = this.db
+      .prepare(
+        "SELECT scope_hash FROM candidate_authorizations WHERE project=? AND task_id=?",
+      )
+      .get(project, taskId) as { scope_hash: string } | undefined;
+    if (existing) {
+      if (existing.scope_hash !== scopeHash)
+        throw new SceneError(
+          "AUTHORIZATION_CONFLICT",
+          "同一任务的授权范围已经冻结，不能扩大或改写",
+          409,
+        );
+      return scopeHash;
+    }
+    this.db
+      .prepare(
+        "INSERT INTO candidate_authorizations(project,task_id,scope_hash,scope,created) VALUES(?,?,?,?,?)",
+      )
+      .run(
+        project,
+        taskId,
+        scopeHash,
+        JSON.stringify(scope),
+        new Date().toISOString(),
+      );
+    return scopeHash;
+  }
+  assertCandidateAuthorization(
+    project: string,
+    taskId: string,
+    scopeHash: string,
+  ) {
+    const row = this.db
+      .prepare(
+        "SELECT scope_hash FROM candidate_authorizations WHERE project=? AND task_id=?",
+      )
+      .get(project, taskId) as { scope_hash: string } | undefined;
+    if (!row || row.scope_hash !== scopeHash)
+      throw new SceneError(
+        "AUTHORIZATION_CONFLICT",
+        "候选没有对应的服务端冻结授权，不能提交",
+        409,
+      );
+  }
   assets(): AssetRecord[] {
     return (
       this.db

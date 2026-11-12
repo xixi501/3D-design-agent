@@ -84,6 +84,10 @@ export function candidateRoutes(
             taskId: { type: "string", minLength: 1, maxLength: 200 },
             baseRevision: { type: "integer", minimum: 0 },
             summary: { type: "string", maxLength: 200 },
+            verification: {
+              type: "string",
+              enum: ["screenshots", "deterministic"],
+            },
             kind: {
               type: "string",
               enum: ["edit", "initialize", "initialize_floorplan"],
@@ -203,7 +207,10 @@ export function candidateRoutes(
           additionalProperties: false,
           properties: {
             passed: { type: "boolean" },
-            source: { type: "string", enum: ["agent", "operator"] },
+            source: {
+              type: "string",
+              enum: ["agent", "operator", "deterministic"],
+            },
             summary: { type: "string", maxLength: 4000 },
             objectIds: { type: "array", items: { type: "string" } },
             evidenceHashes: { type: "array", items: { type: "string" } },

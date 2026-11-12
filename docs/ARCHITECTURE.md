@@ -1,5 +1,9 @@
 # 模块、来源与迁移边界
 
+> 当前分支的阶段门以 [实现状态](IMPLEMENTATION_STATUS.md) 为准。本文保留
+> 已实现架构和历史阶段说明；户型图、照片与云端章节的完成记录对应各自的
+> 固定提交和证据，不自动表示当前工作树已经通过这些阶段。
+
 ```mermaid
 flowchart LR
   UI[原生 DOM 工作台] --> Plan[二维编辑器]
@@ -68,9 +72,13 @@ flowchart LR
   Assets --> Scope
   Scope --> Design[空间设计：结构化候选]
   Design --> Candidate[Node 候选与确定性预检]
-  Candidate --> Images[真实只读渲染]
+  Candidate --> Verify{候选类型}
+  Verify -->|普通编辑| Images[真实只读渲染]
+  Verify -->|动作/照片入场| Deterministic[确定性证据]
   Images --> Check[独立检查角色]
+  Deterministic --> CheckFast[固定检查记录]
   Check -->|通过| Commit[固定代码提交节点]
+  CheckFast -->|通过| Commit
   Check -->|最多三轮| Design
   Commit --> API[Node 原子命令与项目历史]
   API --> SSE[原有项目 SSE]
@@ -79,7 +87,7 @@ flowchart LR
 
 `apps/agent/actiscape_agent/workflow.py` 使用 LangGraph 管理角色、分支、修复和一次版本重规划；`manager.py` 管理持久队列和 SQLite 检查点。四角色在 `roles.py` 中分别创建 LangChain Agent 和上下文；提示词与工具范围分开。角色模型共享 DeepSeek 官方服务，但不共享一段无边界的会话上下文。
 
-正式场景数据库只由 Node 写入。`candidate.ts` 生成稳定命令并验证 scope，`candidates.ts` 绑定快照、哈希、图片、独立检查及固定 operationId。Agent 不获得任意 HTTP、脚本或正式场景写工具；最终提交由固定流程节点执行，并在 Node 重新检查后进入原有事务。一次自动应用仍对应一个可撤销事务。
+正式场景数据库只由 Node 写入。`candidate.ts` 生成稳定命令并验证 scope，`candidates.ts` 绑定快照、哈希、图片、独立检查及固定 operationId。编辑任务的 scope 首次到达场景服务时按 `(project, taskId)` 持久冻结，后续修复候选只能复用同一授权指纹，提交时再次校验；这使 Agent 侧的授权不能通过重试或改写请求扩大。普通编辑保留只读截图和独立检查，纯动作与照片资产入场使用确定性证据模式，仍经过同一候选检查、授权冻结和原子提交。Agent 不获得任意 HTTP、脚本或正式场景写工具；最终提交由固定流程节点执行，并在 Node 重新检查后进入原有事务。一次自动应用仍对应一个可撤销事务。
 
 `apps/editor/src/render.ts` 是只读候选显示入口，使用同一三维渲染和有效离地计算；取证时墙体透明、吊顶隐藏，固定俯视和斜视。图片不是用户界面截图的替身，项目业务字段检查和真实工作台操作分别验收。
 

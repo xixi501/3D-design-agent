@@ -112,7 +112,9 @@ def test_generation_is_detected_only_with_room_and_dimensions():
         controller.decide(task("生成一个主卧，宽3600毫米深4200毫米"), scene()).route
         == "generate_rectangular"
     )
-    assert controller.decide(task("把主卧的衣柜打开"), scene()).route == "waiting"  # two wardrobes
+    assert (
+        controller.decide(task("把主卧的衣柜打开"), scene()).route == "edit"
+    )  # qualified target needs grounding
     assert controller.decide(task("把墙上的挂画换个位置"), scene()).route == "edit"
 
 
@@ -160,3 +162,37 @@ def test_fast_edit_parses_move_rotate_and_color():
     color = controller.decide(task("把它改成蓝色", selected=["w1"]), scene())
     assert color.route == "interactive_action"
     assert color.fastEdit["values"]["color"] == "#2f5f9f"
+
+
+def test_fast_edit_rejects_negated_and_compound_requests():
+    controller = PolicyController()
+    negated = controller.decide(task("不要把茶几往左移200毫米", selected=["t1"]), scene())
+    compound = controller.decide(task("把茶几往左移200毫米并改成蓝色", selected=["t1"]), scene())
+    assert negated.route == "edit"
+    assert compound.route == "edit"
+
+
+def test_fast_edit_parses_explicit_dimensions():
+    controller = PolicyController()
+    width = controller.decide(task("把茶几宽度改为1.2米", selected=["t1"]), scene())
+    depth = controller.decide(task("把茶几深调整为55厘米", selected=["t1"]), scene())
+    assert width.fastEdit["values"] == {"w": 1200}
+    assert depth.fastEdit["values"] == {"d": 550}
+
+
+def test_action_has_explicit_desired_state_and_rejects_compounds():
+    controller = PolicyController()
+    close = controller.decide(task("关闭衣柜门", selected=["w1"]), scene())
+    compound = controller.decide(
+        task("打开衣柜门，把挡住柜门的家具移开一点", selected=["w1"]), scene()
+    )
+    assert close.desiredState is False
+    assert compound.route == "edit"
+
+
+def test_quick_actions_require_full_consumption():
+    controller = PolicyController()
+    for text in ("不要打开衣柜门", "打开衣柜门，关灯", "先打开衣柜门再关闭"):
+        assert controller.decide(task(text, selected=["w1"]), scene()).route == "edit"
+    for text in ("把茶几往左移200毫米，改成蓝色", "把茶几宽度改为1米高度改为2米"):
+        assert controller.decide(task(text, selected=["t1"]), scene()).route == "edit"

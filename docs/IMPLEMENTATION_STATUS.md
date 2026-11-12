@@ -1,5 +1,32 @@
 # S0 / S1 / S2-A / S2-B / S2-C implementation status
 
+## 2026-11-12 cleanup baseline
+
+This section is the current engineering gate for the `feat/floorplan-auto-completion`
+working branch. The historical S2-C claims below remain evidence for their recorded
+commits; they are not a release claim for the current branch. Phase 1 is focused on
+the reliable local edit loop: explicit target state, authorization-safe repairs,
+candidate checks, atomic commit, undo/redo, and recovery.
+
+- Completed in this phase: negated and compound requests leave the deterministic
+  fast path; move/rotate/color and explicit width/depth/height edits use the
+  deterministic path; open/close actions are idempotent desired-state operations;
+  quick actions never move blocking furniture; compound requests require
+  normal intent grounding and field authorization; action/photo candidates use a
+  deterministic evidence mode; service-side task authorization is frozen by hash;
+  AgentArts timeout requests cancellation before returning.
+- Verification: Node tests 101/101, Python agent tests 201/201 with the pinned Node
+  runtime, and TypeScript typecheck.
+- Live acceptance: current working-tree Node/Python services passed 6/6 fixed
+  local-edit cases (reading corner, add, size/color, delete, multi-turn,
+  clarification). The separate action run completed with `modelCalls=0`,
+  candidate `verification=deterministic`, empty evidence, and revision 1.
+  Evidence: [`phase1-current-20261112/live/report.json`](../test-results/phase1-current-20261112/live/report.json)
+  and [`action-live.json`](../test-results/phase1-current-20261112/live/action-live.json).
+- Deferred: floorplan/photo/cloud expansion remains experimental until this edit
+  gate is accepted. The independent code/design audit is in
+  [`INDEPENDENT_DESIGN_ALIGNMENT_AUDIT_20261112.md`](INDEPENDENT_DESIGN_ALIGNMENT_AUDIT_20261112.md).
+
 Approved scope: single-floor editor; complete upstream parametric catalogue, cabinets and 17 free-form types; persistent projects/assets and undo/redo; real scene APIs. S2-A adds conversation-driven local furniture editing through four roles, frozen candidates, deterministic checks, real screenshots and one atomic commit.
 
 Development branch: `dev/core`. Upstream: `ZWD11/house-plan-designer@b94183f9ce2215db9a178da89a90d2ecefb18497`.

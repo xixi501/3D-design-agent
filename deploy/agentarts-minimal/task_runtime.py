@@ -37,7 +37,7 @@ def _body(payload: dict) -> dict:
     if not isinstance(payload.get("projectId"), str) or not payload["projectId"]:
         raise ValueError("run_task 需要 projectId")
     if not isinstance(payload.get("input", ""), str):
-        raise ValueError("run_task.input 必须是字符串")
+        raise TypeError("run_task.input 必须是字符串")
     body = {
         "requestId": str(payload.get("requestId") or uuid.uuid4()),
         "input": payload.get("input", ""),
@@ -87,11 +87,26 @@ async def run_task(
             }
         await asyncio.sleep(0.2)
     current = manager.store.task(task["id"], internal=True)
+    # A caller timeout must also stop the queued/running workflow.  Returning
+    # while the worker continues would allow a late candidate commit after the
+    # platform has already reported failure to its caller.
+    manager.store.cancel(task["id"])
+    deadline = time.monotonic() + min(2.0, max(0.5, timeout * 0.1))
+    while time.monotonic() < deadline:
+        current = manager.store.task(task["id"], internal=True)
+        if current["status"] in TERMINAL:
+            break
+        await asyncio.sleep(0.05)
+    current = manager.store.task(task["id"], internal=True)
     return {
-        "status": "timeout",
+        "status": "timeout" if current["status"] not in TERMINAL else current["status"],
         "taskId": current["id"],
         "result": current.get("result"),
-        "error": f"task exceeded {timeout:g}s",
+        "error": (
+            f"task exceeded {timeout:g}s"
+            if current["status"] == "timeout" or current["status"] not in TERMINAL
+            else current.get("error")
+        ),
         "generation": current.get("generation"),
         "mode": current.get("mode"),
         "cloud": True,

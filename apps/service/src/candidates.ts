@@ -48,7 +48,7 @@ export interface Evidence {
 }
 export interface CandidateReview {
   passed: boolean;
-  source: "agent" | "operator";
+  source: "agent" | "operator" | "deterministic";
   summary: string;
   objectIds: string[];
   evidenceHashes: string[];
@@ -117,6 +117,7 @@ export class CandidateStore {
       matches?: SymbolMatch[];
       brief?: RectangularBrief;
       activityGroups?: { name: string; memberIds: string[] }[];
+      verification?: "screenshots" | "deterministic";
     },
   ) {
     if (
@@ -138,6 +139,20 @@ export class CandidateStore {
       (typeof request.summary !== "string" || request.summary.length > 200)
     )
       throw new SceneError("INVALID_REQUEST", "摘要必须是最多 200 字的字符串");
+    const verification = request.verification || "screenshots";
+    if (!["screenshots", "deterministic"].includes(verification))
+      throw new SceneError("INVALID_REQUEST", "候选检查策略无效");
+    if (
+      verification === "deterministic" &&
+      (!request.edits?.length ||
+        request.edits.some(
+          (edit) => edit.type !== "action" && edit.type !== "placeAsset",
+        ))
+    )
+      throw new SceneError(
+        "INVALID_REQUEST",
+        "只有纯动作或照片资产落位候选可以跳过截图",
+      );
     const requestHash = sha256(request);
     return this.projects.db
       .transaction(() => {
@@ -291,7 +306,16 @@ export class CandidateStore {
         }
         for (const id of assetReferences(state.plan)) this.projects.asset(id);
         const id = newId(),
-          checks = reconstructed
+          authorizationScopeHash =
+            !initialization && !reconstruction ? sha256(scope) : undefined;
+        if (authorizationScopeHash)
+          this.projects.freezeCandidateAuthorization(
+            project,
+            request.taskId,
+            authorizationScopeHash,
+            scope,
+          );
+        const checks = reconstructed
             ? checkFloorplanInitialization(
                 before,
                 state,
@@ -318,11 +342,13 @@ export class CandidateStore {
           taskId: request.taskId,
           baseRevision: base.revision,
           scope,
+          ...(authorizationScopeHash ? { authorizationScopeHash } : {}),
           commands,
           state,
           diff,
           checks,
           summary: request.summary || "Agent 局部编辑",
+          verification,
           operationId: `candidate:${id}`,
           createdAt: new Date().toISOString(),
           ...(reconstructed
@@ -445,11 +471,16 @@ export class CandidateStore {
   }
   review(project: string, id: string, review: CandidateReview) {
     const c = this.get(project, id),
-      evidence = this.verifyEvidence(project, id);
+      evidence =
+        c.verification === "deterministic"
+          ? []
+          : this.verifyEvidence(project, id);
     if (
       !review ||
       typeof review.passed !== "boolean" ||
-      !["agent", "operator"].includes(review.source) ||
+      !["agent", "operator", "deterministic"].includes(review.source) ||
+      (c.verification === "deterministic" &&
+        review.source !== "deterministic") ||
       typeof review.summary !== "string" ||
       review.summary.length > 4000 ||
       !Array.isArray(review.issues) ||
@@ -511,6 +542,12 @@ export class CandidateStore {
         const { hash, before, ...frozen } = c;
         if (sha256(frozen) !== hash)
           throw new SceneError("CANDIDATE_INVALID", "候选内容校验失败", 409);
+        if (c.authorizationScopeHash)
+          this.projects.assertCandidateAuthorization(
+            project,
+            c.taskId,
+            c.authorizationScopeHash,
+          );
         if (c.kind === "initialize_floorplan") {
           const draft = this.floorplans.confirmed(project, c.floorplan.binding);
           if (sha256(draft.data) !== sha256(c.floorplan.data))
@@ -544,7 +581,8 @@ export class CandidateStore {
           ).passed
         )
           throw new SceneError("CHECK_FAILED", "候选未通过确定性检查", 409);
-        this.verifyEvidence(project, id);
+        if (c.verification !== "deterministic")
+          this.verifyEvidence(project, id);
         const review = row.review ? JSON.parse(row.review) : null;
         if (!review?.passed || review.issues.length)
           throw new SceneError("REVIEW_REQUIRED", "检查尚未通过", 409);

@@ -1,0 +1,740 @@
+{
+  "schema": "actiscape.phase1-acceptance.v1",
+  "codeVersion": "e045f50b4e501621703bcd70ba814db99b44cadd",
+  "caseHash": "3253257f62ad764778ea4ba09666d00b40aef637f5f16b11bf43f06f413c1cbb",
+  "livePassed": 16,
+  "liveTotal": 16,
+  "offline": {
+    "python": {
+      "passed": 216,
+      "total": 216
+    },
+    "node": {
+      "passed": 110,
+      "total": 110
+    },
+    "typecheck": "passed",
+    "productionBuild": "passed"
+  },
+  "browser": {
+    "phase1": {
+      "passed": 5,
+      "total": 5,
+      "evidence": "test-results/phase1-browser-e045f50/report.json",
+      "sha256": "05e9aa24a1d832da6db0131a18d076ba1a384cc5bf9398ff6d0fd7278c75f9d5"
+    },
+    "editor": {
+      "passed": 16,
+      "total": 16,
+      "evidence": "test-results/browser/report.json",
+      "sha256": "b06de46d538cc5d3ca3508efdff9b99c25f18dae628cdb4c55cfb36dc5260bea"
+    }
+  },
+  "rows": [
+    {
+      "case": "move",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "20f6f679-5f8a-4253-84cf-db69a49f5598",
+      "taskIds": [
+        "6f270da0-1fec-4132-9ca8-2b7f49a53094"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.498,
+      "tasks": [
+        {
+          "id": "6f270da0-1fec-4132-9ca8-2b7f49a53094",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.03,
+              "policy": 0.002,
+              "understanding": 0.039,
+              "scoping": 0.04,
+              "designing": 0.001,
+              "prechecking": 0.186,
+              "checking_parameters": 0.019,
+              "committing": 0.171
+            },
+            "elapsedSeconds": 0.498
+          },
+          "candidateId": "150fdb40-1804-4dd3-9b11-64bc6cf21e23"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/move-1.json",
+      "sha256": "720910d9e7613058008503893644a606600dd53d9d64890f96be2d22f489764a"
+    },
+    {
+      "case": "move",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "408412e5-bada-4da1-bcb6-da2135b58781",
+      "taskIds": [
+        "85fcfdae-8490-476f-b475-bea1ff4fec82"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.318,
+      "tasks": [
+        {
+          "id": "85fcfdae-8490-476f-b475-bea1ff4fec82",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.023,
+              "policy": 0.002,
+              "understanding": 0.023,
+              "scoping": 0.048,
+              "designing": 0.001,
+              "prechecking": 0.121,
+              "checking_parameters": 0.018,
+              "committing": 0.081
+            },
+            "elapsedSeconds": 0.318
+          },
+          "candidateId": "8f3a6a50-2306-41d1-a8a5-ced821df83e9"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/move-2.json",
+      "sha256": "26eb214aef9e53b7499460362e69aef5532c21c0204b3d5d19986ad28723e8a5"
+    },
+    {
+      "case": "rotate",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "3d091e4f-c15b-40bf-a61c-0e977571aafd",
+      "taskIds": [
+        "51573ef3-663f-47dc-9b43-ac196a8ee7da"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.332,
+      "tasks": [
+        {
+          "id": "51573ef3-663f-47dc-9b43-ac196a8ee7da",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.026,
+              "policy": 0.002,
+              "understanding": 0.024,
+              "scoping": 0.042,
+              "designing": 0.001,
+              "prechecking": 0.14,
+              "checking_parameters": 0.018,
+              "committing": 0.078
+            },
+            "elapsedSeconds": 0.332
+          },
+          "candidateId": "81af8882-ee2a-4cd7-a431-6be435c69c2b"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/rotate-1.json",
+      "sha256": "f4a2c0d2546be44bc26cc61883fa760cdce199d0fc0c239bee3f816d09088035"
+    },
+    {
+      "case": "rotate",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "92ae2f36-dc44-44fa-8124-4459ff2d69f2",
+      "taskIds": [
+        "9312bcda-e51a-42d8-a924-389f819e4da8"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.302,
+      "tasks": [
+        {
+          "id": "9312bcda-e51a-42d8-a924-389f819e4da8",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.026,
+              "policy": 0.002,
+              "understanding": 0.023,
+              "scoping": 0.041,
+              "designing": 0.001,
+              "prechecking": 0.115,
+              "checking_parameters": 0.018,
+              "committing": 0.074
+            },
+            "elapsedSeconds": 0.302
+          },
+          "candidateId": "da499056-320e-47a9-8957-8a2eab5bfe51"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/rotate-2.json",
+      "sha256": "3af02ec8e2e057e8501643dc4cbcfbb433d072885523793bc0cb859283084c85"
+    },
+    {
+      "case": "dimensions",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "80397ef6-45c8-4494-9062-050220b55e1c",
+      "taskIds": [
+        "eb4e6d1a-a4e1-4baa-b8fe-a8d8a5ce24b5"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.362,
+      "tasks": [
+        {
+          "id": "eb4e6d1a-a4e1-4baa-b8fe-a8d8a5ce24b5",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.026,
+              "policy": 0.002,
+              "understanding": 0.022,
+              "scoping": 0.041,
+              "designing": 0.001,
+              "prechecking": 0.141,
+              "checking_parameters": 0.018,
+              "committing": 0.109
+            },
+            "elapsedSeconds": 0.362
+          },
+          "candidateId": "9940b57b-000a-4858-8917-e52d5029f763"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/dimensions-1.json",
+      "sha256": "d911843ab0c8272e8c6d7ed1079ad5028aa54a6edc3b3f31efd7f42d52fdc539"
+    },
+    {
+      "case": "dimensions",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "999bd1e3-52fe-4705-bbeb-155c31e3cddf",
+      "taskIds": [
+        "01c1667e-2e46-41c8-ae35-ffba96432755"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.32,
+      "tasks": [
+        {
+          "id": "01c1667e-2e46-41c8-ae35-ffba96432755",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.029,
+              "policy": 0.003,
+              "understanding": 0.022,
+              "scoping": 0.041,
+              "designing": 0.001,
+              "prechecking": 0.109,
+              "checking_parameters": 0.017,
+              "committing": 0.096
+            },
+            "elapsedSeconds": 0.32
+          },
+          "candidateId": "c89421d1-d6d0-4560-84c3-319dea5c3542"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/dimensions-2.json",
+      "sha256": "700f1d5fc6435c66323c286448f9ce7d1336af1f70c52dac8198b72c878c732a"
+    },
+    {
+      "case": "color",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "56a4d376-3305-4d35-bd02-4ca786586998",
+      "taskIds": [
+        "85d0fb06-6fc0-4c25-8421-5c62bf11bc71"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.402,
+      "tasks": [
+        {
+          "id": "85d0fb06-6fc0-4c25-8421-5c62bf11bc71",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.03,
+              "policy": 0.002,
+              "understanding": 0.024,
+              "scoping": 0.043,
+              "designing": 0.001,
+              "prechecking": 0.134,
+              "checking_parameters": 0.027,
+              "committing": 0.138
+            },
+            "elapsedSeconds": 0.402
+          },
+          "candidateId": "6ffdee86-912f-4d12-935d-c9538c322ab3"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/color-1.json",
+      "sha256": "525e83898ab695a6867f03fca57fe594885ba11af1cc1da70b95cf2df83ca43f"
+    },
+    {
+      "case": "color",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "97c03754-73b0-47f3-9c50-149e95ee1dbc",
+      "taskIds": [
+        "775d6afa-62b5-4a61-be21-efc553d7fa9d"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.314,
+      "tasks": [
+        {
+          "id": "775d6afa-62b5-4a61-be21-efc553d7fa9d",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.028,
+              "policy": 0.002,
+              "understanding": 0.023,
+              "scoping": 0.042,
+              "designing": 0.001,
+              "prechecking": 0.129,
+              "checking_parameters": 0.017,
+              "committing": 0.07
+            },
+            "elapsedSeconds": 0.314
+          },
+          "candidateId": "27f72e63-da90-4215-9368-eadbef31145a"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/color-2.json",
+      "sha256": "e5010dead7d5c35fffb3b60479cdd30de5e05565f27b0f4827b96dc30bd58253"
+    },
+    {
+      "case": "add",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "faa3c1ef-8581-47e1-a5d9-02d8f4dd67c0",
+      "taskIds": [
+        "1da94d8c-f4d6-475b-93da-a7e861f25bee"
+      ],
+      "modelCalls": 10,
+      "renderCount": 2,
+      "repairCount": 0,
+      "elapsedSeconds": 34.931,
+      "tasks": [
+        {
+          "id": "1da94d8c-f4d6-475b-93da-a7e861f25bee",
+          "metrics": {
+            "modelCalls": 10,
+            "renderCount": 2,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.025,
+              "policy": 0.002,
+              "understanding": 6.21,
+              "choosing_assets": 4.41,
+              "scoping": 0.046,
+              "designing": 9.402,
+              "prechecking": 0.166,
+              "rendering": 2.857,
+              "checking": 11.607,
+              "committing": 0.2
+            },
+            "elapsedSeconds": 34.931
+          },
+          "candidateId": "649f5b99-6ad5-42be-bf27-630296eebc03"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/add-1.json",
+      "sha256": "2b2c74ccd69ba02024b14251bd84d701933498e2d20f4224b8381f54e48e0e2f"
+    },
+    {
+      "case": "add",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "0c116bbc-1bd8-4fd1-9277-1f53fe2c3334",
+      "taskIds": [
+        "f496f72b-1c2c-43e5-8739-4c61834f902e"
+      ],
+      "modelCalls": 9,
+      "renderCount": 2,
+      "repairCount": 0,
+      "elapsedSeconds": 28.432,
+      "tasks": [
+        {
+          "id": "f496f72b-1c2c-43e5-8739-4c61834f902e",
+          "metrics": {
+            "modelCalls": 9,
+            "renderCount": 2,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.029,
+              "policy": 0.002,
+              "understanding": 4.412,
+              "choosing_assets": 4.235,
+              "scoping": 0.055,
+              "designing": 10.055,
+              "prechecking": 0.108,
+              "rendering": 2.974,
+              "checking": 6.403,
+              "committing": 0.155
+            },
+            "elapsedSeconds": 28.432
+          },
+          "candidateId": "b52351dc-1d63-4c83-9dcc-e65fa3f4e755"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/add-2.json",
+      "sha256": "ac15aad1c06d1244dba732ad07e4a9d3f4a97057bb998637a930bac2cdcde2ad"
+    },
+    {
+      "case": "delete",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "12d8f3c1-7469-43ff-b6e7-bd447e403b28",
+      "taskIds": [
+        "36ec4ccb-0403-4c1f-a8b9-91ec9788b21d"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.335,
+      "tasks": [
+        {
+          "id": "36ec4ccb-0403-4c1f-a8b9-91ec9788b21d",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.032,
+              "policy": 0.001,
+              "understanding": 0.027,
+              "scoping": 0.04,
+              "designing": 0.001,
+              "prechecking": 0.126,
+              "checking_parameters": 0.017,
+              "committing": 0.086
+            },
+            "elapsedSeconds": 0.335
+          },
+          "candidateId": "de6ac9e4-3352-4229-a24a-4d9e6f9eeef0"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/delete-1.json",
+      "sha256": "c409d7ffec367c3d5a0777c07c11a5c7e3c228ae54873979636053b7cf3fc200"
+    },
+    {
+      "case": "delete",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "ee276a09-ff0c-4080-a431-c7e980eaea10",
+      "taskIds": [
+        "4e677caf-52ab-4767-8607-90c6ad3c364d"
+      ],
+      "modelCalls": 0,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 0.304,
+      "tasks": [
+        {
+          "id": "4e677caf-52ab-4767-8607-90c6ad3c364d",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.016,
+              "policy": 0.001,
+              "understanding": 0.021,
+              "scoping": 0.037,
+              "designing": 0.001,
+              "prechecking": 0.138,
+              "checking_parameters": 0.017,
+              "committing": 0.069
+            },
+            "elapsedSeconds": 0.304
+          },
+          "candidateId": "f6958c59-31cd-4272-a8a7-526da0a29440"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/delete-2.json",
+      "sha256": "a580ae1f6d5e70312c89ac8b386949184db98742f4c7a23e978518ccc9313e70"
+    },
+    {
+      "case": "reference-clarification",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "d8d72c0c-2992-4e8d-8575-0a894368d497",
+      "taskIds": [
+        "5f255b20-1d6b-45c9-aefc-097b42ada9b5",
+        "1c49f7d1-967b-4488-9dbb-9b214d2aab8e",
+        "e50e2c54-8e7c-486e-bde6-a6cfd4206cc4"
+      ],
+      "modelCalls": 2,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 4.324,
+      "tasks": [
+        {
+          "id": "5f255b20-1d6b-45c9-aefc-097b42ada9b5",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.027,
+              "policy": 0.001,
+              "understanding": 0.022,
+              "scoping": 0.042,
+              "designing": 0.001,
+              "prechecking": 0.125,
+              "checking_parameters": 0.018,
+              "committing": 0.075
+            },
+            "elapsedSeconds": 0.316
+          },
+          "candidateId": "81d6c6fc-4e8f-4674-804f-fe1c43d0f4be"
+        },
+        {
+          "id": "1c49f7d1-967b-4488-9dbb-9b214d2aab8e",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.088,
+              "policy": 0.006,
+              "understanding": 0.051,
+              "scoping": 0.053,
+              "designing": 0.001,
+              "prechecking": 0.188,
+              "checking_parameters": 0.018,
+              "committing": 0.069
+            },
+            "elapsedSeconds": 0.478
+          },
+          "candidateId": "4e0f0d3f-c5ac-4e6e-938e-3854a911fba9"
+        },
+        {
+          "id": "e50e2c54-8e7c-486e-bde6-a6cfd4206cc4",
+          "metrics": {
+            "modelCalls": 2,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.046,
+              "policy": 0.004,
+              "understanding": 3.165,
+              "scoping": 0.049,
+              "designing": 0.001,
+              "prechecking": 0.164,
+              "checking_parameters": 0.027,
+              "committing": 0.068
+            },
+            "elapsedSeconds": 3.53
+          },
+          "candidateId": "3d70e283-d8f2-428d-b075-fa97bb983228"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/reference-clarification-1.json",
+      "sha256": "2fb1fce9d38281dba59b2c32856af75498ec9dec50629130360c69a67d1f9a0c"
+    },
+    {
+      "case": "reference-clarification",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "3a2b799f-cfe0-4c0a-8ae8-49ac44051b6a",
+      "taskIds": [
+        "0e1839e1-300b-41fa-a315-41542d88e55d",
+        "6d346521-f873-4101-b8ff-1f021c0570a2",
+        "308affa8-64f2-4d92-9b6d-b42c9b91781a"
+      ],
+      "modelCalls": 2,
+      "renderCount": 0,
+      "repairCount": 0,
+      "elapsedSeconds": 4.605,
+      "tasks": [
+        {
+          "id": "0e1839e1-300b-41fa-a315-41542d88e55d",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.028,
+              "policy": 0.002,
+              "understanding": 0.023,
+              "scoping": 0.041,
+              "designing": 0.001,
+              "prechecking": 0.114,
+              "checking_parameters": 0.016,
+              "committing": 0.095
+            },
+            "elapsedSeconds": 0.321
+          },
+          "candidateId": "667494e5-cf1e-44d3-8d93-27e4d4a79274"
+        },
+        {
+          "id": "6d346521-f873-4101-b8ff-1f021c0570a2",
+          "metrics": {
+            "modelCalls": 0,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.035,
+              "policy": 0.002,
+              "understanding": 0.035,
+              "scoping": 0.039,
+              "designing": 0.001,
+              "prechecking": 0.126,
+              "checking_parameters": 0.018,
+              "committing": 0.066
+            },
+            "elapsedSeconds": 0.326
+          },
+          "candidateId": "637ecff3-3630-4bf1-9b55-36c066485572"
+        },
+        {
+          "id": "308affa8-64f2-4d92-9b6d-b42c9b91781a",
+          "metrics": {
+            "modelCalls": 2,
+            "renderCount": 0,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.064,
+              "policy": 0.004,
+              "understanding": 3.591,
+              "scoping": 0.053,
+              "designing": 0.001,
+              "prechecking": 0.128,
+              "checking_parameters": 0.021,
+              "committing": 0.089
+            },
+            "elapsedSeconds": 3.958
+          },
+          "candidateId": "891ed8fe-b70e-43c9-b534-39a2ac175fba"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/reference-clarification-2.json",
+      "sha256": "cdda7a58e6182daa6094e4abfa8a94dc91718850c77f6a7e69ce075044b3dae4"
+    },
+    {
+      "case": "local-layout",
+      "repeat": 1,
+      "status": "passed",
+      "projectId": "be63c7a1-913f-4529-9356-437f2af69e87",
+      "taskIds": [
+        "2b214a8e-0506-4e82-be84-2f39deb37efa"
+      ],
+      "modelCalls": 7,
+      "renderCount": 2,
+      "repairCount": 0,
+      "elapsedSeconds": 67.847,
+      "tasks": [
+        {
+          "id": "2b214a8e-0506-4e82-be84-2f39deb37efa",
+          "metrics": {
+            "modelCalls": 7,
+            "renderCount": 2,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.018,
+              "policy": 0.001,
+              "understanding": 6.093,
+              "scoping": 0.045,
+              "designing": 37.92,
+              "prechecking": 0.156,
+              "rendering": 2.594,
+              "checking": 20.85,
+              "committing": 0.167
+            },
+            "elapsedSeconds": 67.847
+          },
+          "candidateId": "2459086b-ecb0-4059-ae6e-1adb1dd377d1"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/local-layout-1.json",
+      "sha256": "fff74517395f355198733099182f091a1ab33758c52386eeb934c26b916b68c7"
+    },
+    {
+      "case": "local-layout",
+      "repeat": 2,
+      "status": "passed",
+      "projectId": "559103c2-af80-4c7b-91a0-d9a217b3dac2",
+      "taskIds": [
+        "5cfb2284-466d-4e1a-aff5-5ed63b7b8f71"
+      ],
+      "modelCalls": 7,
+      "renderCount": 2,
+      "repairCount": 0,
+      "elapsedSeconds": 88.345,
+      "tasks": [
+        {
+          "id": "5cfb2284-466d-4e1a-aff5-5ed63b7b8f71",
+          "metrics": {
+            "modelCalls": 7,
+            "renderCount": 2,
+            "repairCount": 0,
+            "stageSeconds": {
+              "reading": 0.027,
+              "policy": 0.002,
+              "understanding": 5.369,
+              "scoping": 0.034,
+              "designing": 61.644,
+              "prechecking": 0.198,
+              "rendering": 2.606,
+              "checking": 18.337,
+              "committing": 0.125
+            },
+            "elapsedSeconds": 88.345
+          },
+          "candidateId": "c13cb4a8-9f98-4446-adda-673b77ddda38"
+        }
+      ],
+      "evidence": "test-results/phase1-live-e045f50/local-layout-2.json",
+      "sha256": "86dca506fe9a5683f8fcb853b6961956495a3e6ed300c22233eabf5e0b3c766c"
+    }
+  ],
+  "earlierBatches": [
+    {
+      "path": "test-results/phase1-live-e62df09",
+      "passed": 15,
+      "total": 16,
+      "failure": "local-layout-2 added unrequested activityGroups; fixed in 22bb3a1; frozen assertions unchanged"
+    },
+    {
+      "path": "test-results/phase1-live-22bb3a1",
+      "passed": 16,
+      "total": 16
+    }
+  ],
+  "environment": {
+    "python": "3.13.13",
+    "langgraph": "1.2.20",
+    "langchain": "1.4.9",
+    "model": "deepseek-flash",
+    "modelProvider": "api.deepseek.com",
+    "reasoningEffort": "high",
+    "promptVersion": "phase1-edit-authorization-1",
+    "tools": "scene-candidate-v4-edit-authorization"
+  }
+}

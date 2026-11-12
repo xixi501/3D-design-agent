@@ -64,7 +64,9 @@
     "test:ui:redesign": "node scripts/ui-redesign-acceptance.mjs",
     "test:repair:ui": "node scripts/repair-ui-acceptance.mjs",
     "test:pc:flow": "node scripts/pc-flow-acceptance.mjs",
-    "test:repair:live": "node scripts/repair-live-acceptance.mjs"
+    "test:repair:live": "node scripts/repair-live-acceptance.mjs",
+    "test:phase1:live": "node scripts/phase1-acceptance.mjs",
+    "test:phase1:browser": "node scripts/phase1-browser-acceptance.mjs"
   },
   "dependencies": {
     "@fastify/multipart": "10.1.7",

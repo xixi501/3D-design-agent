@@ -2,6 +2,8 @@
 
 浏览器通过同源 `/api/agent` 访问 Python 服务。项目规则与修改继续由 Node 服务执行。Node OpenAPI 位于 `/api/openapi.json`，Agent OpenAPI 位于 `/api/agent/openapi.json`。
 
+当前已有场景编辑协议以 [阶段 1 编辑协议](PHASE1_EDIT_PROTOCOL.md) 为准，包含候选前独立授权、版本失效、精确编辑检查模式与任务统计。以下同时保留历史接口说明。
+
 S2-C 已增加户型图识别草稿与确认流程，见 [S2C_RUNBOOK.md](S2C_RUNBOOK.md)。真实图片验收状态见 [S2C_STATUS.md](S2C_STATUS.md)。
 
 S2-B 已增加矩形文字生成，操作与恢复见 [S2B_RUNBOOK.md](S2B_RUNBOOK.md)。原编辑请求保持兼容。
@@ -51,9 +53,9 @@ Skill Pool v1 接口和组合规则见 [SKILL_POOL_V1.md](SKILL_POOL_V1.md)。
 
 GET `/api/agent/skills` 默认返回 active 的 v1 Skill，可按 `mode`、`roomKind`、`area`、`kind`、`status`、`activation` 过滤；`activation=all` 返回完整池。GET `/api/agent/skills/:id` 返回单个 Skill 摘要。任务的 `generation` 包含已收集 brief、missing、defaults、`skillSelection`、`skillBundle` 摘要、`skillsUsed`，以及通用草稿的 `sceneDraftId`、`sceneDraftRevision` 和 `sceneDraftHash`；完整 Skill 正文、判据原文和许可证文本只在服务端持久快照与角色上下文中保留。
 
-新任务只接受 `actiscape.skill.v1`。代码先按任务模式、项目状态、房间、面积、能力和 verified 状态生成短名单，grounding 模型只能从短名单选择一个主 Skill 和最多两个 modifier。intake 和 repair 由代码自动启用。Skill 不能申请正式场景写入、项目提交或脚本执行能力，所有修改仍走候选、预检、截图、审核和固定提交。
+新任务只接受 `actiscape.skill.v1`。代码先按任务模式、项目状态、房间、面积、能力和 verified 状态生成短名单，grounding 模型只能从短名单选择一个主 Skill 和最多两个 modifier。intake 和 repair 由代码自动启用。Skill 不能申请正式场景写入、项目提交或脚本执行能力，实际修改仍走独立授权、候选、预检、所需审核和固定提交。
 
-状态为 queued、running、waiting_input、committing、completed、failed、conflict、cancelled。只有服务确认固定候选已提交，才返回 completed 和 committedRevision。任务结果包含业务差异、具体字段变化、代码检查、检查角色意见及两个证据 URL。
+状态为 queued、running、waiting_input、committing、completed、failed、conflict、cancelled。修改保存后返回 completed 和 committedRevision；已满足或纯否定请求返回 completed、noChange=true 和 committedRevision=null，不创建候选。结果包含字段变化、实际检查策略、统计；需要视觉审核时提供两个证据 URL，确定性编辑 evidence=[]。
 
 明确的选中对象优先解决“这把/它”；无选择时参考会话焦点。重复且缺少区分条件的对象需要澄清。主控仅确定本次授权对象和字段，设计角色不能扩大范围。
 

@@ -64,30 +64,28 @@ Three.js 核心类映射到 npm `three@0.160.0`。原版定制几何辅助函数
 
 ```mermaid
 flowchart LR
-  Chat[工作台对话与选择] --> Proxy[Node 同源代理]
-  Proxy --> Queue[Python 持久任务队列]
-  Queue --> Main[主控：目标与字段授权]
-  Main --> Assets[按需资产选择]
-  Main --> Scope[固定授权范围]
-  Assets --> Scope
-  Scope --> Design[空间设计：结构化候选]
-  Design --> Candidate[Node 候选与确定性预检]
-  Candidate --> Verify{候选类型}
-  Verify -->|普通编辑| Images[真实只读渲染]
-  Verify -->|动作/照片入场| Deterministic[确定性证据]
-  Images --> Check[独立检查角色]
-  Deterministic --> CheckFast[固定检查记录]
-  Check -->|通过| Commit[固定代码提交节点]
-  CheckFast -->|通过| Commit
-  Check -->|最多三轮| Design
-  Commit --> API[Node 原子命令与项目历史]
-  API --> SSE[原有项目 SSE]
-  SSE --> Chat
+  Chat[工作台对话与选择] --> Queue[Python 持久任务队列]
+  Queue --> Intent[完整解析或按需理解]
+  Intent --> Assets[按需资产选择]
+  Intent --> Auth[服务端独立登记版本授权]
+  Assets --> Auth
+  Auth --> Policy{编辑类型}
+  Policy -->|精确操作| Exact[代码计算命令]
+  Policy -->|新增或局部布局| Design[设计候选]
+  Exact --> Candidate[完整场景几何与权限检查]
+  Design --> Candidate
+  Candidate --> Verify{服务端检查策略}
+  Verify -->|确定性| Fields[逐字段核对结果]
+  Verify -->|空间设计| Images[只读渲染与视觉审核]
+  Fields --> Commit[固定 operationId 原子提交]
+  Images --> Commit
+  Commit --> History[保存、撤销历史与 SSE]
+  History --> Chat
 ```
 
-`apps/agent/actiscape_agent/workflow.py` 使用 LangGraph 管理角色、分支、修复和一次版本重规划；`manager.py` 管理持久队列和 SQLite 检查点。四角色在 `roles.py` 中分别创建 LangChain Agent 和上下文；提示词与工具范围分开。角色模型共享 DeepSeek 官方服务，但不共享一段无边界的会话上下文。
+`workflow.py` 使用 LangGraph 编排。`exact_edits.py` 负责保守的完整解析与数值计算；`edit_execution.py` 负责范围编译、独立登记与候选提交；`edit_results.py` 统一摘要、焦点和恢复结果。`manager.py` 管理持久队列和 SQLite 检查点。四角色保留在 `roles.py`，根据请求选择；布局/检查优先读取目标、参考物与邻近对象，完整场景始终可通过只读工具取得。
 
-正式场景数据库只由 Node 写入。`candidate.ts` 生成稳定命令并验证 scope，`candidates.ts` 绑定快照、哈希、图片、独立检查及固定 operationId。编辑任务的 scope 首次到达场景服务时按 `(project, taskId)` 持久冻结，后续修复候选只能复用同一授权指纹，提交时再次校验；这使 Agent 侧的授权不能通过重试或改写请求扩大。普通编辑保留只读截图和独立检查，纯动作与照片资产入场使用确定性证据模式，仍经过同一候选检查、授权冻结和原子提交。Agent 不获得任意 HTTP、脚本或正式场景写工具；最终提交由固定流程节点执行，并在 Node 重新检查后进入原有事务。一次自动应用仍对应一个可撤销事务。
+正式场景数据库只由 Node 写入。`edit-authorizations.ts` 在候选前冻结任务、需求版本、基准 revision、原文、对象/字段及资产数量/区域，独立哈希引用贯穿检查和提交；修复不扩大授权，补充需求使旧候选失效。`candidate.ts` 生成命令并检查完整场景，`candidates.ts` 绑定候选、证据、审核与固定 operationId。旧协议候选保持原始哈希和处理路径。协议细节见 [阶段 1 编辑协议](PHASE1_EDIT_PROTOCOL.md)。
 
 `apps/editor/src/render.ts` 是只读候选显示入口，使用同一三维渲染和有效离地计算；取证时墙体透明、吊顶隐藏，固定俯视和斜视。图片不是用户界面截图的替身，项目业务字段检查和真实工作台操作分别验收。
 

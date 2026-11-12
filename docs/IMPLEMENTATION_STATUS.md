@@ -1,31 +1,17 @@
 # S0 / S1 / S2-A / S2-B / S2-C implementation status
 
-## 2026-11-12 cleanup baseline
+## 2026-11-12 阶段 1：已有场景可靠编辑
 
-This section is the current engineering gate for the `feat/floorplan-auto-completion`
-working branch. The historical S2-C claims below remain evidence for their recorded
-commits; they are not a release claim for the current branch. Phase 1 is focused on
-the reliable local edit loop: explicit target state, authorization-safe repairs,
-candidate checks, atomic commit, undo/redo, and recovery.
+当前阶段以 [阶段 1 验收报告](PHASE1_ACCEPTANCE_20261112.md) 为准。
+后面的 S0/S1/S2 历史记录只对应各自注明的提交与样本，不能代替当前验收。
 
-- Completed in this phase: negated and compound requests leave the deterministic
-  fast path; move/rotate/color and explicit width/depth/height edits use the
-  deterministic path; open/close actions are idempotent desired-state operations;
-  quick actions never move blocking furniture; compound requests require
-  normal intent grounding and field authorization; action/photo candidates use a
-  deterministic evidence mode; service-side task authorization is frozen by hash;
-  AgentArts timeout requests cancellation before returning.
-- Verification: Node tests 101/101, Python agent tests 201/201 with the pinned Node
-  runtime, and TypeScript typecheck.
-- Live acceptance: current working-tree Node/Python services passed 6/6 fixed
-  local-edit cases (reading corner, add, size/color, delete, multi-turn,
-  clarification). The separate action run completed with `modelCalls=0`,
-  candidate `verification=deterministic`, empty evidence, and revision 1.
-  Evidence: [`phase1-current-20261112/live/report.json`](../test-results/phase1-current-20261112/live/report.json)
-  and [`action-live.json`](../test-results/phase1-current-20261112/live/action-live.json).
-- Deferred: floorplan/photo/cloud expansion remains experimental until this edit
-  gate is accepted. The independent code/design audit is in
-  [`INDEPENDENT_DESIGN_ALIGNMENT_AUDIT_20261112.md`](INDEPENDENT_DESIGN_ALIGNMENT_AUDIT_20261112.md).
+- 精确家具移动、旋转、尺寸、颜色、删除及组合操作由代码完整解析、计算、检查并一次保存；无修改不增加 revision。
+- 含糊的精确指令经理解角色转换为结构化操作；新增和局部布局按需调用资产、设计与视觉审核。
+- 候选生成前独立登记对象、字段、原文依据、资产池、数量及区域授权；用户补充推进版本，旧候选失效。活动组元数据也需要明确授权。
+- 统一提交与重启恢复结果，保留单次版本重规划、固定 operationId、取消边界、撤销/重做及任务统计。
+- 代码门：Python 216/216、Node 110/110、类型检查与生产构建通过。真实矩阵和浏览器证据见阶段报告。
+- 原有户型、照片、云端入口保留；本阶段验收不覆盖整屋重设计、户型识别质量、照片生成或云部署。
+
 
 Approved scope: single-floor editor; complete upstream parametric catalogue, cabinets and 17 free-form types; persistent projects/assets and undo/redo; real scene APIs. S2-A adds conversation-driven local furniture editing through four roles, frozen candidates, deterministic checks, real screenshots and one atomic commit.
 

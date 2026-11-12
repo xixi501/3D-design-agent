@@ -42,6 +42,8 @@ export function candidateRoutes(
             baseRevision: { type: "integer", minimum: 0 },
             version: { type: "integer", minimum: 1 },
             requestText: { type: "string", minLength: 1, maxLength: 8000 },
+            kind: { type: "string", enum: ["edit", "initialize"] },
+            brief: { type: "object", additionalProperties: true },
             referenceIds: {
               type: "array",
               maxItems: 20,
@@ -234,6 +236,7 @@ export function candidateRoutes(
         c.baseRevision,
         c.authorizationScopeHash,
         c.scope,
+        c.kind === "initialize" ? "initialize" : "edit",
       );
     return c.checks;
   });

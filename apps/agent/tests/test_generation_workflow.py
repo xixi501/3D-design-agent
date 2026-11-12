@@ -10,10 +10,10 @@ import pytest
 from test_workflow import CHAIR, FIXTURE, FakeScene, finished
 
 from actiscape_agent.client import SceneFailure
-from actiscape_agent.generation_roles import GenerationRoles
+from actiscape_agent.generation_roles import GenerationRoles, _fallback_allowed
 from actiscape_agent.manager import TaskManager
 from actiscape_agent.skill_registry import GENERATION_TOOLS, load_design_skill
-from actiscape_agent.store import TaskStore
+from actiscape_agent.store import TaskError, TaskStore
 
 COLLECTIONS = (
     "nodes",
@@ -75,6 +75,23 @@ class GenerationScene(FakeScene):
                 "defaults": ["controlled defaults"],
             }
         if path == "/projects/p/candidates" and body is not None:
+            # Mirror the real service: generation initialization candidates
+            # must carry the exact independent authorization and frozen brief.
+            assert body.get("authorizationVersion"), (
+                "initialization candidate must carry authorizationVersion"
+            )
+            assert body.get("authorizationScopeHash"), (
+                "initialization candidate must carry authorizationScopeHash"
+            )
+            auth = self.authorizations.get(body["authorizationVersion"])
+            assert auth, "candidate authorization was never registered"
+            assert auth["kind"] == "initialize"
+            assert body["brief"] == auth["brief"], (
+                "candidate brief drifted from frozen authorization"
+            )
+            self.authorization_candidate_bodies = getattr(
+                self, "authorization_candidate_bodies", []
+            ) + [copy.deepcopy(body)]
             id = body["requestId"]
             if id not in self.candidates:
                 plan = copy.deepcopy(FIXTURE)
@@ -222,6 +239,23 @@ async def test_generation_clarifies_then_resumes_same_task_without_changing_proj
             "primary",
         ]
         assert "content" not in result["generation"]["skillBundle"]["primary"]
+        events = manager.store.events(task["id"])
+        scope = next(e["data"] for e in events if e["kind"] == "scope")
+        authorization = next(e["data"] for e in events if e["kind"] == "authorization")
+        assert scope["requirements"] == [{"key": "armchair", "count": 1, "scope": "project"}]
+        assert authorization["verification"] == "screenshots"
+        assert (
+            manager.store.task(task["id"], internal=True)["generation"]["authorizationKind"]
+            == "initialize"
+        )
+        bodies = client.authorization_candidate_bodies
+        assert bodies and all(
+            body["authorizationVersion"] == authorization["version"]
+            and body["authorizationScopeHash"] == authorization["scopeHash"]
+            and body["brief"]
+            == manager.store.task(task["id"], internal=True)["generation"]["frozenBrief"]
+            for body in bodies
+        )
     finally:
         await manager.close()
 
@@ -304,6 +338,45 @@ async def test_generation_budget_failure_keeps_specific_candidate_problem(tmp_pa
         await manager.close()
 
 
+def test_deterministic_fallback_never_swallows_cancel_budget_or_conflicts():
+    assert not _fallback_allowed(TaskError("CANCELLED", "cancelled"))
+    assert not _fallback_allowed(TaskError("BUDGET_EXHAUSTED", "budget"))
+    assert not _fallback_allowed(
+        SceneFailure(409, {"error": "REVISION_CONFLICT", "message": "changed"})
+    )
+    assert not _fallback_allowed(
+        SceneFailure(409, {"error": "AUTHORIZATION_CONFLICT", "message": "stale"})
+    )
+    assert _fallback_allowed(TaskError("MODEL_ERROR", "provider down"))
+    assert _fallback_allowed(TimeoutError())
+
+
+@pytest.mark.asyncio
+async def test_space_shortage_stops_with_candidate_and_no_formal_write(tmp_path):
+    client = GenerationScene(bad_checks=True)
+    manager = TaskManager(tmp_path, client, ControlledRoles)
+    try:
+        task = await start_generation(manager)
+        for _ in range(1000):
+            result = manager.store.task(task["id"])
+            if result["status"] in (
+                "waiting_input",
+                "completed",
+                "failed",
+                "cancelled",
+                "conflict",
+            ):
+                break
+            await asyncio.sleep(0.01)
+        assert result["status"] == "waiting_input", result
+        assert result["result"]["candidateId"]
+        assert "家具超出固定房间" in result["result"]["message"]
+        assert "正式项目未改变" in result["result"]["message"]
+        assert client.project["revision"] == 0 and not client.ledger
+    finally:
+        await manager.close()
+
+
 class PatchRecordingScene(GenerationScene):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -353,6 +426,18 @@ async def test_scene_patch_identity_is_candidate_bound_not_round_bound(tmp_path)
         )
         task = store.task(task["id"], internal=True)
         scope = {"allowAddKeys": ["armchair"], "requirements": []}
+        authorization = await client.request(
+            "/projects/p/edit-authorizations",
+            {
+                "kind": "initialize",
+                "taskId": task["id"],
+                "baseRevision": 0,
+                "version": 1,
+                "requestText": "生成主卧",
+                "brief": {"roomType": "master_bedroom"},
+                "scope": scope,
+            },
+        )
         for x in (100, 200):
             await roles.candidate(
                 task,
@@ -369,6 +454,7 @@ async def test_scene_patch_identity_is_candidate_bound_not_round_bound(tmp_path)
                     ],
                 },
                 0,
+                authorization,
             )
         assert len(client.patch_request_ids) == 2
         assert len(set(client.patch_request_ids)) == 2

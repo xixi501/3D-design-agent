@@ -225,7 +225,7 @@
       "color": "#c9ab88",
       "x": 400,
       "y": 3600,
-      "rot": 90,
+      "rot": 270,
       "cab": {
         "kind": "tall",
         "door": "swing",

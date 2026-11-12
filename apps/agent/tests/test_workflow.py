@@ -42,10 +42,20 @@ class FakeScene:
             auth = {
                 "version": body["version"],
                 "scopeHash": "a" * 64,
-                "verification": "deterministic" if body.get("operations") else "screenshots",
+                "verification": (
+                    "screenshots"
+                    if body.get("kind") == "initialize"
+                    else "deterministic"
+                    if body.get("operations")
+                    else "screenshots"
+                ),
+                "kind": body.get("kind") or "edit",
+                "scope": copy.deepcopy(body["scope"]),
+                "brief": copy.deepcopy(body.get("brief")),
             }
             self.authorizations[body["version"]] = auth
-            return auth
+            self.authorization_request = copy.deepcopy(body)
+            return {k: auth[k] for k in ("version", "scopeHash", "verification")}
         if path == "/projects/p/scene-drafts" and body is not None:
             if self.scene_draft is None:
                 self.scene_draft = {

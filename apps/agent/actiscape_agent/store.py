@@ -333,11 +333,11 @@ class TaskStore:
                 "SELECT model_calls,elapsed,active_started FROM tasks WHERE id=?", (id,)
             ).fetchone()
             events = self.db.execute(
-                "SELECT kind,data,created FROM events WHERE task_id=? AND kind IN ('phase','evidence','repair','status','interrupted') ORDER BY seq",
+                "SELECT kind,data,created FROM events WHERE task_id=? AND kind IN ('phase','evidence','repair','status','interrupted','deterministic_layout','deterministic_assets') ORDER BY seq",
                 (id,),
             ).fetchall()
         durations = {}
-        render_count = repairs = 0
+        render_count = repairs = fallbacks = 0
         rendered = set()
         phase = None
         started = None
@@ -359,6 +359,8 @@ class TaskStore:
                         rendered.add(identity)
             elif event["kind"] == "repair":
                 repairs += 1
+            elif event["kind"] in ("deterministic_layout", "deterministic_assets"):
+                fallbacks += 1
             elif phase and started is not None:
                 durations[phase] = durations.get(phase, 0) + max(0, event["created"] - started)
                 phase, started = None, None
@@ -368,6 +370,7 @@ class TaskStore:
             "modelCalls": row["model_calls"],
             "renderCount": render_count,
             "repairCount": repairs,
+            "fallbackCount": fallbacks,
             "stageSeconds": {key: round(value, 3) for key, value in durations.items()},
             "elapsedSeconds": round(
                 row["elapsed"]

@@ -138,15 +138,23 @@ def deterministic_proposal(task: dict, layout: dict, scope: dict) -> dict | None
 
 
 ASSET_KEYWORDS = {
-    "床": "bed18",
+    "三人沙发": "sofa",
+    "单人沙发": "armchair",
+    "餐椅": "chair",
+    "办公椅": "officeChair",
+    "电视柜": "tvCabinet",
+    "落地灯": "floorLamp",
+    "茶几": "coffeeTable",
+    "餐桌": "diningTable",
+    "一字橱柜": "counter",
     "双人床": "bed18",
+    "床": "bed18",
     "床头柜": "nightstand",
     "衣柜": "wardrobe",
     "书桌": "desk",
-    "办公椅": "officeChair",
     "书柜": "cabTall",
     "书架": "cabTall",
-    "橱柜": "lCounter",
+    "橱柜": "counter",
     "冰箱": "fridge",
     "马桶": "toilet",
     "浴室柜": "vanity",
@@ -158,11 +166,23 @@ ASSET_KEYWORDS = {
 }
 
 
-def deterministic_assets(intent: dict, catalogue: dict) -> dict | None:
+def deterministic_assets(intent: dict, catalogue: dict, user_text: str = "") -> dict | None:
     """Map common Chinese furniture requests to real catalog keys."""
     choices = []
     for index, addition in enumerate(intent.get("additions") or []):
         query = str(addition.get("query") or "")
+        if ("双人床" in query or "床" in query) and all(
+            word not in query for word in ("床头柜", "书桌")
+        ):
+            if "1.5" in query or "1.5" in user_text:
+                key = "bed15"
+            elif "1.8" in query or "1.8" in user_text:
+                key = "bed18"
+            else:
+                key = "bed18"
+            if key in catalogue:
+                choices.append({"request_index": index, "key": key, "reason": "确定性资产兜底"})
+                continue
         key = next(
             (
                 value
@@ -176,7 +196,10 @@ def deterministic_assets(intent: dict, catalogue: dict) -> dict | None:
                 item
                 for item in catalogue.values()
                 if query
-                and query.casefold() in (item.get("name", "") + item.get("type", "")).casefold()
+                and (
+                    query.casefold() in (item.get("name", "") + item.get("type", "")).casefold()
+                    or item.get("key") == query
+                )
             ]
             key = matches[0]["key"] if matches else None
         if key is None:

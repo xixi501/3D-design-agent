@@ -46,10 +46,13 @@ class GenerationFlow:
                 await self.roles.ground(task, project, initial_candidates),
                 task["input"],
             )
-            if old.get("skillSnapshot"):
+            # A changed requirement is re-grounded and its Skill applicability
+            # is checked again. The same requirement keeps the persisted
+            # frozen snapshot/bundle through the early reuse branch above.
+            if old.get("skillSnapshot") and not old.get("skillBundle"):
+                # Legacy V1 tasks retain their frozen content but still have to
+                # be applicable to the current room and area.
                 generation["skillSnapshot"] = old["skillSnapshot"]
-            if old.get("skillBundle"):
-                generation["skillBundle"] = old["skillBundle"]
             generation["frozen"] = False
             self.store.update(task["id"], generation=generation)
             public_generation = {k: v for k, v in generation.items() if k != "skillSnapshot"}
@@ -166,6 +169,10 @@ class GenerationFlow:
             generation["skillBundle"] = bundle
             records = registry.records(bundle)
             generation["skillsUsed"] = records
+        applies = snapshot.get("appliesTo", {})
+        kinds = applies.get("roomKinds") or []
+        if kinds and "any" not in kinds and room.skillRoomKind not in kinds:
+            raise TaskError("SKILL_NOT_APPLICABLE", "当前 Skill 不支持该房间用途")
         generation.update(
             frozen=True,
             frozenBrief=brief,

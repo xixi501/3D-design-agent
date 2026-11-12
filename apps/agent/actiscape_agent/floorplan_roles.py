@@ -506,7 +506,7 @@ class FloorplanRoles:
             )
         return selection
 
-    async def candidate(self, task, project, scope, proposal, round):
+    async def candidate(self, task, project, scope, proposal, round, authorization=None):
         g = task["generation"]
         actual = proposal.get("matches")
         if (

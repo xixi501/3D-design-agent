@@ -76,6 +76,18 @@ test("a wardrobe facing a wall is rejected instead of reporting a false pass", (
   assert.equal(envelope.spec.clearance, 600);
 });
 
+test("rot=90 faces west and rot=270 faces east for openable furniture", () => {
+  const plan = room();
+  const westFacing = createFurniture("wardrobe", 3000, 2000, { rot: 90 });
+  const envelope90 = openEnvelope(westFacing);
+  assert.ok(envelope90);
+  assert.ok(Math.max(...envelope90.polygon.map((p) => p.x)) <= westFacing.x);
+  const eastFacing = createFurniture("wardrobe", 1000, 2000, { rot: 270 });
+  const envelope270 = openEnvelope(eastFacing);
+  assert.ok(envelope270);
+  assert.ok(Math.min(...envelope270.polygon.map((p) => p.x)) >= eastFacing.x);
+});
+
 test("door swing overlapping a cabinet envelope reports DOOR_CABINET_CONFLICT", () => {
   const plan = room();
   plan.openings = [

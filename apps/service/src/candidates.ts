@@ -231,7 +231,51 @@ export class CandidateStore {
         const authorizationVersion = request.authorizationVersion;
         let authorizationScopeHash = request.authorizationScopeHash;
         let authorization: any;
-        if (!initialization && !reconstruction) {
+        if (initialization) {
+          if (
+            authorizationVersion !== undefined ||
+            authorizationScopeHash !== undefined
+          ) {
+            if (!authorizationVersion || !authorizationScopeHash)
+              throw new SceneError(
+                "INVALID_AUTHORIZATION",
+                "初始化候选必须同时携带授权版本和哈希",
+              );
+            authorization = new EditAuthorizations(this.projects).assert(
+              project,
+              request.taskId,
+              authorizationVersion,
+              request.baseRevision,
+              authorizationScopeHash,
+              scope,
+              "initialize",
+            );
+            if (
+              sha256(request.brief) !== authorization.briefHash ||
+              authorization.furnitureCount !==
+                scope.requirements.reduce((sum, rule) => sum + rule.count, 0)
+            )
+              throw new SceneError(
+                "AUTHORIZATION_CONFLICT",
+                "初始化候选的冻结结构或家具数量与授权不一致",
+                409,
+              );
+          } else if (
+            this.projects.db
+              .prepare(
+                "SELECT 1 FROM edit_authorization_heads WHERE project=? AND task_id=?",
+              )
+              .get(project, request.taskId)
+          )
+            throw new SceneError(
+              "AUTHORIZATION_REQUIRED",
+              "此任务的初始化候选必须引用独立授权",
+              409,
+            );
+          // Initialization always renders two views and requires a visual
+          // review; request.verification cannot bypass that policy.
+          verification = "screenshots";
+        } else if (!reconstruction) {
           if (
             authorizationVersion !== undefined ||
             authorizationScopeHash !== undefined
@@ -545,6 +589,7 @@ export class CandidateStore {
         c.baseRevision,
         c.authorizationScopeHash,
         c.scope,
+        c.kind === "initialize" ? "initialize" : "edit",
       );
     const evidence =
       c.verification === "deterministic"
@@ -554,8 +599,9 @@ export class CandidateStore {
       !review ||
       typeof review.passed !== "boolean" ||
       !["agent", "operator", "deterministic"].includes(review.source) ||
-      (c.verification === "deterministic" &&
-        review.source !== "deterministic") ||
+      (c.verification === "deterministic"
+        ? review.source !== "deterministic"
+        : review.source === "deterministic") ||
       typeof review.summary !== "string" ||
       review.summary.length > 4000 ||
       !Array.isArray(review.issues) ||
@@ -625,8 +671,19 @@ export class CandidateStore {
               c.baseRevision,
               c.authorizationScopeHash,
               c.scope,
+              c.kind === "initialize" ? "initialize" : "edit",
             )
           : undefined;
+        if (
+          c.kind === "initialize" &&
+          c.authorizationVersion &&
+          sha256(c.generation.brief) !== authorization.briefHash
+        )
+          throw new SceneError(
+            "AUTHORIZATION_CONFLICT",
+            "候选冻结需求已被授权替换或篡改",
+            409,
+          );
         if (
           !c.authorizationVersion &&
           this.projects.db

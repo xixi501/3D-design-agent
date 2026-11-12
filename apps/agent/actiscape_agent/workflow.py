@@ -362,7 +362,18 @@ class Workflow:
         self.store.event(state["task_id"], "scope", scope)
         try:
             authorization = await authorize_edit(
-                self.store, self.client, task, state["project"], scope, state["intent"]
+                self.store,
+                self.client,
+                task,
+                state["project"],
+                scope,
+                state["intent"],
+                kind="initialize" if task.get("mode") == "generate_rectangular" else "edit",
+                brief=(
+                    task_generation.get("frozenBrief") or task_generation.get("brief")
+                    if task.get("mode") == "generate_rectangular"
+                    else None
+                ),
             )
         except SceneFailure as error:
             if error.code == "REVISION_CONFLICT":
@@ -435,6 +446,7 @@ class Workflow:
                     state["scope"],
                     state["proposal"],
                     state.get("repairs", 0),
+                    state.get("authorization"),
                 )
             if task.get("mode") not in (
                 "reconstruct_floorplan",
@@ -521,19 +533,45 @@ class Workflow:
                 "issues": [],
             }
         else:
-            review = (
-                await FloorplanRoles(self.roles).inspect(
-                    task, state["candidate"], state["evidence"]
+            stored = state["candidate"].get("review")
+            evidence_hashes = sorted(e["sha256"] for e in state["evidence"])
+            if (
+                stored
+                and stored.get("passed") is True
+                and stored.get("source") == "agent"
+                and not stored.get("issues")
+                and sorted(stored.get("evidenceHashes") or []) == evidence_hashes
+            ):
+                # Recovery may revisit the same immutable candidate. The two
+                # evidence hashes already prove the visual review addressed the
+                # same images; do not buy the same judgment twice.
+                review = {
+                    "passed": True,
+                    "summary": stored.get("summary") or "复用已完成且证据一致的独立检查",
+                    "issues": [],
+                }
+                self.store.event(
+                    task["id"],
+                    "review_reused",
+                    {
+                        "candidateId": state["candidate"]["id"],
+                        "evidenceHashes": evidence_hashes,
+                    },
                 )
-                if task.get("mode") == "reconstruct_floorplan"
-                else await GenerationRoles(self.roles).inspect(
-                    task, state["candidate"], state["evidence"]
+            else:
+                review = (
+                    await FloorplanRoles(self.roles).inspect(
+                        task, state["candidate"], state["evidence"]
+                    )
+                    if task.get("mode") == "reconstruct_floorplan"
+                    else await GenerationRoles(self.roles).inspect(
+                        task, state["candidate"], state["evidence"]
+                    )
+                    if task.get("mode") == "generate_rectangular"
+                    else await self.roles.inspect(
+                        task, state["intent"], state["candidate"], state["evidence"]
+                    )
                 )
-                if task.get("mode") == "generate_rectangular"
-                else await self.roles.inspect(
-                    task, state["intent"], state["candidate"], state["evidence"]
-                )
-            )
         valid_ids = {
             o["id"] for k in COLLECTIONS for o in state["candidate"]["state"]["plan"].get(k, [])
         } | set(state["candidate"]["diff"]["deleted"])
@@ -591,11 +629,19 @@ class Workflow:
                     },
                 }
             if self.store.task(state["task_id"])["mode"] == "generate_rectangular":
+                report = state.get("last_report") or {}
+                issues = report.get("issues") or (report.get("codeChecks") or {}).get("issues", [])
+                blocking = [issue["message"] for issue in issues if issue.get("blocking")]
+                detail = "；".join(blocking[:3])
                 return {
                     "route": "end",
                     "final": {
                         "status": "waiting_input",
-                        "message": "在固定尺寸与家具要求下，初稿后三轮修复仍未得到通过检查的布局。请调整家具清单或尺寸后继续；正式项目未改变。",
+                        "message": (
+                            "在固定尺寸与家具要求下，初稿后三轮修复仍未得到通过检查的布局。"
+                            + (f"尚未解决：{detail}。" if detail else "")
+                            + "请调整家具清单或房间净尺寸后继续；正式项目未改变。"
+                        ),
                         "candidateId": (state.get("candidate") or {}).get("id"),
                         "report": state.get("last_report"),
                     },

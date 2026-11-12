@@ -76,5 +76,5 @@ def runtime_versions():
         "pillow": version("Pillow"),
         "opencv": version("opencv-python-headless"),
         "promptVersion": "phase1-edit-authorization-1",
-        "generationPromptVersion": "s2b-rectangular-3",
+        "generationPromptVersion": "s2b-rectangular-5",
     }

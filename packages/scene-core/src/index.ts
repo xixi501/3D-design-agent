@@ -762,8 +762,8 @@ export function checkScene(plan: Plan) {
     const rot = ((Math.round(f.rot / 90) * 90) % 360 + 360) % 360;
     if (rot === 0) return Math.max(0, Math.round(other.y0 - (f.y + f.d / 2)));
     if (rot === 180) return Math.max(0, Math.round(f.y - f.d / 2 - other.y1));
-    if (rot === 90) return Math.max(0, Math.round(other.x0 - (f.x + f.d / 2)));
-    return Math.max(0, Math.round(f.x - f.d / 2 - other.x1));
+    if (rot === 90) return Math.max(0, Math.round(f.x - f.d / 2 - other.x1));
+    return Math.max(0, Math.round(other.x0 - (f.x + f.d / 2)));
   };
   for (const { f, z } of boxes) {
     const envelope = openEnvelope(f);

@@ -11,6 +11,11 @@ import {
   type EditScope,
   type CheckReport,
 } from "../../../packages/scene-core/src/candidate.js";
+import {
+  compileRectangular,
+  requireBlank,
+  type RectangularBrief,
+} from "../../../packages/scene-core/src/rectangular.js";
 
 const digest = (value: unknown) =>
   createHash("sha256").update(canonical(value)).digest("hex");
@@ -22,11 +27,16 @@ export interface ExactOperation {
   deltas?: Record<string, number>;
   source_quote: string;
 }
+export type AuthorizationKind = "edit" | "initialize";
 export interface AuthorizationRequest {
   taskId: string;
   baseRevision: number;
   version: number;
   requestText: string;
+  /** Omitted keeps the historical edit protocol. */
+  kind?: AuthorizationKind;
+  /** Required for initialize: the frozen rectangular brief. */
+  brief?: RectangularBrief;
   referenceIds?: string[];
   operations?: ExactOperation[];
   scope: EditScope;
@@ -62,10 +72,83 @@ export class EditAuthorizations {
             "INVALID_AUTHORIZATION",
             "授权需要任务、需求版本和用户原文",
           );
+        const kind = request.kind ?? "edit";
+        if (!["edit", "initialize"].includes(kind))
+          throw new SceneError("INVALID_AUTHORIZATION", "未知授权用途");
         const base = this.projects.get(project);
         if (base.revision !== request.baseRevision)
           throw new SceneError("REVISION_CONFLICT", "授权基准版本已变化", 409);
-        const scope = validateScope(request.scope, base.plan);
+        let initialization:
+          | {
+              brief: RectangularBrief;
+              briefHash: string;
+              furnitureCount: number;
+              shell: SceneState["plan"];
+            }
+          | undefined;
+        if (kind === "initialize") {
+          if (
+            request.operations?.length ||
+            request.referenceIds?.length ||
+            !request.brief
+          )
+            throw new SceneError(
+              "INVALID_AUTHORIZATION",
+              "初始化授权不能包含编辑操作、参考物，并且必须绑定冻结 brief",
+            );
+          // The authorization owns the frozen structure; the candidate may
+          // never submit a different shell under the same requirement version.
+          requireBlank(base);
+          const compiled = compileRectangular(request.brief, request.taskId);
+          initialization = {
+            brief: compiled.brief,
+            briefHash: digest(compiled.brief),
+            furnitureCount: 0,
+            shell: compiled.state.plan,
+          };
+        }
+        const scope = validateScope(
+          request.scope,
+          initialization ? initialization.shell : base.plan,
+        );
+        if (initialization) {
+          if (scope.targetIds.length || scope.allowDeleteIds.length)
+            throw new SceneError(
+              "INVALID_AUTHORIZATION",
+              "初始化授权只能新增家具，不能修改或删除已有对象",
+            );
+          if (
+            !scope.allowAddKeys.length ||
+            !scope.requirements.length ||
+            !scope.assetPool?.length
+          )
+            throw new SceneError(
+              "INVALID_AUTHORIZATION",
+              "初始化授权必须固定资产候选池、家具种类与数量要求",
+            );
+          const requirementKeys = new Set<string>();
+          let furnitureCount = 0;
+          for (const rule of scope.requirements) {
+            if (
+              rule.scope !== "project" ||
+              rule.count < 1 ||
+              requirementKeys.has(rule.key) ||
+              !scope.allowAddKeys.includes(rule.key)
+            )
+              throw new SceneError(
+                "INVALID_AUTHORIZATION",
+                "初始化家具数量要求无效或与资产池不一致",
+              );
+            requirementKeys.add(rule.key);
+            furnitureCount += rule.count;
+          }
+          if (furnitureCount < 1 || furnitureCount > 300)
+            throw new SceneError(
+              "INVALID_AUTHORIZATION",
+              "初始化家具数量与资产池不一致",
+            );
+          initialization.furnitureCount = furnitureCount;
+        }
         if (
           scope.targetIds.some(
             (id) =>
@@ -213,36 +296,53 @@ export class EditAuthorizations {
             "INVALID_AUTHORIZATION",
             "精确操作必须完整覆盖授权，不能部分执行",
           );
-        const document = {
-          taskId: request.taskId,
-          version: request.version,
-          baseRevision: request.baseRevision,
-          scope,
-          referenceIds,
-          requestText: request.requestText,
-          operations,
-          verification:
-            operations.length ||
-            (scope.actionIds?.length && !scope.allowAddKeys.length) ||
-            scope.allowedAssets?.length
-              ? "deterministic"
-              : "screenshots",
-          expected: operations.length
-            ? Object.fromEntries(
-                [...expected].map(([id, item]) => [
-                  id,
-                  deleted.has(id)
-                    ? null
-                    : Object.fromEntries(
-                        [...(mentioned.get(id) || [])].map((key) => [
-                          key,
-                          item[key],
-                        ]),
-                      ),
-                ]),
-              )
-            : {},
-        };
+        const document = initialization
+          ? {
+              taskId: request.taskId,
+              version: request.version,
+              baseRevision: request.baseRevision,
+              kind: "initialize" as const,
+              scope,
+              requestText: request.requestText,
+              brief: initialization.brief,
+              briefHash: initialization.briefHash,
+              furnitureCount: initialization.furnitureCount,
+              requirements: clone(scope.requirements),
+              assetPool: clone(scope.assetPool || []),
+              // Initialization always requires render evidence and a visual
+              // review; the client cannot downgrade this to deterministic.
+              verification: "screenshots" as const,
+            }
+          : {
+              taskId: request.taskId,
+              version: request.version,
+              baseRevision: request.baseRevision,
+              scope,
+              referenceIds,
+              requestText: request.requestText,
+              operations,
+              verification:
+                operations.length ||
+                (scope.actionIds?.length && !scope.allowAddKeys.length) ||
+                scope.allowedAssets?.length
+                  ? "deterministic"
+                  : "screenshots",
+              expected: operations.length
+                ? Object.fromEntries(
+                    [...expected].map(([id, item]) => [
+                      id,
+                      deleted.has(id)
+                        ? null
+                        : Object.fromEntries(
+                            [...(mentioned.get(id) || [])].map((key) => [
+                              key,
+                              item[key],
+                            ]),
+                          ),
+                    ]),
+                  )
+                : {},
+            };
         const scopeHash = digest(document);
         const old = this.projects.db
           .prepare(
@@ -294,6 +394,7 @@ export class EditAuthorizations {
     baseRevision: number,
     hash: string,
     scope?: EditScope,
+    kind: AuthorizationKind = "edit",
   ) {
     const row = this.projects.db
       .prepare(
@@ -319,11 +420,15 @@ export class EditAuthorizations {
     const document = JSON.parse(row.scope);
     if (
       digest(document) !== hash ||
-      (scope && canonical(scope) !== canonical(document.scope))
+      (document.kind || "edit") !== kind ||
+      (scope && canonical(scope) !== canonical(document.scope)) ||
+      (kind === "initialize" &&
+        (typeof document.briefHash !== "string" ||
+          digest(document.brief) !== document.briefHash))
     )
       throw new SceneError(
         "AUTHORIZATION_CONFLICT",
-        "候选范围与授权不一致",
+        "候选范围或用途与授权不一致",
         409,
       );
     return document;

@@ -2,6 +2,7 @@
 
 import re
 
+from .addition_semantics import semantic_errors
 from .store import TaskError, fingerprint
 
 
@@ -81,6 +82,11 @@ def compile_scope(
         range(len(intent["additions"]))
     ):
         raise TaskError("ASSET_SELECTION", "新增请求与目录选择不一致")
+    semantic = semantic_errors(
+        (task or {}).get("input", ""), intent["additions"], choices, catalogue
+    )
+    if semantic:
+        raise TaskError("ASSET_SELECTION", "；".join(semantic))
     counts = {}
     for choice in choices:
         key = choice["key"]
@@ -101,12 +107,19 @@ def compile_scope(
             if catalogue[other].get("type") == catalogue[key].get("type") and other != key
         ]
         pools.append({"keys": pool, "count": intent["additions"][choice["request_index"]]["count"]})
+    requirements = []
+    if task_mode == "generate_rectangular":
+        # Generation starts from a blank project, so the explicit furniture
+        # list is an exact project-level requirement, not an addition quota.
+        # The initialization authorization freezes these counts by catalogue
+        # key; equivalent recipes remain allowed only for the same purpose.
+        requirements = [{"key": key, "count": counts[key], "scope": "project"} for key in counts]
     scope = {
         "targetIds": targets,
         "allowDeleteIds": intent["delete_ids"],
         "allowAddKeys": list(dict.fromkeys(key for pool in pools for key in pool["keys"])),
         "fieldMask": permissions,
-        "requirements": [],
+        "requirements": requirements,
     }
     if re.search(
         r"(?:组成|创建|建立|设立|保存).{0,12}(?:阅读组|活动组|家具组)|编组",
@@ -155,30 +168,40 @@ def compile_scope(
     return scope
 
 
-async def authorize_edit(store, client, task, project, scope, intent):
+async def authorize_edit(store, client, task, project, scope, intent, *, kind="edit", brief=None):
     generation = store.task(task["id"], internal=True)["generation"]
     version = int(generation.get("authorizationVersion", 1))
+    request = {
+        "taskId": task["id"],
+        "baseRevision": project["revision"],
+        "version": version,
+        "requestText": task["input"],
+        "kind": kind,
+        "referenceIds": [
+            id for id in intent.get("reference_ids", []) if id not in scope["targetIds"]
+        ],
+        "operations": intent.get("operations", []),
+        "scope": scope,
+    }
+    if kind == "initialize":
+        # Initialization binds the frozen brief, exact furniture counts and
+        # asset pool. The candidate must carry the same version/hash.
+        request["brief"] = brief
+        request.pop("referenceIds", None)
+        request.pop("operations", None)
     authorization = await client.request(
-        f"/projects/{task['projectId']}/edit-authorizations",
-        {
-            "taskId": task["id"],
-            "baseRevision": project["revision"],
-            "version": version,
-            "requestText": task["input"],
-            "referenceIds": [
-                id for id in intent.get("reference_ids", []) if id not in scope["targetIds"]
-            ],
-            "operations": intent.get("operations", []),
-            "scope": scope,
-        },
+        f"/projects/{task['projectId']}/edit-authorizations", request
     )
     generation.update(
         authorizationVersion=version,
         authorizationScopeVersion=version,
+        authorizationKind=kind,
         authorizationScope=scope,
         editAuthorization=authorization,
         authorizationRequestText=task["input"],
     )
+    if kind == "initialize" and brief:
+        generation["frozenBrief"] = brief
     store.update(task["id"], generation=generation)
     store.event(task["id"], "authorization", authorization)
     return authorization

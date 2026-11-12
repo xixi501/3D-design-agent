@@ -161,15 +161,7 @@ export function openEnvelope(f: Furniture): OpenEnvelope | undefined {
       { x: f.x + halfW, y: f.y - halfD },
     ];
   else if (rot === 90) {
-    const front = f.x + halfD,
-      side = halfW;
-    polygon = [
-      { x: front, y: f.y - side },
-      { x: front + spec.clearance, y: f.y - side },
-      { x: front + spec.clearance, y: f.y + side },
-      { x: front, y: f.y + side },
-    ];
-  } else {
+    // rot=0 faces south; +90 turns the back east and the front west.
     const front = f.x - halfD,
       side = halfW;
     polygon = [
@@ -177,6 +169,16 @@ export function openEnvelope(f: Furniture): OpenEnvelope | undefined {
       { x: front, y: f.y + side },
       { x: front - spec.clearance, y: f.y + side },
       { x: front - spec.clearance, y: f.y - side },
+    ];
+  } else {
+    // rot=270 faces east.
+    const front = f.x + halfD,
+      side = halfW;
+    polygon = [
+      { x: front, y: f.y - side },
+      { x: front + spec.clearance, y: f.y - side },
+      { x: front + spec.clearance, y: f.y + side },
+      { x: front, y: f.y + side },
     ];
   }
   const xs = polygon.map((p) => p.x);

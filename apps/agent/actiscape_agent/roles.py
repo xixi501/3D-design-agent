@@ -175,6 +175,13 @@ class BudgetCallback(AsyncCallbackHandler):
 class Roles:
     def __init__(self, store: TaskStore, client: SceneClient, model_factory=create_model):
         self.store, self.client, self.model_factory = store, client, model_factory
+        self._catalogues: dict[str, dict] = {}
+
+    async def catalogue(self, task_id: str):
+        """Read the immutable catalogue once per task; task scope is frozen."""
+        if task_id not in self._catalogues:
+            self._catalogues[task_id] = (await self.client.request("/catalog"))["items"]
+        return self._catalogues[task_id]
 
     async def invoke(
         self,

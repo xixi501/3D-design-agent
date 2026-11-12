@@ -177,6 +177,32 @@ test("supplements invalidate old candidates before a replacement candidate exist
     store.close();
   }
 });
+test("authorization quote matching tolerates line-break/space normalization only", () => {
+  const { store, p, candidates, chair, scope } = setup();
+  try {
+    const requestText =
+      "把单人沙发向左移动200毫米\n用户补充：就是我现在选中的这把单人沙发。";
+    const auth = candidates.authorize(p.id, {
+      taskId: "quote-space",
+      baseRevision: 0,
+      version: 1,
+      requestText,
+      scope: { ...scope, fieldMask: { [chair.id]: ["x"] } },
+      operations: [
+        {
+          target_id: chair.id,
+          action: "update",
+          deltas: { x: -200 },
+          source_quote: "把单人沙发向左移动200毫米 用户补充：就是我现在选中的这把单人沙发。",
+        },
+      ],
+    });
+    assert.equal(auth.version, 1);
+  } finally {
+    store.close();
+  }
+});
+
 test("authorization checks quotes, target fields, read-only references and immutable versions", () => {
   const { store, p, candidates, chair, authorization } = setup();
   try {

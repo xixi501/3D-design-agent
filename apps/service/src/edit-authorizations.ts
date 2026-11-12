@@ -197,6 +197,11 @@ export class EditAuthorizations {
         const operations = request.operations || [];
         if (!Array.isArray(operations) || operations.length > 100)
           throw new SceneError("INVALID_AUTHORIZATION", "精确操作清单无效");
+        // User supplements are persisted with a line break ("\n用户补充："),
+        // while an understanding model may quote the same text with spaces.
+        // Normalise whitespace only; wording must still be an exact substring.
+        const quoteText = (value: string) =>
+          value.replace(/\s+/g, " ").trim();
         const expected = new Map(
           base.plan.furniture
             .filter((f) => scope.targetIds.includes(f.id))
@@ -210,7 +215,7 @@ export class EditAuthorizations {
             !scope.targetIds.includes(op.target_id) ||
             typeof op.source_quote !== "string" ||
             !op.source_quote.trim() ||
-            !request.requestText.includes(op.source_quote)
+            !quoteText(request.requestText).includes(quoteText(op.source_quote))
           )
             throw new SceneError(
               "INVALID_AUTHORIZATION",

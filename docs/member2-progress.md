@@ -1,10 +1,11 @@
 # 成员二进度：外部资产生成与整理
 
-- 更新日期：2026-11-10
+- 更新日期：2026-11-13
 - 工作分支：`dev/assets`
-- 对齐基线：`main` / `dev/assets` = `da793c6ba8f826ed1f8b836727e2dfc250a68b6b`
-- 模块版本：`actiscape-asset-service 0.2.0`
+- 部署提交：`6845457a00af9d54a50ebc59e189e85bfbd6617f`
+- 模块版本：`actiscape-asset-service 0.2.1`
 - 阶段计划：[成员二计划](member2-plan.md)
+- 部署交接：[成员二部署](member2-deployment.md)
 
 ## 当前结论
 
@@ -89,3 +90,11 @@
 - 6 项 unittest 全部通过；另已通过真实 HTTP 验证生成、缓存、校准与 GLB 下载，并在浏览器确认 demo 材质仍可显示。
 
 `presets/real-v100-vase/` 尚未提交：必须在 V100 上用新管线重新执行“贴图前减面”，再取得 `model.glb/preview.png/record.json` 并检查。不能把旧 21.2 MB 模型在本机直接压缩后冒充该结果。服务器可使用 `python -m asset_service.preset examples/photo.jpg presets/real-v100-vase --height-mm 280 --max-faces 20000` 导出。
+
+## 2026-11-13 服务部署与联调
+
+已完成学校平台容器服务发布，部署提交为 `6845457a00af9d54a50ebc59e189e85bfbd6617f`，模块版本 `0.1`。平台基础 URL 为 `http://aic.bnu.edu.cn/aiforward1107998469848563712`，路径前缀通过 `ASSET_ROOT_PATH` 处理。
+
+已验证容器内部和本机外部网络：健康检查 200、OpenAPI 0.1、未带或错误 API Key 401、正确 Key 查询旧任务 200、外部下载 GLB 200 且 SHA-256 一致。已有联调任务仍为 `5a775fe0-4b15-4e54-9bab-87b6146773dd`。
+
+限制：平台当前验证为 HTTP 而非 HTTPS；旧 0.1 记录缺少新版 `glbUrl/previewUrl/physicalDimensionsMm`，只用于鉴权、任务查询和文件下载，不代表新版完整资产契约。主系统或 AgentArts 所在网络尚未实际调用。本次没有重新执行 GPU 推理，也没有修改旧 GLB。详细管理命令见 [成员二部署](member2-deployment.md)。

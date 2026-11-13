@@ -67,7 +67,7 @@ npm run start:all
 
 `npm test` 验证核心与服务，`npm run test:browser` 在生产构建上操作真实浏览器。原版与完整建模对照还需要独立 Python/Pillow 和 Chrome；配置完成后执行 `npm run test:all`。具体步骤见运行说明。
 
-`dev/assets` 已增加成员二的独立资产服务初版：支持图片任务、GLB 持久化、三维预览，以及本机 demo 和学校 GPU 服务器 Hunyuan3D 两种明确区分的模式。首个真实花瓶已生成并完成外观初验。运行与交接见 [资产服务说明](apps/asset-service/README.md)，实施计划见 [成员二计划](docs/member2-plan.md)，实际进度与限制见 [成员二进度](docs/member2-progress.md)。
+`dev/assets` 已增加成员二的独立资产服务初版：支持图片任务、GLB 持久化、三维预览，以及本机 demo 和学校 GPU 服务器 Hunyuan3D 两种明确区分的模式。首个真实花瓶已生成并完成外观初验。运行与交接见 [资产服务说明](apps/asset-service/README.md)，实施计划见 [成员二计划](docs/member2-plan.md)，实际进度与限制见 [成员二进度](docs/member2-progress.md)，当前部署见 [成员二部署](docs/member2-deployment.md)。
 
 ## 四条长期分支
 

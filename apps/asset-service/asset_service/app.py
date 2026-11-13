@@ -26,6 +26,24 @@ logger = logging.getLogger("asset_service")
 MAX_IMAGE_BYTES = int(os.getenv("ASSET_MAX_IMAGE_MB", "10")) * 1024 * 1024
 MAX_IMAGE_PIXELS = 20_000_000
 API_KEY = os.getenv("ASSET_API_KEY", "")
+ROOT_PATH = os.getenv("ASSET_ROOT_PATH", "").strip().rstrip("/")
+
+
+def public_path(path: str) -> str:
+    return f"{ROOT_PATH}{path}"
+
+
+class RootPathStripMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        path = scope.get("path", "")
+        if ROOT_PATH and path.startswith(ROOT_PATH):
+            scope = dict(scope)
+            scope["root_path"] = ROOT_PATH
+            scope["path"] = path[len(ROOT_PATH):] or "/"
+        await self.app(scope, receive, send)
 
 
 class CalibrationRequest(BaseModel):
@@ -98,7 +116,14 @@ def create_app() -> FastAPI:
         yield
         executor.shutdown(wait=False, cancel_futures=False)
 
-    app = FastAPI(title="ActiScape Asset Service", version=__version__, lifespan=lifespan)
+    app = FastAPI(
+        title="ActiScape Asset Service",
+        version=__version__,
+        root_path=ROOT_PATH,
+        lifespan=lifespan,
+    )
+    if ROOT_PATH:
+        app.add_middleware(RootPathStripMiddleware)
     origins = [item for item in os.getenv("ASSET_CORS_ORIGINS", "").split(",") if item]
     if origins:
         app.add_middleware(
@@ -142,9 +167,9 @@ def create_app() -> FastAPI:
                 "inputSha256": job["inputSha256"],
                 "created_at": utc_now(),
                 "duration_ms": round((time.monotonic() - started) * 1000),
-                "model_url": f"/api/v1/assets/{asset_id}/model",
-                "glbUrl": f"/api/v1/assets/{asset_id}/model.glb",
-                "previewUrl": f"/api/v1/assets/{asset_id}/preview.png",
+                "model_url": public_path(f"/api/v1/assets/{asset_id}/model"),
+                "glbUrl": public_path(f"/api/v1/assets/{asset_id}/model.glb"),
+                "previewUrl": public_path(f"/api/v1/assets/{asset_id}/preview.png"),
                 "generation": generated["generation"],
                 "spatial": {
                     "unit": "m",

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import time
 
 import httpx
@@ -99,21 +100,65 @@ class VisionModelClient:
                     },
                 ]
             )
-        body = {
-            "model": self.settings["model"],
-            "messages": messages,
-            "max_tokens": self.settings["max_tokens"],
-            "temperature": self.settings["temperature"],
-            "stream": False,
-            "response_format": {
+        # 实验开关：DashScope 兼容模式对 json_schema 的强制程度有限，
+        # 用 ACTISCAPE_VISION_STRUCTURED_MODE=json_object 做对照，并在提示词里显式要求必填字段。
+        structured_mode = os.environ.get(
+            "ACTISCAPE_VISION_STRUCTURED_MODE", "json_schema"
+        ).lower()
+        nudge = (
+            "\n\n输出必须是单个 JSON 对象，顶层必须包含 status、symbols、activityGroups、"
+            "excludedObjectCandidates 四个键。"
+            "用户消息里给出的每一个 activityGroupCandidate（agc_*）都必须在 activityGroups "
+            "中如实出现且只出现一次，用 activityGroupCandidateId 引用它，并给出其角色。"
+            "不得省略 activityGroups，也不得返回空数组除非输入里没有活动组候选。"
+        )
+        if os.environ.get("ACTISCAPE_VISION_GROUP_NUDGE") == "1":
+            messages[0]["content"] = prompt + nudge
+        if structured_mode == "json_object":
+            messages[0]["content"] = prompt + (
+                "\n\n输出必须是单个 JSON 对象，顶层必须包含 status、symbols、activityGroups、"
+                "excludedObjectCandidates 四个键。"
+                "用户消息里给出的每一个 activityGroupCandidate（agc_*）都必须在 activityGroups "
+                "中如实出现且只出现一次，用 activityGroupCandidateId 引用它，并给出其角色。"
+                "不得省略 activityGroups，也不得返回空数组除非输入里没有活动组候选。"
+            )
+            response_format = {"type": "json_object"}
+        else:
+            response_format = {
                 "type": "json_schema",
                 "json_schema": {
                     "name": "FurnitureContourRecognition",
                     "schema": schema,
                     "strict": True,
                 },
-            },
+            }
+        body = {
+            "model": self.settings["model"],
+            "messages": messages,
+            "max_tokens": self.settings["max_tokens"],
+            "temperature": self.settings["temperature"],
+            "stream": False,
+            "response_format": response_format,
         }
+        # 最小客户端适配：原 schema 只要求 status 必填，activityGroups 可选，
+        # 模型合法省略后会被业务规则判为"活动组未处理"。这里在输入含活动组候选时，
+        # 把三个数组提升为必填，并给 activityGroups 设 minItems。
+        if os.environ.get("ACTISCAPE_VISION_REQUIRE_GROUPS") == "1":
+            group_candidates = payload.get("activityGroupCandidates") or []
+            if group_candidates and isinstance(body.get("response_format"), dict):
+                tightened = json.loads(json.dumps(schema))
+                tightened["required"] = [
+                    "status",
+                    "symbols",
+                    "activityGroups",
+                    "excludedObjectCandidates",
+                ]
+                props = tightened.setdefault("properties", {})
+                props.setdefault("activityGroups", {})["minItems"] = 1
+                props.setdefault("symbols", {})["minItems"] = 1
+                if body["response_format"].get("type") == "json_schema":
+                    body["response_format"]["json_schema"]["schema"] = tightened
+
         started = time.monotonic()
         try:
             async with httpx.AsyncClient(

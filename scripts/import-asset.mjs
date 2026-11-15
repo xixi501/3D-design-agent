@@ -6,7 +6,7 @@ if (!file || !projectId)
   throw Error(
     "Usage: node scripts/import-asset.mjs model.glb projectId [x_mm y_mm z_mm]",
   );
-const base = process.env.ACTISCAPE_URL || "http://127.0.0.1:3001";
+const base = process.env.ACTISCAPE_URL || "http://127.0.0.1:3131";
 async function response(r) {
   const json = await r.json();
   if (!r.ok) throw Error(JSON.stringify(json));

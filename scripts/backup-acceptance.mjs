@@ -12,7 +12,7 @@ const source = path.resolve(process.env.ACTISCAPE_DATA_DIR || "data"),
 fs.mkdirSync(out, { recursive: true });
 try {
   const r = await fetch(
-    (process.env.ACTISCAPE_URL || "http://127.0.0.1:3001") + "/api/health",
+    (process.env.ACTISCAPE_URL || "http://127.0.0.1:3131") + "/api/health",
     { signal: AbortSignal.timeout(1000) },
   );
   if (r.ok) throw Error("SOURCE_RUNNING");

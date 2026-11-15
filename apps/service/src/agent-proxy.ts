@@ -48,7 +48,7 @@ export function agentProxy(app: FastifyInstance) {
       pending.add(abort);
       const target = new URL(
         req.url.slice("/api/agent".length),
-        process.env.ACTISCAPE_AGENT_URL || "http://127.0.0.1:3002",
+        process.env.ACTISCAPE_AGENT_URL || "http://127.0.0.1:3132",
       );
       const onClose = () => {
         if (!reply.raw.writableEnded) abort.abort();

@@ -10,7 +10,7 @@ const catalogue = JSON.parse(
   fs.readFileSync(path.join(root, "fixtures/catalog.json"), "utf8"),
 );
 const base = (
-  process.env.ACTISCAPE_SCENE_URL || "http://127.0.0.1:3001"
+  process.env.ACTISCAPE_SCENE_URL || "http://127.0.0.1:3131"
 ).replace(/\/$/, "");
 
 const active = [

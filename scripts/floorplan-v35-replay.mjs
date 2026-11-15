@@ -124,7 +124,7 @@ assert.equal(mapping.passed, true);
 assert.equal(mapping.coverageComplete, true);
 
 const base = (
-  process.env.ACTISCAPE_SCENE_URL || "http://127.0.0.1:3001"
+  process.env.ACTISCAPE_SCENE_URL || "http://127.0.0.1:3131"
 ).replace(/\/$/, "");
 const geometry = await geometryProofFromPlan(base, plan);
 assert.equal(geometry.passed, true);

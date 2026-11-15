@@ -5,7 +5,7 @@
  *
  * Required:
  *   AGENTARTS_RUNTIME_URL   e.g. http://127.0.0.1:8080 or a cloud Runtime URL
- *   ACTISCAPE_SCENE_URL     e.g. http://127.0.0.1:3001 or protected HTTPS gateway
+ *   ACTISCAPE_SCENE_URL     e.g. http://127.0.0.1:3131 or protected HTTPS gateway
  *
  * Optional:
  *   ACTISCAPE_TOOL_TOKEN    Bearer/x-actiscape-token for the scene gateway
@@ -27,7 +27,7 @@ const invokeUrl = runtimeBase.endsWith("/invocations")
   ? runtimeBase
   : `${runtimeBase}/invocations`;
 const pingUrl = runtimeBase.replace(/\/invocations$/, "") + "/ping";
-const sceneBase = (process.env.ACTISCAPE_SCENE_URL || "http://127.0.0.1:3001").replace(
+const sceneBase = (process.env.ACTISCAPE_SCENE_URL || "http://127.0.0.1:3131").replace(
   /\/$/,
   "",
 );

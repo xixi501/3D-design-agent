@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert/strict";
 
-const base = (process.env.ACTISCAPE_URL || "http://127.0.0.1:3001").replace(
+const base = (process.env.ACTISCAPE_URL || "http://127.0.0.1:3131").replace(
   /\/$/,
   "",
 );

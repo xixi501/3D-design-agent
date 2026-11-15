@@ -60,7 +60,7 @@ assert.equal(
   "Use the frozen original, not a substituted/corrected image",
 );
 const base = (
-  process.env.ACTISCAPE_SCENE_URL || "http://127.0.0.1:3001"
+  process.env.ACTISCAPE_SCENE_URL || "http://127.0.0.1:3131"
 ).replace(/\/$/, "");
 const out = path.resolve(
   "test-results/floorplan-tool-live",

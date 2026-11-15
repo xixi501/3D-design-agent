@@ -1,5 +1,5 @@
-/** Real HTTP tool example. Usage: ACTISCAPE_URL=http://127.0.0.1:3001 node scripts/tool-demo.mjs [projectId] */
-const base = process.env.ACTISCAPE_URL || "http://127.0.0.1:3001";
+/** Real HTTP tool example. Usage: ACTISCAPE_URL=http://127.0.0.1:3131 node scripts/tool-demo.mjs [projectId] */
+const base = process.env.ACTISCAPE_URL || "http://127.0.0.1:3131";
 async function request(url, body) {
   const response = await fetch(
     base + "/api" + url,

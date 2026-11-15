@@ -10,7 +10,7 @@ import {
   rotatedAabb,
 } from "../packages/scene-core/src/index.js";
 
-const base = (process.env.ACTISCAPE_URL || "http://127.0.0.1:3001").replace(/\/$/, "");
+const base = (process.env.ACTISCAPE_URL || "http://127.0.0.1:3131").replace(/\/$/, "");
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const out = path.resolve(process.env.ACTISCAPE_ACCEPTANCE_OUT || `test-results/generation-acceptance/${stamp}`);
 fs.mkdirSync(out, { recursive: true });

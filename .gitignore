@@ -59,3 +59,6 @@ Thumbs.db
 /.tools/
 /reference/runtime/
 /fixtures/.build_walls.json
+
+# 崩溃转储（禁止入库）
+core.*

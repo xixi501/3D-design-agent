@@ -17,7 +17,7 @@ const option = (key, fallback) => {
   return i >= 0 ? process.argv[i + 1] : fallback;
 };
 const stage = option("stage", "start"),
-  base = (process.env.ACTISCAPE_URL || "http://127.0.0.1:3001").replace(
+  base = (process.env.ACTISCAPE_URL || "http://127.0.0.1:3131").replace(
     /\/$/,
     "",
   ),

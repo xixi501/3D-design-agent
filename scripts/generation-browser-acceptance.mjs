@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { launch } from "../reference/upstream/scripts/browser.mjs";
 
-const base = (process.env.ACTISCAPE_URL || "http://127.0.0.1:3001").replace(/\/$/, "");
+const base = (process.env.ACTISCAPE_URL || "http://127.0.0.1:3131").replace(/\/$/, "");
 const out = path.resolve(process.env.ACTISCAPE_BROWSER_OUT || "test-results/generation-browser");
 fs.mkdirSync(out, { recursive: true });
 const afterRestart = process.argv.includes("--after-restart");

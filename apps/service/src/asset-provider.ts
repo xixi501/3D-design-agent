@@ -495,17 +495,31 @@ export class AssetProvider {
     mime: string,
     sha: string,
   ): Promise<{ id: string }> {
+    const resolvedName = input.name || "未命名物品";
     const form = new FormData();
     form.append(
       "file",
       new Blob([new Uint8Array(input.image)], { type: mime }),
       input.filename || "upload.png",
     );
-    form.append("name", input.name || "未命名物品");
+    form.append("name", resolvedName);
     if (input.category) form.append("category", input.category);
     if (input.targetHeightMm)
       form.append("target_height_mm", String(input.targetHeightMm));
-    const headers: Record<string, string> = { "Idempotency-Key": sha };
+    // 幂等键必须代表“整个请求”。资产服务按 (图片 + name + 参数) 哈希校验，
+    // 若只用图片 sha，同图换名重传会被判 409 冲突，网关再把它当成远端失败而静默回退 demo。
+    const idempotencyKey = createHash("sha256")
+      .update(sha)
+      .update("\n")
+      .update(resolvedName)
+      .update("\n")
+      .update(input.category || "")
+      .update("\n")
+      .update(String(input.targetHeightMm || 0))
+      .digest("hex");
+    const headers: Record<string, string> = {
+      "Idempotency-Key": idempotencyKey,
+    };
     if (this.apiKey) headers["X-API-Key"] = this.apiKey;
     const response = await fetch(`${this.serviceUrl}/api/v1/jobs`, {
       method: "POST",

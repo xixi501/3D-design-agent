@@ -89,3 +89,33 @@ ACTISCAPE_SCENE_URL=http://127.0.0.1:3131 npm run test:skill-pool:v1
 ```
 
 **测试跑出一堆 `core.*`**：已通过 `ulimit -c 0` 和 `.gitignore` 处理；若历史遗留，直接删。
+## 8. Skill 池契约现状（2026-11-15 验证结论）
+
+验证方式：把 `dev/skills-deploy` 的 30 个 `manifest.json` 逐个喂给主线的 `SkillManifest` 模型，并对比两边 `index.v1.json`。
+
+| 维度 | main | dev/skills-deploy | 结论 |
+|---|---|---|---|
+| 池 schema | `actiscape.skill-pool.v1` | 同 | ✅ 兼容 |
+| 池版本 | `2026-11-10-p3` | `2026-11-09` | 分支更旧 |
+| skill 数 | 33 | 30 | 主线多 3 个 |
+| active | 17 | 7 | 主线更多 |
+| manifest 校验 | 33/33 通过 | 30/30 通过 | ✅ 格式兼容 |
+| 共同 skill 内容 | — | — | **30 个全部有差异，主线版本更高（多为 0.3.0 vs 0.2.0）** |
+
+主线的 3 个独有 skill：`floorplan-reconstruction`、`rectangular-living-reading`、`universal-spatial-base`。
+
+**结论：`dev/skills-deploy` 是主线的旧分叉，整树合并会让 Skill 池倒退（33→30、17 verified→0、版本回退）。**
+
+处理方式：
+
+1. 主线保持现状，分支归档；
+2. 若成员三有真实增量（新判据、新案例、新工具），按 skill 粒度 diff，只移植增量，并同步更新 `index.v1.json` 与 `manifest.version`；
+3. 分支的 `tools/` 不能直接进主线：`skill_lint.py` 把期望值写死为分支快照（版本必须是 0.2.0、状态必须是 conformant、activation 必须是 reserved、只认 6 种 kind），对主线 33 个 skill 报 85 个假阳性；主线现有 8 种 kind（多 `floorplan`、`universal`）。需要改成"从 `index.v1.json` 读取期望"后才可复用。
+
+验收标准（任何时候）：
+
+```bash
+ACTISCAPE_SCENE_URL=http://127.0.0.1:3131 npm run test:skill-pool:v1   # 必须 exit 0
+```
+
+当前基线：26 个用例、13 个 positive 全部通过。注意该测试包含真实 Chrome 截图，偶发 `503 RENDER_FAILED`（Chrome 偶发 abort），重跑即可；若连续失败再查渲染进程。

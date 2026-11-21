@@ -189,7 +189,10 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
 
     @app.post("/tasks/{id}/cancel")
     async def cancel(id: str):
-        return manager().store.cancel(id)
+        mgr = manager()
+        if hasattr(mgr, "cancel"):
+            return await mgr.cancel(id)
+        return mgr.store.cancel(id)
 
     @app.get("/tasks/{id}/events")
     async def events(

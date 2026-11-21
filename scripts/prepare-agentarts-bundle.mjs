@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Build a self-contained AgentArts deploy bundle (ARM64/CLI/manual Docker). */
+/** Build and self-verify a complete, self-contained AgentArts deploy bundle (ARM64). */
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
@@ -9,6 +9,8 @@ const out = path.join(root, "dist/agentarts-bundle");
 const sourcePackage = path.join(root, "apps/agent/actiscape_agent");
 const deployDir = path.join(root, "deploy/agentarts-minimal");
 const lock = path.join(root, "apps/agent/requirements.lock");
+
+const RUNTIME_FILES = ["app.py", "agent.py", "task_runtime.py", "mcp_gateway.py"];
 
 function fail(message) {
   console.error(`prepare-agentarts-bundle: ${message}`);
@@ -22,7 +24,7 @@ if (!fs.existsSync(lock)) fail("缺少 apps/agent/requirements.lock");
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 
-// 1. Self-contained business package (all skills, schemas, vendor files).
+// 1. Self-contained business package (all skills, schemas, subpackages).
 fs.cpSync(sourcePackage, path.join(out, "actiscape_agent"), {
   recursive: true,
   filter: (source) => {
@@ -31,14 +33,14 @@ fs.cpSync(sourcePackage, path.join(out, "actiscape_agent"), {
   },
 });
 
-// 2. Runtime entrypoints.
-for (const file of ["app.py", "agent.py", "task_runtime.py"]) {
+// 2. Runtime entrypoints & MCP client (strictly verified).
+for (const file of RUNTIME_FILES) {
   const source = path.join(deployDir, file);
   if (!fs.existsSync(source)) fail(`缺少 deploy/agentarts-minimal/${file}`);
   fs.copyFileSync(source, path.join(out, file));
 }
 
-// 3. Python requirements without the editable parent path.
+// 3. Python requirements without editable parent path.
 const lines = fs
   .readFileSync(lock, "utf8")
   .split(/\r?\n/)
@@ -47,7 +49,6 @@ const lines = fs
   .filter((line) => !line.trim().startsWith("apps/agent"));
 const requirements = [
   "# Generated from apps/agent/requirements.lock by scripts/prepare-agentarts-bundle.mjs",
-  "# actiscape_agent is copied into this bundle; no editable parent path is needed.",
   "--index-url https://repo.huaweicloud.com/repository/pypi/simple",
   "--trusted-host repo.huaweicloud.com",
   "",
@@ -56,7 +57,7 @@ const requirements = [
 ].join("\n");
 fs.writeFileSync(path.join(out, "requirements.txt"), requirements);
 
-// 4. Self-contained Dockerfile.
+// 4. Self-contained Dockerfile (verifies all runtime modules import cleanly at image build time).
 fs.writeFileSync(
   path.join(out, "Dockerfile"),
   `# Generated AgentArts bundle: Dockerfile
@@ -66,7 +67,7 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt \\
     -i https://repo.huaweicloud.com/repository/pypi/simple \\
     --trusted-host repo.huaweicloud.com \\
-    && python -c "from agentarts.sdk import AgentArtsRuntimeApp; print('SDK OK')"
+    && python -c "import mcp_gateway, task_runtime, agent, app; print('AgentArts bundle imports OK')"
 ENV AGENT_RUN_PORT=8080 RUNTIME_PORT=8080 RUNTIME_HOST=0.0.0.0
 EXPOSE 8080
 CMD ["python", "app.py"]
@@ -84,12 +85,10 @@ venv/
 `,
 );
 
-// 5. Official CLI config example. Never place real credentials here.
+// 5. Official CLI config example (no credentials).
 fs.writeFileSync(
   path.join(out, ".agentarts_config.yaml.example"),
-  `# Copy to .agentarts_config.yaml and replace placeholders.
-# The official CLI may generate its own file; this example documents the required shape.
-default_agent: actiscape
+  `default_agent: actiscape
 agents:
   actiscape:
     base:
@@ -102,7 +101,7 @@ agents:
       base_image: python:3.13-slim
     swr_config:
       organization: your-swr-organization
-      repository: your-swr-repository
+      repository: actiscape-agentarts
       organization_auto_create: true
       repository_auto_create: true
     runtime:
@@ -113,169 +112,96 @@ agents:
 `,
 );
 
+// 6. Generated ARM64 Deploy Runbook.
 const runbook = `# AgentArts 自包含部署包（ARM64）
 
-本目录由 \`npm run build:agentarts-bundle\` 生成，**不要手工修改**。
+本目录由 \`npm run build:agentarts-bundle\` 自动生成并完成静态导入自检，**请勿直接手工修改生成物**。
 
-## 0. 目标环境
+## 1. 推荐构建方式：GitHub Actions 原生 ARM64 流水线
 
-- 华为云 \`cn-southwest-2\`（贵阳一）
-- **ARM64** Ubuntu 22.04（鲲鹏 ECS 或 Mac M 系列）
-- Docker 18.06+
-- Python 3.10+（构建机）
-- 可访问公网（Docker Hub / 华为云 PyPI / SWR）
+仓库已内置 \`.github/workflows/build-agentarts-arm64.yml\`（默认使用 GitHub 原生 \`ubuntu-24.04-arm\` Runner，免除 QEMU 跨架构仿真开销）：
 
-> 官方明确：X86 镜像在 AgentArts 调用会失败；请在 ARM64 机器构建。
+1. 在 GitHub 仓库 Secrets 配置 \`SWR_ORG\`、\`SWR_AK\`、\`SWR_SK\`（默认区域 \`cn-southwest-2\`）。
+2. 手动触发 **Build & Push AgentArts ARM64 Runtime Image** 或推送 \`v*\` 标签。
+3. 在构建摘要获取 \`linux/arm64\` 镜像地址与 Digest，在华为云 AgentArts Runtime 更新版本。
 
-## 1. 配置 Docker 国内镜像加速（推荐）
-
-\`\`\`bash
-sudo mkdir -p /etc/docker
-sudo tee /etc/docker/daemon.json <<'EOF'
-{
-  "registry-mirrors": [
-    "https://docker.m.daocloud.net",
-    "https://dockerproxy.net",
-    "https://mirror.baidubce.com"
-  ]
-}
-EOF
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-\`\`\`
-
-Docker 27+ 推 SWR 时若报 OCI 格式错误：
-
-\`\`\`bash
-export DOCKER_BUILDKIT=0
-# 或
-export BUILDKIT_USE_OCI_MEDIA_TYPES=0
-\`\`\`
-
-## 2. 安装 AgentArts CLI
-
-\`\`\`bash
-python3 -m venv venv
-source venv/bin/activate
-pip install agentarts-sdk -i https://repo.huaweicloud.com/repository/pypi/simple --trusted-host repo.huaweicloud.com
-export HUAWEICLOUD_SDK_AK="..."
-export HUAWEICLOUD_SDK_SK="..."
-\`\`\`
-
-## 3. 官方 CLI 路径（推荐先试）
-
-\`\`\`bash
-# 在本目录执行
-agentarts configure --entrypoint app:app
-# 按提示填写：
-#   Agent name: actiscape（小写字母开头）
-#   Region: cn-southwest-2
-#   Dependency file: requirements.txt
-#   SWR Organization: 你的组织（或先留空/自动创建）
-#   SWR Repository: 建议留空，自动创建
-
-agentarts launch
-\`\`\`
-
-如果 \`agentarts configure\` 生成了新的 Dockerfile，请确认它与本目录自带的 Dockerfile 不冲突；本包的业务入口始终是 \`app:app\`。
-
-## 4. 手动 Docker 路径（CLI 不适用时）
+## 2. 手动 Docker Buildx 构建（备选）
 
 \`\`\`bash
 docker buildx build \\
   --platform linux/arm64 \\
+  --provenance=false \\
   -t swr.cn-southwest-2.myhuaweicloud.com/<org>/actiscape-agentarts:<tag> \\
   --push .
 \`\`\`
 
-## 5. 运行时环境变量
+## 3. 运行时环境变量与委托凭据
 
-必须：
+必填：
+- \`MODEL_API_KEY\` / \`MODEL_URL\` / \`MODEL_NAME\`
+- \`ACTISCAPE_SCENE_URL\`（优先使用贵阳一区 \`ops/gateway-ecs/\` HTTPS 专线入口，未配置时回退 \`serveo\`）
+- \`ACTISCAPE_TOOL_TOKEN\`
 
-- \`MODEL_API_KEY\`（华为云 MaaS Key）
-- \`MODEL_URL\`（例如 \`https://api.modelarts-maas.com/openai/v1\`）
-- \`MODEL_NAME\`（模型接口的 model 值）
-- \`ACTISCAPE_SCENE_URL\`（云端可达的 HTTPS 场景网关）
-- \`ACTISCAPE_TOOL_TOKEN\`（网关 Bearer Token）
+MCP 网关鉴权（三层自动解析）：
+1. \`AGENTARTS_MCP_AK\` / \`AGENTARTS_MCP_SK\`（可选）
+2. \`HUAWEICLOUD_SDK_AK\` / \`HUAWEICLOUD_SDK_SK\`（可选）
+3. 华为云 Runtime 绑定委托 \`DefaultAgentArtsRuntimeAgency\` 时自动读取临时 STS 凭证并缓存刷新（无需静态 AK/SK 常驻）。
 
-可选：
+## 4. 支持的调用动作
 
-- \`AGENT_RUN_PORT=8080\`
-- \`AGENTARTS_TASK_TIMEOUT=180\`
-- \`DEEPSEEK_THINKING=enabled\`（仅当 MaaS 明确支持 thinking 字段）
-
-> 不要把任何 Key 写入镜像或提交到 Git。
-
-## 6. 本地接口验证
-
-\`\`\`bash
-python app.py
-# 另开终端
-curl http://127.0.0.1:8080/ping
-curl -X POST http://127.0.0.1:8080/invocations \\
-  -H 'content-type: application/json' \\
-  -d '{"action":"run_task","projectId":"<id>","mode":"interactive_action","input":"打开衣柜门","selectedIds":["<furniture-id>"]}'
-\`\`\`
-
-## 7. 云端验收
-
-- \`/ping\` 健康；
-- \`probe\` 调用成功；
-- \`run_task\` 动作任务完成；
-- 场景项目 revision 正确递增；
-- 重复请求幂等；
-- 容器重启后无本地状态依赖。
-
-## 8. 回滚
-
-- 记录上一个可用镜像 digest；
-- 在 AgentArts Runtime 切回旧 digest；
-- 场景数据不在容器内，回滚不需要恢复本地 SQLite；
-- 不要删除 SWR 旧镜像，保留至少一个可回退版本。
+- \`{"action": "ping"}\`：健康探针
+- \`{"action": "run_task", "projectId": "...", "input": "..."}\`：执行只读 MCP 场景检查或完整多智能体场景编辑
+- \`{"action": "resume_task", "taskId": "...", "input": "..."}\`：在同一会话内补充澄清恢复 \`waiting_input\` 任务
+- \`{"action": "cancel_task", "taskId": "..."}\`：取消挂起任务，释放项目锁
 `;
 fs.writeFileSync(path.join(out, "DEPLOY_RUNBOOK.md"), runbook);
 
-let commit = "unknown";
+// 7. Static self-verification: ensure every top-level local import inside RUNTIME_FILES exists in bundle.
+const bundledTopModules = new Set(
+  fs
+    .readdirSync(out, { withFileTypes: true })
+    .map((e) => (e.isDirectory() ? e.name : e.name.replace(/\.py$/, ""))),
+);
+for (const file of RUNTIME_FILES) {
+  const code = fs.readFileSync(path.join(out, file), "utf8");
+  for (const match of code.matchAll(/^\s*(?:from|import)\s+([a-zA-Z_][a-zA-Z0-9_]*)/gm)) {
+    const mod = match[1];
+    if (["mcp_gateway", "task_runtime", "agent", "app", "actiscape_agent"].includes(mod)) {
+      if (!bundledTopModules.has(mod)) {
+        fail(`${file} 引用了未打包模块 ${mod}`);
+      }
+    }
+  }
+}
+
+let sourceCommit = "unknown";
 try {
-  commit = execFileSync("git", ["rev-parse", "--short", "HEAD"], {
+  sourceCommit = execFileSync("git", ["rev-parse", "--short", "HEAD"], {
     cwd: root,
     encoding: "utf8",
   }).trim();
-} catch {
-  // git is optional for a source archive.
-}
+} catch {}
 
-fs.writeFileSync(
-  path.join(out, "BUNDLE_MANIFEST.json"),
-  JSON.stringify(
-    {
-      schemaVersion: "actiscape.agentarts-bundle.v1",
-      generatedAt: new Date().toISOString(),
-      sourceCommit: commit,
-      target: "linux/arm64",
-      entrypoint: "app:app",
-      runtimeEntrypoints: ["app.py", "agent.py", "task_runtime.py"],
-      package: "actiscape_agent/",
-      python: "3.13-slim",
-      files: fs
-        .readdirSync(out)
-        .sort(),
-    },
-    null,
-    2,
-  ) + "\n",
-);
-
-let count = 0;
-const walk = (dir) => {
+let fileCount = 0;
+const countFiles = (dir) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const file = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(file);
-    else count++;
+    if (entry.isDirectory()) countFiles(path.join(dir, entry.name));
+    else fileCount++;
   }
 };
-walk(out);
-console.log(`AgentArts bundle: ${path.relative(root, out)}`);
-console.log(`source commit: ${commit}`);
-console.log(`files: ${count}`);
-console.log(`next: cd ${path.relative(root, out)} && cat DEPLOY_RUNBOOK.md`);
+countFiles(out);
+
+const manifest = {
+  schemaVersion: "actiscape.agentarts-bundle.v2",
+  sourceCommit,
+  target: "linux/arm64",
+  entrypoint: "app:app",
+  runtimeFiles: RUNTIME_FILES,
+  fileCount,
+  generatedAt: new Date().toISOString(),
+};
+fs.writeFileSync(
+  path.join(out, "BUNDLE_MANIFEST.json"),
+  JSON.stringify(manifest, null, 2) + "\n",
+);
+console.log(JSON.stringify(manifest));

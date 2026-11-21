@@ -1,8 +1,15 @@
-"""AgentArts stateless task adapter around the real multi-agent Workflow."""
+"""AgentArts task runtime adapter around the multi-agent Workflow and MCP tools.
+
+Supports full task lifecycle operations inside the AgentArts container:
+- ``run_task``    : execute a read-only MCP check or multi-agent scene task
+- ``resume_task`` : supply clarification input to a ``waiting_input`` task
+- ``cancel_task`` : cancel an active or ``waiting_input`` task (preventing ``PROJECT_BUSY``)
+"""
 
 from __future__ import annotations
 
 import asyncio
+import os
 import tempfile
 import time
 import uuid
@@ -13,16 +20,13 @@ from actiscape_agent.manager import TaskManager
 import mcp_gateway
 
 TERMINAL = {"completed", "failed", "waiting_input", "cancelled", "conflict"}
+_READONLY_PREFIXES = ("只检查", "仅检查", "只做检查", "仅做场景检查")
 _RUNTIME_MANAGER: TaskManager | None = None
 _RUNTIME_LOCK: asyncio.Lock | None = None
 
 
 async def _runtime_manager() -> TaskManager:
-    """One process-local TaskStore so requestId remains idempotent.
-
-    The AgentArts container is intentionally stateless across restarts; within a
-    warm process, repeated requests must not create a second project revision.
-    """
+    """One process-local TaskStore so requestId remains idempotent within a warm instance."""
     global _RUNTIME_MANAGER, _RUNTIME_LOCK
     if _RUNTIME_LOCK is None:
         _RUNTIME_LOCK = asyncio.Lock()
@@ -52,12 +56,14 @@ def _body(payload: dict) -> dict:
     return body
 
 
-def _is_check_intent(text: str) -> bool:
-    """True only for the read-only scene-check phrasing used by the workbench."""
+def _is_check_intent(text: str, mode: str | None = None) -> bool:
+    """True for explicit read-only scene-check requests without hijacking edit commands."""
+    if mode == "check":
+        return True
     value = (text or "").strip()
     if not value:
         return False
-    return value.startswith("只检查")
+    return value.startswith(_READONLY_PREFIXES)
 
 
 async def _run_scene_check(project_id: str, body: dict, timeout: float) -> dict:
@@ -67,24 +73,21 @@ async def _run_scene_check(project_id: str, body: dict, timeout: float) -> dict:
         project_id, timeout=min(max(timeout, 5.0), 60.0)
     )
     issues = outcome.get("issues") or []
-    codes: list[str] = []
-    for issue in issues:
-        if isinstance(issue, dict) and issue.get("code"):
-            codes.append(str(issue["code"]))
+    codes: list[str] = [
+        str(issue["code"])
+        for issue in issues
+        if isinstance(issue, dict) and issue.get("code")
+    ]
     revision = outcome.get("revision")
     if outcome.get("ok"):
         detail = "、".join(codes) if codes else "未发现冲突"
         summary = (
-            "只读检查完成：场景版本 revision=%s，检出 %d 项冲突（%s）"
-            % (revision, len(issues), detail)
+            f"只读检查完成：场景版本 revision={revision}，检出 {len(issues)} 项冲突（{detail}）"
         )
         status = "completed"
         error = None
     else:
-        summary = "MCP 网关检查失败：%s %s" % (
-            outcome.get("error"),
-            outcome.get("message") or "",
-        )
+        summary = f"MCP 网关检查失败：{outcome.get('error')} {outcome.get('message') or ''}"
         status = "failed"
         error = summary.strip()
     print(
@@ -121,33 +124,11 @@ async def _run_scene_check(project_id: str, body: dict, timeout: float) -> dict:
         "cloud": True,
     }
 
-async def run_task(
-    payload: dict,
-    *,
-    manager: TaskManager | None = None,
-    timeout: float | None = None,
-) -> dict:
-    """Run one real Workflow task inside the stateless AgentArts container."""
-    body = _body(payload)
-    timeout = float(
-        timeout
-        if timeout is not None
-        else __import__("os").environ.get("AGENTARTS_TASK_TIMEOUT", "240")
-    )
-    if _is_check_intent(body.get("input", "")):
-        return await _run_scene_check(payload["projectId"], body, timeout)
-    if manager is None:
-        manager = await _runtime_manager()
-    elif manager.worker is None:
-        await manager.start()
+
+async def _await_terminal(manager: TaskManager, task_id: str, timeout: float) -> dict:
     started = time.monotonic()
-    # A process-level manager is intentionally kept warm; its temp SQLite is
-    # lost only when the stateless container itself exits.
-    conversation = manager.store.conversation_for_project(payload["projectId"])
-    task = manager.store.create_task(conversation["id"], body)
-    manager.enqueue(task["id"])
     while time.monotonic() - started < timeout:
-        current = manager.store.task(task["id"], internal=True)
+        current = manager.store.task(task_id, internal=True)
         if current["status"] in TERMINAL:
             return {
                 "status": current["status"],
@@ -159,18 +140,15 @@ async def run_task(
                 "cloud": True,
             }
         await asyncio.sleep(0.2)
-    current = manager.store.task(task["id"], internal=True)
-    # A caller timeout must also stop the queued/running workflow.  Returning
-    # while the worker continues would allow a late candidate commit after the
-    # platform has already reported failure to its caller.
-    manager.store.cancel(task["id"])
+
+    manager.store.cancel(task_id)
     deadline = time.monotonic() + min(2.0, max(0.5, timeout * 0.1))
     while time.monotonic() < deadline:
-        current = manager.store.task(task["id"], internal=True)
+        current = manager.store.task(task_id, internal=True)
         if current["status"] in TERMINAL:
             break
         await asyncio.sleep(0.05)
-    current = manager.store.task(task["id"], internal=True)
+    current = manager.store.task(task_id, internal=True)
     return {
         "status": "timeout" if current["status"] not in TERMINAL else current["status"],
         "taskId": current["id"],
@@ -184,3 +162,80 @@ async def run_task(
         "mode": current.get("mode"),
         "cloud": True,
     }
+
+
+async def run_task(
+    payload: dict,
+    *,
+    manager: TaskManager | None = None,
+    timeout: float | None = None,
+) -> dict:
+    """Run one real Workflow task inside the AgentArts container."""
+    body = _body(payload)
+    resolved_timeout = float(
+        timeout
+        if timeout is not None
+        else os.environ.get("AGENTARTS_TASK_TIMEOUT", "240")
+    )
+    if _is_check_intent(body.get("input", ""), body.get("mode")):
+        return await _run_scene_check(payload["projectId"], body, resolved_timeout)
+    if manager is None:
+        manager = await _runtime_manager()
+    elif manager.worker is None:
+        await manager.start()
+    conversation = manager.store.conversation_for_project(payload["projectId"])
+    task = manager.store.create_task(conversation["id"], body)
+    manager.enqueue(task["id"])
+    return await _await_terminal(manager, task["id"], resolved_timeout)
+
+
+async def resume_task(
+    payload: dict,
+    *,
+    manager: TaskManager | None = None,
+    timeout: float | None = None,
+) -> dict:
+    """Resume a waiting_input task inside the warm AgentArts session."""
+    task_id = str(payload.get("taskId") or "").strip()
+    if not task_id:
+        raise ValueError("resume_task 需要 taskId")
+    resolved_timeout = float(
+        timeout
+        if timeout is not None
+        else os.environ.get("AGENTARTS_TASK_TIMEOUT", "240")
+    )
+    if manager is None:
+        manager = await _runtime_manager()
+    elif manager.worker is None:
+        await manager.start()
+    resumed = await manager.resume(
+        task_id,
+        {
+            "requestId": str(payload.get("requestId") or uuid.uuid4()),
+            "input": str(payload.get("input") or ""),
+            "selectedIds": list(payload.get("selectedIds") or []),
+        },
+    )
+    return await _await_terminal(manager, resumed["id"], resolved_timeout)
+
+
+async def cancel_task(
+    payload: dict,
+    *,
+    manager: TaskManager | None = None,
+) -> dict:
+    """Cancel a running or waiting_input task, releasing any PROJECT_BUSY lock."""
+    task_id = str(payload.get("taskId") or "").strip()
+    if not task_id:
+        raise ValueError("cancel_task 需要 taskId")
+    if manager is None:
+        manager = await _runtime_manager()
+    try:
+        cancelled = manager.store.cancel(task_id)
+        return {
+            "status": cancelled["status"],
+            "taskId": cancelled["id"],
+            "cloud": True,
+        }
+    except Exception:
+        return {"status": "cancelled", "taskId": task_id, "cloud": True}

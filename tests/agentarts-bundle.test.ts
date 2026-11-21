@@ -14,6 +14,7 @@ test("prepare-agentarts-bundle creates a self-contained ARM64 deploy package", (
     "app.py",
     "agent.py",
     "task_runtime.py",
+    "mcp_gateway.py",
     "actiscape_agent",
     "requirements.txt",
     "Dockerfile",
@@ -24,7 +25,10 @@ test("prepare-agentarts-bundle creates a self-contained ARM64 deploy package", (
   ]) {
     assert.ok(fs.existsSync(path.join(bundle, file)), file);
   }
-  const requirements = fs.readFileSync(path.join(bundle, "requirements.txt"), "utf8");
+  const requirements = fs.readFileSync(
+    path.join(bundle, "requirements.txt"),
+    "utf8",
+  );
   assert.ok(requirements.includes("agentarts-sdk=="));
   assert.ok(!/^-e /m.test(requirements));
   assert.ok(
@@ -37,7 +41,9 @@ test("prepare-agentarts-bundle creates a self-contained ARM64 deploy package", (
   assert.match(dockerfile, /AGENT_RUN_PORT=8080/);
   assert.match(dockerfile, /CMD \["python", "app\.py"\]/);
   const manifests = fs
-    .readdirSync(path.join(bundle, "actiscape_agent/skills"), { withFileTypes: true })
+    .readdirSync(path.join(bundle, "actiscape_agent/skills"), {
+      withFileTypes: true,
+    })
     .filter((entry) => entry.isDirectory())
     .filter((entry) =>
       fs.existsSync(

@@ -1,13 +1,14 @@
 /** Optional AgentArts /invocations forwarding. Local agent remains the default. */
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
+import type { CloudTaskRecord } from "./cloud-task-store.js";
 
 export function agentArtsConfigured(): boolean {
   return Boolean(process.env.AGENTARTS_INVOCATIONS_URL?.trim());
 }
 
 /** AgentArts 网关要求 1-64 位 [A-Za-z0-9_-] 的会话 ID。 */
-function sessionIdOf(value?: string): string {
+export function sessionIdOf(value?: string): string {
   const cleaned = (value || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 64);
   return cleaned || randomUUID().replace(/-/g, "");
 }
@@ -16,6 +17,7 @@ export async function forwardAgentArts(
   payload: Record<string, any>,
   signal?: AbortSignal,
   sessionId?: string,
+  action: string = "run_task",
 ): Promise<any> {
   const endpoint = process.env.AGENTARTS_INVOCATIONS_URL?.trim();
   if (!endpoint)
@@ -34,10 +36,9 @@ export async function forwardAgentArts(
       ...(process.env.AGENTARTS_BEARER_TOKEN
         ? { Authorization: `Bearer ${process.env.AGENTARTS_BEARER_TOKEN}` }
         : {}),
-      // API Key 版运行时要求带会话头，缺失会被网关拒绝（400 Session ID not found）。
       "X-Hw-Agentarts-Session-Id": session,
     },
-    body: JSON.stringify({ action: "run_task", ...payload }),
+    body: JSON.stringify({ action, ...payload }),
     signal: signal || timeout,
   });
   let value: any;
@@ -46,9 +47,8 @@ export async function forwardAgentArts(
   } catch {
     value = { error: "AGENTARTS_INVALID_RESPONSE", message: "云上返回非 JSON" };
   }
-  // 验收证据：记录转发目标、会话、状态码与耗时（不含凭证）。
   console.log(
-    `[agentarts] ${new Date().toISOString()} forward status=${response.status} session=${session} ms=${Date.now() - startedAt}`,
+    `[agentarts] ${new Date().toISOString()} forward action=${action} status=${response.status} session=${session} ms=${Date.now() - startedAt}`,
   );
   if (!response.ok)
     throw Object.assign(
@@ -73,41 +73,45 @@ export function cloudTask(
   upstream: any,
   body: any,
   conversationId: string,
-): any {
+  existing?: CloudTaskRecord,
+): CloudTaskRecord {
   const result = unwrap(upstream) ?? upstream;
   const status =
     upstream?.status ||
     result?.status ||
     (result?.passed === false ? "failed" : "completed");
   const now = new Date().toISOString();
+  const sessionId = existing?.sessionId || sessionIdOf(conversationId);
   return {
-    id: upstream?.taskId || upstream?.id || `agentarts-${body.requestId}`,
+    id:
+      upstream?.taskId ||
+      upstream?.id ||
+      existing?.id ||
+      `agentarts-${body.requestId || randomUUID()}`,
     conversationId,
-    projectId: body.projectId,
-    requestId: body.requestId,
-    input: body.input || "",
-    selectedIds: body.selectedIds || [],
-    mode: body.mode || "edit",
+    projectId: body.projectId || existing?.projectId || "",
+    sessionId,
+    requestId: body.requestId || existing?.requestId || randomUUID(),
+    input: body.input ?? existing?.input ?? "",
+    selectedIds: body.selectedIds || existing?.selectedIds || [],
+    mode: upstream?.mode || body.mode || existing?.mode || "edit",
     status,
     result,
-    error: upstream?.error || result?.error || null,
-    generation: upstream?.generation || result?.generation || {},
-    createdAt: now,
+    error: upstream?.error ?? result?.error ?? null,
+    generation: upstream?.generation || result?.generation || existing?.generation || {},
+    createdAt: existing?.createdAt || now,
     updatedAt: now,
     cloud: true,
   };
 }
 
 export function agentArtsProxy(app: FastifyInstance) {
-  app.get(
-    "/api/agentarts/status",
-    async () => ({
-      configured: agentArtsConfigured(),
-      endpoint: agentArtsConfigured()
-        ? process.env.AGENTARTS_INVOCATIONS_URL
-        : null,
-    }),
-  );
+  app.get("/api/agentarts/status", async () => ({
+    configured: agentArtsConfigured(),
+    endpoint: agentArtsConfigured()
+      ? process.env.AGENTARTS_INVOCATIONS_URL
+      : null,
+  }));
   app.post(
     "/api/agentarts/run",
     {
@@ -119,7 +123,12 @@ export function agentArtsProxy(app: FastifyInstance) {
     },
     async (req) => {
       const body = (req.body || {}) as Record<string, any>;
-      return forwardAgentArts(body, undefined, body.sessionId);
+      return forwardAgentArts(
+        body,
+        undefined,
+        body.sessionId,
+        body.action || "run_task",
+      );
     },
   );
 }

@@ -55,6 +55,7 @@ ACTION_WORDS = (
     "打开",
     "关上",
     "关闭",
+    "关掉",
     "开启",
     "拉开",
     "拉出",
@@ -121,7 +122,9 @@ def _names(furniture: dict) -> str:
 class PolicyController:
     """Rule-based intent router. Explicit task.mode always wins."""
 
-    def decide(self, task: dict, project: dict, conversation: dict | None = None) -> PolicyDecision:
+    def decide(
+        self, task: dict, project: dict, conversation: dict | None = None
+    ) -> PolicyDecision:
         generation = task.get("generation") or {}
         text = task.get("input") or ""
         mode = task.get("mode") or "edit"
@@ -235,14 +238,17 @@ class PolicyController:
         # Negation, multiple actions and unconsumed qualifiers require the
         # normal intent/authorization flow, never a partial quick action.
         names = sorted(
-            {_names(f) for f in plan.get("furniture", []) if _names(f)}, key=len, reverse=True
+            {_names(f) for f in plan.get("furniture", []) if _names(f)},
+            key=len,
+            reverse=True,
         )
         target = (
             "(?:"
             + "|".join(
-                re.escape(n) for n in names + ["它", "门", "柜门", "抽屉", "灯", "电视", "窗帘"]
+                re.escape(n)
+                for n in names + ["它", "门", "柜门", "抽屉", "灯", "电视", "窗帘"]
             )
-            + ")(?:门)?"
+            + ")(?:的)?(?:柜门|抽屉|门)?"
         )
         verb = r"(?:打开|关闭|关上|关掉|开启|拉开|拉出)"
         simple = re.fullmatch(
@@ -268,8 +274,12 @@ class PolicyController:
                 action="open_all",
             )
         action = "toggle_on" if any(word in text for word in TOGGLE_WORDS) else "toggle_open"
-        closing = any(word in text for word in ("关闭", "关上", "关掉", "关灯", "关电视", "关窗帘"))
-        opening = any(word in text for word in ("打开", "开启", "拉开", "开灯", "开电视", "开窗帘"))
+        closing = any(
+            word in text for word in ("关闭", "关上", "关掉", "关灯", "关电视", "关窗帘")
+        )
+        opening = any(
+            word in text for word in ("打开", "开启", "拉开", "拉出", "开灯", "开电视", "开窗帘")
+        )
         desired_state = not (closing and not opening)
         selected = list(task.get("selectedIds") or [])
         named = [f for f in plan.get("furniture", []) if _names(f) and _names(f) in text]
@@ -277,7 +287,9 @@ class PolicyController:
         collection = None
         if len(named) == 1:
             target_id, collection = named[0]["id"], "furniture"
-        elif len(named) > 1 and len(selected) == 1 and any(f["id"] == selected[0] for f in named):
+        elif len(named) > 1 and len(selected) == 1 and any(
+            f["id"] == selected[0] for f in named
+        ):
             target_id, collection = selected[0], "furniture"
         elif len(named) > 1:
             return PolicyDecision(
@@ -299,21 +311,26 @@ class PolicyController:
                 if name and name in text:
                     candidates.append(("furniture", f))
             for opening in plan.get("openings", []):
-                if "门" in text and opening.get("type") in DOOR_TYPES:
+                if "门" in text and "柜门" not in text and opening.get("type") in DOOR_TYPES:
                     candidates.append(("openings", opening))
+            if "柜门" in text or "抽屉" in text:
+                for f in plan.get("furniture", []):
+                    if f.get("key") in OPENABLE_KEYS:
+                        candidates.append(("furniture", f))
             unique = {(kind, item["id"]): (kind, item) for kind, item in candidates}
             if len(unique) == 1:
                 collection, item = next(iter(unique.values()))
                 target_id = item["id"]
             elif len(unique) > 1:
-                names = "、".join(
-                    _names(item) if kind == "furniture" else "门" for kind, item in unique.values()
+                names_str = "、".join(
+                    _names(item) if kind == "furniture" else "门"
+                    for kind, item in unique.values()
                 )
                 return PolicyDecision(
                     route="waiting",
                     mode="interactive_action",
                     reason="快速动作目标不唯一",
-                    question=f"场景里有多个可能目标（{names}），请先选中要操作的那一个。",
+                    question=f"场景里有多个可能目标（{names_str}），请先选中要操作的那一个。",
                     action=action,
                     desiredState=desired_state,
                 )
@@ -356,7 +373,9 @@ class PolicyController:
                     action=action,
                 )
             if action == "toggle_on" and not (
-                re.search(r"lamp|light|tv|curtain|screen", item.get("type", ""), re.IGNORECASE)
+                re.search(
+                    r"lamp|light|tv|curtain|screen", item.get("type", ""), re.IGNORECASE
+                )
                 or "on" in (item.get("opt") or {})
             ):
                 return PolicyDecision(
@@ -423,7 +442,8 @@ class RepairPolicyRouter:
             (
                 issue
                 for issue in issues
-                if issue.get("fixableByFurniture") is False or issue.get("category") == "structure"
+                if issue.get("fixableByFurniture") is False
+                or issue.get("category") == "structure"
             ),
             None,
         )
@@ -436,7 +456,9 @@ class RepairPolicyRouter:
                     {
                         str(object_id)
                         for object_id in (
-                            structural.get("object_ids") or structural.get("objectIds") or []
+                            structural.get("object_ids")
+                            or structural.get("objectIds")
+                            or []
                         )
                     }
                 )[:100],
@@ -459,11 +481,17 @@ class RepairPolicyRouter:
                     {
                         str(object_id)
                         for issue in matches
-                        for object_id in (issue.get("object_ids") or issue.get("objectIds") or [])
+                        for object_id in (
+                            issue.get("object_ids") or issue.get("objectIds") or []
+                        )
                     }
                 )[:100],
-                message=str(matches[0].get("message") or matches[0].get("description") or code),
-                maxDeltaMm=0 if action in ("rehost_or_floor_surface_item", "stop") else 600,
+                message=str(
+                    matches[0].get("message") or matches[0].get("description") or code
+                ),
+                maxDeltaMm=0
+                if action in ("rehost_or_floor_surface_item", "stop")
+                else 600,
             )
         return None
 

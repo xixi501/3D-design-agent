@@ -42,7 +42,7 @@ class RootPathStripMiddleware:
         if ROOT_PATH and path.startswith(ROOT_PATH):
             scope = dict(scope)
             scope["root_path"] = ROOT_PATH
-            scope["path"] = path[len(ROOT_PATH):] or "/"
+            scope["path"] = path[len(ROOT_PATH) :] or "/"
         await self.app(scope, receive, send)
 
 
@@ -91,9 +91,13 @@ def clean_options(
         raise HTTPException(status_code=400, detail="不支持的物品类别")
     placement = placement_type or placement_for_category(category)
     if placement not in {"floor", "surface"}:
-        raise HTTPException(status_code=400, detail="placement_type 只支持 floor 或 surface")
+        raise HTTPException(
+            status_code=400, detail="placement_type 只支持 floor 或 surface"
+        )
     if target_height_mm is not None and not 1 <= target_height_mm <= 10000:
-        raise HTTPException(status_code=400, detail="target_height_mm 应在 1–10000 之间")
+        raise HTTPException(
+            status_code=400, detail="target_height_mm 应在 1–10000 之间"
+        )
     if max_faces is not None and not 1000 <= max_faces <= 500000:
         raise HTTPException(status_code=400, detail="max_faces 应在 1000–500000 之间")
     return {
@@ -124,7 +128,9 @@ def create_app() -> FastAPI:
     )
     if ROOT_PATH:
         app.add_middleware(RootPathStripMiddleware)
-    origins = [item for item in os.getenv("ASSET_CORS_ORIGINS", "").split(",") if item]
+    origins = [
+        item for item in os.getenv("ASSET_CORS_ORIGINS", "").split(",") if item
+    ]
     if origins:
         app.add_middleware(
             CORSMiddleware,
@@ -144,6 +150,10 @@ def create_app() -> FastAPI:
                 directory / job["input_file"],
                 directory,
                 max_faces=options["max_faces"],
+                reference_paths=[
+                    directory / filename for filename in job.get("reference_files", [])
+                ],
+                reference_views=options.get("reference_views"),
             )
             model_path = generated["path"]
             model = inspect_glb(
@@ -178,7 +188,13 @@ def create_app() -> FastAPI:
                     "scale_calibrated": model["scale_calibrated"],
                     **{
                         key: model[key]
-                        for key in ("bounds_min", "bounds_max", "size_m", "size_mm", "normalization")
+                        for key in (
+                            "bounds_min",
+                            "bounds_max",
+                            "size_m",
+                            "size_mm",
+                            "normalization",
+                        )
                     },
                 },
                 "stats": {
@@ -209,11 +225,67 @@ def create_app() -> FastAPI:
         idempotency_key: str | None,
         options: dict,
         reuse_cache: bool,
+        reference_uploads: list[UploadFile] | None = None,
     ) -> dict:
         data = await upload.read(MAX_IMAGE_BYTES + 1)
         image, suffix = normalize_image(data)
+        uploads = reference_uploads or []
+        if len(uploads) > 5:
+            raise HTTPException(
+                status_code=400, detail="At most five reference images are supported"
+            )
+        references = []
+        for ref_upload in uploads:
+            reference, _suffix = normalize_image(
+                await ref_upload.read(MAX_IMAGE_BYTES + 1)
+            )
+            references.append(reference)
+        options = dict(options)
+        raw_views = options.pop("reference_views_json", None)
+        defaults = ["back", "left", "right", "top", "bottom"]
+        try:
+            labels = (
+                json.loads(raw_views)
+                if raw_views
+                else [
+                    Path(ref_upload.filename or "").stem.lower()
+                    if Path(ref_upload.filename or "").stem.lower() in defaults
+                    else defaults[position]
+                    for position, ref_upload in enumerate(uploads)
+                ]
+            )
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(
+                status_code=400, detail="reference_views must be a JSON list"
+            ) from exc
+        if (
+            not isinstance(labels, list)
+            or len(labels) != len(references)
+            or any(
+                not isinstance(label, str) or label not in defaults for label in labels
+            )
+            or len(set(labels)) != len(labels)
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Reference views must be unique back/left/right/top/bottom labels matching the images",
+            )
+        if labels:
+            options["reference_views"] = labels
+        options["pipeline_version"] = "multiview-shape-balanced-pbr-v2"
+        if references:
+            options["reference_sha256"] = [
+                hashlib.sha256(value).hexdigest() for value in references
+            ]
         clean_name = name.strip()[:120] or "未命名物品"
         input_sha256 = hashlib.sha256(image).hexdigest()
+        if references:
+            input_sha256 = hashlib.sha256(
+                json.dumps(
+                    [input_sha256, labels, *options["reference_sha256"]],
+                    separators=(",", ":"),
+                ).encode()
+            ).hexdigest()
         request_hash = hashlib.sha256(
             image
             + clean_name.encode("utf-8")
@@ -231,6 +303,7 @@ def create_app() -> FastAPI:
                 options,
                 input_sha256,
                 reuse_cache,
+                references=references,
             )
         except JobConflict as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -239,7 +312,7 @@ def create_app() -> FastAPI:
         return {"job": job, "replayed": replayed, "cached": cached}
 
     @app.get("/api/v1/health")
-    def health() -> dict:
+    async def health() -> dict:
         return {
             "status": "ok",
             "version": __version__,
@@ -250,16 +323,9 @@ def create_app() -> FastAPI:
     @app.post("/api/v1/jobs", status_code=202, dependencies=[Depends(authorize)])
     async def submit(
         file: UploadFile = File(...),
+        reference_images: list[UploadFile] | None = File(default=None),
         name: str = Form(default="未命名物品"),
-        idempotency_key: str | None = Header(default=None),
-    ) -> dict:
-        options = clean_options("decor", None, None, None, None)
-        return await accept_image(file, name, idempotency_key, options, False)
-
-    @app.post("/api/v1/assets/generate", status_code=202, dependencies=[Depends(authorize)])
-    async def generate(
-        image: UploadFile = File(...),
-        name: str = Form(default="未命名物品"),
+        reference_views: str | None = Form(default=None),
         prompt: str | None = Form(default=None),
         category: str = Form(default="decor"),
         placement_type: str | None = Form(default=None),
@@ -268,35 +334,76 @@ def create_app() -> FastAPI:
         force_regenerate: bool = Form(default=False),
         idempotency_key: str | None = Header(default=None),
     ) -> dict:
-        options = clean_options(category, placement_type, target_height_mm, max_faces, prompt)
+        options = clean_options(
+            category, placement_type, target_height_mm, max_faces, prompt
+        )
+        options["reference_views_json"] = reference_views
         return await accept_image(
-            image, name, idempotency_key, options, not force_regenerate
+            file,
+            name,
+            idempotency_key,
+            options,
+            not force_regenerate,
+            reference_images,
+        )
+
+    @app.post(
+        "/api/v1/assets/generate", status_code=202, dependencies=[Depends(authorize)]
+    )
+    async def generate(
+        image: UploadFile = File(...),
+        reference_images: list[UploadFile] | None = File(default=None),
+        name: str = Form(default="未命名物品"),
+        reference_views: str | None = Form(default=None),
+        prompt: str | None = Form(default=None),
+        category: str = Form(default="decor"),
+        placement_type: str | None = Form(default=None),
+        target_height_mm: int | None = Form(default=None),
+        max_faces: int | None = Form(default=None),
+        force_regenerate: bool = Form(default=False),
+        idempotency_key: str | None = Header(default=None),
+    ) -> dict:
+        options = clean_options(
+            category, placement_type, target_height_mm, max_faces, prompt
+        )
+        options["reference_views_json"] = reference_views
+        return await accept_image(
+            image,
+            name,
+            idempotency_key,
+            options,
+            not force_regenerate,
+            reference_images,
         )
 
     @app.get("/api/v1/jobs", dependencies=[Depends(authorize)])
-    def jobs() -> dict:
+    async def jobs() -> dict:
         return {"jobs": store.list()}
 
     @app.get("/api/v1/jobs/{job_id}", dependencies=[Depends(authorize)])
-    def job(job_id: str) -> dict:
+    async def job(job_id: str) -> dict:
         try:
             return {"job": store.get(job_id)}
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="任务不存在") from exc
 
     @app.get("/api/v1/assets", dependencies=[Depends(authorize)])
-    def assets() -> dict:
-        return {"assets": [job["result"] for job in store.list() if job.get("result")]}
+    async def assets() -> dict:
+        return {
+            "assets": [job["result"] for job in store.list() if job.get("result")]
+        }
 
     @app.get("/api/v1/assets/{asset_id}", dependencies=[Depends(authorize)])
-    def asset(asset_id: str) -> dict:
+    async def asset(asset_id: str) -> dict:
         try:
             metadata, _directory = store.find_asset(asset_id)
             return {"asset": metadata}
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="资产不存在") from exc
 
-    @app.post("/api/v1/assets/{asset_id}/calibrate", dependencies=[Depends(authorize)])
+    @app.post(
+        "/api/v1/assets/{asset_id}/calibrate", dependencies=[Depends(authorize)]
+    )
     def calibrate(asset_id: str, request: CalibrationRequest) -> dict:
         try:
             metadata, _directory = store.find_asset(asset_id)
@@ -307,7 +414,9 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=400, detail="不支持的物品类别")
         placement = request.placementType or placement_for_category(category)
         if placement not in {"floor", "surface"}:
-            raise HTTPException(status_code=400, detail="placementType 只支持 floor 或 surface")
+            raise HTTPException(
+                status_code=400, detail="placementType 只支持 floor 或 surface"
+            )
         aspect = metadata.get("stats", {}).get("aspectRatio")
         if aspect is None:
             size = metadata["spatial"]["size_m"]
@@ -317,8 +426,12 @@ def create_app() -> FastAPI:
                 "height": 1.0,
             }
         height = request.heightMm
-        width = request.widthMm or max(1, round(height * aspect["width"] / aspect["height"]))
-        depth = request.depthMm or max(1, round(height * aspect["depth"] / aspect["height"]))
+        width = request.widthMm or max(
+            1, round(height * aspect["width"] / aspect["height"])
+        )
+        depth = request.depthMm or max(
+            1, round(height * aspect["depth"] / aspect["height"])
+        )
         physical = {"width": width, "depth": depth, "height": height}
         spatial = dict(metadata["spatial"])
         spatial.update(
@@ -356,7 +469,9 @@ def create_app() -> FastAPI:
     def model_glb(asset_id: str) -> FileResponse:
         return model_response(asset_id)
 
-    @app.get("/api/v1/assets/{asset_id}/preview.png", dependencies=[Depends(authorize)])
+    @app.get(
+        "/api/v1/assets/{asset_id}/preview.png", dependencies=[Depends(authorize)]
+    )
     def preview(asset_id: str) -> FileResponse:
         try:
             _metadata, directory = store.find_asset(asset_id)

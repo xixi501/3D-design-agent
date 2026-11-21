@@ -1,14 +1,12 @@
-"""Read-only MCP gateway client for ActiScape scene checks.
+"""MCP gateway client for ActiScape tools on Huawei Cloud AgentArts.
 
-The AgentArts gateway (``actiscape-tools``) authenticates with the Huawei IAM
-signature scheme V11 (``SDK-HMAC-SHA256``).  Credentials are read from the
-runtime environment only; nothing is baked into the image or the repository.
-
-Environment variables
----------------------
-``AGENTARTS_MCP_URL``            gateway ``/mcp`` endpoint (override)
-``AGENTARTS_MCP_AK`` / ``SK``    credentials (fallback: ``HUAWEICLOUD_SDK_AK`` / ``SK``)
-``AGENTARTS_MCP_SECURITY_TOKEN`` optional temporary-credential token
+Supports Huawei IAM Signature V11 (``SDK-HMAC-SHA256``) with automatic 3-tier
+credential resolution:
+1. Explicit ``AGENTARTS_MCP_AK`` / ``SK`` (+ ``AGENTARTS_MCP_SECURITY_TOKEN``)
+2. Standard SDK ``HUAWEICLOUD_SDK_AK`` / ``SK`` (+ ``HUAWEICLOUD_SDK_SECURITY_TOKEN``)
+3. Huawei Cloud Runtime / ECS IAM Agency temporary STS metadata endpoint
+   (``DefaultAgentArtsRuntimeAgency``), eliminating static AK/SK residency when
+   agency metadata is reachable.
 """
 
 from __future__ import annotations
@@ -22,12 +20,21 @@ import time
 import uuid
 from datetime import datetime, timezone
 from urllib.parse import urlsplit
-from urllib.request import Request, urlopen
+from urllib.request import ProxyHandler, Request, build_opener, urlopen
 
 DEFAULT_MCP_URL = (
     "https://actiscape-tools-defaultgw-gu2wkyrzha.cn-southwest-2.huaweicloud-agentarts.com/mcp"
 )
-TOOL_NAME = "actiscape-scene_get_scene_checks"
+TOOL_SCENE_CHECKS = "actiscape-scene_get_scene_checks"
+TOOL_NAME = TOOL_SCENE_CHECKS  # Backwards-compatible alias
+METADATA_SECURITYKEY_URL = "http://169.254.169.254/openstack/latest/securitykey"
+
+_AGENCY_CACHE: dict[str, str | float | None] = {
+    "access": None,
+    "secret": None,
+    "token": None,
+    "expires_at": 0.0,
+}
 
 
 def _hex_sha256(data: bytes) -> str:
@@ -75,15 +82,61 @@ def sign_v11(
     return out
 
 
+def _agency_credentials() -> tuple[str, str, str | None]:
+    now = time.time()
+    if (
+        _AGENCY_CACHE["access"]
+        and _AGENCY_CACHE["secret"]
+        and float(_AGENCY_CACHE["expires_at"] or 0.0) - now > 60.0
+    ):
+        return (
+            str(_AGENCY_CACHE["access"]),
+            str(_AGENCY_CACHE["secret"]),
+            str(_AGENCY_CACHE["token"]) if _AGENCY_CACHE["token"] else None,
+        )
+    try:
+        opener = build_opener(ProxyHandler({}))
+        req = Request(METADATA_SECURITYKEY_URL, method="GET")
+        with opener.open(req, timeout=1.5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        cred = data.get("credential") or data
+        ak = str(cred.get("access") or "").strip()
+        sk = str(cred.get("secret") or "").strip()
+        st = str(cred.get("securitytoken") or "").strip() or None
+        exp_str = cred.get("expires_at")
+        exp_ts = now + 600.0
+        if isinstance(exp_str, str) and exp_str:
+            try:
+                exp_ts = datetime.fromisoformat(exp_str.replace("Z", "+00:00")).timestamp()
+            except Exception:
+                pass
+        if ak and sk:
+            _AGENCY_CACHE.update(access=ak, secret=sk, token=st, expires_at=exp_ts)
+            return ak, sk, st
+    except Exception:
+        pass
+    return "", "", None
+
+
 def _credentials() -> tuple[str, str, str | None]:
-    access = os.environ.get("AGENTARTS_MCP_AK") or os.environ.get("HUAWEICLOUD_SDK_AK") or ""
-    secret = os.environ.get("AGENTARTS_MCP_SK") or os.environ.get("HUAWEICLOUD_SDK_SK") or ""
+    access = (
+        os.environ.get("AGENTARTS_MCP_AK")
+        or os.environ.get("HUAWEICLOUD_SDK_AK")
+        or ""
+    ).strip()
+    secret = (
+        os.environ.get("AGENTARTS_MCP_SK")
+        or os.environ.get("HUAWEICLOUD_SDK_SK")
+        or ""
+    ).strip()
     token = (
         os.environ.get("AGENTARTS_MCP_SECURITY_TOKEN")
         or os.environ.get("HUAWEICLOUD_SDK_SECURITY_TOKEN")
         or None
     )
-    return access.strip(), secret.strip(), token
+    if access and secret:
+        return access, secret, token
+    return _agency_credentials()
 
 
 def mcp_url() -> str:
@@ -116,17 +169,21 @@ def _extract(payload: dict) -> tuple[dict | None, str | None]:
     return None, "MCP 响应缺少 structuredContent"
 
 
-async def call_scene_checks(project_id: str, timeout: float = 45.0) -> dict:
-    """Call ``actiscape-scene_get_scene_checks`` through the MCP gateway."""
+async def call_mcp_tool(
+    tool_name: str,
+    arguments: dict,
+    timeout: float = 45.0,
+) -> dict:
+    """Generic JSON-RPC tools/call wrapper against the AgentArts MCP gateway."""
     started = time.monotonic()
     request_id = str(uuid.uuid4())
-    access, secret, token = _credentials()
+    access, secret, token = await asyncio.to_thread(_credentials)
     if not access or not secret:
         return {
             "ok": False,
             "request_id": request_id,
             "error": "missing_credentials",
-            "message": "运行时缺少 IAM 凭据（AGENTARTS_MCP_AK/SK 或 HUAWEICLOUD_SDK_AK/SK）",
+            "message": "运行时缺少 IAM 凭据（环境变量或运行时委托均未提供可用 AK/SK）",
             "ms": 0,
         }
     body = json.dumps(
@@ -135,8 +192,8 @@ async def call_scene_checks(project_id: str, timeout: float = 45.0) -> dict:
             "id": request_id,
             "method": "tools/call",
             "params": {
-                "name": TOOL_NAME,
-                "arguments": {"path": {"id": project_id}},
+                "name": tool_name,
+                "arguments": arguments,
             },
         },
         ensure_ascii=False,
@@ -145,7 +202,7 @@ async def call_scene_checks(project_id: str, timeout: float = 45.0) -> dict:
     headers = sign_v11(access, secret, "POST", url, body, token)
     try:
         status, text = await asyncio.to_thread(_post, url, body, headers, timeout)
-    except Exception as exc:  # noqa: BLE001 - surfaced to the task result
+    except Exception as exc:
         return {
             "ok": False,
             "request_id": request_id,
@@ -164,7 +221,7 @@ async def call_scene_checks(project_id: str, timeout: float = 45.0) -> dict:
         }
     try:
         payload = json.loads(text)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return {
             "ok": False,
             "request_id": request_id,
@@ -189,11 +246,29 @@ async def call_scene_checks(project_id: str, timeout: float = 45.0) -> dict:
             "message": error,
             "ms": ms,
         }
-    issues = structured.get("issues") if isinstance(structured, dict) else None
     return {
         "ok": True,
         "request_id": request_id,
-        "revision": (structured or {}).get("revision"),
-        "issues": issues if isinstance(issues, list) else [],
+        "data": structured or {},
         "ms": ms,
+    }
+
+
+async def call_scene_checks(project_id: str, timeout: float = 45.0) -> dict:
+    """Call ``actiscape-scene_get_scene_checks`` through the MCP gateway."""
+    res = await call_mcp_tool(
+        TOOL_SCENE_CHECKS,
+        {"path": {"id": project_id}},
+        timeout=timeout,
+    )
+    if not res.get("ok"):
+        return res
+    structured = res.get("data") or {}
+    issues = structured.get("issues") if isinstance(structured, dict) else None
+    return {
+        "ok": True,
+        "request_id": res["request_id"],
+        "revision": structured.get("revision") if isinstance(structured, dict) else None,
+        "issues": issues if isinstance(issues, list) else [],
+        "ms": res["ms"],
     }

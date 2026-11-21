@@ -12,9 +12,13 @@ from .roles import Roles
 from .store import TaskError, TaskStore, fingerprint
 from .workflow import Workflow
 
+PRUNABLE_STATUSES = ("completed", "cancelled")
+
 
 class TaskManager:
-    def __init__(self, directory: Path, client: SceneClient | None = None, roles_factory=Roles):
+    def __init__(
+        self, directory: Path, client: SceneClient | None = None, roles_factory=Roles
+    ):
         self.directory = directory
         self.store = TaskStore(directory)
         self.client = client or SceneClient()
@@ -23,15 +27,50 @@ class TaskManager:
         self.queued = set()
         self.worker = None
         self.graph = None
+        self.saver = None
         self.checkpoint_context = None
         self.delayed = set()
+
+    async def _prune_checkpoints(self, thread_id: str) -> None:
+        """Delete transient node checkpoints once a task reaches permanent completion/cancellation."""
+        conn = getattr(self.saver, "conn", None)
+        if conn is None:
+            return
+        with contextlib.suppress(Exception):
+            await conn.execute("DELETE FROM writes WHERE thread_id=?", (thread_id,))
+            await conn.execute("DELETE FROM checkpoints WHERE thread_id=?", (thread_id,))
+            await conn.commit()
+
+    async def _sweep_finished_checkpoints(self) -> None:
+        """Prune leftover checkpoints for already-completed/cancelled or deleted tasks on startup."""
+        conn = getattr(self.saver, "conn", None)
+        if conn is None:
+            return
+        with contextlib.suppress(Exception):
+            async with conn.execute("SELECT DISTINCT thread_id FROM checkpoints") as cur:
+                rows = await cur.fetchall()
+            if not rows:
+                return
+            for (tid,) in rows:
+                status_row = self.store.db.execute(
+                    "SELECT status FROM tasks WHERE id=?", (tid,)
+                ).fetchone()
+                if status_row is None or status_row["status"] in PRUNABLE_STATUSES:
+                    await conn.execute("DELETE FROM writes WHERE thread_id=?", (tid,))
+                    await conn.execute(
+                        "DELETE FROM checkpoints WHERE thread_id=?", (tid,)
+                    )
+            await conn.commit()
+            await conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
 
     async def start(self):
         self.checkpoint_context = AsyncSqliteSaver.from_conn_string(
             str(self.directory / "checkpoints.sqlite")
         )
         saver = await self.checkpoint_context.__aenter__()
+        self.saver = saver
         self.graph = Workflow(self.store, self.client, self.roles).compile(saver)
+        await self._sweep_finished_checkpoints()
         self.worker = asyncio.create_task(self.work())
         for id in self.store.recoverable():
             self.enqueue(id)
@@ -41,12 +80,23 @@ class TaskManager:
             with contextlib.suppress(SceneFailure, TaskError, httpx.HTTPError):
                 await self.reconcile_floorplan_confirmation(row["id"])
 
+    async def cancel(self, id: str):
+        cancelled = self.store.cancel(id)
+        if cancelled["status"] == "cancelled":
+            await self._prune_checkpoints(id)
+        return cancelled
+
     async def resume(self, id, body):
         task = self.store.resume(id, body)
         # The new user requirement invalidates old candidate references even
         # while grounding/clarification has not produced a replacement yet.
         try:
-            if task["mode"] in ("edit", "repair_layout", "interactive_action", "photo_to_scene"):
+            if task["mode"] in (
+                "edit",
+                "repair_layout",
+                "interactive_action",
+                "photo_to_scene",
+            ):
                 await self.client.request(
                     f"/projects/{task['projectId']}/edit-authorizations/invalidate",
                     {"taskId": id, "version": task["generation"]["authorizationVersion"]},
@@ -112,22 +162,25 @@ class TaskManager:
         project = await self.client.request(f"/projects/{task['projectId']}")
         if self.store.task(id)["status"] != "waiting_input":
             return
-        if any(
-            project["plan"].get(k)
-            for k in (
-                "nodes",
-                "walls",
-                "openings",
-                "furniture",
-                "rooms",
-                "structs",
-                "beams",
-                "measures",
-                "elec",
-                "voids",
-                "comments",
+        if (
+            any(
+                project["plan"].get(k)
+                for k in (
+                    "nodes",
+                    "walls",
+                    "openings",
+                    "furniture",
+                    "rooms",
+                    "structs",
+                    "beams",
+                    "measures",
+                    "elec",
+                    "voids",
+                    "comments",
+                )
             )
-        ) or project.get("roomLabelArchive"):
+            or project.get("roomLabelArchive")
+        ):
             result = {
                 "status": "failed",
                 "errorCode": "PROJECT_NOT_EMPTY",
@@ -142,7 +195,8 @@ class TaskManager:
         c = d.get("confirmed")
         applied = (
             self.store.db.execute(
-                "SELECT 1 FROM actions WHERE task_id=? AND request_id=?", (id, c["requestId"])
+                "SELECT 1 FROM actions WHERE task_id=? AND request_id=?",
+                (id, c["requestId"]),
             ).fetchone()
             if c
             else None
@@ -268,6 +322,7 @@ class TaskManager:
                 await self.worker
         if self.checkpoint_context:
             await self.checkpoint_context.__aexit__(None, None, None)
+        self.saver = None
         self.store.close()
 
     def retry_later(self, id: str):
@@ -303,7 +358,9 @@ class TaskManager:
         task = self.store.task(id, internal=True)
         result = completion_result(task, state, c, revision)
         self.store.focus(task["conversationId"], conversation_focus(c))
-        self.store.event(id, "commit_reconciled", {"candidateId": c["id"], "revision": revision})
+        self.store.event(
+            id, "commit_reconciled", {"candidateId": c["id"], "revision": revision}
+        )
         return result
 
     def enqueue(self, id: str):
@@ -325,8 +382,11 @@ class TaskManager:
                     if final:
                         self.store.update(id, status="completed", result=final, error=None)
                         self.store.event(
-                            id, "status", {"status": "completed", "message": final["message"]}
+                            id,
+                            "status",
+                            {"status": "completed", "message": final["message"]},
                         )
+                        await self._prune_checkpoints(id)
                         continue
                 previous = await self.graph.aget_state(config)
                 input_hash = fingerprint(
@@ -398,6 +458,8 @@ class TaskManager:
                 self.store.event(
                     id, "status", {"status": final["status"], "message": final["message"]}
                 )
+                if final["status"] in PRUNABLE_STATUSES:
+                    await self._prune_checkpoints(id)
             except asyncio.CancelledError:
                 self.store.event(
                     id, "interrupted", {"message": "服务关闭，任务检查点保留，重启后恢复"}
@@ -408,12 +470,15 @@ class TaskManager:
                     try:
                         reconciled = await self.reconcile_commit(id, config)
                         if reconciled:
-                            self.store.update(id, status="completed", result=reconciled, error=None)
+                            self.store.update(
+                                id, status="completed", result=reconciled, error=None
+                            )
                             self.store.event(
                                 id,
                                 "status",
                                 {"status": "completed", "message": reconciled["message"]},
                             )
+                            await self._prune_checkpoints(id)
                             continue
                     except SceneFailure as commit_error:
                         if commit_error.code == "REVISION_CONFLICT":
@@ -473,7 +538,8 @@ class TaskManager:
                 result = {"status": status, "message": message, "errorCode": code}
                 current = self.store.task(id)
                 if (
-                    current.get("mode") in ("generate_rectangular", "reconstruct_floorplan")
+                    current.get("mode")
+                    in ("generate_rectangular", "reconstruct_floorplan")
                     and status == "failed"
                 ):
                     generation = current.get("generation", {})
@@ -485,7 +551,9 @@ class TaskManager:
                         )
                         blocking = [
                             i["message"]
-                            for i in (generation.get("lastChecks") or {}).get("issues", [])
+                            for i in (generation.get("lastChecks") or {}).get(
+                                "issues", []
+                            )
                             if i.get("blocking")
                         ]
                         if blocking:
@@ -504,6 +572,8 @@ class TaskManager:
                 self.store.event(
                     id, "status", {"status": status, "message": message, "errorCode": code}
                 )
+                if status in PRUNABLE_STATUSES:
+                    await self._prune_checkpoints(id)
             finally:
                 self.store.pause_clock(id)
                 self.queued.discard(id)

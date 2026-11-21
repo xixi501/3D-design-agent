@@ -20,7 +20,11 @@ import {
 } from "../../../packages/scene-core/src/index.js";
 import { ProjectStore } from "./store.js";
 import { inspectGlb } from "./assets.js";
-import { AssetProvider } from "./asset-provider.js";
+import {
+  AssetProvider,
+  type ReferenceImageInput,
+  type ReferenceViewLabel,
+} from "./asset-provider.js";
 import { candidateRoutes } from "./candidate-routes.js";
 import { floorplanRoutes } from "./floorplan-routes.js";
 import { SceneDraftStore } from "./scene-drafts.js";
@@ -28,6 +32,14 @@ import { sceneDraftRoutes } from "./scene-draft-routes.js";
 import { RoutedFloorplanStore } from "./scene-floorplan-drafts.js";
 import { agentProxy } from "./agent-proxy.js";
 import { agentArtsProxy } from "./agentarts-proxy.js";
+
+const VALID_REF_VIEWS = new Set<ReferenceViewLabel>([
+  "back",
+  "left",
+  "right",
+  "top",
+  "bottom",
+]);
 
 export async function createApp(options: {
   dataDir: string;
@@ -71,7 +83,7 @@ export async function createApp(options: {
     },
   });
   await app.register(multipart, {
-    limits: { fileSize: 50 * 1024 * 1024, files: 1 },
+    limits: { fileSize: 50 * 1024 * 1024, files: 6 },
   });
   app.setErrorHandler((error: any, _request, reply) => {
     const status =
@@ -87,12 +99,7 @@ export async function createApp(options: {
     const token = process.env.ACTISCAPE_TOOL_TOKEN?.trim();
     if (!token) return;
     const pathname = (request.raw.url || "").split("?")[0];
-    if (
-      !pathname.startsWith("/api/") ||
-      pathname === "/api/health" ||
-      pathname === "/api/openapi.json"
-    )
-      return;
+    if (!pathname.startsWith("/api/") || pathname === "/api/health") return;
     const authorization = request.headers.authorization;
     const headerToken = request.headers["x-actiscape-token"];
     const queryToken = new URL(request.url, "http://service").searchParams.get(
@@ -109,11 +116,13 @@ export async function createApp(options: {
       queryToken === token ||
       cookieToken === token;
     if (allowed) {
-      if (cookieToken !== token)
+      if (cookieToken !== token) {
+        const isHttps = request.headers["x-forwarded-proto"] === "https";
         reply.header(
           "set-cookie",
-          `actiscape_token=${token}; Path=/; HttpOnly; SameSite=Lax`,
+          `actiscape_token=${token}; Path=/; HttpOnly; SameSite=Lax${isHttps ? "; Secure" : ""}`,
         );
+      }
       return;
     }
     return reply.code(401).send({
@@ -136,7 +145,7 @@ export async function createApp(options: {
   const candidates = candidateRoutes(app, store, notify, floorplans);
   floorplanRoutes(app, floorplans);
   sceneDraftRoutes(app, sceneDrafts);
-  agentProxy(app);
+  agentProxy(app, store);
   agentArtsProxy(app);
   app.get(
     "/api/catalog",
@@ -290,7 +299,7 @@ export async function createApp(options: {
   });
   app.get("/api/assets/providers", async () => assetProvider.providers());
   app.get("/api/assets/jobs", async () => ({ jobs: assetProvider.listJobs() }));
-  app.get("/api/assets/jobs/:id", async (req, reply) => {
+  app.get("/api/assets/jobs/:id", async (req) => {
     try {
       return await assetProvider.poll((req.params as any).id);
     } catch (error) {
@@ -302,19 +311,71 @@ export async function createApp(options: {
     }
   });
   const generateFromImage = async (req: any, reply: any) => {
-    let image: Buffer | undefined,
-      filename: string | undefined;
+    let image: Buffer | undefined, filename: string | undefined;
+    const referenceImages: ReferenceImageInput[] = [];
     const fields: Record<string, string> = {};
     for await (const part of req.parts()) {
       if (part.type === "file") {
-        image = await part.toBuffer();
-        filename = part.filename;
+        const buf = await part.toBuffer();
+        if (
+          part.fieldname === "reference_images" ||
+          part.fieldname === "referenceImages"
+        ) {
+          if (buf.length > 10 * 1024 * 1024)
+            throw new SceneError(
+              "IMAGE_TOO_LARGE",
+              "参考视角照片不能超过 10 MB",
+              413,
+            );
+          if (buf.length)
+            referenceImages.push({ image: buf, filename: part.filename });
+        } else if (!image) {
+          image = buf;
+          filename = part.filename;
+        } else {
+          if (buf.length > 10 * 1024 * 1024)
+            throw new SceneError(
+              "IMAGE_TOO_LARGE",
+              "参考视角照片不能超过 10 MB",
+              413,
+            );
+          if (buf.length)
+            referenceImages.push({ image: buf, filename: part.filename });
+        }
       } else fields[part.fieldname] = String(part.value);
     }
     if (!image?.length)
       throw new SceneError("MISSING_IMAGE", "需要一张物品照片", 400);
     if (image.length > 10 * 1024 * 1024)
       throw new SceneError("IMAGE_TOO_LARGE", "物品照片不能超过 10 MB", 413);
+    if (referenceImages.length > 5)
+      throw new SceneError(
+        "TOO_MANY_REFERENCES",
+        "最多支持 5 张多视角参考照片",
+        400,
+      );
+    let referenceViews: ReferenceViewLabel[] | undefined;
+    const rawViews = fields.referenceViews || fields.reference_views;
+    if (rawViews) {
+      try {
+        const parsed = JSON.parse(rawViews);
+        if (
+          !Array.isArray(parsed) ||
+          parsed.length !== referenceImages.length ||
+          parsed.some((v) => !VALID_REF_VIEWS.has(v)) ||
+          new Set(parsed).size !== parsed.length
+        ) {
+          throw new Error("invalid reference_views");
+        }
+        referenceViews = parsed as ReferenceViewLabel[];
+      } catch {
+        throw new SceneError(
+          "INVALID_REFERENCE_VIEWS",
+          "reference_views 必须是与参考图一一对应的唯一视角数组（back/left/right/top/bottom）",
+          400,
+        );
+      }
+    }
     const target = fields.targetHeightMm || fields.target_height_mm;
     const targetHeightMm = target ? Number(target) : undefined;
     try {
@@ -327,6 +388,8 @@ export async function createApp(options: {
           targetHeightMm && Number.isFinite(targetHeightMm)
             ? targetHeightMm
             : undefined,
+        ...(referenceImages.length ? { referenceImages } : {}),
+        ...(referenceViews ? { referenceViews } : {}),
       });
       return reply
         .code(result.job.status === "succeeded" ? 201 : 202)
@@ -350,7 +413,12 @@ export async function createApp(options: {
         400,
       );
     try {
-      return { asset: assetProvider.calibrate((req.params as any).assetId, body.targetHeightMm) };
+      return {
+        asset: assetProvider.calibrate(
+          (req.params as any).assetId,
+          body.targetHeightMm,
+        ),
+      };
     } catch (error) {
       if (error instanceof SceneError) throw error;
       throw new SceneError(

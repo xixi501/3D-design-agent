@@ -950,8 +950,11 @@ def test_v33_candidate_layer_closes_walls_and_finds_opening_intervals():
         "data/floorplan-images/"
         "fp-7ffeba5739402634c8744d723125c134e722d794f55ebd5140246b76681841aa/"
         "normalized.png"
+    ).exists()
+    or not Path(
+        "test-results/floorplan-tool-live/2026-11-08T03-04-42-162Z/1-result.json"
     ).exists(),
-    reason="frozen real image is kept outside the repository",
+    reason="frozen real image or live capture fixture is kept outside the repository",
 )
 def test_v33_frozen_real_candidates_replay_known_failure():
     image_path = Path(

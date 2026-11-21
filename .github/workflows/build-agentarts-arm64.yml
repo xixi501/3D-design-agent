@@ -1,0 +1,94 @@
+name: Build & Push AgentArts ARM64 Runtime Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "SWR 镜像 Tag（留空则使用提交短 SHA）"
+        required: false
+        default: ""
+      ref:
+        description: "构建分支或标签（留空则使用当前触发分支）"
+        required: false
+        default: ""
+      runner:
+        description: "GitHub Runner（原生 ubuntu-24.04-arm 速度极快且免 QEMU 兼容性风险；私仓未启用时可选 ubuntu-latest）"
+        required: false
+        default: "ubuntu-24.04-arm"
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-arm64:
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04-arm' }}
+    env:
+      REGION: ${{ secrets.SWR_REGION || 'cn-southwest-2' }}
+      ORG: ${{ secrets.SWR_ORG }}
+      IMAGE: actiscape-agentarts
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Build & Self-Verify AgentArts Bundle
+        run: |
+          npm ci
+          npm run build:agentarts-bundle
+          cat dist/agentarts-bundle/BUNDLE_MANIFEST.json
+
+      - name: Setup QEMU (fallback when runner is x86_64)
+        if: runner.arch != 'ARM64'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Huawei Cloud SWR
+        run: |
+          test -n "${ORG}" || { echo "Missing secret SWR_ORG"; exit 1; }
+          echo "${SWR_SK}" | docker login \
+            -u "${REGION}@${SWR_AK}" \
+            --password-stdin \
+            "swr.${REGION}.myhuaweicloud.com"
+        env:
+          SWR_AK: ${{ secrets.SWR_AK }}
+          SWR_SK: ${{ secrets.SWR_SK }}
+
+      - name: Resolve Image Tag
+        id: tag
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          if [ -z "$TAG" ]; then TAG="${GITHUB_SHA::7}"; fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Build and Push linux/arm64 Image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: dist/agentarts-bundle
+          platforms: linux/arm64
+          push: true
+          provenance: false
+          oci-mediatypes: false
+          tags: swr.${{ env.REGION }}.myhuaweicloud.com/${{ env.ORG }}/${{ env.IMAGE }}:${{ steps.tag.outputs.tag }}
+
+      - name: Verify Pushed Image Architecture & Record Digest
+        run: |
+          IMG="swr.${REGION}.myhuaweicloud.com/${ORG}/${IMAGE}:${{ steps.tag.outputs.tag }}"
+          docker buildx imagetools inspect "$IMG"
+          {
+            echo "### AgentArts ARM64 镜像构建完成"
+            echo ""
+            echo "- **镜像地址**: \`$IMG\`"
+            echo "- **Digest**: \`${{ steps.push.outputs.digest }}\`"
+            echo "- **源码提交**: \`${GITHUB_SHA}\`"
+            echo "- **构建架构**: \`linux/arm64\` (Runner: \`${{ runner.arch }}\`)"
+          } >> "$GITHUB_STEP_SUMMARY"

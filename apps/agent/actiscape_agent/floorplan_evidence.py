@@ -1,4 +1,4 @@
-"""Shared, atomic image evidence for the version-two floorplan workflow."""
+"""Shared, atomic image evidence and pipeline base for floorplan workflows."""
 
 import base64
 import hashlib
@@ -23,7 +23,9 @@ class FloorplanEvidence:
             parts.append(
                 {
                     "type": "image_url",
-                    "image_url": {"url": "data:image/png;base64," + base64.b64encode(raw).decode()},
+                    "image_url": {
+                        "url": "data:image/png;base64," + base64.b64encode(raw).decode()
+                    },
                 }
             )
         return parts
@@ -76,7 +78,8 @@ class FloorplanEvidence:
                 if key in requests:
                     return requests[key]
                 if len(requests) >= 4 or (
-                    self.role == "main" and sum(r["role"] == "main" for r in requests.values()) >= 2
+                    self.role == "main"
+                    and sum(r["role"] == "main" for r in requests.values()) >= 2
                 ):
                     raise TaskError("CROP_LIMIT", "裁剪预算已用完；请读取已有共享证据")
                 requests[key] = {"role": self.role, "box": box, "status": "reserved"}
@@ -126,13 +129,36 @@ class FloorplanEvidence:
                 self.register(record, "request_crop")
                 self.store.mutate_generation(
                     self.task["id"],
-                    lambda g: g["cropRequests"][key].update(status="completed", record=record),
+                    lambda g: g["cropRequests"][key].update(
+                        status="completed", record=record
+                    ),
                 )
                 return await self.parts(record)
             except BaseException:
                 self.store.mutate_generation(
-                    self.task["id"], lambda g: g["cropRequests"][key].update(status="failed")
+                    self.task["id"],
+                    lambda g: g["cropRequests"][key].update(status="failed"),
                 )
                 raise
 
         return request_crop
+
+
+class FloorplanPipelineBase:
+    """Shared persistence and evidence-context helper for FloorplanV3/V4."""
+
+    def __init__(self, store, client, base):
+        self.store, self.client, self.base = store, client, base
+
+    def patch(self, id, **values):
+        return self.store.mutate_generation(id, lambda g: g.update(values))
+
+    async def context(self, task, image, role):
+        evidence = FloorplanEvidence(self.base, task, image, role)
+
+        @tool
+        async def floorplan_context() -> dict:
+            """Read original dimensions, bounded candidates and shared evidence index."""
+            return await evidence.context()
+
+        return evidence, floorplan_context

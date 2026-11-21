@@ -155,12 +155,6 @@ class FloorplanFlow:
                 return await FloorplanV3(self.store, self.client, self.roles.base).ground(
                     state, task, self._ground_legacy
                 )
-            if task["generation"].get("workflowVersion") == 2:
-                from .floorplan_v2 import FloorplanV2
-
-                return await FloorplanV2(self.store, self.client, self.roles.base).ground(
-                    state, task, self._ground_legacy
-                )
             return await self._ground_legacy(state, task)
         except TaskError as error:
             g = self.store.task(task["id"], internal=True)["generation"]

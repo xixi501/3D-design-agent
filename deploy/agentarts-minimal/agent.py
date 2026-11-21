@@ -1,4 +1,4 @@
-"""Small platform connectivity probe. Runs only against explicitly named disposable test projects."""
+"""Huawei Cloud AgentArts Runtime entrypoint (supports probe, run_task, resume_task, cancel_task)."""
 
 import os
 from datetime import datetime, timezone
@@ -6,13 +6,13 @@ from typing import TypedDict
 
 from actiscape_agent.client import SceneClient
 from actiscape_agent.model import create_model
-from task_runtime import run_task
 from agentarts.sdk import AgentArtsRuntimeApp, RequestContext
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ToolStrategy
 from langchain_core.tools import tool
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
+from task_runtime import cancel_task, resume_task, run_task
 
 app = AgentArtsRuntimeApp()
 
@@ -203,7 +203,14 @@ graph = builder.compile()
 
 @app.entrypoint
 async def handler(payload: dict, context: RequestContext = None) -> dict:
-    if payload.get("action") == "run_task" or (
+    action = payload.get("action")
+    if action == "ping":
+        return {"status": "ok", "service": "actiscape-agentarts"}
+    if action == "resume_task":
+        return await resume_task(payload)
+    if action == "cancel_task":
+        return await cancel_task(payload)
+    if action == "run_task" or (
         "projectId" in payload
         and "input" in payload
         and "originalX" not in payload

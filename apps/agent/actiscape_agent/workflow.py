@@ -1,3 +1,5 @@
+"""LangGraph state-machine orchestrator delegating mode specifics to flows/."""
+
 from typing import TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -5,23 +7,34 @@ from langgraph.graph import END, START, StateGraph
 from .client import SceneClient, SceneFailure
 from .edit_execution import authorize_edit, compile_scope, submit_candidate
 from .edit_results import completion_result, conversation_focus
-from .exact_edits import exact_proposal, no_change, parse_exact
+from .exact_edits import no_change
 from .floorplan_flow import FloorplanFlow
 from .floorplan_roles import FloorplanRoles
+from .flows import LayoutTaskHandler, resolve_task_handler
 from .generation_flow import COLLECTIONS, GenerationFlow
 from .generation_roles import GenerationRoles
 from .interactive_flow import InteractiveFlow
 from .photo_flow import PhotoFlow
-from .policy import PolicyController, RepairPolicyRouter
-from .role_contracts import (
-    RepairBudgetState,
-    ReviewIssueV1,
-    build_repair_request,
-)
+from .policy import PolicyController
 from .roles import Roles
-from .scene_projection import ensure_edit_scene_draft, sync_edit_scene_program
 from .skill_registry import get_registry
 from .store import TaskError, TaskStore
+
+__all__ = [
+    "COLLECTIONS",
+    "FloorplanFlow",
+    "FloorplanRoles",
+    "GenerationFlow",
+    "GenerationRoles",
+    "InteractiveFlow",
+    "PhotoFlow",
+    "State",
+    "Workflow",
+    "ambiguous_name",
+    "authorize_edit",
+    "compile_scope",
+    "submit_candidate",
+]
 
 
 class State(TypedDict, total=False):
@@ -64,7 +77,6 @@ def ambiguous_name(task: dict, project: dict, conversation: dict) -> str | None:
             continue
         if any(word in text for word in ("所有", "全部", "每一", "一起")):
             continue
-        # Position qualifiers are meaningful before the object name; movement directions after it are not.
         prefix = text[: text.index(name)]
         if any(
             word in prefix
@@ -91,6 +103,10 @@ class Workflow:
     def __init__(self, store: TaskStore, client: SceneClient, roles: Roles):
         self.store, self.client, self.roles = store, client, roles
 
+    @staticmethod
+    def handler(task: dict) -> LayoutTaskHandler:
+        return resolve_task_handler(task.get("mode"))
+
     def task(self, state: State, phase: str, committing=False):
         task = self.store.task(state["task_id"], internal=True)
         if task["cancelRequested"] and not committing:
@@ -113,7 +129,9 @@ class Workflow:
             }
         task = self.store.task(state["task_id"], internal=True)
         generation = dict(task.get("generation") or {})
-        generation["authorizationVersion"] = int(generation.get("authorizationVersion", 1)) + 1
+        generation["authorizationVersion"] = (
+            int(generation.get("authorizationVersion", 1)) + 1
+        )
         self.store.update(task["id"], generation=generation)
         return {
             "route": "rebase",
@@ -130,9 +148,6 @@ class Workflow:
         if state.get("version_retries") and state.get("intent"):
             old = {f["id"]: f for f in state["project"]["plan"]["furniture"]}
             current = {f["id"]: f for f in project["plan"]["furniture"]}
-            # Relative operations may be recalculated from the latest scene.
-            # Absolute values and model placements must not overwrite a manual
-            # change to an authorized field while the task was running.
             operations = state["intent"].get("operations") or []
             protected = {}
             for op in operations:
@@ -144,7 +159,9 @@ class Workflow:
             if not operations:
                 protected = {
                     id: set(fields)
-                    for id, fields in state["intent"].get("field_permissions", {}).items()
+                    for id, fields in state["intent"]
+                    .get("field_permissions", {})
+                    .items()
                 }
             if any(
                 id not in current
@@ -169,22 +186,10 @@ class Workflow:
     async def policy(self, state: State):
         task = self.task(state, "policy")
         conversation = self.store.conversation(task["conversationId"])
-        decision = (
-            PolicyController()
-            .decide(
-                task,
-                state["project"],
-                conversation,
-            )
-            .model_dump()
-        )
+        decision = PolicyController().decide(task, state["project"], conversation).model_dump()
         generation = dict(task.get("generation") or {})
         generation["policy"] = decision
-        self.store.update(
-            task["id"],
-            generation=generation,
-            mode=decision["mode"],
-        )
+        self.store.update(task["id"], generation=generation, mode=decision["mode"])
         self.store.event(task["id"], "policy", decision)
         if decision["route"] == "waiting":
             return {
@@ -201,268 +206,46 @@ class Workflow:
     async def interactive(self, state: State):
         task = self.task(state, "acting")
         return await InteractiveFlow(self.store, self.client).candidate(
-            task,
-            state["project"],
-            state["policy"],
+            task, state["project"], state["policy"]
         )
 
     async def photo(self, state: State):
         task = self.task(state, "acting")
         return await PhotoFlow(self.store, self.client).candidate(
-            task,
-            state["project"],
-            state["policy"],
+            task, state["project"], state["policy"]
         )
 
     async def ground(self, state: State):
         task = self.task(state, "understanding")
-        if task.get("mode") == "reconstruct_floorplan":
-            return await FloorplanFlow(self.store, self.client, self.roles).ground(state, task)
-        if task.get("mode") == "generate_rectangular":
-            try:
-                return await GenerationFlow(self.store, self.client, self.roles).ground(state, task)
-            except SceneFailure as e:
-                if e.code == "REVISION_CONFLICT":
-                    return self.conflict(state)
-                raise
-        conversation = self.store.conversation(task["conversationId"])
-        history = [
-            {"user": t["input"], "assistant": (t["result"] or {}).get("message", t["error"])}
-            for t in self.store.tasks(task["conversationId"])
-            if t["id"] != task["id"] and t["status"] == "completed"
-        ][-6:]
-        registry = get_registry()
-        skill_candidates = registry.candidates("edit", project_state="existing")
-        intent = (
-            parse_exact(task, state["project"], conversation)
-            if task.get("mode") == "edit"
-            else None
-        )
-        if intent and intent.get("noChange"):
-            return {"route": "end", "final": no_change(state["project"], intent["summary"])}
-        if state.get("version_retries", 0) and state.get("intent"):
-            intent = state["intent"]
-        if intent is None:
-            intent = await self.roles.ground(
-                task, state["project"], conversation, history, skill_candidates
-            )
-        if intent["status"] == "ready":
-            selection = registry.validate_selection(
-                intent.get("skillSelection", {}),
-                skill_candidates,
-                mode="edit",
-                allow_no_primary=True,
-            )
-            bundle = registry.compose(
-                mode="edit",
-                selection=selection,
-                include_intake=False,
-            )
-            generation = self.store.task(task["id"], internal=True)["generation"]
-            generation.update(
-                skillSelection=selection.model_dump(),
-                skillBundle=bundle,
-                skillsUsed=registry.records(bundle),
-            )
-            self.store.update(task["id"], generation=generation)
-            await ensure_edit_scene_draft(
-                store=self.store,
-                client=self.client,
-                task=task,
-                project=state["project"],
-                intent=intent,
-            )
-            self.store.event(
-                task["id"],
-                "skill_loaded",
-                {
-                    "selection": selection.model_dump(),
-                    "skills": generation["skillsUsed"],
-                    "bundleHash": bundle["contentHash"],
-                },
-            )
-        ambiguous = ambiguous_name(task, state["project"], conversation)
-        if intent["status"] == "ready" and ambiguous and intent["target_ids"]:
-            return {
-                "intent": intent,
-                "route": "end",
-                "final": {
-                    "status": "waiting_input",
-                    "message": f"场景中有多件“{ambiguous}”，请先选中要修改的那件，再补充说明。",
-                },
-            }
-        if intent["status"] != "ready":
-            return {
-                "intent": intent,
-                "route": "end",
-                "final": {
-                    "status": "waiting_input" if intent["status"] == "clarify" else "failed",
-                    "message": intent.get("question") or intent["summary"],
-                },
-            }
-        if not intent["target_ids"] and not intent["additions"]:
-            return {
-                "intent": intent,
-                "route": "end",
-                "final": {
-                    "status": "waiting_input",
-                    "message": "请指定要修改的家具或需要新增的物品",
-                },
-            }
-        return {
-            "intent": intent,
-            "assets": {"choices": []},
-            "route": "assets" if intent["additions"] else "scope",
-        }
+        return await self.handler(task).ground(self, state, task)
 
     async def assets(self, state: State):
         task = self.task(state, "choosing_assets")
-        if task.get("mode") == "reconstruct_floorplan":
-            return {
-                "assets": await FloorplanRoles(self.roles).assets(
-                    task, state["intent"], state.get("last_report")
-                )
-            }
-        if task.get("mode") == "generate_rectangular":
-            return {"assets": await GenerationRoles(self.roles).assets(task, state["intent"])}
-        return {"assets": await self.roles.assets(task, state["intent"])}
+        return await self.handler(task).assets(self, state, task)
 
     async def scope(self, state: State):
         task = self.task(state, "scoping")
-        if task.get("mode") == "reconstruct_floorplan":
-            return await FloorplanFlow(self.store, self.client, self.roles).scope(state, task)
-        task_generation = self.store.task(task["id"], internal=True).get("generation") or {}
-        authorization_version = int(task_generation.get("authorizationVersion", 1))
-        if task_generation.get("authorizationScope") and (
-            task_generation.get("authorizationScopeVersion") == authorization_version
-            or state.get("version_retries", 0)
-        ):
-            # Repairs reuse the exact original authorization. Asset repair may
-            # choose another item only inside the pool already recorded there.
-            scope = task_generation["authorizationScope"]
-        else:
-            catalogue = (await self.client.request("/catalog"))["items"]
-            try:
-                scope = compile_scope(
-                    state["project"],
-                    state["intent"],
-                    state["assets"],
-                    catalogue,
-                    task_mode=task.get("mode"),
-                    task=task,
-                )
-            except TaskError as e:
-                return {
-                    "route": "end",
-                    "final": {
-                        "status": "waiting_input" if e.code == "NEEDS_INPUT" else "failed",
-                        "message": str(e),
-                    },
-                }
-        self.store.event(state["task_id"], "scope", scope)
-        try:
-            authorization = await authorize_edit(
-                self.store,
-                self.client,
-                task,
-                state["project"],
-                scope,
-                state["intent"],
-                kind="initialize" if task.get("mode") == "generate_rectangular" else "edit",
-                brief=(
-                    task_generation.get("frozenBrief") or task_generation.get("brief")
-                    if task.get("mode") == "generate_rectangular"
-                    else None
-                ),
-            )
-        except SceneFailure as error:
-            if error.code == "REVISION_CONFLICT":
-                return self.conflict(state)
-            raise
-        return {"scope": scope, "authorization": authorization, "route": "design"}
+        return await self.handler(task).scope(self, state, task)
 
     async def design(self, state: State):
         task = self.task(state, "designing")
-        if task.get("mode") == "reconstruct_floorplan":
-            return {
-                "proposal": await FloorplanRoles(self.roles).design(
-                    task,
-                    state["project"],
-                    state["scope"],
-                    state.get("last_report"),
-                    state.get("repairs", 0),
-                )
-            }
-        if task.get("mode") == "generate_rectangular":
-            return {
-                "proposal": await GenerationRoles(self.roles).design(
-                    task,
-                    state["layout_project"],
-                    state["scope"],
-                    state.get("last_report"),
-                    state.get("repairs", 0),
-                )
-            }
-        # Grounding has already produced absolute values/deltas.  Keep the
-        # execution path code-only so a design model cannot reinterpret them.
-        if state.get("intent", {}).get("operations") and not state["intent"].get("additions"):
-            return {"proposal": exact_proposal(state["project"], state["intent"])}
-        proposal = await self.roles.design(
-            task,
-            state["project"],
-            state["intent"],
-            state["scope"],
-            state.get("last_report"),
-            state.get("repairs", 0),
-        )
-        return {"proposal": proposal}
+        return await self.handler(task).design(self, state, task)
 
     async def prepare(self, state: State):
         task = self.task(state, "prechecking")
         if state.get("proposal", {}).get("noChange"):
             return {"route": "end", "final": no_change(state["project"])}
         try:
-            role = (
-                FloorplanRoles(self.roles)
-                if task.get("mode") == "reconstruct_floorplan"
-                else GenerationRoles(self.roles)
-                if task.get("mode") == "generate_rectangular"
-                else self.roles
-            )
-            if task.get("mode") in ("edit", "repair_layout"):
-                c = await submit_candidate(
-                    self.client,
-                    task,
-                    state["project"],
-                    state["scope"],
-                    state["proposal"],
-                    state.get("repairs", 0),
-                    state.get("authorization"),
-                )
-            else:
-                c = await role.candidate(
-                    task,
-                    state["project"],
-                    state["scope"],
-                    state["proposal"],
-                    state.get("repairs", 0),
-                    state.get("authorization"),
-                )
-            if task.get("mode") not in (
-                "reconstruct_floorplan",
-                "generate_rectangular",
-            ):
-                await sync_edit_scene_program(
-                    store=self.store,
-                    client=self.client,
-                    task=task,
-                    plan=c["state"]["plan"],
-                    selection_id=f"candidate-{state.get('repairs', 0)}",
-                )
+            c = await self.handler(task).create_candidate(self, state, task)
             self.store.event(
                 task["id"],
                 "candidate",
-                {"id": c["id"], "hash": c["hash"], "diff": c["diff"], "checks": c["checks"]},
+                {
+                    "id": c["id"],
+                    "hash": c["hash"],
+                    "diff": c["diff"],
+                    "checks": c["checks"],
+                },
             )
             return {
                 "candidate": c,
@@ -495,38 +278,33 @@ class Workflow:
             raise
 
     async def render(self, state: State):
-        task = self.task(
-            state,
-            "checking_parameters"
-            if state["candidate"].get("verification") == "deterministic"
-            else "rendering",
-        )
-        if state["candidate"].get("verification") == "deterministic":
+        deterministic = state["candidate"].get("verification") == "deterministic"
+        task = self.task(state, "checking_parameters" if deterministic else "rendering")
+        if deterministic:
             self.store.event(
                 task["id"],
                 "evidence",
-                {"candidateId": state["candidate"]["id"], "evidence": [], "mode": "deterministic"},
+                {
+                    "candidateId": state["candidate"]["id"],
+                    "evidence": [],
+                    "mode": "deterministic",
+                },
             )
             return {"evidence": []}
         evidence = await self.client.request(
             self.path(state) + f"/candidates/{state['candidate']['id']}/render", {}
         )
         self.store.event(
-            task["id"], "evidence", {"candidateId": state["candidate"]["id"], "evidence": evidence}
+            task["id"],
+            "evidence",
+            {"candidateId": state["candidate"]["id"], "evidence": evidence},
         )
         return {"evidence": evidence}
 
     async def inspect(self, state: State):
-        task = self.task(
-            state,
-            "checking_parameters"
-            if state["candidate"].get("verification") == "deterministic"
-            else "checking",
-        )
-        if state["candidate"].get("verification") == "deterministic":
-            # Code-derived exact edits and manual action/photo paths have no
-            # visual design judgment to perform. The immutable candidate and
-            # deterministic checks are the review evidence.
+        deterministic = state["candidate"].get("verification") == "deterministic"
+        task = self.task(state, "checking_parameters" if deterministic else "checking")
+        if deterministic:
             review = {
                 "passed": bool(state["candidate"]["checks"]["passed"]),
                 "summary": "精确编辑已通过确定性字段与几何检查。",
@@ -542,9 +320,6 @@ class Workflow:
                 and not stored.get("issues")
                 and sorted(stored.get("evidenceHashes") or []) == evidence_hashes
             ):
-                # Recovery may revisit the same immutable candidate. The two
-                # evidence hashes already prove the visual review addressed the
-                # same images; do not buy the same judgment twice.
                 review = {
                     "passed": True,
                     "summary": stored.get("summary") or "复用已完成且证据一致的独立检查",
@@ -559,34 +334,29 @@ class Workflow:
                     },
                 )
             else:
-                review = (
-                    await FloorplanRoles(self.roles).inspect(
-                        task, state["candidate"], state["evidence"]
-                    )
-                    if task.get("mode") == "reconstruct_floorplan"
-                    else await GenerationRoles(self.roles).inspect(
-                        task, state["candidate"], state["evidence"]
-                    )
-                    if task.get("mode") == "generate_rectangular"
-                    else await self.roles.inspect(
-                        task, state["intent"], state["candidate"], state["evidence"]
-                    )
-                )
+                review = await self.handler(task).inspect_visual(self, state, task)
+
         valid_ids = {
-            o["id"] for k in COLLECTIONS for o in state["candidate"]["state"]["plan"].get(k, [])
+            o["id"]
+            for k in COLLECTIONS
+            for o in state["candidate"]["state"]["plan"].get(k, [])
         } | set(state["candidate"]["diff"]["deleted"])
         blocking_issues = [
-            issue for issue in review["issues"] if issue.get("severity", "blocking") == "blocking"
+            issue
+            for issue in review["issues"]
+            if issue.get("severity", "blocking") == "blocking"
         ]
         reported = [id for issue in blocking_issues for id in issue["object_ids"]]
         if any(id not in valid_ids for id in reported):
             raise TaskError("INVALID_REVIEW", "检查角色返回未知对象身份，候选没有提交")
-        passed = review["passed"] and not blocking_issues and state["candidate"]["checks"]["passed"]
+        passed = (
+            review["passed"]
+            and not blocking_issues
+            and state["candidate"]["checks"]["passed"]
+        )
         body = {
             "passed": passed,
-            "source": "deterministic"
-            if state["candidate"].get("verification") == "deterministic"
-            else "agent",
+            "source": "deterministic" if deterministic else "agent",
             "summary": review["summary"],
             "objectIds": list(dict.fromkeys(reported)),
             "issues": [i["description"] for i in blocking_issues],
@@ -598,7 +368,10 @@ class Workflow:
         return {
             "review": review,
             "route": "commit" if passed else "repair",
-            "last_report": {"codeChecks": state["candidate"]["checks"], "visualReview": review},
+            "last_report": {
+                "codeChecks": state["candidate"]["checks"],
+                "visualReview": review,
+            },
         }
 
     async def repair(self, state: State):
@@ -614,54 +387,20 @@ class Workflow:
                     "report": state.get("last_report"),
                 },
             }
+        task = self.store.task(state["task_id"], internal=True)
         count = state.get("repairs", 0)
         if count >= 3:
-            if self.store.task(state["task_id"])["mode"] == "reconstruct_floorplan":
-                return {
-                    "route": "end",
-                    "final": {
-                        "status": "waiting_input",
-                        "phase": "reviewing_floorplan",
-                        "draftId": self.store.task(state["task_id"])["generation"].get("draftId"),
-                        "message": "原图布局在三轮检查修复后仍有冲突，请明确校正草稿后重新确认；正式项目未改变。",
-                        "candidateId": (state.get("candidate") or {}).get("id"),
-                        "report": state.get("last_report"),
-                    },
-                }
-            if self.store.task(state["task_id"])["mode"] == "generate_rectangular":
-                report = state.get("last_report") or {}
-                issues = report.get("issues") or (report.get("codeChecks") or {}).get("issues", [])
-                blocking = [issue["message"] for issue in issues if issue.get("blocking")]
-                detail = "；".join(blocking[:3])
-                return {
-                    "route": "end",
-                    "final": {
-                        "status": "waiting_input",
-                        "message": (
-                            "在固定尺寸与家具要求下，初稿后三轮修复仍未得到通过检查的布局。"
-                            + (f"尚未解决：{detail}。" if detail else "")
-                            + "请调整家具清单或房间净尺寸后继续；正式项目未改变。"
-                        ),
-                        "candidateId": (state.get("candidate") or {}).get("id"),
-                        "report": state.get("last_report"),
-                    },
-                }
-            return {
-                "route": "end",
-                "final": {
-                    "status": "failed",
-                    "message": "初稿后已修复三轮，仍有未解决问题，未修改正式场景",
-                    "candidateId": (state.get("candidate") or {}).get("id"),
-                    "report": state.get("last_report"),
-                },
-            }
+            return self.handler(task).exhausted_repair(self, state, task)
+
         self.store.event(
-            state["task_id"], "repair", {"round": count + 1, "report": state.get("last_report")}
+            state["task_id"],
+            "repair",
+            {"round": count + 1, "report": state.get("last_report")},
         )
-        task = self.store.task(state["task_id"], internal=True)
         generation = task.get("generation", {})
         if (
-            task["mode"] not in ("reconstruct_floorplan", "interactive_action", "photo_to_scene")
+            task["mode"]
+            not in ("reconstruct_floorplan", "interactive_action", "photo_to_scene")
             and generation.get("skillBundle")
             and not generation["skillBundle"].get("repair")
         ):
@@ -682,169 +421,8 @@ class Workflow:
                 },
             )
             task = self.store.task(state["task_id"], internal=True)
-            generation = task.get("generation", {})
-        if task["mode"] in ("interactive_action", "photo_to_scene"):
-            return {
-                "route": "end",
-                "final": {
-                    "status": "waiting_input",
-                    "message": "快速动作/照片资产候选未通过确定性检查，正式场景未改变。",
-                    "candidateId": (state.get("candidate") or {}).get("id"),
-                    "report": state.get("last_report"),
-                },
-            }
-        if task["mode"] != "reconstruct_floorplan":
-            directive = RepairPolicyRouter().route(state.get("last_report"))
-            if directive is not None:
-                generation["repairDirective"] = directive.model_dump()
-                self.store.update(task["id"], generation=generation)
-                self.store.event(
-                    task["id"],
-                    "repair_routed",
-                    directive.model_dump(),
-                )
-                if directive.targetRole == "coordinator" or directive.action == "stop":
-                    return {
-                        "route": "end",
-                        "final": {
-                            "status": "waiting_input",
-                            "message": (
-                                f"检查问题需要人工确认：{directive.message}；正式项目未改变。"
-                            ),
-                            "candidateId": (state.get("candidate") or {}).get("id"),
-                            "report": state.get("last_report"),
-                            "repairDirective": directive.model_dump(),
-                        },
-                    }
-                return {
-                    "repairs": count + 1,
-                    "route": directive.targetRole,
-                    "repairDirective": directive.model_dump(),
-                }
-        if generation.get("floorplanVersion") == "s2c-floorplan-v4-2":
-            raw_issues = (state.get("last_report") or {}).get("visualReview", {}).get(
-                "issues"
-            ) or []
-            issues = [
-                ReviewIssueV1(
-                    code=str(item.get("code") or "OTHER"),
-                    source=item.get("source") or "model",
-                    severity=item.get("severity") or "blocking",
-                    objectIds=list(item.get("object_ids") or item.get("objectIds") or []),
-                    evidenceRefs=list(item.get("evidenceRefs") or []),
-                    message=str(item.get("description") or item.get("message") or item.get("code")),
-                    bbox=item.get("bbox"),
-                )
-                for item in raw_issues
-                if isinstance(item, dict)
-            ]
-            draft_hash = (
-                (state.get("candidate") or {})
-                .get("floorplan", {})
-                .get("binding", {})
-                .get("draftHash")
-                or generation.get("sceneDraftHash")
-                or ""
-            )
-            if issues and len(draft_hash) != 64:
-                return {
-                    "route": "end",
-                    "final": {
-                        "status": "waiting_input",
-                        "phase": "reviewing_floorplan",
-                        "draftId": generation.get("draftId"),
-                        "candidateId": (state.get("candidate") or {}).get("id"),
-                        "message": "检查问题未绑定当前草稿哈希，不能回溯或提交。",
-                        "report": state.get("last_report"),
-                    },
-                }
-            budget = RepairBudgetState.model_validate(generation.get("repairBudget") or {})
-            request, next_budget, codes = build_repair_request(
-                task_id=task["id"],
-                source_stage="check",
-                draft_hash=draft_hash,
-                issues=issues,
-                budget=budget,
-            )
-            generation["repairBudget"] = next_budget.model_dump()
-            if request is not None:
-                generation["repairRequests"] = [
-                    *generation.get("repairRequests", []),
-                    request.model_dump(),
-                ]
-                self.store.update(task["id"], generation=generation)
-                self.store.event(
-                    task["id"],
-                    "repair_routed",
-                    {
-                        **request.model_dump(),
-                        "issueCodes": codes,
-                    },
-                )
-                if request.targetRole in ("assets", "design"):
-                    return {
-                        "repairs": count + 1,
-                        "route": request.targetRole,
-                    }
-                return {
-                    "route": "end",
-                    "final": {
-                        "status": "waiting_input",
-                        "phase": "reviewing_floorplan",
-                        "draftId": generation.get("draftId"),
-                        "candidateId": (state.get("candidate") or {}).get("id"),
-                        "message": (
-                            f"检查问题需要由 {request.targetRole} 角色处理，"
-                            "当前候选不会循环重放或自动提交。"
-                        ),
-                        "repairRequest": request.model_dump(),
-                        "report": state.get("last_report"),
-                    },
-                }
-            if codes:
-                self.store.update(task["id"], generation=generation)
-                self.store.event(
-                    task["id"],
-                    "repair_stopped",
-                    {"codes": codes, "report": state.get("last_report")},
-                )
-                return {
-                    "route": "end",
-                    "final": {
-                        "status": "waiting_input",
-                        "phase": "reviewing_floorplan",
-                        "draftId": generation.get("draftId"),
-                        "candidateId": (state.get("candidate") or {}).get("id"),
-                        "message": "检查问题缺少可验证证据或修复预算已耗尽；正式项目未改变。",
-                        "report": state.get("last_report"),
-                    },
-                }
-        if generation.get("skillBundle") and not generation["skillBundle"].get("repair"):
-            registry = get_registry()
-            bundle = registry.with_repair(generation["skillBundle"], task["mode"])
-            generation.update(
-                skillBundle=bundle,
-                skillsUsed=registry.records(bundle),
-            )
-            self.store.update(task["id"], generation=generation)
-            self.store.event(
-                task["id"],
-                "skill_repair_loaded",
-                {
-                    "id": bundle["repair"]["id"],
-                    "contentHash": bundle["repair"]["contentHash"],
-                    "bundleHash": bundle["contentHash"],
-                },
-            )
-            task = self.store.task(state["task_id"], internal=True)
-        if task["mode"] == "reconstruct_floorplan":
-            generation = task["generation"]
-            generation["repairsUsed"] = count + 1
-            self.store.update(task["id"], generation=generation)
-        return {
-            "repairs": count + 1,
-            "route": "assets" if task["mode"] == "reconstruct_floorplan" else "design",
-        }
+
+        return self.handler(task).route_repair(self, state, task, count)
 
     async def commit(self, state: State):
         task = self.task(
@@ -934,7 +512,9 @@ class Workflow:
         )
         builder.add_edge("assets", "scope")
         builder.add_conditional_edges(
-            "scope", lambda s: s["route"], {"end": END, "design": "design", "rebase": "snapshot"}
+            "scope",
+            lambda s: s["route"],
+            {"end": END, "design": "design", "rebase": "snapshot"},
         )
         builder.add_edge("design", "prepare")
         builder.add_conditional_edges(
@@ -947,7 +527,9 @@ class Workflow:
             "inspect", lambda s: s["route"], {"repair": "repair", "commit": "commit"}
         )
         builder.add_conditional_edges(
-            "repair", lambda s: s["route"], {"end": END, "design": "design", "assets": "assets"}
+            "repair",
+            lambda s: s["route"],
+            {"end": END, "design": "design", "assets": "assets"},
         )
         builder.add_conditional_edges(
             "commit", lambda s: s["route"], {"end": END, "rebase": "snapshot"}

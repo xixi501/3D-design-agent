@@ -75,7 +75,7 @@ function candidateDraft(record, reference) {
   });
   const dimension = result.dimensionCandidates[0];
   assert.ok(dimension, "V3-6 must emit at least one external dimension line");
-  if (!result.candidateSummary.fallback) {
+  if (!(result.candidateSummary.recovery ?? result.candidateSummary.fallback)) {
     assert.equal(dimension.unitHint, "mm");
   }
   const anchors = [
@@ -146,10 +146,12 @@ assert.equal(
   "First frozen image hash changed",
 );
 const oneRecord = analyze(oneBedroomImage);
-assert.equal(
-  oneRecord.result.candidateSummary.fallback,
-  "legacy-v3",
-  "Simple rectangular plans should use the bounded legacy fallback",
+assert.ok(
+  ["legacy-v3", "bounded-orth-contour"].includes(
+    oneRecord.result.candidateSummary.recovery ??
+      oneRecord.result.candidateSummary.fallback,
+  ),
+  "Simple rectangular plans should use the bounded recovery path",
 );
 const oneDraft = candidateDraft(oneRecord, {
   ...oneReference,
@@ -188,9 +190,10 @@ assert.equal(
 );
 const secondRecord = analyze(ninetyTwoImage);
 assert.equal(
-  secondRecord.result.candidateSummary.fallback,
+  secondRecord.result.candidateSummary.recovery ??
+    secondRecord.result.candidateSummary.fallback,
   undefined,
-  "Complex plan must not use the rectangular fallback",
+  "Complex plan must not use the rectangular recovery fallback",
 );
 assert.ok(secondRecord.result.candidateWalls.length >= 15);
 assert.ok(secondRecord.result.openingCandidates.length >= 10);

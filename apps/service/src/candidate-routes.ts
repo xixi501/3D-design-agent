@@ -19,6 +19,9 @@ export function candidateRoutes(
 ) {
   const candidates = new CandidateStore(store, floorplans),
     renderer = new RenderWorker();
+  app.addHook("onClose", async () => {
+    await renderer.close();
+  });
   const root = "/api/projects/:id/candidates",
     item = root + "/:candidate";
   const params = (req: any) => [req.params.id, req.params.candidate] as const;

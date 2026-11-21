@@ -32,11 +32,24 @@ def placement_for_category(category: str) -> str:
 def physical_dimensions(
     size: list[float], category: str, target_height_mm: int | None
 ) -> tuple[dict, str]:
-    height = target_height_mm or CATEGORY_HEIGHTS_MM.get(category, CATEGORY_HEIGHTS_MM["decor"])
+    height = target_height_mm or CATEGORY_HEIGHTS_MM.get(
+        category, CATEGORY_HEIGHTS_MM["decor"]
+    )
     width = max(1, round(size[0] / size[1] * height))
     depth = max(1, round(size[2] / size[1] * height))
     source = "user_confirmed" if target_height_mm else "category_default"
     return {"width": width, "depth": depth, "height": height}, source
+
+
+def _already_normalized(lower: list[float], upper: list[float]) -> bool:
+    size = [float(upper[i] - lower[i]) for i in range(3)]
+    largest = max(size)
+    return (
+        abs(largest - 1.0) <= 1e-6
+        and abs(lower[1]) <= 1e-6
+        and abs((lower[0] + upper[0]) / 2.0) <= 1e-6
+        and abs((lower[2] + upper[2]) / 2.0) <= 1e-6
+    )
 
 
 def normalize_scene_bounds(scene: trimesh.Scene) -> dict:
@@ -85,12 +98,20 @@ def _read_document(data: bytes) -> dict:
             has_binary = True
         offset += chunk_length
 
-    if not document or not has_binary or document.get("asset", {}).get("version") != "2.0":
+    if (
+        not document
+        or not has_binary
+        or document.get("asset", {}).get("version") != "2.0"
+    ):
         raise ValueError("GLB 缺少 glTF 2.0 元数据或二进制资源")
     required = set(document.get("extensionsRequired", []))
-    unsupported = required | (set(document.get("extensionsUsed", [])) & COMPRESSED_EXTENSIONS)
+    unsupported = required | (
+        set(document.get("extensionsUsed", [])) & COMPRESSED_EXTENSIONS
+    )
     if unsupported:
-        raise ValueError(f"主系统暂不支持这些 GLB 扩展：{', '.join(sorted(unsupported))}")
+        raise ValueError(
+            f"主系统暂不支持这些 GLB 扩展：{', '.join(sorted(unsupported))}"
+        )
     if document.get("animations") or document.get("skins"):
         raise ValueError("首版只接受静态模型，请先烘焙动画与骨骼")
     buffers = document.get("buffers", [])
@@ -101,13 +122,18 @@ def _read_document(data: bytes) -> dict:
     return document
 
 
+def _clean_zero(value: float) -> float:
+    return 0.0 if abs(value) < 1e-7 else float(value)
+
+
 def inspect_glb(
     path: Path,
     category: str = "decor",
     target_height_mm: int | None = None,
     normalize: bool = False,
 ) -> dict:
-    _read_document(path.read_bytes())
+    raw_bytes = path.read_bytes()
+    _read_document(raw_bytes)
     scene = trimesh.load(path, force="scene", process=False)
     if scene.bounds is None:
         raise ValueError("模型没有有效三维几何")
@@ -115,36 +141,44 @@ def inspect_glb(
     raw_size = [raw_upper[i] - raw_lower[i] for i in range(3)]
     physical, scale_source = physical_dimensions(raw_size, category, target_height_mm)
 
-    if normalize:
+    if normalize and not _already_normalized(raw_lower, raw_upper):
         normalization = normalize_scene_bounds(scene)
         aspect = normalization["aspect_ratio"]
         temporary = path.with_suffix(".normalized.glb")
         scene.export(temporary)
         os.replace(temporary, path)
         scene = trimesh.load(path, force="scene", process=False)
+        data = path.read_bytes()
+        _read_document(data)
     else:
-        lower, upper = scene.bounds.tolist()
-        extents = [upper[i] - lower[i] for i in range(3)]
+        data = raw_bytes
+        extents = [raw_upper[i] - raw_lower[i] for i in range(3)]
         largest = max(extents)
         aspect = [value / largest for value in extents]
 
-    data = path.read_bytes()
-    _read_document(data)
     lower, upper = scene.bounds.tolist()
     size = [float(upper[i] - lower[i]) for i in range(3)]
-    center = [(lower[0] + upper[0]) / 2, lower[1], (lower[2] + upper[2]) / 2]
+    center = [
+        _clean_zero((lower[0] + upper[0]) / 2),
+        _clean_zero(lower[1]),
+        _clean_zero((lower[2] + upper[2]) / 2),
+    ]
     return {
         "sha256": hashlib.sha256(data).hexdigest(),
         "bytes": len(data),
-        "bounds_min": lower,
-        "bounds_max": upper,
+        "bounds_min": [_clean_zero(v) for v in lower],
+        "bounds_max": [_clean_zero(v) for v in upper],
         "size_m": {"w": size[0], "d": size[2], "h": size[1]},
         "size_mm": {"w": size[0] * 1000, "d": size[2] * 1000, "h": size[1] * 1000},
         "normalization": {"scale": 1.0, "center": center},
-        "vertices": sum(len(geometry.vertices) for geometry in scene.geometry.values()),
+        "vertices": sum(
+            len(geometry.vertices) for geometry in scene.geometry.values()
+        ),
         "faces": sum(len(geometry.faces) for geometry in scene.geometry.values()),
         "materials": sum(
-            1 for geometry in scene.geometry.values() if getattr(geometry.visual, "material", None)
+            1
+            for geometry in scene.geometry.values()
+            if getattr(geometry.visual, "material", None)
         ),
         "aspectRatio": {"width": aspect[0], "depth": aspect[2], "height": aspect[1]},
         "pivot": "bottom_center",

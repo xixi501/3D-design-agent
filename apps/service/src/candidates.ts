@@ -4,16 +4,13 @@ import { createHash } from "node:crypto";
 import { ProjectStore, canonical } from "./store.js";
 import { FloorplanStore } from "./floorplans.js";
 import {
-  compileFloorplan,
   materializeFloorplan,
-  checkFloorplanInitialization,
   type FloorplanBinding,
   type SymbolMatch,
 } from "../../../packages/scene-core/src/floorplan.js";
 import {
   applyCommands,
   assetReferences,
-  clone,
   newId,
   SceneError,
   type Command,
@@ -22,7 +19,6 @@ import {
 } from "../../../packages/scene-core/src/index.js";
 import {
   compileRectangular,
-  checkInitialization,
   requireBlank,
   structuralDiff,
   type RectangularBrief,
@@ -31,13 +27,21 @@ import {
   materializeEdits,
   validateScope,
   businessDiff,
-  checkCandidate,
   type CandidateEdit,
   type EditScope,
 } from "../../../packages/scene-core/src/candidate.js";
+import {
+  EditAuthorizations,
+  type AuthorizationRequest,
+} from "./edit-authorizations.js";
+import {
+  CandidateRuleEvaluator,
+  sha256,
+  type CandidateKind,
+} from "./candidate-evaluator.js";
 
-export const sha256 = (value: unknown) =>
-  createHash("sha256").update(canonical(value)).digest("hex");
+export { sha256 };
+
 export interface Evidence {
   view: "top" | "oblique";
   sha256: string;
@@ -46,6 +50,7 @@ export interface Evidence {
   createdAt: string;
   presentation: string;
 }
+
 export interface CandidateReview {
   passed: boolean;
   source: "agent" | "operator" | "deterministic";
@@ -54,21 +59,20 @@ export interface CandidateReview {
   evidenceHashes: string[];
   issues: string[];
 }
-import {
-  EditAuthorizations,
-  checkExpected,
-  type AuthorizationRequest,
-} from "./edit-authorizations.js";
+
+const PNG_MAGIC = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 export class CandidateStore {
   constructor(
     public projects: ProjectStore,
     public floorplans = new FloorplanStore(projects),
+    private evaluator = new CandidateRuleEvaluator(),
   ) {
     fs.mkdirSync(path.join(projects.directory, "evidence"), {
       recursive: true,
     });
   }
+
   private row(project: string, id: string): any {
     const row = this.projects.db
       .prepare("SELECT * FROM candidates WHERE project=? AND id=?")
@@ -76,6 +80,7 @@ export class CandidateStore {
     if (!row) throw new SceneError("NOT_FOUND", "候选不存在", 404);
     return row;
   }
+
   get(project: string, id: string) {
     const row = this.row(project, id),
       { before, ...document } = JSON.parse(row.document);
@@ -88,6 +93,7 @@ export class CandidateStore {
         : null,
     };
   }
+
   list(project: string) {
     this.projects.get(project);
     return (
@@ -109,9 +115,82 @@ export class CandidateStore {
       };
     });
   }
+
   authorize(project: string, request: AuthorizationRequest) {
     return new EditAuthorizations(this.projects).register(project, request);
   }
+
+  private buildActivityGroupsCommand(
+    taskId: string,
+    groups: { name: string; memberIds: string[] }[],
+    contentState: SceneState,
+    scope: EditScope,
+    authorization?: any,
+  ): Command {
+    if (
+      authorization &&
+      (!scope.allowActivityGroups || authorization.operations?.length)
+    )
+      throw new SceneError(
+        "INVALID_AUTHORIZATION",
+        "候选不能附带未授权的活动组元数据",
+      );
+    if (!Array.isArray(groups) || groups.length > 100)
+      throw new SceneError("INVALID_REQUEST", "活动组元数据无效");
+    const furniture = new Set(contentState.plan.furniture.map((f) => f.id)),
+      groupIds = new Set<string>();
+    const activityGroups = groups.map((group) => {
+      if (
+        !group ||
+        typeof group.name !== "string" ||
+        !group.name.trim() ||
+        group.name.length > 100 ||
+        !Array.isArray(group.memberIds) ||
+        !group.memberIds.length ||
+        group.memberIds.length > 50 ||
+        new Set(group.memberIds).size !== group.memberIds.length ||
+        group.memberIds.some(
+          (id) => typeof id !== "string" || !furniture.has(id),
+        )
+      )
+        throw new SceneError("INVALID_REQUEST", "活动组成员或名称无效");
+      const id =
+        "ag_" +
+        sha256({
+          taskId,
+          name: group.name,
+          memberIds: group.memberIds,
+        }).slice(0, 16);
+      if (groupIds.has(id))
+        throw new SceneError("INVALID_REQUEST", "活动组身份重复");
+      groupIds.add(id);
+      const roles = Object.fromEntries(
+        group.memberIds.map((member, index) => [
+          member,
+          index === 0 ? "primary" : "member",
+        ]),
+      );
+      return {
+        id,
+        name: group.name,
+        type: "custom",
+        primaryObjectId: group.memberIds[0],
+        memberObjectIds: group.memberIds,
+        roles,
+      };
+    });
+    return {
+      type: "project",
+      patch: {
+        source: {
+          ...(contentState.plan.source || {}),
+          kind: contentState.plan.source?.kind || "activity-groups",
+          activityGroups,
+        },
+      },
+    };
+  }
+
   create(
     project: string,
     request: {
@@ -121,7 +200,7 @@ export class CandidateStore {
       scope?: EditScope;
       edits?: CandidateEdit[];
       summary?: string;
-      kind?: "edit" | "initialize" | "initialize_floorplan";
+      kind?: CandidateKind;
       floorplan?: FloorplanBinding;
       matches?: SymbolMatch[];
       brief?: RectangularBrief;
@@ -154,6 +233,7 @@ export class CandidateStore {
     if (!["screenshots", "deterministic"].includes(verification))
       throw new SceneError("INVALID_REQUEST", "候选检查策略无效");
     const requestHash = sha256(request);
+
     return this.projects.db
       .transaction(() => {
         const previous = this.projects.db
@@ -184,8 +264,9 @@ export class CandidateStore {
           !["edit", "initialize", "initialize_floorplan"].includes(request.kind)
         )
           throw new SceneError("INVALID_REQUEST", "未知候选类型");
-        const initialization = request.kind === "initialize";
-        const reconstruction = request.kind === "initialize_floorplan";
+        const kind: CandidateKind = request.kind || "edit";
+        const initialization = kind === "initialize";
+        const reconstruction = kind === "initialize_floorplan";
         if (!initialization && request.brief !== undefined)
           throw new SceneError("INVALID_REQUEST", "编辑候选不能改变房间结构");
         if (
@@ -197,6 +278,7 @@ export class CandidateStore {
             "编辑候选不能携带户型初始化字段",
           );
         if (initialization || reconstruction) requireBlank(before);
+
         const draft = reconstruction
           ? this.floorplans.confirmed(project, request.floorplan!)
           : undefined;
@@ -214,6 +296,7 @@ export class CandidateStore {
             "INVALID_REQUEST",
             "户型复现只能使用已确认符号，不能另传编辑布局或授权范围",
           );
+
         const reconstructed = draft
           ? materializeFloorplan(
               draft.data,
@@ -228,9 +311,11 @@ export class CandidateStore {
         const source = compiled?.state || before;
         const scope =
           reconstructed?.scope || validateScope(request.scope, source.plan);
+
         const authorizationVersion = request.authorizationVersion;
         let authorizationScopeHash = request.authorizationScopeHash;
         let authorization: any;
+
         if (initialization) {
           if (
             authorizationVersion !== undefined ||
@@ -241,14 +326,17 @@ export class CandidateStore {
                 "INVALID_AUTHORIZATION",
                 "初始化候选必须同时携带授权版本和哈希",
               );
-            authorization = new EditAuthorizations(this.projects).assert(
-              project,
-              request.taskId,
-              authorizationVersion,
-              request.baseRevision,
-              authorizationScopeHash,
-              scope,
-              "initialize",
+            authorization = this.evaluator.assertVersionedAuthorization(
+              this.projects,
+              {
+                project,
+                taskId: request.taskId,
+                version: authorizationVersion,
+                baseRevision: request.baseRevision,
+                scopeHash: authorizationScopeHash,
+                scope,
+                kind: "initialize",
+              },
             );
             if (
               sha256(request.brief) !== authorization.briefHash ||
@@ -261,19 +349,17 @@ export class CandidateStore {
                 409,
               );
           } else if (
-            this.projects.db
-              .prepare(
-                "SELECT 1 FROM edit_authorization_heads WHERE project=? AND task_id=?",
-              )
-              .get(project, request.taskId)
+            this.evaluator.hasIndependentAuthorizationHead(
+              this.projects,
+              project,
+              request.taskId,
+            )
           )
             throw new SceneError(
               "AUTHORIZATION_REQUIRED",
               "此任务的初始化候选必须引用独立授权",
               409,
             );
-          // Initialization always renders two views and requires a visual
-          // review; request.verification cannot bypass that policy.
           verification = "screenshots";
         } else if (!reconstruction) {
           if (
@@ -285,30 +371,32 @@ export class CandidateStore {
                 "INVALID_AUTHORIZATION",
                 "候选必须同时携带授权版本和哈希",
               );
-            authorization = new EditAuthorizations(this.projects).assert(
-              project,
-              request.taskId,
-              authorizationVersion,
-              request.baseRevision,
-              authorizationScopeHash,
-              scope,
+            authorization = this.evaluator.assertVersionedAuthorization(
+              this.projects,
+              {
+                project,
+                taskId: request.taskId,
+                version: authorizationVersion,
+                baseRevision: request.baseRevision,
+                scopeHash: authorizationScopeHash,
+                scope,
+                kind: "edit",
+              },
             );
             verification = authorization.verification;
           } else {
             if (
-              this.projects.db
-                .prepare(
-                  "SELECT 1 FROM edit_authorization_heads WHERE project=? AND task_id=?",
-                )
-                .get(project, request.taskId)
+              this.evaluator.hasIndependentAuthorizationHead(
+                this.projects,
+                project,
+                request.taskId,
+              )
             )
               throw new SceneError(
                 "AUTHORIZATION_REQUIRED",
                 "此任务候选必须引用独立授权",
                 409,
               );
-            // The legacy protocol is retained for existing tools and stored
-            // candidates. It never grants the new exact-edit exemption.
             authorizationScopeHash = sha256(scope);
             this.projects.freezeCandidateAuthorization(
               project,
@@ -324,7 +412,10 @@ export class CandidateStore {
                 ? "deterministic"
                 : "screenshots";
           }
-        } else verification = "screenshots";
+        } else {
+          verification = "screenshots";
+        }
+
         if (
           verification === "deterministic" &&
           !request.edits?.every((edit) =>
@@ -337,6 +428,7 @@ export class CandidateStore {
             "INVALID_AUTHORIZATION",
             "候选编辑与确定性授权类型不一致",
           );
+
         const edits = reconstructed
             ? []
             : materializeEdits(source, scope, request.edits!),
@@ -347,104 +439,40 @@ export class CandidateStore {
           contentState = applyCommands(before, contentCommands);
         let commands = contentCommands;
         let state = contentState;
-        if (
-          request.activityGroups !== undefined &&
-          request.activityGroups.length
-        ) {
-          if (
-            authorization &&
-            (!scope.allowActivityGroups || authorization.operations?.length)
-          )
-            throw new SceneError(
-              "INVALID_AUTHORIZATION",
-              "候选不能附带未授权的活动组元数据",
-            );
-          if (
-            !Array.isArray(request.activityGroups) ||
-            request.activityGroups.length > 100
-          )
-            throw new SceneError("INVALID_REQUEST", "活动组元数据无效");
-          const furniture = new Set(
-              contentState.plan.furniture.map((f) => f.id),
-            ),
-            groupIds = new Set<string>();
-          const activityGroups = request.activityGroups.map((group) => {
-            if (
-              !group ||
-              typeof group.name !== "string" ||
-              !group.name.trim() ||
-              group.name.length > 100 ||
-              !Array.isArray(group.memberIds) ||
-              !group.memberIds.length ||
-              group.memberIds.length > 50 ||
-              new Set(group.memberIds).size !== group.memberIds.length ||
-              group.memberIds.some(
-                (id) => typeof id !== "string" || !furniture.has(id),
-              )
-            )
-              throw new SceneError("INVALID_REQUEST", "活动组成员或名称无效");
-            const id =
-              "ag_" +
-              sha256({
-                taskId: request.taskId,
-                name: group.name,
-                memberIds: group.memberIds,
-              }).slice(0, 16);
-            if (groupIds.has(id))
-              throw new SceneError("INVALID_REQUEST", "活动组身份重复");
-            groupIds.add(id);
-            const roles = Object.fromEntries(
-              group.memberIds.map((member, index) => [
-                member,
-                index === 0 ? "primary" : "member",
-              ]),
-            );
-            return {
-              id,
-              name: group.name,
-              type: "custom",
-              primaryObjectId: group.memberIds[0],
-              memberObjectIds: group.memberIds,
-              roles,
-            };
-          });
-          const projectCommand: Command = {
-            type: "project",
-            patch: {
-              source: {
-                ...(contentState.plan.source || {}),
-                kind: contentState.plan.source?.kind || "activity-groups",
-                activityGroups,
-              },
-            },
-          };
+        if (request.activityGroups?.length) {
+          const projectCommand = this.buildActivityGroupsCommand(
+            request.taskId,
+            request.activityGroups,
+            contentState,
+            scope,
+            authorization,
+          );
           commands = [...contentCommands, projectCommand];
           state = applyCommands(contentState, [projectCommand]);
         }
+
         for (const id of assetReferences(state.plan)) this.projects.asset(id);
         const id = newId();
-        const rawChecks = reconstructed
-            ? checkFloorplanInitialization(
-                before,
-                state,
-                draft.data,
-                request.taskId,
-                request.floorplan!,
-                request.matches!,
-              )
-            : initialization
-              ? checkInitialization(
-                  before,
-                  state,
-                  request.brief!,
-                  request.taskId,
-                  scope,
-                )
-              : checkCandidate(before, state, scope),
-          diff = businessDiff(base.plan, state.plan);
-        const checks = checkExpected(rawChecks, state, authorization);
+        const checks = this.evaluator.evaluate({
+          kind,
+          before,
+          after: state,
+          taskId: request.taskId,
+          scope,
+          authorization,
+          brief: request.brief,
+          floorplan: reconstructed
+            ? {
+                data: draft!.data,
+                binding: request.floorplan!,
+                matches: request.matches!,
+              }
+            : undefined,
+        });
+        const diff = businessDiff(base.plan, state.plan);
         if (!diff.added.length && !diff.updated.length && !diff.deleted.length)
           throw new SceneError("NO_CHANGE", "候选没有产生业务修改");
+
         const frozen = {
           id,
           projectId: project,
@@ -463,31 +491,31 @@ export class CandidateStore {
           createdAt: new Date().toISOString(),
           ...(reconstructed
             ? {
-                kind: "initialize_floorplan",
+                kind: "initialize_floorplan" as const,
                 floorplan: {
                   binding: request.floorplan,
-                  data: draft.data,
+                  data: draft!.data,
                   matches: request.matches,
                 },
                 generation: {
                   mode: "reconstruct_floorplan",
-                  image: draft.data.image,
+                  image: draft!.data.image,
                   scale: reconstructed.scale,
                   defaults: reconstructed.defaults,
                   symbols: reconstructed.symbols,
                   rooms: reconstructed.rooms,
                   targetRoomIds: reconstructed.targetRoomIds,
-                  draftId: draft.id,
-                  draftRevision: draft.revision,
-                  draftHash: draft.hash,
-                  corrections: draft.corrections,
+                  draftId: draft!.id,
+                  draftRevision: draft!.revision,
+                  draftHash: draft!.hash,
+                  corrections: draft!.corrections,
                 },
                 structure: structuralDiff(base.plan, state.plan),
               }
             : {}),
           ...(compiled
             ? {
-                kind: "initialize",
+                kind: "initialize" as const,
                 generation: {
                   brief: compiled.brief,
                   dimensions: compiled.dimensions,
@@ -514,12 +542,14 @@ export class CandidateStore {
       })
       .immediate();
   }
+
   evidencePath(project: string, id: string, view: string) {
     this.row(project, id);
     if (!["top", "oblique"].includes(view))
       throw new SceneError("NOT_FOUND", "证据视角不存在", 404);
     return path.join(this.projects.directory, "evidence", id, `${view}.png`);
   }
+
   saveEvidence(
     project: string,
     id: string,
@@ -529,12 +559,7 @@ export class CandidateStore {
       directory = path.join(this.projects.directory, "evidence", id);
     fs.mkdirSync(directory, { recursive: true });
     const evidence: Evidence[] = images.map(({ view, data }) => {
-      if (
-        data.length < 100 ||
-        !data
-          .subarray(0, 8)
-          .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
-      )
+      if (data.length < 100 || !data.subarray(0, 8).equals(PNG_MAGIC))
         throw new SceneError("RENDER_FAILED", "渲染没有返回有效 PNG", 503);
       const file = this.evidencePath(project, id, view),
         temporary = file + ".tmp";
@@ -555,6 +580,7 @@ export class CandidateStore {
       .run(JSON.stringify(evidence), id);
     return evidence;
   }
+
   verifyEvidence(project: string, id: string): Evidence[] {
     const c = this.get(project, id),
       evidence = c.evidence as Evidence[];
@@ -579,18 +605,19 @@ export class CandidateStore {
     }
     return evidence;
   }
+
   review(project: string, id: string, review: CandidateReview) {
     const c = this.get(project, id);
     if (c.authorizationVersion)
-      new EditAuthorizations(this.projects).assert(
+      this.evaluator.assertVersionedAuthorization(this.projects, {
         project,
-        c.taskId,
-        c.authorizationVersion,
-        c.baseRevision,
-        c.authorizationScopeHash,
-        c.scope,
-        c.kind === "initialize" ? "initialize" : "edit",
-      );
+        taskId: c.taskId,
+        version: c.authorizationVersion,
+        baseRevision: c.baseRevision,
+        scopeHash: c.authorizationScopeHash,
+        scope: c.scope,
+        kind: c.kind === "initialize" ? "initialize" : "edit",
+      });
     const evidence =
       c.verification === "deterministic"
         ? []
@@ -629,6 +656,7 @@ export class CandidateStore {
       .run(JSON.stringify(review), id);
     return this.get(project, id);
   }
+
   commit(
     project: string,
     id: string,
@@ -663,19 +691,21 @@ export class CandidateStore {
         const { hash, before, ...frozen } = c;
         if (sha256(frozen) !== hash)
           throw new SceneError("CANDIDATE_INVALID", "候选内容校验失败", 409);
+
+        const kind: CandidateKind = c.kind || "edit";
         const authorization = c.authorizationVersion
-          ? new EditAuthorizations(this.projects).assert(
+          ? this.evaluator.assertVersionedAuthorization(this.projects, {
               project,
-              c.taskId,
-              c.authorizationVersion,
-              c.baseRevision,
-              c.authorizationScopeHash,
-              c.scope,
-              c.kind === "initialize" ? "initialize" : "edit",
-            )
+              taskId: c.taskId,
+              version: c.authorizationVersion,
+              baseRevision: c.baseRevision,
+              scopeHash: c.authorizationScopeHash,
+              scope: c.scope,
+              kind: kind === "initialize" ? "initialize" : "edit",
+            })
           : undefined;
         if (
-          c.kind === "initialize" &&
+          kind === "initialize" &&
           c.authorizationVersion &&
           sha256(c.generation.brief) !== authorization.briefHash
         )
@@ -686,11 +716,11 @@ export class CandidateStore {
           );
         if (
           !c.authorizationVersion &&
-          this.projects.db
-            .prepare(
-              "SELECT 1 FROM edit_authorization_heads WHERE project=? AND task_id=?",
-            )
-            .get(project, c.taskId)
+          this.evaluator.hasIndependentAuthorizationHead(
+            this.projects,
+            project,
+            c.taskId,
+          )
         )
           throw new SceneError(
             "AUTHORIZATION_CONFLICT",
@@ -703,48 +733,35 @@ export class CandidateStore {
             c.taskId,
             c.authorizationScopeHash,
           );
-        if (c.kind === "initialize_floorplan") {
+        if (kind === "initialize_floorplan") {
           const draft = this.floorplans.confirmed(project, c.floorplan.binding);
           if (sha256(draft.data) !== sha256(c.floorplan.data))
             throw new SceneError("DRAFT_CONFLICT", "确认草稿与候选不一致", 409);
         }
+
         const replay = applyCommands(
           { plan: current.plan, roomLabelArchive: current.roomLabelArchive },
           c.commands as Command[],
         );
-        if (
-          sha256(replay) !== sha256(c.state) ||
-          !(
-            c.kind === "initialize_floorplan"
-              ? checkFloorplanInitialization(
-                  before,
-                  replay,
-                  c.floorplan.data,
-                  c.taskId,
-                  c.floorplan.binding,
-                  c.floorplan.matches,
-                )
-              : c.kind === "initialize"
-                ? checkInitialization(
-                    before,
-                    replay,
-                    c.generation.brief,
-                    c.taskId,
-                    c.scope,
-                  )
-                : checkExpected(
-                    checkCandidate(before, replay, c.scope),
-                    replay,
-                    authorization,
-                  )
-          ).passed
-        )
+        const evaluated = this.evaluator.evaluate({
+          kind,
+          before,
+          after: replay,
+          taskId: c.taskId,
+          scope: c.scope,
+          authorization,
+          brief: c.generation?.brief,
+          floorplan: c.floorplan,
+        });
+        if (sha256(replay) !== sha256(c.state) || !evaluated.passed)
           throw new SceneError("CHECK_FAILED", "候选未通过确定性检查", 409);
+
         if (c.verification !== "deterministic")
           this.verifyEvidence(project, id);
         const review = row.review ? JSON.parse(row.review) : null;
         if (!review?.passed || review.issues.length)
           throw new SceneError("REVIEW_REQUIRED", "检查尚未通过", 409);
+
         const result = this.projects.mutate(project, "commands", {
           operationId: c.operationId,
           baseRevision: c.baseRevision,

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import json
 import os
@@ -84,6 +86,7 @@ class JobStore:
         options: dict,
         input_sha256: str,
         reuse_cache: bool = False,
+        references: list[bytes] | None = None,
     ) -> tuple[dict, bool, bool]:
         with self.lock:
             index = json.loads(self.index_path.read_text(encoding="utf-8"))
@@ -99,6 +102,7 @@ class JobStore:
                     result = cached.get("result") or {}
                     if (
                         cached["status"] == "succeeded"
+                        and cached.get("options", {}).get("pipeline_version") == options.get("pipeline_version")
                         and result.get("inputSha256") == input_sha256
                         and (self.job_dir(cached["id"]) / "asset.glb").is_file()
                     ):
@@ -109,6 +113,11 @@ class JobStore:
             directory.mkdir()
             input_name = f"input{suffix}"
             (directory / input_name).write_bytes(image)
+            reference_files = []
+            for position, reference in enumerate(references or []):
+                filename = f"reference-{position}.png"
+                (directory / filename).write_bytes(reference)
+                reference_files.append(filename)
             now = utc_now()
             job = {
                 "id": job_id,
@@ -118,6 +127,7 @@ class JobStore:
                 "created_at": now,
                 "updated_at": now,
                 "input_file": input_name,
+                "reference_files": reference_files,
                 "inputSha256": input_sha256,
                 "options": options,
                 "error": None,

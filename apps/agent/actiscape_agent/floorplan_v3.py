@@ -32,7 +32,7 @@ from .floorplan_schemas import (
     StructureRecognition,
 )
 from .floorplan_tools import FloorplanToolset
-from .floorplan_v2 import FloorplanV2
+from .floorplan_evidence import FloorplanPipelineBase
 from .role_contracts import StageResultV1, build_role_context
 from .scene_registry import get_scene_registry
 from .skill_registry import get_registry
@@ -2671,7 +2671,7 @@ def _assemble_structure(
     }
 
 
-class FloorplanV3(FloorplanV2):
+class FloorplanV3(FloorplanPipelineBase):
     def recognition_version(self, task):
         return 3
 

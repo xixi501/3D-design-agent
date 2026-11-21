@@ -10,6 +10,8 @@ from pathlib import Path
 
 from actiscape_agent.manager import TaskManager
 
+import mcp_gateway
+
 TERMINAL = {"completed", "failed", "waiting_input", "cancelled", "conflict"}
 _RUNTIME_MANAGER: TaskManager | None = None
 _RUNTIME_LOCK: asyncio.Lock | None = None
@@ -50,6 +52,75 @@ def _body(payload: dict) -> dict:
     return body
 
 
+def _is_check_intent(text: str) -> bool:
+    """True only for the read-only scene-check phrasing used by the workbench."""
+    value = (text or "").strip()
+    if not value:
+        return False
+    return value.startswith("只检查")
+
+
+async def _run_scene_check(project_id: str, body: dict, timeout: float) -> dict:
+    """Read-only check through the AgentArts MCP gateway (no scene mutation)."""
+    task_id = str(uuid.uuid4())
+    outcome = await mcp_gateway.call_scene_checks(
+        project_id, timeout=min(max(timeout, 5.0), 60.0)
+    )
+    issues = outcome.get("issues") or []
+    codes: list[str] = []
+    for issue in issues:
+        if isinstance(issue, dict) and issue.get("code"):
+            codes.append(str(issue["code"]))
+    revision = outcome.get("revision")
+    if outcome.get("ok"):
+        detail = "、".join(codes) if codes else "未发现冲突"
+        summary = (
+            "只读检查完成：场景版本 revision=%s，检出 %d 项冲突（%s）"
+            % (revision, len(issues), detail)
+        )
+        status = "completed"
+        error = None
+    else:
+        summary = "MCP 网关检查失败：%s %s" % (
+            outcome.get("error"),
+            outcome.get("message") or "",
+        )
+        status = "failed"
+        error = summary.strip()
+    print(
+        "[mcp] tool=%s request=%s mcpRequestId=%s revision=%s codes=%s status=%s ms=%s"
+        % (
+            mcp_gateway.TOOL_NAME,
+            body.get("requestId"),
+            outcome.get("request_id"),
+            revision,
+            ",".join(codes),
+            "ok" if outcome.get("ok") else "error",
+            outcome.get("ms"),
+        ),
+        flush=True,
+    )
+    return {
+        "status": status,
+        "taskId": task_id,
+        "result": {
+            "kind": "scene_check",
+            "projectId": project_id,
+            "requestId": body.get("requestId"),
+            "tool": mcp_gateway.TOOL_NAME,
+            "mcpRequestId": outcome.get("request_id"),
+            "revision": revision,
+            "issues": issues,
+            "codes": codes,
+            "message": summary,
+            "latencyMs": outcome.get("ms"),
+        },
+        "error": error,
+        "generation": None,
+        "mode": "check",
+        "cloud": True,
+    }
+
 async def run_task(
     payload: dict,
     *,
@@ -63,6 +134,8 @@ async def run_task(
         if timeout is not None
         else __import__("os").environ.get("AGENTARTS_TASK_TIMEOUT", "240")
     )
+    if _is_check_intent(body.get("input", "")):
+        return await _run_scene_check(payload["projectId"], body, timeout)
     if manager is None:
         manager = await _runtime_manager()
     elif manager.worker is None:

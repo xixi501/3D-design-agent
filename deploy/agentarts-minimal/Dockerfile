@@ -5,6 +5,7 @@ RUN python -m pip install --no-cache-dir -r apps/agent/requirements.lock -e apps
 COPY deploy/agentarts-minimal/agent.py /app/agent.py
 COPY deploy/agentarts-minimal/app.py /app/app.py
 COPY deploy/agentarts-minimal/task_runtime.py /app/task_runtime.py
+COPY deploy/agentarts-minimal/mcp_gateway.py /app/mcp_gateway.py
 ENV AGENT_RUN_PORT=8080 RUNTIME_PORT=8080 RUNTIME_HOST=0.0.0.0
 EXPOSE 8080
 CMD ["python", "app.py"]

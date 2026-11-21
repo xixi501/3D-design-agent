@@ -24,7 +24,11 @@ export function agentProxy(app: FastifyInstance) {
         body.projectId
       ) {
         try {
-          const upstream = await forwardAgentArts(body);
+          const upstream = await forwardAgentArts(
+            body,
+            undefined,
+            pathname.split("/")[4],
+          );
           return reply
             .code(201)
             .send(cloudTask(upstream, body, pathname.split("/")[4]));

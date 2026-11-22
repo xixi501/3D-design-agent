@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from actiscape_agent.memory_profile import recall_and_update_household_memory
 from actiscape_agent.policy import RepairPolicyRouter
-from actiscape_agent.procurement_client import generate_procurement_quote
+from actiscape_agent.procurement_client import (
+    _parse_agentarts_sse_or_json,
+    generate_procurement_quote,
+)
 from actiscape_agent.rag_standards import retrieve_standard_citations
 from actiscape_agent.sandbox_solver import solve_safe_placements
 from actiscape_agent.telemetry import record_current_span, trace_stage
@@ -19,14 +24,51 @@ async def test_gb_rag_standard_citations_cover_safety_codes():
             "WHEELCHAIR_TURNING_BLOCKED",
             "SEISMIC_TOPPLE_BED_HAZARD",
             "SEISMIC_TOPPLE_EXIT_BLOCKED",
+            "SEISMIC_UNANCHORED_CABINET",
             "SENSOR_BLIND_SPOT",
         ]
     )
-    assert len(citations) == 4
+    assert len(citations) == 5
     standards_text = " ".join(c["standard"] for c in citations)
     assert "GB 50763" in standards_text
     assert "GB 50011" in standards_text
     assert "鸿蒙智家" in standards_text
+
+
+@pytest.mark.asyncio
+async def test_gb_rag_console_internal_kb_id_and_synced_corpus(monkeypatch):
+    monkeypatch.setenv("AGENTARTS_KB_ID", "5498b33119c8456f9bbe20404191cf2a")
+    monkeypatch.setenv("AGENTARTS_KB_RETRIEVE_URL", "console-internal")
+    citations = await retrieve_standard_citations(["SENSOR_BLIND_SPOT", "THRESHOLD_TRIP_HAZARD"])
+    assert len(citations) >= 1
+    assert citations[0]["source"] == "agentarts-kb"
+    assert citations[0]["knowledgeBaseId"] == "5498b33119c8456f9bbe20404191cf2a"
+
+
+def test_agentarts_sse_parser_handles_summary_response_without_duplication():
+    quote_obj = {
+        "schemaVersion": "actiscape.procurement.v1",
+        "currency": "CNY",
+        "totalEstimatedCny": 1557,
+        "withinBudget": True,
+        "summary": "共配置 2 项设备",
+        "lineItems": [{"skuId": "ANC-L304-01", "subtotalCny": 58}, {"skuId": "HW-MMWAVE-01", "subtotalCny": 1499}],
+    }
+    quote_str = json.dumps(quote_obj, ensure_ascii=False)
+    sse_raw = "\n".join(
+        [
+            'data: {"event":"start","createdTime":1}',
+            'data: {"event":"message","reasoning_content":"calc...","createdTime":2}',
+            f"data: {json.dumps({'event': 'message', 'content': quote_str[:25]}, ensure_ascii=False)}",
+            f"data: {json.dumps({'event': 'message', 'content': quote_str[25:]}, ensure_ascii=False)}",
+            f"data: {json.dumps({'event': 'summary_response', 'content': quote_str, 'role': 'assistant'}, ensure_ascii=False)}",
+            'data: {"event":"done","createdTime":5}',
+        ]
+    )
+    parsed = _parse_agentarts_sse_or_json(sse_raw, "text/event-stream; charset=utf-8")
+    assert parsed["schemaVersion"] == "actiscape.procurement.v1"
+    assert parsed["totalEstimatedCny"] == 1557
+    assert len(parsed["lineItems"]) == 2
 
 
 @pytest.mark.asyncio
@@ -48,7 +90,8 @@ async def test_household_memory_persists_wheelchair_and_seismic_cues(tmp_path, m
 
 
 @pytest.mark.asyncio
-async def test_procurement_quote_generates_accurate_bom():
+async def test_procurement_quote_generates_accurate_bom(monkeypatch):
+    monkeypatch.delenv("PROCUREMENT_AGENT_URL", raising=False)
     plan = {
         "source": {"safetyProfile": {"enabled": True, "elderlyWheelchair": True}},
         "furniture": [

@@ -1,0 +1,14 @@
+{
+  "account": "GT-zhhqing",
+  "region": "cn-southwest-2",
+  "agentName": "actiscape-procurement-advisor",
+  "agentId": "577d5ae6-74a6-4947-965a-830cfee94f10",
+  "runtimeName": "agent-arts-9d7f9d5f1c0c493f821b962952bf69c0",
+  "runtimeId": "ef8a0ec5-5a7d-4b46-9840-0ed2e5611e43",
+  "publishedVersion": "v20261122151454",
+  "model": "DeepSeek-V4.1-Flash-1017",
+  "invocationEndpoint": "https://defaultgw-gu2wkyrzha.cn-southwest-2.huaweicloud-agentarts.com/runtimes/agent-arts-9d7f9d5f1c0c493f821b962952bf69c0/invocations",
+  "authType": "api_key",
+  "urlEnvVarName": "PROCUREMENT_AGENT_URL",
+  "secretEnvVarName": "PROCUREMENT_AGENT_API_KEY"
+}

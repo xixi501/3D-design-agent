@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "actiscape.kb-manifest.v1",
+  "account": "GT-zhhqing",
+  "region": "cn-southwest-2",
+  "knowledgeBaseName": "actiscape-safety-standards",
+  "knowledgeBaseId": "5498b33119c8456f9bbe20404191cf2a",
+  "retrieveEndpoint": "console-internal",
+  "secretEnvVarName": "AGENTARTS_KB_API_KEY",
+  "embeddingModel": "pangu_embedding",
+  "rerankModel": "pangu_rerank",
+  "files": [
+    "01_gb50763_accessibility.md",
+    "02_gb50096_residential.md",
+    "03_seismic_nonstructural.md",
+    "04_harmony_smart_sensors.md"
+  ],
+  "totalChunks": 41,
+  "hitTests": [
+    {
+      "query": "轮椅通行门洞和回转空间最小尺寸要求是多少？",
+      "topHitChunkId": "KB-ACC-001",
+      "score": 0.99
+    },
+    {
+      "query": "卧室床边未固定高书柜地震倾覆砸床有什么规范要求？",
+      "topHitChunkId": "KB-SEI-001",
+      "score": 0.90
+    },
+    {
+      "query": "入户门和卧室逃生门旁放置高窄鞋柜有什么防震隐患？",
+      "topHitChunkId": "KB-SEI-002",
+      "score": 0.90
+    },
+    {
+      "query": "华为鸿蒙智家毫米波防跌倒传感器被高大衣柜遮挡盲区覆盖率要求是多少？",
+      "topHitChunkId": "KB-HMS-001",
+      "score": 0.99
+    },
+    {
+      "query": "卧室平开房门与衣柜柜门开启防碰撞干涉的间距标准是什么？",
+      "topHitChunkId": "KB-RES-004",
+      "score": 0.97
+    }
+  ]
+}

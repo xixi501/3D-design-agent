@@ -1,0 +1,255 @@
+{
+  "schemaVersion": "actiscape.procurement-examples.v1",
+  "agentName": "actiscape-procurement-advisor",
+  "agentId": "577d5ae6-74a6-4947-965a-830cfee94f10",
+  "model": "DeepSeek-V4.1-Flash-1017",
+  "examples": [
+    {
+      "caseId": "case-01-standard-elderly-seismic",
+      "description": "标准适老与卧室高柜防震改造（充足预算 3000 元，主力旗舰选型）",
+      "input": {
+        "projectId": "demo-001",
+        "scenario": "elderly_and_seismic_retrofit",
+        "budgetLimitCny": 3000,
+        "requiredItems": [
+          {
+            "category": "seismic_anchor",
+            "targetObjectName": "双门衣柜",
+            "quantity": 2,
+            "reasonCode": "SEISMIC_TOPPLE_BED_HAZARD"
+          },
+          {
+            "category": "mmwave_fall_sensor",
+            "targetObjectName": "主卧床侧监护区",
+            "quantity": 1,
+            "reasonCode": "SENSOR_BLIND_SPOT"
+          },
+          {
+            "category": "corner_protector",
+            "targetObjectName": "实木茶几",
+            "quantity": 4,
+            "reasonCode": "ELDERLY_COLLISION_RISK"
+          }
+        ]
+      },
+      "output": {
+        "schemaVersion": "actiscape.procurement.v1",
+        "currency": "CNY",
+        "totalEstimatedCny": 1593,
+        "withinBudget": true,
+        "summary": "共配置 3 项适老防震锚固与鸿蒙智家康养监测设备（防倾倒固定器 2 套、毫米波跌倒康养传感器 1 台、防撞护角 4 只），预估总价 1593 元，未超过 3000 元预算上限，预算余量 1407 元。",
+        "lineItems": [
+          {
+            "skuId": "ANC-L304-01",
+            "category": "seismic_anchor",
+            "productName": "304不锈钢加厚L型防倾倒固定器（含M8膨胀螺栓对装）",
+            "brandOrEcosystem": "国标建筑加固五金",
+            "unitPriceCny": 29,
+            "quantity": 2,
+            "subtotalCny": 58,
+            "channel": "京东五金自营",
+            "safetyPurpose": "将双门衣柜顶部与实体墙可靠锚固，消除地震倾覆砸床隐患"
+          },
+          {
+            "skuId": "HW-MMWAVE-01",
+            "category": "mmwave_fall_sensor",
+            "productName": "华为全屋智能 AI 辅助康养传感器（毫米波防跌倒康养版）",
+            "brandOrEcosystem": "华为鸿蒙智家 (HarmonyOS Connect)",
+            "unitPriceCny": 1499,
+            "quantity": 1,
+            "subtotalCny": 1499,
+            "channel": "华为商城 VMALL",
+            "safetyPurpose": "补盲覆盖主卧床侧监护区，24小时无感监测老人跌倒与坠床风险"
+          },
+          {
+            "skuId": "ELDER-CORNER-03",
+            "category": "corner_protector",
+            "productName": "高透软硅胶茶几/床头柜直角防撞球（4只经济装）",
+            "brandOrEcosystem": "适老家居严选",
+            "unitPriceCny": 9,
+            "quantity": 4,
+            "subtotalCny": 36,
+            "channel": "京东自营",
+            "safetyPurpose": "包覆实木茶几四角直角边缘，防止老人起夜与走动时磕碰受伤"
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "case-02-compact-budget-downgrade",
+      "description": "紧凑预算次卧适老看护改造（预算上限 1350 元，自动优选高性价比鸿蒙后装款雷达与扶手）",
+      "input": {
+        "projectId": "demo-002",
+        "scenario": "compact_budget_elderly_care",
+        "budgetLimitCny": 1350,
+        "requiredItems": [
+          {
+            "category": "mmwave_fall_sensor",
+            "targetObjectName": "老人次卧睡眠区",
+            "quantity": 1,
+            "reasonCode": "SENSOR_BLIND_SPOT"
+          },
+          {
+            "category": "elderly_handrail",
+            "targetObjectName": "床侧及过道实墙",
+            "quantity": 2,
+            "reasonCode": "WHEELCHAIR_TURNING_BLOCKED"
+          },
+          {
+            "category": "seismic_anchor",
+            "targetObjectName": "高窄书架",
+            "quantity": 1,
+            "reasonCode": "SEISMIC_UNANCHORED_CABINET"
+          }
+        ]
+      },
+      "output": {
+        "schemaVersion": "actiscape.procurement.v1",
+        "currency": "CNY",
+        "totalEstimatedCny": 1306,
+        "withinBudget": true,
+        "summary": "共配置 3 项适老与防震改造物料（毫米波跌倒监测雷达 1 台、防滑助力扶手 2 支、防倾倒固定器 1 套），已为您优选高性价比型号以适配紧凑预算，预估总价 1306 元，符合 1350 元预算要求（余量 44 元）。",
+        "lineItems": [
+          {
+            "skuId": "HW-MMWAVE-03",
+            "category": "mmwave_fall_sensor",
+            "productName": "鸿蒙智联生态 60GHz 毫米波AI跌倒看护雷达（后装Wi-Fi高性价比版）",
+            "brandOrEcosystem": "华为智选 / HarmonyOS Connect 生态",
+            "unitPriceCny": 1099,
+            "quantity": 1,
+            "subtotalCny": 1099,
+            "channel": "华为商城 VMALL",
+            "safetyPurpose": "补盲覆盖老人次卧睡眠区，免布线后装实现24小时无感跌倒与异常看护"
+          },
+          {
+            "skuId": "ELDER-RAIL-04",
+            "category": "elderly_handrail",
+            "productName": "适老经济型加厚304不锈钢拉丝防滑一字扶手（500mm）",
+            "brandOrEcosystem": "九牧适老卫浴 (JOMOO)",
+            "unitPriceCny": 89,
+            "quantity": 2,
+            "subtotalCny": 178,
+            "channel": "京东自营",
+            "safetyPurpose": "沿床侧与过道实墙加装防滑助力扶手，保障轮椅转移与行走稳姿、缓解通行受阻风险"
+          },
+          {
+            "skuId": "ANC-L304-01",
+            "category": "seismic_anchor",
+            "productName": "304不锈钢加厚L型防倾倒固定器（含M8膨胀螺栓对装）",
+            "brandOrEcosystem": "国标建筑加固五金",
+            "unitPriceCny": 29,
+            "quantity": 1,
+            "subtotalCny": 29,
+            "channel": "京东五金自营",
+            "safetyPurpose": "将高窄书架顶部与实体墙可靠锚固，消除地震倾覆伤人隐患"
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "case-03-harmony-lighting-accessibility",
+      "description": "全屋鸿蒙防眩照明、床头智控与门槛零高差综合改造（预算 2500 元，5 类组合核算）",
+      "input": {
+        "projectId": "demo-003",
+        "scenario": "harmony_smart_lighting_and_ramp",
+        "budgetLimitCny": 2500,
+        "requiredItems": [
+          {
+            "category": "harmony_control_panel",
+            "targetObjectName": "老人床头护墙板",
+            "quantity": 1,
+            "reasonCode": "CONTROL_PANEL_UNREACHABLE"
+          },
+          {
+            "category": "harmony_smart_lighting",
+            "targetObjectName": "主卧防眩照明区",
+            "quantity": 4,
+            "reasonCode": "GLARE_HAZARD"
+          },
+          {
+            "category": "threshold_ramp",
+            "targetObjectName": "卫生间与阳台门槛",
+            "quantity": 2,
+            "reasonCode": "THRESHOLD_TRIP_HAZARD"
+          },
+          {
+            "category": "night_motion_light",
+            "targetObjectName": "双人床下沿",
+            "quantity": 1,
+            "reasonCode": "NIGHT_LIGHTING_INSUFFICIENT"
+          },
+          {
+            "category": "anti_slip_pad",
+            "targetObjectName": "餐边柜台面瓷瓶",
+            "quantity": 2,
+            "reasonCode": "SURFACE_ITEM_OVERHANG"
+          }
+        ]
+      },
+      "output": {
+        "schemaVersion": "actiscape.procurement.v1",
+        "currency": "CNY",
+        "totalEstimatedCny": 1312,
+        "withinBudget": true,
+        "summary": "共配置 5 项鸿蒙智家智控、防眩照明、门槛过渡与起夜防滑物料，预估总价 1312 元，符合 2500 元预算要求，预算余量 1188 元。",
+        "lineItems": [
+          {
+            "skuId": "HW-PANEL-01",
+            "category": "harmony_control_panel",
+            "productName": "华为全屋智能 智能 Mini 免布线场景快捷键（床头一键起夜/呼救贴）",
+            "brandOrEcosystem": "华为鸿蒙智家 (HarmonyOS Connect)",
+            "unitPriceCny": 399,
+            "quantity": 1,
+            "subtotalCny": 399,
+            "channel": "华为商城 VMALL",
+            "safetyPurpose": "在老人床头护墙板低位加装免布线一键场景与呼救面板，解决控制面板不可达与紧急求助困难"
+          },
+          {
+            "skuId": "HW-LIGHT-01",
+            "category": "harmony_smart_lighting",
+            "productName": "鸿蒙智家生态 深杯防眩全光谱智能筒射灯（7W开孔75mm）",
+            "brandOrEcosystem": "西顿照明 × HarmonyOS Connect",
+            "unitPriceCny": 169,
+            "quantity": 4,
+            "subtotalCny": 676,
+            "channel": "华为商城 VMALL / 京东自营",
+            "safetyPurpose": "为主卧防眩照明区配置深杯防眩智能筒射灯，消除强眩光刺眼与夜间视觉不适风险"
+          },
+          {
+            "skuId": "ELDER-RAMP-01",
+            "category": "threshold_ramp",
+            "productName": "室内门槛零高差实心防滑橡胶斜坡垫（高15mm×宽900mm）",
+            "brandOrEcosystem": "适老无障碍严选",
+            "unitPriceCny": 45,
+            "quantity": 2,
+            "subtotalCny": 90,
+            "channel": "京东自营",
+            "safetyPurpose": "抹平卫生间与阳台门槛高差并做防滑过渡，消除老人轮椅与助行器通行绊倒隐患"
+          },
+          {
+            "skuId": "ELDER-LIGHT-03",
+            "category": "night_motion_light",
+            "productName": "双人床左右双侧独立感应伴睡起夜柔光灯带套装",
+            "brandOrEcosystem": "雷士照明 (NVC)",
+            "unitPriceCny": 109,
+            "quantity": 1,
+            "subtotalCny": 109,
+            "channel": "京东自营",
+            "safetyPurpose": "沿双人床下沿布置双侧独立感应柔光灯带，避免老人起夜摸黑跌倒"
+          },
+          {
+            "skuId": "ANC-PAD-01",
+            "category": "anti_slip_pad",
+            "productName": "高分子纳米防震防滑阻尼垫（8片装，用于台面花瓶/摆件）",
+            "brandOrEcosystem": "应急防灾严选",
+            "unitPriceCny": 19,
+            "quantity": 2,
+            "subtotalCny": 38,
+            "channel": "京东自营",
+            "safetyPurpose": "垫实餐边柜台面瓷瓶底部，防止悬空滑移与地震坠落碎裂伤人"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,427 @@
+{
+  "schemaVersion": "actiscape.price-catalog.v1",
+  "updatedAt": "2026-11-22",
+  "items": [
+    {
+      "skuId": "ANC-L304-01",
+      "category": "seismic_anchor",
+      "productName": "304不锈钢加厚L型防倾倒固定器（含M8膨胀螺栓对装）",
+      "brandOrEcosystem": "国标建筑加固五金",
+      "spec": "加厚3.0mm直角码，单副抗拉拔承重>=80kg，2只/套",
+      "unitPriceCny": 29,
+      "unit": "套",
+      "channel": "京东五金自营",
+      "applicableReasonCodes": [
+        "SEISMIC_TOPPLE_BED_HAZARD",
+        "SEISMIC_TOPPLE_EXIT_BLOCKED",
+        "SEISMIC_UNANCHORED_CABINET"
+      ]
+    },
+    {
+      "skuId": "ANC-WIRE-02",
+      "category": "seismic_anchor",
+      "productName": "航空级304不锈钢双股防倾倒钢丝绳连接器（可拆卸清洁型）",
+      "brandOrEcosystem": "固特建筑五金",
+      "spec": "4mm包塑钢丝绳+金属底座+M8膨胀锚栓，2条/套",
+      "unitPriceCny": 39,
+      "unit": "套",
+      "channel": "京东五金自营",
+      "applicableReasonCodes": [
+        "SEISMIC_TOPPLE_BED_HAZARD",
+        "SEISMIC_TOPPLE_EXIT_BLOCKED",
+        "SEISMIC_UNANCHORED_CABINET"
+      ]
+    },
+    {
+      "skuId": "ANC-TV-03",
+      "category": "seismic_anchor",
+      "productName": "大屏平板电视VESA防倾倒双带安全牵引固定器",
+      "brandOrEcosystem": "山泽家居安防",
+      "spec": "高强尼龙织带+全金属锁扣，适配55~85英寸台式电视",
+      "unitPriceCny": 45,
+      "unit": "套",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "SEISMIC_UNANCHORED_CABINET",
+        "FALLING_OBJECT_HAZARD"
+      ]
+    },
+    {
+      "skuId": "ANC-HVY-04",
+      "category": "seismic_anchor",
+      "productName": "重型满载高书柜/双开门冰箱加长抗震锚栓套装",
+      "brandOrEcosystem": "慧鱼建筑锚固 (fischer)",
+      "spec": "尼龙膨胀锚栓SX10+304不锈钢加宽角码，单套承重>=120kg",
+      "unitPriceCny": 58,
+      "unit": "套",
+      "channel": "京东五金自营",
+      "applicableReasonCodes": [
+        "SEISMIC_TOPPLE_BED_HAZARD",
+        "SEISMIC_TOPPLE_EXIT_BLOCKED",
+        "SEISMIC_UNANCHORED_CABINET"
+      ]
+    },
+    {
+      "skuId": "ANC-PAD-01",
+      "category": "anti_slip_pad",
+      "productName": "高分子纳米防震防滑阻尼垫（8片装，用于台面花瓶/摆件）",
+      "brandOrEcosystem": "应急防灾严选",
+      "spec": "50mm×50mm×3mm高粘无痕PU凝胶，抗7度水平摇晃滑移",
+      "unitPriceCny": 19,
+      "unit": "盒",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "SURFACE_ITEM_OVERHANG",
+        "FALLING_OBJECT_HAZARD"
+      ]
+    },
+    {
+      "skuId": "ANC-LATCH-02",
+      "category": "anti_slip_pad",
+      "productName": "吊柜/餐边柜地震防弹开隐形机械安全锁扣（4只装）",
+      "brandOrEcosystem": "川口技研家居防灾",
+      "spec": "震感摇晃自动落锁防止碗碟飞出，日常轻按即开",
+      "unitPriceCny": 26,
+      "unit": "套",
+      "channel": "京东国际自营",
+      "applicableReasonCodes": [
+        "SEISMIC_UNANCHORED_CABINET",
+        "FALLING_OBJECT_HAZARD"
+      ]
+    },
+    {
+      "skuId": "ANC-FILM-03",
+      "category": "anti_slip_pad",
+      "productName": "玻璃书柜门抗冲击防飞溅PET安全防爆膜",
+      "brandOrEcosystem": "3M居家防护生态",
+      "spec": "4mil加厚高透防碎膜，宽90cm×长200cm/卷",
+      "unitPriceCny": 49,
+      "unit": "卷",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "SEISMIC_UNANCHORED_CABINET",
+        "FALLING_OBJECT_HAZARD"
+      ]
+    },
+    {
+      "skuId": "ELDER-RAIL-01",
+      "category": "elderly_handrail",
+      "productName": "适老化抗菌防滑夜光一字助力扶手（600mm）",
+      "brandOrEcosystem": "适老康养严选",
+      "spec": "外层恒温抗菌ABS尼龙+内衬304不锈钢管，带荧光夜光圈，承重150kg",
+      "unitPriceCny": 128,
+      "unit": "根",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "WHEELCHAIR_TURNING_BLOCKED",
+        "ELDERLY_FALL_RISK",
+        "BED_ACCESS_BLOCKED"
+      ]
+    },
+    {
+      "skuId": "ELDER-RAIL-02",
+      "category": "elderly_handrail",
+      "productName": "老人床边插床式高碳钢防滑起身助力扶手架",
+      "brandOrEcosystem": "鱼跃康养生态 (yuwell)",
+      "spec": "高度720~860mm五档可调，泡棉防滑握把+床垫防滑绑带",
+      "unitPriceCny": 198,
+      "unit": "套",
+      "channel": "京东大药房自营",
+      "applicableReasonCodes": [
+        "BED_ACCESS_BLOCKED",
+        "ELDERLY_FALL_RISK"
+      ]
+    },
+    {
+      "skuId": "ELDER-RAIL-03",
+      "category": "elderly_handrail",
+      "productName": "玄关/卫浴90度上翻折叠抗菌尼龙助力扶手（650mm）",
+      "brandOrEcosystem": "松下康养 (Panasonic)",
+      "spec": "省空间垂直上翻停位设计，带夜光防滑凸点，静载承重120kg",
+      "unitPriceCny": 268,
+      "unit": "根",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "WHEELCHAIR_TURNING_BLOCKED",
+        "DOORWAY_BLOCKED"
+      ]
+    },
+    {
+      "skuId": "ELDER-RAIL-04",
+      "category": "elderly_handrail",
+      "productName": "适老经济型加厚304不锈钢拉丝防滑一字扶手（500mm）",
+      "brandOrEcosystem": "九牧适老卫浴 (JOMOO)",
+      "spec": "管径35mm防滑滚花握杆，隐藏式法兰盖膨胀螺栓固定",
+      "unitPriceCny": 89,
+      "unit": "根",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "WHEELCHAIR_TURNING_BLOCKED",
+        "ELDERLY_FALL_RISK"
+      ]
+    },
+    {
+      "skuId": "ELDER-RAMP-01",
+      "category": "threshold_ramp",
+      "productName": "室内门槛零高差实心防滑橡胶斜坡垫（高15mm×宽900mm）",
+      "brandOrEcosystem": "适老无障碍严选",
+      "spec": "环保无味EPDM橡胶，表面防滑水波纹，可自由裁切适配门框",
+      "unitPriceCny": 45,
+      "unit": "条",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "THRESHOLD_TRIP_HAZARD",
+        "WHEELCHAIR_TURNING_BLOCKED",
+        "DOORWAY_BLOCKED"
+      ]
+    },
+    {
+      "skuId": "ELDER-RAMP-02",
+      "category": "threshold_ramp",
+      "productName": "阳台/入户门加宽轮椅爬坡橡胶垫（高30mm×宽900mm）",
+      "brandOrEcosystem": "可孚适老康复",
+      "spec": "缓坡1:8无障碍倾角，承重500kg轮椅顺畅推行不颠簸",
+      "unitPriceCny": 78,
+      "unit": "条",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "THRESHOLD_TRIP_HAZARD",
+        "WHEELCHAIR_TURNING_BLOCKED"
+      ]
+    },
+    {
+      "skuId": "ELDER-TRIM-03",
+      "category": "threshold_ramp",
+      "productName": "地毯边缘防翘起防绊倒阳极氧化铝合金斜坡收口压条",
+      "brandOrEcosystem": "靓佳建筑收口五金",
+      "spec": "长1800mm，适配3~8mm薄地垫平滑过渡锁边",
+      "unitPriceCny": 32,
+      "unit": "根",
+      "channel": "京东五金自营",
+      "applicableReasonCodes": [
+        "FLOOR_SLIP_TRIP_HAZARD",
+        "CIR-02"
+      ]
+    },
+    {
+      "skuId": "ELDER-RAMP-04",
+      "category": "threshold_ramp",
+      "productName": "便携折叠防滑铝合金轮椅过坎坡道板（长600mm×宽730mm）",
+      "brandOrEcosystem": "互邦轮椅配件 (Hubang)",
+      "spec": "航空铝合金金刚砂防滑面+两侧防脱挡边，适配50~100mm台阶高差",
+      "unitPriceCny": 299,
+      "unit": "块",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "WHEELCHAIR_TURNING_BLOCKED",
+        "THRESHOLD_TRIP_HAZARD"
+      ]
+    },
+    {
+      "skuId": "ELDER-CORNER-01",
+      "category": "corner_protector",
+      "productName": "高弹加厚硅胶家具防撞护角（4只装）",
+      "brandOrEcosystem": "适老家居五金",
+      "spec": "加厚6mm气囊缓冲食品级硅胶，配3M亚克力无痕背胶",
+      "unitPriceCny": 12,
+      "unit": "包",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "ELDERLY_COLLISION_RISK",
+        "CIR-02"
+      ]
+    },
+    {
+      "skuId": "ELDER-CORNER-02",
+      "category": "corner_protector",
+      "productName": "高密度NBR适老桌边加宽防撞软包条套装（2米条+4护角）",
+      "brandOrEcosystem": "babycare居家防护线",
+      "spec": "L型35mm宽面高回弹发泡胶条，全包覆实木长茶几与电视柜沿",
+      "unitPriceCny": 25,
+      "unit": "套",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "ELDERLY_COLLISION_RISK"
+      ]
+    },
+    {
+      "skuId": "ELDER-CORNER-03",
+      "category": "corner_protector",
+      "productName": "高透软硅胶茶几/床头柜直角防撞球（4只经济装）",
+      "brandOrEcosystem": "适老家居严选",
+      "spec": "水滴球形圆润过渡，隐形美观不伤木漆",
+      "unitPriceCny": 9,
+      "unit": "包",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "ELDERLY_COLLISION_RISK"
+      ]
+    },
+    {
+      "skuId": "ELDER-LIGHT-01",
+      "category": "night_motion_light",
+      "productName": "床下人体红外+光感柔光起夜LED感应灯带（1.5米）",
+      "brandOrEcosystem": "欧普照明 (OPPLE)",
+      "spec": "2700K暖黄防眩微光，双腿下床秒亮，离床30s缓灭",
+      "unitPriceCny": 69,
+      "unit": "套",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "NIGHT_LIGHTING_INSUFFICIENT",
+        "ELDERLY_FALL_RISK"
+      ]
+    },
+    {
+      "skuId": "ELDER-LIGHT-02",
+      "category": "night_motion_light",
+      "productName": "走廊踢脚位即插式防眩光人体感应小夜灯（2只装）",
+      "brandOrEcosystem": "飞利浦照明 (Philips)",
+      "spec": "向下洗地偏光光学透镜，8lx柔和导向照度不刺眼",
+      "unitPriceCny": 39,
+      "unit": "组",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "NIGHT_LIGHTING_INSUFFICIENT"
+      ]
+    },
+    {
+      "skuId": "ELDER-LIGHT-03",
+      "category": "night_motion_light",
+      "productName": "双人床左右双侧独立感应伴睡起夜柔光灯带套装",
+      "brandOrEcosystem": "雷士照明 (NVC)",
+      "spec": "2×1.2米COB无光斑柔性灯带+双侧毫米级人体探头",
+      "unitPriceCny": 109,
+      "unit": "套",
+      "channel": "京东自营",
+      "applicableReasonCodes": [
+        "NIGHT_LIGHTING_INSUFFICIENT",
+        "ELDERLY_FALL_RISK"
+      ]
+    },
+    {
+      "skuId": "HW-MMWAVE-01",
+      "category": "mmwave_fall_sensor",
+      "productName": "华为全屋智能 AI 辅助康养传感器（毫米波防跌倒康养版）",
+      "brandOrEcosystem": "华为鸿蒙智家 (HarmonyOS Connect)",
+      "spec": "4D毫米波雷达无摄像头隐私保护，支持跌倒检测、坠床辅助与离床超时告警（覆盖5m×5m）",
+      "unitPriceCny": 1499,
+      "unit": "台",
+      "channel": "华为商城 VMALL",
+      "applicableReasonCodes": [
+        "SENSOR_BLIND_SPOT",
+        "ELDERLY_FALL_RISK"
+      ]
+    },
+    {
+      "skuId": "HW-MMWAVE-02",
+      "category": "mmwave_fall_sensor",
+      "productName": "华为全屋智能 AI 超感传感器（24GHz毫米波微动存在感知版）",
+      "brandOrEcosystem": "华为鸿蒙智家 (HarmonyOS Connect)",
+      "spec": "顶角对角安装覆盖25m²，精准识别静止阅读与睡眠呼吸微动，无感控灯联动",
+      "unitPriceCny": 699,
+      "unit": "台",
+      "channel": "华为商城 VMALL / 鸿蒙智家授权店",
+      "applicableReasonCodes": [
+        "SENSOR_BLIND_SPOT",
+        "NIGHT_LIGHTING_INSUFFICIENT"
+      ]
+    },
+    {
+      "skuId": "HW-MMWAVE-03",
+      "category": "mmwave_fall_sensor",
+      "productName": "鸿蒙智联生态 60GHz 毫米波AI跌倒看护雷达（后装Wi-Fi高性价比版）",
+      "brandOrEcosystem": "华为智选 / HarmonyOS Connect 生态",
+      "spec": "免布线USB-C供电，支持跌倒秒级上报华为智慧生活App与睡眠心率呼吸监测",
+      "unitPriceCny": 1099,
+      "unit": "台",
+      "channel": "华为商城 VMALL",
+      "applicableReasonCodes": [
+        "SENSOR_BLIND_SPOT",
+        "ELDERLY_FALL_RISK"
+      ]
+    },
+    {
+      "skuId": "HW-PANEL-01",
+      "category": "harmony_control_panel",
+      "productName": "华为全屋智能 智能 Mini 免布线场景快捷键（床头一键起夜/呼救贴）",
+      "brandOrEcosystem": "华为鸿蒙智家 (HarmonyOS Connect)",
+      "spec": "NFC一碰配网，超长续航免插电，可随手贴于老人床头与轮椅扶手旁",
+      "unitPriceCny": 399,
+      "unit": "只",
+      "channel": "华为商城 VMALL",
+      "applicableReasonCodes": [
+        "CONTROL_PANEL_UNREACHABLE",
+        "WHEELCHAIR_TURNING_BLOCKED"
+      ]
+    },
+    {
+      "skuId": "HW-PANEL-02",
+      "category": "harmony_control_panel",
+      "productName": "华为鸿蒙智家 智能面板（AMOLED触控屏多合一智控开关）",
+      "brandOrEcosystem": "华为鸿蒙智家 (HarmonyOS Connect)",
+      "spec": "靠近自动亮屏，照明/遮阳/温控多合一，86型标准底盒安装（适老推荐高1100mm）",
+      "unitPriceCny": 1199,
+      "unit": "只",
+      "channel": "华为商城 VMALL / 鸿蒙智家授权店",
+      "applicableReasonCodes": [
+        "CONTROL_PANEL_UNREACHABLE"
+      ]
+    },
+    {
+      "skuId": "HW-PANEL-03",
+      "category": "harmony_control_panel",
+      "productName": "华为全屋智能 中控屏 S2（可墙可桌手持空间智控屏套装）",
+      "brandOrEcosystem": "华为鸿蒙智家 (HarmonyOS Connect)",
+      "spec": "高清触控大屏+墙面磁吸Dock，支持语音/康养告警弹窗与全屋子系统一屏统管",
+      "unitPriceCny": 3499,
+      "unit": "套",
+      "channel": "华为商城 VMALL / 鸿蒙智家授权店",
+      "applicableReasonCodes": [
+        "CONTROL_PANEL_UNREACHABLE",
+        "SMART_GATEWAY_PLACEMENT"
+      ]
+    },
+    {
+      "skuId": "HW-LIGHT-01",
+      "category": "harmony_smart_lighting",
+      "productName": "鸿蒙智家生态 深杯防眩全光谱智能筒射灯（7W开孔75mm）",
+      "brandOrEcosystem": "西顿照明 × HarmonyOS Connect",
+      "spec": "遮光角>=30°，UGR<19防刺眼，Ra97高显指，支持2700K~5700K节律调光",
+      "unitPriceCny": 169,
+      "unit": "盏",
+      "channel": "华为商城 VMALL / 京东自营",
+      "applicableReasonCodes": [
+        "GLARE_HAZARD",
+        "NIGHT_LIGHTING_INSUFFICIENT"
+      ]
+    },
+    {
+      "skuId": "HW-LIGHT-02",
+      "category": "harmony_smart_lighting",
+      "productName": "华为全屋智能 PLC 双色温恒流智能调光驱动器",
+      "brandOrEcosystem": "华为鸿蒙智家 (HarmonyOS Connect)",
+      "spec": "PLC电力线稳定连接，万步级0.1%超低亮起夜缓启不闪眼，无频闪IEEE1789认证",
+      "unitPriceCny": 399,
+      "unit": "只",
+      "channel": "华为鸿蒙智家授权店",
+      "applicableReasonCodes": [
+        "GLARE_HAZARD",
+        "NIGHT_LIGHTING_INSUFFICIENT"
+      ]
+    },
+    {
+      "skuId": "HW-LIGHT-03",
+      "category": "harmony_smart_lighting",
+      "productName": "鸿蒙智家 超静音智能开合窗帘电机（支持手拉启动与断电手拉）",
+      "brandOrEcosystem": "科创者 / 杜亚 × HarmonyOS Connect",
+      "spec": "运行噪音<28dB，支持老人免走到窗边床头语音/按键开关窗帘及晨起柔光唤醒",
+      "unitPriceCny": 699,
+      "unit": "台",
+      "channel": "华为商城 VMALL",
+      "applicableReasonCodes": [
+        "WINDOW_BLOCKED",
+        "WHEELCHAIR_TURNING_BLOCKED"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import "./style.css";
-import { api, post, ApiError, type EditBase } from "./api.js";
+import { api, post, toolToken, ApiError, type EditBase } from "./api.js";
 import {
   catalogGroups,
   catalog,
@@ -949,7 +949,7 @@ async function open(next: Project) {
   const url = new URL(location.href);
   url.searchParams.set("project", next.id);
   window.history.replaceState(null, "", url);
-  events = new EventSource(`/api/projects/${next.id}/events`);
+  events = new EventSource(`/api/projects/${next.id}/events${toolToken() ? `?token=${encodeURIComponent(toolToken())}` : ""}`);
   events.addEventListener("revision", (e) => {
     const rev = JSON.parse((e as MessageEvent).data).revision;
     pendingRevision = Math.max(pendingRevision, rev);
@@ -957,6 +957,7 @@ async function open(next: Project) {
   });
   events.onerror = () => saved("连接中断，正在重连", true);
   events.onopen = () => {
+    saved("已连接 · 自动保存");
     if (!busy) void refresh().catch(fail);
   };
   message("项目已打开。选择家具开始编辑。");
@@ -1296,7 +1297,7 @@ async function importDoc(document: any, assetMap: Record<string, string> = {}) {
 async function examples(name: string) {
   const doc = await api(`/examples/${name}`);
   if (name === "glb-display") {
-    const file = await fetch("/api/example-asset").then((r) => r.blob()),
+    const file = await fetch(`/api/example-asset${toolToken() ? `?token=${encodeURIComponent(toolToken())}` : ""}`).then((r) => r.blob()),
       asset = await upload(file, "textured-vase.glb");
     await importDoc(doc, { "fixture-vase": asset.id });
   } else await importDoc(doc);
@@ -1363,7 +1364,7 @@ $("#save-project").onclick = () => {
     .catch(fail);
 };
 $("#export-project").onclick = () => {
-  if (project) window.location.href = `/api/projects/${project.id}/export`;
+  if (project) window.location.href = `/api/projects/${project.id}/export${toolToken() ? `?token=${encodeURIComponent(toolToken())}` : ""}`;
 };
 function currentSnapshot() {
   if (!project) return undefined;

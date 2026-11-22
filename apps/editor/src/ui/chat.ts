@@ -1,4 +1,4 @@
-import { api, post } from "../api.js";
+import { api, post, toolToken } from "../api.js";
 import { FloorplanPanel } from "./floorplan.js";
 
 function safeUuid(): string {
@@ -1104,7 +1104,7 @@ export class ChatPanel {
     this.events?.close();
     this.watched = task.id;
     const seq = this.sequence,
-      events = new EventSource(`/api/agent/tasks/${task.id}/events`);
+      events = new EventSource(`/api/agent/tasks/${task.id}/events${toolToken() ? `?token=${encodeURIComponent(toolToken())}` : ""}`);
     this.events = events;
     events.addEventListener("progress", (event) => {
       if (seq !== this.sequence) return;

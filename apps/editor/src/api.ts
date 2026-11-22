@@ -4,9 +4,21 @@ export interface EditBase {
 }
 const TOOL_TOKEN_KEY = "actiscape-tool-token";
 
-function toolToken(): string {
+function isValidTokenCandidate(val: string | null | undefined): val is string {
+  if (!val) return false;
+  const trimmed = val.trim();
+  if (!trimmed || trimmed === "..." || trimmed === "…" || trimmed.includes("...")) return false;
+  return trimmed.length >= 8;
+}
+
+export function toolToken(): string {
   try {
-    return localStorage.getItem(TOOL_TOKEN_KEY) || "";
+    const saved = localStorage.getItem(TOOL_TOKEN_KEY) || "";
+    if (saved && !isValidTokenCandidate(saved)) {
+      localStorage.removeItem(TOOL_TOKEN_KEY);
+      return "";
+    }
+    return saved;
   } catch {
     return "";
   }
@@ -14,8 +26,15 @@ function toolToken(): string {
 
 function rememberQueryToken() {
   try {
-    const query = new URL(window.location.href).searchParams.get("token");
-    if (query) localStorage.setItem(TOOL_TOKEN_KEY, query);
+    const url = new URL(window.location.href);
+    const query = url.searchParams.get("token");
+    if (isValidTokenCandidate(query)) {
+      localStorage.setItem(TOOL_TOKEN_KEY, query.trim());
+    } else if (query !== null) {
+      // Clean corrupted placeholder ?token=... from URL bar
+      url.searchParams.delete("token");
+      window.history.replaceState({}, "", url.toString());
+    }
   } catch {
     // localStorage may be unavailable in restricted browser contexts.
   }

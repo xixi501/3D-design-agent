@@ -1,3 +1,4 @@
+import { toolToken } from "../api.js";
 import { Group, Mesh } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import type { AssetRecord } from "../../../../packages/scene-core/src/index.js";
@@ -20,7 +21,7 @@ export async function ensureAsset(id: string) {
   if (models.has(id)) return;
   if (pending.has(id)) return pending.get(id);
   const task = (async () => {
-    const response = await fetch(`/api/assets/${encodeURIComponent(id)}`);
+    const response = await fetch(`/api/assets/${encodeURIComponent(id)}`, { headers: toolToken() ? { "x-actiscape-token": toolToken() } : {} });
     if (!response.ok) throw new Error(`模型资产 ${id} 不可用`);
     const record: AssetRecord = await response.json();
     const gltf = await new GLTFLoader().loadAsync(

@@ -100,7 +100,17 @@ export async function createApp(options: {
     const token = process.env.ACTISCAPE_TOOL_TOKEN?.trim();
     if (!token) return;
     const pathname = (request.raw.url || "").split("?")[0];
-    if (!pathname.startsWith("/api/") || pathname === "/api/health") return;
+    if (!pathname.startsWith("/api/") || pathname === "/api/health") {
+      const qTok = new URL(request.url, "http://service").searchParams.get("token");
+      if (qTok === token) {
+        const isHttps = request.headers["x-forwarded-proto"] === "https";
+        reply.header(
+          "set-cookie",
+          `actiscape_token=${token}; Path=/; HttpOnly; SameSite=Lax${isHttps ? "; Secure" : ""}`,
+        );
+      }
+      return;
+    }
     const authorization = request.headers.authorization;
     const headerToken = request.headers["x-actiscape-token"];
     const queryToken = new URL(request.url, "http://service").searchParams.get(

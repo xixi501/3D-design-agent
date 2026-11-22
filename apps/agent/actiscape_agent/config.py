@@ -3,7 +3,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parents[3]
+_HERE = Path(__file__).resolve()
+ROOT = _HERE.parents[3] if len(_HERE.parents) > 3 else _HERE.parents[1]
 load_dotenv(ROOT / ".env", override=False)
 
 # Whole-floor image recognition needs room for both thinking and the geometry

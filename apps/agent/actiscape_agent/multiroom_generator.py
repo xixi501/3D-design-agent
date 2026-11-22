@@ -112,8 +112,8 @@ def _build_two_bed_spec(style_pack: dict[str, Any] | None) -> dict[str, Any]:
             {"at": [6500, 4200], "name": "阳光客餐厅", "mat": floor_mat, "wallMat": wall_mat, "ceil": ceil_cfg},
             {"at": [2100, 2100], "name": "主卧室", "mat": "oak", "wallMat": wall_mat, "ceil": {"type": "flat", "drop": 80, "edgeW": 300, "cove": False}},
             {"at": [2100, 6300], "name": "次卧室", "mat": "oak", "wallMat": wall_mat, "ceil": {"type": "none"}},
-            {"at": [10500, 2200], "name": "独立厨房", "mat": "tile", "wallMat": "tile", "ceil": {"type": "flat", "drop": 100, "edgeW": 300, "cove": False}},
-            {"at": [10500, 6400], "name": "干湿分离卫浴", "mat": "tile", "wallMat": "tile", "ceil": {"type": "flat", "drop": 100, "edgeW": 300, "cove": False}},
+            {"at": [10500, 2200], "name": "独立厨房", "mat": "tile", "wallMat": "wallTile", "ceil": {"type": "flat", "drop": 100, "edgeW": 300, "cove": False}},
+            {"at": [10500, 6400], "name": "干湿分离卫浴", "mat": "tile", "wallMat": "wallTile", "ceil": {"type": "flat", "drop": 100, "edgeW": 300, "cove": False}},
         ],
         "furniture": [
             {"key": "sofa", "at": [6500, 1150], "rot": 0},

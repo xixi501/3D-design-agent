@@ -15,6 +15,8 @@ import {
   isSurfaceHost,
   isOpenableFurniture,
   isTogglableFurniture,
+  isTogglableOpening,
+  toggleActionCommand,
   rotatedAabb,
   detectRooms,
   wallGeometry,
@@ -124,7 +126,10 @@ let project: Project | undefined,
   loadSequence = 0,
   inspectorSequence = 0,
   pendingRevision = -1,
-  lastFailure = false;
+  lastFailure = false,
+  latestIssues: any[] = [],
+  checkSequence = 0,
+  pendingCheckAnnounce = false;
 const message = (s: string) => {
   $("#message").textContent = s;
 };
@@ -132,6 +137,110 @@ const saved = (s: string, error = false) => {
   $("#save-state").textContent = s;
   $("#save-state").classList.toggle("error", error);
 };
+const showWalkToast = (text: string) => {
+  const toast = $("#walk-toast");
+  toast.textContent = text;
+  toast.hidden = false;
+  clearTimeout((toast as any)._timer);
+  (toast as any)._timer = setTimeout(() => (toast.hidden = true), 1800);
+};
+function findNearestWalkInteractive(
+  plan: Plan,
+  camPos: THREE.Vector3,
+  yaw: number,
+): { id: string; collection: "openings" | "furniture"; label: string } | undefined {
+  const px = camPos.x * 1000,
+    py = camPos.z * 1000,
+    fx = -Math.sin(yaw),
+    fy = -Math.cos(yaw),
+    geo = wallGeometry(plan);
+  let best:
+    | {
+        score: number;
+        id: string;
+        collection: "openings" | "furniture";
+        label: string;
+      }
+    | undefined;
+  for (const opening of plan.openings) {
+    if (!toggleActionCommand(plan, "openings", opening.id)) continue;
+    const wall =
+      geo.active.find(
+        (g: any) =>
+          g.w.id === opening.wall ||
+          g.ops.some((op: any) => op.o.id === opening.id),
+      ) || geo.walls.get(opening.wall);
+    if (!wall) continue;
+    const cx = wall.a.x + wall.u.x * opening.pos,
+      cy = wall.a.y + wall.u.y * opening.pos,
+      half = (opening.width || 900) * 0.42,
+      pts: [number, number][] = [
+        [cx, cy],
+        [cx - wall.u.x * half, cy - wall.u.y * half],
+        [cx + wall.u.x * half, cy + wall.u.y * half],
+      ];
+    if (opening.open) {
+      pts.push([
+        cx + wall.n.x * (opening.side || 1) * (opening.width || 900) * 0.5,
+        cy + wall.n.y * (opening.side || 1) * (opening.width || 900) * 0.5,
+      ]);
+    }
+    let minEff = Infinity;
+    for (const [tx, ty] of pts) {
+      const vx = tx - px,
+        vy = ty - py,
+        dist = Math.hypot(vx, vy);
+      if (dist > 3100) continue;
+      const dot = dist > 1 ? (vx * fx + vy * fy) / dist : 1;
+      if (dot >= 0.38 || (dist <= 1100 && dot >= 0.05)) {
+        const eff = dist / Math.max(0.35, dot);
+        if (eff < minEff) minEff = eff;
+      }
+    }
+    if (Number.isFinite(minEff) && (!best || minEff < best.score)) {
+      best = {
+        score: minEff,
+        id: opening.id,
+        collection: "openings",
+        label: `${opening.type === "door" || opening.type === "double" || opening.type === "unequal" ? "门" : "门窗"} · ${opening.open ? "关闭" : "打开"}`,
+      };
+    }
+  }
+  for (const f of plan.furniture) {
+    if (!toggleActionCommand(plan, "furniture", f.id)) continue;
+    const box = rotatedAabb(f),
+      dx = Math.max(box.x0 - px, 0, px - box.x1),
+      dy = Math.max(box.y0 - py, 0, py - box.y1),
+      boxDist = Math.hypot(dx, dy);
+    if (boxDist > 2800) continue;
+    const vx = f.x - px,
+      vy = f.y - py,
+      d = Math.hypot(vx, vy),
+      dot = d > 1 ? (vx * fx + vy * fy) / d : 1;
+    if (dot >= 0.35 || (boxDist <= 750 && dot >= 0.05)) {
+      const eff = boxDist / Math.max(0.35, dot);
+      if (!best || eff < best.score) {
+        const openable = isOpenableFurniture(f);
+        const stateLabel = openable
+          ? f.opt?.open
+            ? "关闭"
+            : "打开"
+          : f.opt?.on === false
+            ? "开启"
+            : "关闭";
+        best = {
+          score: eff,
+          id: f.id,
+          collection: "furniture",
+          label: `${f.name} · ${stateLabel}`,
+        };
+      }
+    }
+  }
+  return best
+    ? { id: best.id, collection: best.collection, label: best.label }
+    : undefined;
+}
 const three = new ThreeView(
   $("#three-view"),
   (id, collection = "furniture") =>
@@ -147,19 +256,14 @@ const three = new ThreeView(
   (info) => {
     const target = $("#walk-target");
     if (!info) {
-      target.hidden = true;
+      if (target.dataset.fallback !== "1") target.hidden = true;
       return;
     }
+    target.dataset.fallback = "0";
     target.hidden = false;
     $("#walk-target-text").textContent = info.label;
   },
-  (text) => {
-    const toast = $("#walk-toast");
-    toast.textContent = text;
-    toast.hidden = false;
-    clearTimeout((toast as any)._timer);
-    (toast as any)._timer = setTimeout(() => (toast.hidden = true), 1800);
-  },
+  showWalkToast,
 );
 let walkMapTimer: ReturnType<typeof setInterval> | undefined;
 function startWalkMap(on: boolean) {
@@ -243,6 +347,18 @@ function drawWalkMap() {
   ctx.moveTo(px, py);
   ctx.lineTo(px - Math.sin(yaw) * 13, py - Math.cos(yaw) * 13);
   ctx.stroke();
+  const walkTarget = $("#walk-target");
+  if (three.walking && (walkTarget.hidden || walkTarget.dataset.fallback === "1")) {
+    const near = findNearestWalkInteractive(plan, three.camera.position, three.yaw);
+    if (near) {
+      walkTarget.dataset.fallback = "1";
+      walkTarget.hidden = false;
+      $("#walk-target-text").textContent = near.label;
+    } else if (walkTarget.dataset.fallback === "1") {
+      walkTarget.dataset.fallback = "0";
+      walkTarget.hidden = true;
+    }
+  }
 }
 ($("#walk-map-canvas") as HTMLElement).onclick = (event) => {
   if (!project || !three.walking) return;
@@ -341,21 +457,29 @@ function updateSelectionActions() {
     selection.collection === "furniture"
       ? (item as import("../../../packages/scene-core/src/index.js").Furniture)
       : undefined;
+  const openingItem =
+    selection.collection === "openings" ? (item as any) : undefined;
+  const doorOpenable = !!openingItem && isTogglableOpening(openingItem);
   const openable = !!furniture && isOpenableFurniture(furniture);
   const togglable = !!furniture && !openable && isTogglableFurniture(furniture);
-  const canOpen = openable || togglable;
+  const canOpen = doorOpenable || openable || togglable;
   button.hidden = !canOpen;
   if (canOpen) {
-    const isOpen = openable
-      ? !!furniture!.opt?.open
-      : (furniture!.opt as any)?.on !== false;
-    button.textContent = openable
-      ? isOpen
-        ? "关闭柜门"
-        : "打开柜门"
-      : isOpen
-        ? "关闭电器"
-        : "开启电器";
+    if (doorOpenable) {
+      const isOpen = !!openingItem.open;
+      button.textContent = isOpen ? "关闭房门" : "打开房门";
+    } else {
+      const isOpen = openable
+        ? !!furniture!.opt?.open
+        : (furniture!.opt as any)?.on !== false;
+      button.textContent = openable
+        ? isOpen
+          ? "关闭柜门"
+          : "打开柜门"
+        : isOpen
+          ? "关闭电器"
+          : "开启电器";
+    }
     button.title = "也可以按 E";
   }
 }
@@ -369,7 +493,7 @@ function setSelection(s?: Selection) {
       ? { id: s.id, collection: s.collection }
       : undefined;
   three.highlight(s?.collection === "furniture" ? s.id : undefined);
-  if (s && panel === "overview") panel = "properties";
+  if (s) panel = "properties";
   if (!s && panel === "properties") panel = "overview";
   syncPanel();
   updateSelectionActions();
@@ -379,6 +503,12 @@ function setSelection(s?: Selection) {
     if (f && isOpenableFurniture(f))
       message(
         `${f.name}已选中。按 E 或点上方“${f.opt?.open ? "关闭柜门" : "打开柜门"}”开关柜门。`,
+      );
+  } else if (s?.collection === "openings") {
+    const o = project?.plan.openings.find((x) => x.id === s.id);
+    if (o && isTogglableOpening(o))
+      message(
+        `门窗已选中。按 E 或点上方“${o.open ? "关闭房门" : "打开房门"}”开关门扇。`,
       );
   }
   void inspector().catch(fail);
@@ -403,6 +533,7 @@ async function inspector() {
         revision: snapshot.revision,
       }),
     );
+    syncLiveCheckBanner();
   }
   if (panel === "history") {
     const p = project.id,
@@ -436,7 +567,7 @@ async function inspector() {
         ? "结构"
         : issue.category === "surface"
           ? "台面"
-          : issue.category === "overlap"
+          : issue.category === "overlap" || issue.code === "POSSIBLE_OVERLAP"
             ? "重叠"
             : "家具";
     const buttonFor = (issue: any) => {
@@ -506,7 +637,87 @@ function issuesInRoom(plan: Plan, room: any, issues: any[]) {
   );
 }
 function isFixableError(issue: any) {
-  return issue.level === "error" && issue.fixableByFurniture !== false;
+  return (
+    (issue.level === "error" ||
+      issue.code === "POSSIBLE_OVERLAP" ||
+      issue.category === "overlap") &&
+    issue.fixableByFurniture !== false
+  );
+}
+function pickRelevantIssue(issues: any[]) {
+  if (!issues.length) return undefined;
+  if (selection?.id) {
+    const hit = issues.find((issue) =>
+      (issue.objectIds || []).includes(selection!.id),
+    );
+    if (hit) return hit;
+  }
+  return issues[0];
+}
+function syncLiveCheckBanner() {
+  const checksTab = document.querySelector<HTMLButtonElement>(
+    '.context-tabs [data-panel="checks"]',
+  );
+  if (checksTab) {
+    checksTab.textContent = latestIssues.length
+      ? `检查 (${latestIssues.length})`
+      : "检查";
+    checksTab.classList.toggle("has-issues", latestIssues.length > 0);
+  }
+  const host = document.querySelector<HTMLElement>("#inspector-body");
+  if (!host) return;
+  let banner = host.querySelector<HTMLElement>("#inspector-live-alert");
+  if (panel !== "properties" || !latestIssues.length) {
+    banner?.remove();
+    return;
+  }
+  const relevant = pickRelevantIssue(latestIssues)!;
+  const fixableCount = latestIssues.filter(isFixableError).length;
+  const html = `<div><strong>实时自动检查发现 ${latestIssues.length} 项问题</strong><small>${esc(relevant.message || "存在碰撞或净空冲突")}</small></div><div class="live-check-actions"><button type="button" data-live-check="open">查看检查</button>${fixableCount ? '<button type="button" class="primary" data-live-check="repair">一键修复</button>' : ""}</div>`;
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "inspector-live-alert";
+    banner.className = "live-check-alert";
+    host.prepend(banner);
+  }
+  if (banner.dataset.sig !== html) {
+    banner.dataset.sig = html;
+    banner.innerHTML = html;
+    banner
+      .querySelector<HTMLButtonElement>('[data-live-check="open"]')
+      ?.addEventListener("click", () => {
+        panel = "checks";
+        syncPanel();
+        void inspector().catch(fail);
+      });
+    banner
+      .querySelector<HTMLButtonElement>('[data-live-check="repair"]')
+      ?.addEventListener("click", () => void repairScene());
+  }
+}
+async function refreshLiveChecks(snapshot: Project, announceOnEdit = false) {
+  const seq = ++checkSequence;
+  try {
+    const data = await api<{ issues?: any[] }>(
+      `/projects/${snapshot.id}/checks`,
+    );
+    if (!project || project.id !== snapshot.id || seq !== checkSequence) return;
+    latestIssues = Array.isArray(data?.issues) ? data.issues : [];
+    syncLiveCheckBanner();
+    if (latestIssues.length > 0) {
+      if (!lastFailure)
+        saved(`已保存 · ${latestIssues.length} 项待检查`, false);
+      if (announceOnEdit) {
+        const relevant = pickRelevantIssue(latestIssues);
+        if (relevant?.message)
+          message(
+            `⚠️ 自动检查发现 ${latestIssues.length} 项冲突：${relevant.message}`,
+          );
+      }
+    }
+  } catch {
+    // Non-blocking background check
+  }
 }
 async function renderOverview(host: HTMLElement) {
   if (!project) return;
@@ -882,9 +1093,12 @@ async function display(next: Project, frame = false) {
   renderSpaceNav();
   updateEmptyState();
   syncPanel();
+  const announceChecks = pendingCheckAnnounce;
+  pendingCheckAnnounce = false;
   await inspector();
   await assetLibrary();
   if (!lastFailure) saved("已保存到项目服务");
+  void refreshLiveChecks(next, announceChecks);
 }
 async function assetLibrary() {
   let host = document.querySelector("#asset-library");
@@ -983,18 +1197,19 @@ async function mutate(
   }
   busy = true;
   lastFailure = false;
+  pendingCheckAnnounce = kind === "commands";
   document.body.classList.add("saving");
   saved(
     kind === "undo" ? "正在撤销…" : kind === "redo" ? "正在重做…" : "正在保存…",
   );
-  const id = project.id,
-    request = {
-      operationId: newId(),
-      baseRevision: base?.revision ?? project.revision,
-      ...(items ? { commands: items } : {}),
-      ...(summary ? { summary } : {}),
-    };
   try {
+    const id = project.id,
+      request = {
+        operationId: newId(),
+        baseRevision: base?.revision ?? project.revision,
+        ...(items ? { commands: items } : {}),
+        ...(summary ? { summary } : {}),
+      };
     const result = await post<{ project?: Project }>(
       `/projects/${id}/${kind}`,
       request,
@@ -1005,6 +1220,7 @@ async function mutate(
     else await refresh();
     message(summary || `${kind === "undo" ? "撤销" : "重做"}完成`);
   } catch (error) {
+    pendingCheckAnnounce = false;
     try {
       await refresh();
     } catch {}
@@ -1510,7 +1726,20 @@ $("#frame").onclick = () => {
 $("#open-structure").onclick = () => {
   const open = document.body.classList.toggle("structure-open");
   $("#open-structure").textContent = open ? "收起结构工具" : "结构编辑（高级）";
+  if (open && $("#viewport").dataset.mode === "3d") {
+    setView("split", false);
+    message("已开启结构工具并切换至分屏视图，可在左侧 2D 画布绘制墙体与门窗");
+  }
 };
+document.addEventListener("click", (e) => {
+  const target = e.target as HTMLElement | null;
+  document
+    .querySelectorAll<HTMLDetailsElement>("details.export-actions, details.more-actions")
+    .forEach((d) => {
+      if (!d.open) return;
+      if (!d.contains(target) || target?.closest("button")) d.open = false;
+    });
+});
 $("#open-catalog").onclick = openCatalog;
 $("#close-catalog").onclick = closeCatalog;
 $("#close-catalog-scrim").onclick = closeCatalog;
@@ -1584,15 +1813,23 @@ $("#walk").onclick = () => {
 };
 $("#open-all").onclick = async () => {
   if (!project || busy) return;
+  const hasOpenable =
+    project.plan.openings.some((o) => isTogglableOpening(o)) ||
+    project.plan.furniture.some(isOpenableFurniture);
+  if (!hasOpenable) {
+    panel = "checks";
+    syncPanel();
+    void inspector().catch(fail);
+    message("当前空间没有可开启的门或柜门；已切至检查面板");
+    return;
+  }
   const next = allDoorCabinetCommands(project.plan, "toggle");
   if (!next.commands.length) {
     message(next.mode === "open" ? "所有门/柜门已打开" : "所有门/柜门已复位");
     return;
   }
   panel = "checks";
-  document
-    .querySelectorAll<HTMLButtonElement>("[data-panel]")
-    .forEach((b) => b.classList.toggle("active", b.dataset.panel === "checks"));
+  syncPanel();
   await commands(
     next.commands,
     next.mode === "open"
@@ -1608,10 +1845,15 @@ $("#open-all").onclick = async () => {
 document.querySelectorAll<HTMLButtonElement>("[data-tool]").forEach(
   (b) =>
     (b.onclick = () => {
-      planView.setTool(b.dataset.tool!);
+      const tool = b.dataset.tool!;
+      planView.setTool(tool);
       document
         .querySelectorAll("[data-tool]")
         .forEach((t) => t.classList.toggle("active", t === b));
+      if (tool !== "select" && $("#viewport").dataset.mode === "3d") {
+        setView("split", false);
+        message("已切换至分屏视图，可在左侧 2D 画布使用结构工具");
+      }
     }),
 );
 document
@@ -1630,11 +1872,23 @@ document.querySelectorAll<HTMLButtonElement>("[data-panel]").forEach(
     }),
 );
 window.addEventListener("keydown", async (e) => {
-  if (
-    /INPUT|TEXTAREA|SELECT/.test((e.target as HTMLElement).tagName) ||
-    three.walking
-  )
+  if (/INPUT|TEXTAREA|SELECT/.test((e.target as HTMLElement).tagName)) return;
+  if (three.walking) {
+    if (e.code === "KeyE" && project && !busy) {
+      const target = findNearestWalkInteractive(
+        project.plan,
+        three.camera.position,
+        three.yaw,
+      );
+      if (target) {
+        e.preventDefault();
+        three.toggleInteractive(target.id, target.collection);
+      } else {
+        showWalkToast("请走近门扇、柜门或电器（3米内对准）再按 E");
+      }
+    }
     return;
+  }
   const mod = e.ctrlKey || e.metaKey;
   if (mod && e.code === "KeyZ") {
     e.preventDefault();

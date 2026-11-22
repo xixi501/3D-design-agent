@@ -480,7 +480,7 @@
       "skillIds": [
         "tea-room"
       ],
-      "floorMaterial": "#7c583c",
+      "floorMaterial": "walnut",
       "wallMaterial": "latexWarm",
       "policy": {
         "geometry": "rectangular_v1",
@@ -521,7 +521,7 @@
         "media-room"
       ],
       "floorMaterial": "carpet",
-      "wallMaterial": "latexGray",
+      "wallMaterial": "latexGrey",
       "policy": {
         "geometry": "rectangular_v1",
         "checks": [

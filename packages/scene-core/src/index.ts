@@ -49,7 +49,24 @@ export const detectRooms = (plan: Plan, geometry = Wc(plan)): any =>
   D4(plan, geometry);
 export const catalog: Record<string, any> = q0;
 export const catalogGroups: any[] = yu;
-export const newId = () => crypto.randomUUID();
+export function newId(): string {
+  const c = (globalThis as { crypto?: Crypto }).crypto;
+  if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  if (c && typeof c.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    c.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = [...bytes]
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
+    const r = (Math.random() * 16) | 0;
+    return (ch === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
 export const clone = <T>(value: T): T =>
   value === undefined ? value : JSON.parse(JSON.stringify(value));
 export const createFurniture = (

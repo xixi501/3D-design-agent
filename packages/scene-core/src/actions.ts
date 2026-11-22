@@ -276,6 +276,12 @@ const OPENING_TYPES = new Set([
   "garage",
 ]);
 
+export function isTogglableOpening(
+  opening: Record<string, any> | undefined,
+): boolean {
+  return Boolean(opening?.type && OPENING_TYPES.has(opening.type));
+}
+
 /** Set or toggle a door, cabinet, drawer, lamp, TV or curtain state. */
 export function actionCommand(
   plan: Plan,

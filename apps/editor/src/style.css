@@ -571,3 +571,44 @@ body.structure-open #structural-tools button { border-color: transparent; font-s
 .repair-room-list button small { color: var(--muted-2); font-size: 10px; }
 .repair-room-list button > b { color: var(--copper); font-size: 11px; }
 .overview-room-row .room-repair { border-color: #d7a78f; background: #fff8f2; color: var(--copper); }
+.context-tabs button.has-issues {
+  color: var(--copper);
+  font-weight: 700;
+}
+.live-check-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 11px;
+  margin-bottom: 12px;
+  border: 1px solid #d8b09b;
+  border-radius: 9px;
+  background: #faf0e8;
+}
+.live-check-alert strong {
+  display: block;
+  font-size: 11px;
+  color: var(--copper);
+  margin-bottom: 2px;
+}
+.live-check-alert small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.live-check-actions {
+  display: flex;
+  gap: 6px;
+}
+.live-check-actions button {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 10px;
+  border-radius: 7px;
+}
+.live-check-actions button.primary {
+  background: var(--copper);
+  border-color: var(--copper);
+  color: #fffaf1;
+}

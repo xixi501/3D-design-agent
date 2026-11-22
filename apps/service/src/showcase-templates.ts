@@ -41,7 +41,7 @@ export const STYLE_THEME_PACKS: Record<string, StyleThemePack> = {
     label: "新中式",
     badge: "🎋 新中式",
     furnitureStyle: "chinese",
-    floorMaterial: "#7c583c",
+    floorMaterial: "walnut",
     wallMaterial: "latexWarm",
     ceiling: { type: "edge", drop: 140, edgeW: 360, cove: true },
     description: "深胡桃木地面、东方留白暖墙、格栅床屏与黄铜五金茶韵家具",
@@ -71,8 +71,8 @@ export const STYLE_THEME_PACKS: Record<string, StyleThemePack> = {
     label: "法式奶油",
     badge: "🧁 法式奶油",
     furnitureStyle: "cream",
-    floorMaterial: "#e5dacb",
-    wallMaterial: "#f6f1ea",
+    floorMaterial: "herring",
+    wallMaterial: "wallpaper",
     ceiling: { type: "edge", drop: 120, edgeW: 340, cove: true },
     description: "羊羔绒圆润墩座造型、奶杏柔光墙地一体与纱帘漫射光感",
   },
@@ -387,7 +387,7 @@ export const SHOWCASE_TEMPLATES: ShowcaseTemplateMeta[] = [
         {
           at: [3300, 2400],
           name: "新中式茶室",
-          mat: "#7c583c",
+          mat: "walnut",
           wallMat: "latexWarm",
           ceil: { type: "edge", drop: 140, edgeW: 360, cove: true },
         },
@@ -445,8 +445,8 @@ export const SHOWCASE_TEMPLATES: ShowcaseTemplateMeta[] = [
         {
           at: [3400, 2500],
           name: "奶油影音阅读厅",
-          mat: "#e5dacb",
-          wallMat: "#f6f1ea",
+          mat: "herring",
+          wallMat: "wallpaper",
           ceil: { type: "edge", drop: 120, edgeW: 340, cove: true },
         },
       ],
@@ -537,7 +537,7 @@ export const SHOWCASE_TEMPLATES: ShowcaseTemplateMeta[] = [
       rooms: [
         { at: [2800, 3200], name: "无障碍康养主卧", mat: "oak", wallMat: "latexWarm", ceil: { type: "flat", drop: 80, edgeW: 300, cove: true } },
         { at: [7700, 1550], name: "步入式衣帽间", mat: "oak", wallMat: "latexWarm", ceil: { type: "none" } },
-        { at: [7700, 4750], name: "适老无障碍独卫", mat: "tile", wallMat: "tile", ceil: { type: "flat", drop: 100, edgeW: 300, cove: false } },
+        { at: [7700, 4750], name: "适老无障碍独卫", mat: "tile", wallMat: "wallTile", ceil: { type: "flat", drop: 100, edgeW: 300, cove: false } },
       ],
       furniture: [
         { key: "bed18", at: [1200, 2700], rot: 270 },
@@ -612,7 +612,7 @@ export const SHOWCASE_TEMPLATES: ShowcaseTemplateMeta[] = [
       rooms: [
         { at: [2800, 3000], name: "原木客餐厨一体厅", mat: "oak", wallMat: "latexWarm", ceil: { type: "none" } },
         { at: [7500, 1800], name: "静谧原木卧室", mat: "oak", wallMat: "latexWarm", ceil: { type: "none" } },
-        { at: [7500, 4800], name: "独立卫浴", mat: "tile", wallMat: "tile", ceil: { type: "flat", drop: 100, edgeW: 300, cove: false } },
+        { at: [7500, 4800], name: "独立卫浴", mat: "tile", wallMat: "wallTile", ceil: { type: "flat", drop: 100, edgeW: 300, cove: false } },
       ],
       furniture: [
         { key: "loveseat", at: [1450, 1050], rot: 0 },
@@ -706,9 +706,9 @@ export const SHOWCASE_TEMPLATES: ShowcaseTemplateMeta[] = [
         { at: [6900, 4800], name: "宽幕客餐厅", mat: "oak", wallMat: "latexWhite", ceil: { type: "edge", drop: 120, edgeW: 360, cove: true } },
         { at: [2200, 2400], name: "主卧室", mat: "oak", wallMat: "latexWarm", ceil: { type: "flat", drop: 80, edgeW: 300, cove: false } },
         { at: [2200, 7200], name: "次卧长辈房", mat: "oak", wallMat: "latexWarm", ceil: { type: "none" } },
-        { at: [11500, 2300], name: "中西厨房", mat: "tile", wallMat: "tile", ceil: { type: "flat", drop: 100, edgeW: 300, cove: false } },
+        { at: [11500, 2300], name: "中西厨房", mat: "tile", wallMat: "wallTile", ceil: { type: "flat", drop: 100, edgeW: 300, cove: false } },
         { at: [11500, 5900], name: "独立书房", mat: "oak", wallMat: "latexWhite", ceil: { type: "none" } },
-        { at: [11500, 8400], name: "公共卫浴", mat: "tile", wallMat: "tile", ceil: { type: "flat", drop: 100, edgeW: 300, cove: false } },
+        { at: [11500, 8400], name: "公共卫浴", mat: "tile", wallMat: "wallTile", ceil: { type: "flat", drop: 100, edgeW: 300, cove: false } },
       ],
       furniture: [
         { key: "sofa", at: [6900, 1250], rot: 0 },

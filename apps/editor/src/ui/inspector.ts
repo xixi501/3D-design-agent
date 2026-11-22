@@ -120,7 +120,7 @@ export function renderInspector(
           .join("") +
         text(
           "color",
-          f.type === "model" ? f.opt?.tint || "#ffffff" : f.color,
+          f.type === "model" ? f.opt?.tint || "#ffffff" : f.color || "#ffffff",
           f.type === "model" ? "颜色叠加" : "颜色",
           "color",
         ),
@@ -547,6 +547,8 @@ export function renderInspector(
             : input.type === "number"
               ? Number(input.value)
               : input.value;
+        if (input instanceof HTMLInputElement && input.type === "number" && !Number.isFinite(value))
+          return;
         if (["align", "side", "hinge"].includes(key) || /\.(leg)$/.test(key))
           value = Number(value);
         if (key === "wallLength") {

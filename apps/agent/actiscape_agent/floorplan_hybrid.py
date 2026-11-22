@@ -411,7 +411,7 @@ def compile_hybrid_housespec(
             "at": [(r["mx1"] + r["mx2"]) // 2, (r["my1"] + r["my2"]) // 2],
             "name": rname,
             "mat": "tile" if is_wet else floor_default,
-            "wallMat": "tile" if is_wet else wall_default,
+            "wallMat": "wallTile" if is_wet else wall_default,
             "ceil": {"type": "none"},
         })
 

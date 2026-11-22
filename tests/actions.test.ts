@@ -5,6 +5,8 @@ import {
   blankPlan,
   checkScene,
   createFurniture,
+  isTogglableOpening,
+  newId,
   openEnvelope,
   resolveSurfacePlacement,
   surfaceElevation,
@@ -168,4 +170,28 @@ test("one-click action commands cover doors and openable cabinets", () => {
       (command) => command.type === "update" && (command as any).patch,
     ),
   );
+});
+test("newId works when crypto.randomUUID is unavailable (plain HTTP) and isTogglableOpening classifies doors", () => {
+  const c = globalThis.crypto as any;
+  const origDesc =
+    Object.getOwnPropertyDescriptor(c, "randomUUID") ||
+    Object.getOwnPropertyDescriptor(Object.getPrototypeOf(c), "randomUUID");
+  Object.defineProperty(c, "randomUUID", {
+    value: undefined,
+    configurable: true,
+    writable: true,
+  });
+  try {
+    const a = newId();
+    const b = newId();
+    assert.match(a, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    assert.notEqual(a, b);
+  } finally {
+    if (origDesc) Object.defineProperty(c, "randomUUID", origDesc);
+  }
+  assert.equal(isTogglableOpening({ type: "door" }), true);
+  assert.equal(isTogglableOpening({ type: "sliding" }), true);
+  assert.equal(isTogglableOpening({ type: "double" }), true);
+  assert.equal(isTogglableOpening({ type: "window" }), false);
+  assert.equal(isTogglableOpening(undefined), false);
 });

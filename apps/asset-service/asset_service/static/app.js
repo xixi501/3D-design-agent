@@ -90,7 +90,7 @@ submit.addEventListener('click', async () => {
   const form = new FormData();
   form.append('file', selectedFile);
   form.append('name', $('asset-name').value);
-  const requestHeaders = { ...headers(), 'Idempotency-Key': crypto.randomUUID() };
+  const requestHeaders = { ...headers(), 'Idempotency-Key': (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function' ? globalThis.crypto.randomUUID() : 'idem-' + Date.now() + '-' + Math.random().toString(16).slice(2)) };
   try {
     const data = await response(await fetch('/api/v1/jobs', { method: 'POST', headers: requestHeaders, body: form }));
     $('job-status').textContent = `任务 ${data.job.id}`;

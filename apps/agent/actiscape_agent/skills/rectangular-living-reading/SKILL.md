@@ -2,13 +2,15 @@
 name: rectangular-living-reading
 description: 在已确认净尺寸、入口和窗的单个矩形客餐厅或阅读会客间中，选择真实目录家具并生成可检查布局。
 license: MIT
-compatibility: scene.read / catalog.search / candidate.propose / candidate.preflight / candidate.review / candidate.render
+compatibility: scene.read / catalog.search / candidate.propose / candidate.preflight
+  / candidate.review / candidate.render
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: verified
   kind: layout
   activation: active
   owner: member1
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.render,candidate.review
 ---
 
 # 矩形客餐厅与阅读会客组合

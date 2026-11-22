@@ -2,15 +2,16 @@
 name: gaming-room
 description: 在 6–15㎡ 的电竞房或游戏角里排"桌 + 双屏 + 电竞椅 + 收纳"，处理桌面进深与双屏视距、屏幕与窗的侧光关系、椅子后推、主机散热与走线、暗环境辅助照明，以及与卧室共用时的隔音。当用户要装一台双屏主机、说"别反光/别太吵/晚上要开着灯"时使用；不适用于需要改水电点位、做整墙氛围灯带布线或多人开黑工位的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 手机测光）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 手机测光）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: conformant
   level: structure
   owner: member3
   kind: layout
   activation: reserved
-  judgement_refs: "J-ASSET-02,J-CIR-05,J-CIR-06,J-CUR-01,J-DOOR-02,J-LIGHT-01,J-LIGHT-03,J-LIGHT-05,J-OVER-01,J-STY-03,J-VER-01,J-VER-02"
+  judgement_refs: J-ASSET-02,J-CIR-05,J-CIR-06,J-CUR-01,J-DOOR-02,J-LIGHT-01,J-LIGHT-03,J-LIGHT-05,J-OVER-01,J-STY-03,J-VER-01,J-VER-02
 ---
 
 # 电竞房 / 游戏房

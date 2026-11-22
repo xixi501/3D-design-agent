@@ -1,16 +1,20 @@
 ---
 name: dining-island
-description: 在 4–30㎡ 的餐厨一体空间里决定中岛的角色（操作台 / 早餐吧台 / 兼餐桌），排出岛台、橱柜与餐桌的关系，控制岛台通道、桌岛净距、吧椅进出与吊灯高度。当用户要"把厨房打开""加个中岛""餐厨一体怎么排"时使用；不适用于封闭式独立厨房（转 kitchen-line-l-u）、需要改燃气下水点位、以及需要拆改墙体的任务。
+description: 在 4–30㎡ 的餐厨一体空间里决定中岛的角色（操作台 / 早餐吧台 / 兼餐桌），排出岛台、橱柜与餐桌的关系，控制岛台通道、桌岛净距、吧椅进出与吊灯高度。当用户要"把厨房打开""加个中岛""餐厨一体怎么排"时使用；不适用于封闭式独立厨房（转
+  kitchen-line-l-u）、需要改燃气下水点位、以及需要拆改墙体的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为
+  pending_adaptation。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: 0.2.0
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
-  judgement_refs: "J-KIT-02,J-CIR-01,J-CIR-03,J-CIR-07,J-LIGHT-02,J-VER-01,J-VER-02"
+  activation: active
+  judgement_refs: J-KIT-02,J-CIR-01,J-CIR-03,J-CIR-07,J-LIGHT-02,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 餐厨一体与中岛

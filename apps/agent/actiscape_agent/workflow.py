@@ -447,6 +447,21 @@ class Workflow:
                 return self.conflict(state)
             raise
         task = self.store.task(task["id"], internal=True)
+        style_id = (task.get("generation") or {}).get("styleId")
+        if style_id:
+            try:
+                styled = await self.client.request(
+                    self.path(state) + "/apply-style-pack",
+                    {
+                        "operationId": f"style-{c['operationId']}",
+                        "baseRevision": committed["project"]["revision"],
+                        "styleId": style_id,
+                    },
+                )
+                if isinstance(styled, dict) and isinstance(styled.get("project"), dict):
+                    committed["project"] = styled["project"]
+            except Exception:
+                pass
         result = completion_result(task, state, c, committed["project"]["revision"])
         self.store.event(
             task["id"],

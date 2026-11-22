@@ -2,15 +2,17 @@
 name: tea-room
 description: 在 4–10㎡ 的茶室/静区里，用"一桌两椅一柜"的最小配置定坐席朝向与视线，控制茶台到座位的间距、矮家具与地台的高度配套，并补上茶器与水吧的储物。当用户要一间茶室、冥想角、书房里的静区，或说"想有个能安静喝茶、不被打扰的角落"时使用；不适用于需要待客六人以上、需要防水或地暖改造、以及要拆改墙体的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: 0.2.0
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-07,J-LIGHT-01,J-LIGHT-02,J-COL-01,J-OVER-01,J-STY-03,J-VER-01,J-VER-02"
+  activation: active
+  judgement_refs: J-CIR-01,J-CIR-02,J-CIR-07,J-LIGHT-01,J-LIGHT-02,J-COL-01,J-OVER-01,J-STY-03,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 茶室 / 静区

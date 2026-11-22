@@ -1,16 +1,20 @@
 ---
 name: bathroom-standard
-description: 给 1.2–6㎡ 的单卫做干湿分离与洁具排布：按排水立管定马桶与淋浴位，控马桶前后左右、淋浴区尺寸、浴室柜前净空，并决定门内开还是外开、挡水与防滑怎么做。当用户要"卫生间重排""做干湿分离""淋浴房放不下"时使用；不适用于需要改排水立管与楼板、适老化改造（转 aging-friendly）、以及需要拆改墙体的任务。
+description: 给 1.2–6㎡ 的单卫做干湿分离与洁具排布：按排水立管定马桶与淋浴位，控马桶前后左右、淋浴区尺寸、浴室柜前净空，并决定门内开还是外开、挡水与防滑怎么做。当用户要"卫生间重排""做干湿分离""淋浴房放不下"时使用；不适用于需要改排水立管与楼板、适老化改造（转
+  aging-friendly）、以及需要拆改墙体的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为
+  pending_adaptation。
 metadata:
-  version: "0.3.0"
+  version: 0.3.0
   status: verified
   level: structure
   owner: member3
   kind: layout
   activation: active
-  judgement_refs: "J-BATH-01,J-BATH-02,J-BATH-03,J-BATH-04,J-CIR-01,J-DOOR-02,J-LIGHT-02,J-VER-01,J-VER-02"
+  judgement_refs: J-BATH-01,J-BATH-02,J-BATH-03,J-BATH-04,J-CIR-01,J-DOOR-02,J-LIGHT-02,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 卫生间干湿分离与洁具排布

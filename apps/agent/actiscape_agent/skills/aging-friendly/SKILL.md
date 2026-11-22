@@ -2,15 +2,17 @@
 name: aging-friendly
 description: 适老化布置：在 3.9×5.0m 量级的卧室与卫浴里，用比常规更宽的净宽、无高差地面、扶手与助力、床边与马桶旁的转移空间、夜间起夜照明和圆角固定家具，排出"一个人也能安全起身、转身、如厕"的方案。当用户为父母/长者装修、提到轮椅或助行器、或要求"防摔、好起身、夜里看得见"时使用；不适用于需要结构改造或医疗护理设备安装的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字坐标 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / 主技能空间排布 + 几何净空门禁
+  / 几何净空门禁 / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字坐标 + 人工量尺）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: 0.2.0
+  status: verified
   level: structure
   owner: member3
   kind: modifier
-  activation: reserved
-  judgement_refs: "J-BATH-01,J-BATH-02,J-CIR-01,J-CIR-04,J-LIGHT-03,J-STA-01,J-VER-01,J-VER-02"
+  activation: active
+  judgement_refs: J-BATH-01,J-BATH-02,J-CIR-01,J-CIR-04,J-LIGHT-03,J-STA-01,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,catalog.search,主技能空间排布,几何净空门禁,candidate.review
 ---
 
 # 适老化布置
@@ -83,8 +85,8 @@ metadata:
 
 **第 7 步 · 提交与检查**
 
-1. 先提交床、床头柜、衣柜（决定通道），`candidate.propose + candidate.preflight` 带 `base_version`；
-2. `candidate.preflight / candidate.review` 看通道与门；再提交扶手/灯（挂墙件）与卫浴洁具；
+1. 先提交床、床头柜、衣柜（决定通道），`主技能空间排布 + 几何净空门禁` 带 `base_version`；
+2. `几何净空门禁 / candidate.review` 看通道与门；再提交扶手/灯（挂墙件）与卫浴洁具；
 3. 最多 3 轮修复 [J-VER-02]；未解决项写"未解决清单"，不要用"看起来可以"收尾；
 4. 只改本次涉及的对象 [J-VER-01]。
 
@@ -94,18 +96,18 @@ metadata:
 | ----------------------------------------- | ------------------------------ | ------------------------------- |
 | `catalog.search`                          | 取床/柜/洁具/扶手类 key 与尺寸 | 可 mock（扶手无 key，需等效件） |
 | `scene.read`                              | 读墙、洞口、房间、已有对象     | 待成员1                         |
-| `candidate.propose + candidate.preflight` | 分批提交，带版本与幂等         | 待成员1                         |
-| `candidate.preflight / candidate.review`  | 通道、门扇、窗帘带、重叠、挂墙 | 可 mock                         |
+| `主技能空间排布 + 几何净空门禁` | 分批提交，带版本与幂等         | 待成员1                         |
+| `几何净空门禁 / candidate.review`  | 通道、门扇、窗帘带、重叠、挂墙 | 可 mock                         |
 
 与原项目的差异：原流程没有"人群"维度，本技能把通行值上调为 800、把卫浴转移空间写死，并要求扶手落到实墙。
 未适配时的降级路径（状态仍为 `pending_adaptation`）：
 
 - 没有 `scene.*`：给文字坐标表 + "扶手/防滑/门槛"三项施工说明，由主控转场景；
-- catalog 里没有扶手 key：先用等效尺寸的墙面件占位，明确标注"需 asset.job 换成真实扶手"，不假装已落位。
+- catalog 里没有扶手 key：先用等效尺寸的墙面件占位，明确标注"需 catalog.search 换成真实扶手"，不假装已落位。
 
 ## 怎么验证
 
-- **正向** `AGE-dev-01`：3.9×5.0m 卧室（轴线 19.5㎡，净约 17.8㎡），`min_passage` 设 800。床居中靠北、两侧各留 1100，床头两侧壁灯、床尾衣柜靠南墙避开门扇，扶手椅靠东窗下但退出 150 窗帘带。期望 `candidate.preflight / candidate.review` 全通过。
+- **正向** `AGE-dev-01`：3.9×5.0m 卧室（轴线 19.5㎡，净约 17.8㎡），`min_passage` 设 800。床居中靠北、两侧各留 1100，床头两侧壁灯、床尾衣柜靠南墙避开门扇，扶手椅靠东窗下但退出 150 窗帘带。期望 `几何净空门禁 / candidate.review` 全通过。
 - **边界** `AGE-dev-02`：把 1.8m 床横过来靠西，只留 450 侧身，同时床把门洞的 300 落脚带压满。期望报 `CIR-02`（门到房间主区不通）；同一位置也压门扇，会同时报 `DOOR-02`。技能应把床退回并保证两侧 ≥800。
 
 两个案例在 `examples/` 下；L1/L2 结果回填 `manifest.validation`。

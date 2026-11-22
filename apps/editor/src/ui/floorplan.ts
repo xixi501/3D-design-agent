@@ -1,4 +1,22 @@
 import { api, post } from "../api.js";
+
+function safeUuid(): string {
+  const c = globalThis.crypto as Crypto | undefined;
+  if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  if (c && typeof c.getRandomValues === "function") {
+    const b = new Uint8Array(16);
+    c.getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
+    const r = (Math.random() * 16) | 0;
+    return (ch === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 import { clone } from "../../../../packages/scene-core/src/index.js";
 import {
   imageCategoryCodes,
@@ -665,7 +683,7 @@ export class FloorplanPanel {
     this.notice.textContent = "保存草稿…";
     try {
       await post(this.path() + "/commands", {
-        requestId: crypto.randomUUID(),
+        requestId: safeUuid(),
         draftRevision: this.draft.revision,
         commands,
       });
@@ -688,7 +706,7 @@ export class FloorplanPanel {
     this.notice.textContent = "正在重新审核当前草稿…";
     try {
       await this.onRecheck({
-        requestId: crypto.randomUUID(),
+        requestId: safeUuid(),
         draftId: this.draft.id,
         draftRevision: this.draft.revision,
         draftHash: this.draft.hash,
@@ -721,7 +739,7 @@ export class FloorplanPanel {
       old?.signature === signature
         ? old.body
         : {
-            requestId: crypto.randomUUID(),
+            requestId: safeUuid(),
             draftId: this.draft.id,
             draftRevision: this.draft.revision,
             draftHash: this.draft.hash,
@@ -742,7 +760,7 @@ export class FloorplanPanel {
   }
   private async add() {
     const col = this.collection.value,
-      id = col.slice(0, 1) + "-" + crypto.randomUUID(),
+      id = col.slice(0, 1) + "-" + safeUuid(),
       d = this.draft.data;
     let object: any;
     if (col === "walls")

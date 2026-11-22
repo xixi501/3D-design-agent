@@ -1,16 +1,20 @@
 ---
 name: layout-check-repair
-description: 已有布置的场景跑"检查 → 定位 → 有限修复 → 如实报告"：先 candidate.preflight / candidate.review 拿 issue 列表，按严重度与影响对象数排序，一次只修一类，每轮重跑，3 轮预算用完就停，修不动的写进未解决清单并说明原因。当用户说"帮我看看这套布置哪里不对、能不能自动修"，或内层 harness 在执行完一次设计后自检时使用；不适用于从零布置、拆改户型，或要求"改到通过为止"的任务。
+description: 已有布置的场景跑"检查 → 定位 → 有限修复 → 如实报告"：先 candidate.preflight / candidate.review
+  拿 issue 列表，按严重度与影响对象数排序，一次只修一类，每轮重跑，3 轮预算用完就停，修不动的写进未解决清单并说明原因。当用户说"帮我看看这套布置哪里不对、能不能自动修"，或内层
+  harness 在执行完一次设计后自检时使用；不适用于从零布置、拆改户型，或要求"改到通过为止"的任务。
 license: MIT
-compatibility: 需要 candidate.preflight / candidate.review / scene.read / candidate.propose + candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（人工按判据逐条核对）。
+compatibility: 需要 candidate.preflight / candidate.review / scene.read / candidate.propose
+  + candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（人工按判据逐条核对）。
 metadata:
-  version: "0.3.0"
+  version: 0.3.0
   status: verified
   level: structure
   owner: member3
   kind: repair
   activation: active
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CUR-01,J-DOOR-01,J-DOOR-02,J-OVER-01,J-VER-01,J-VER-02,J-WIN-01"
+  judgement_refs: J-CIR-01,J-CIR-02,J-CUR-01,J-DOOR-01,J-DOOR-02,J-OVER-01,J-VER-01,J-VER-02,J-WIN-01
+  capabilities: scene.read,candidate.propose,candidate.preflight,candidate.render,candidate.review
 ---
 
 # 检查与有限修复

@@ -2,15 +2,18 @@
 name: entry-storage
 description: 在 1.5–20㎡ 的玄关或过道里排"开门→落尘→换鞋→挂衣→镜"的入户动线，按人数估鞋柜容量、控换鞋凳前净空、给强弱电箱留检修口，并决定地方不够时先保什么。当用户要"玄关怎么设计""鞋柜放不下""进门太乱""过道怎么利用"时使用；不适用于需要拆改墙体或改门洞、以及要做整墙定制柜体结构设计的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为
+  pending_adaptation。
 metadata:
-  version: "0.3.0"
+  version: 0.3.0
   status: verified
   level: structure
   owner: member3
   kind: layout
   activation: active
-  judgement_refs: "J-ENT-01,J-ENT-02,J-CIR-01,J-CUR-01,J-VER-01,J-VER-02"
+  judgement_refs: J-ENT-01,J-ENT-02,J-CIR-01,J-CUR-01,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 玄关与入户收纳

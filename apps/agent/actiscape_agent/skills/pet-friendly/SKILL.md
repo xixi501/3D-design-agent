@@ -2,15 +2,16 @@
 name: pet-friendly
 description: 宠物家庭布置：在 4.2×5.6m 量级的起居空间里定出宠物活动区与清洁点，把猫爬架放在能晒太阳又不在窗帘带里的墙段，把猫砂盆与狗窝挪出餐厨与主动线，再用耐抓耐污材料、门挡与线槽让布置经得住日常。当用户养猫养狗、要求"耐抓、好清理、别让猫爬架挡路"时使用；不适用于需要拆改墙体或做全屋新风/除味的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字坐标 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字坐标 + 人工量尺）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: conformant
   level: structure
   owner: member3
   kind: modifier
   activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-02,J-COL-02,J-CUR-01,J-VER-01,J-VER-02"
+  judgement_refs: J-CIR-01,J-CIR-02,J-COL-02,J-CUR-01,J-VER-01,J-VER-02
 ---
 
 # 宠物家庭布置

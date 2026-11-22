@@ -2,15 +2,17 @@
 name: style-coherence
 description: 把"北欧风""新中式""侘寂"这类口头风格翻成可执行的硬装—软装—材质—五金四件套，用 60-30-10 配色、≤3 种主材、≤1 个视觉焦点把整屋拉齐；硬装不可改时以硬装为准只换软装。当用户要定风格、说"整屋感觉不统一/像网红拼贴"、或要检查某个方案风格是否自洽时使用；不适用于需要拆改硬装、品牌比价采购或只调家具位置的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（风格卡 + 人工评审清单）。
+compatibility: 需要 catalog.search / scene.read / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（风格卡
+  + 人工评审清单）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: verified
   level: structure
   owner: member3
   kind: modifier
   activation: active
-  judgement_refs: "J-CIR-01,J-COL-01,J-COL-02,J-COL-03,J-CUR-01,J-PROP-01,J-STY-01,J-STY-02,J-STY-03,J-VER-01,J-VER-02,J-WIN-01"
+  judgement_refs: J-CIR-01,J-COL-01,J-COL-02,J-COL-03,J-CUR-01,J-PROP-01,J-STY-01,J-STY-02,J-STY-03,J-VER-01,J-VER-02,J-WIN-01
+  capabilities: scene.read,catalog.search,candidate.review
 ---
 
 # 全屋风格统一

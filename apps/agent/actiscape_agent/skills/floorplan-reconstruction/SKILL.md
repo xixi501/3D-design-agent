@@ -2,13 +2,15 @@
 name: floorplan-reconstruction
 description: 确认单层正交住宅平面图结构，保留全部可见房间、墙体门窗和目录家具的原图布局。
 license: MIT
-compatibility: scene.read / floorplan.analyze / floorplan.measure / catalog.search / candidate.propose / candidate.preflight / candidate.review / candidate.render
+compatibility: scene.read / floorplan.analyze / floorplan.measure / catalog.search
+  / candidate.propose / candidate.preflight / candidate.review / candidate.render
 metadata:
-  version: "0.7.0"
+  version: 0.7.0
   status: verified
   kind: floorplan
   activation: active
   owner: member1
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.render,candidate.review,floorplan.analyze
 ---
 
 # 单层户型图忠实复现 · 第三版

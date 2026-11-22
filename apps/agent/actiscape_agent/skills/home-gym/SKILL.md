@@ -1,16 +1,19 @@
 ---
 name: home-gym
-description: 在 4–15㎡ 的健身角或家庭健身房里，按"器械靠墙、镜面对着空地、瑜伽区可收"的思路排跑步机、动感单车与拉伸垫，处理器械操作间距、器械不挡门、连续 700 通道、镜面墙与自拍视线、减震吸音、通风与层高。当用户说"想在家练"、给出一间小房或阳台一角、或问"跑步机放哪、镜子挂哪"时使用；不适用于需要拆改墙体、吊挂承重架或按商业健身房排布器材的任务。
+description: 在 4–15㎡ 的健身角或家庭健身房里，按"器械靠墙、镜面对着空地、瑜伽区可收"的思路排跑步机、动感单车与拉伸垫，处理器械操作间距、器械不挡门、连续
+  700 通道、镜面墙与自拍视线、减震吸音、通风与层高。当用户说"想在家练"、给出一间小房或阳台一角、或问"跑步机放哪、镜子挂哪"时使用；不适用于需要拆改墙体、吊挂承重架或按商业健身房排布器材的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 手机拍照）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标
+  + 人工量尺 + 手机拍照）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: conformant
   level: structure
   owner: member3
   kind: layout
   activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CUR-01,J-DOOR-01,J-DOOR-02,J-LIGHT-02,J-OVER-01,J-STA-02,J-STA-03,J-VER-01,J-VER-02,J-WALL-01"
+  judgement_refs: J-CIR-01,J-CIR-02,J-CUR-01,J-DOOR-01,J-DOOR-02,J-LIGHT-02,J-OVER-01,J-STA-02,J-STA-03,J-VER-01,J-VER-02,J-WALL-01
 ---
 
 # 健身角 / 家庭健身房

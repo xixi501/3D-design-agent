@@ -2,15 +2,16 @@
 name: rental-makeover
 description: 出租房轻改造：在 3.2×4.6m 量级的单间里，用不拆改、可逆、可复原的手法提升观感——0 元/500 元/2000 元三档预算分别做什么、先摆位再换软装、灯光分层与拍照友好、退租时能全部搬走。当用户是租客、预算有限、房东不让动硬装、或要求"好看又能复原"时使用；不适用于自有房全屋装修、需要改水电或定制柜的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字清单 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字清单 + 人工量尺）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: conformant
   level: structure
   owner: member3
   kind: modifier
   activation: reserved
-  judgement_refs: "J-COL-01,J-CUR-01,J-LIGHT-01,J-STA-03,J-STY-01,J-STY-03,J-VER-01,J-VER-02,J-WIN-01"
+  judgement_refs: J-COL-01,J-CUR-01,J-LIGHT-01,J-STA-03,J-STY-01,J-STY-03,J-VER-01,J-VER-02,J-WIN-01
 ---
 
 # 出租房轻改造

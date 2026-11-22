@@ -2,15 +2,17 @@
 name: kids-room
 description: 为 6–15㎡ 儿童房排出"睡眠 / 学习 / 活动"三组家具，用可替换的分组保证从婴儿期到学龄期都能改，同时守住书桌使用区、窗前高柜、门扇与高柜安全。当用户要布置儿童房、说"孩子还小但想一步到位"，或问"上下床和书桌怎么摆"时使用；不适用于需要定制榻榻米、拆改墙体或涉及承重结构的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（分组清单 + 文字坐标 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（分组清单 + 文字坐标 + 人工量尺）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: 0.2.0
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-05,J-CUR-01,J-WIN-01,J-DOOR-02,J-OVER-01,J-PROP-01,J-STA-01,J-LIGHT-02,J-VER-01,J-VER-02"
+  activation: active
+  judgement_refs: J-CIR-01,J-CIR-05,J-CUR-01,J-WIN-01,J-DOOR-02,J-OVER-01,J-PROP-01,J-STA-01,J-LIGHT-02,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.render,candidate.review
 ---
 
 # 儿童房：成长性、安全与学习区

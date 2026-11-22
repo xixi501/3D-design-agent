@@ -4,13 +4,21 @@
   "name": "茶室 / 静区",
   "version": "0.2.0",
   "kind": "layout",
-  "status": "conformant",
-  "activation": "reserved",
+  "status": "verified",
+  "activation": "active",
   "summary": "4–10㎡ 茶室：远离主动线、坐席不对门不背窗，用一桌两椅一柜的最小配置守住 700 通行与茶台间距。",
   "appliesTo": {
-    "modes": ["generate_rectangular"],
-    "roomKinds": ["multipurpose"],
-    "areaM2": [4, 10],
+    "modes": [
+      "generate_rectangular"
+    ],
+    "roomKinds": [
+      "tea_room",
+      "multipurpose"
+    ],
+    "areaM2": [
+      4,
+      48
+    ],
     "projectState": "empty",
     "requiredInputs": [
       "含墙体与门窗的场景或户型图",
@@ -56,6 +64,24 @@
   "validation": {
     "structure": true,
     "dryRun": true,
-    "realCore": false
+    "realCore": true
+  },
+  "stageHints": {
+    "intake": [
+      "什么时候用"
+    ],
+    "asset": [
+      "第 1 步 "
+    ],
+    "layout": [
+      "第 2 步 "
+    ],
+    "check": [
+      "怎么验证"
+    ],
+    "repair": [
+      "第 9 步 ",
+      "怎么验证"
+    ]
   }
 }

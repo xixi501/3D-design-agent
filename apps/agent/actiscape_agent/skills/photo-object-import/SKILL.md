@@ -2,15 +2,17 @@
 name: photo-object-import
 description: 把用户拍的单件物品照片变成场景里的独立家具对象，并落到用户点选或语言指定的支撑面上。当用户上传花盆/花瓶/摆件照片、说"把这个放到茶几上/窗台上"，或要替换场景里某个已有物品时使用；不适用于多件合影、透明反光物、需要精确测绘的场合。
 license: MIT
-compatibility: 需要 asset.job / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review / candidate.render；资产服务未就绪时按第 4 节降级（只出资产规格与落位建议，不落位）。
+compatibility: 需要 asset.job / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review / candidate.render；资产服务未就绪时按第 4 节降级（只出资产规格与落位建议，不落位）。
 metadata:
-  version: "0.3.0"
+  version: 0.3.0
   status: verified
   level: structure
   owner: member3
   kind: asset
   activation: active
-  judgement_refs: "J-ASSET-01,J-ASSET-02,J-CIR-01,J-OVER-01,J-VER-01,J-VER-02"
+  judgement_refs: J-ASSET-01,J-ASSET-02,J-CIR-01,J-OVER-01,J-VER-01,J-VER-02
+  capabilities: scene.read,asset.job,candidate.propose,candidate.preflight,candidate.render,candidate.review
 ---
 
 # 照片物品入场景与局部摆放

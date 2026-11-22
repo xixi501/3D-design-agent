@@ -354,15 +354,15 @@ export function checkInitialization(
       level: "error",
       blocking: true,
     });
-  const seatTargets: Record<string, string> = {
-    chair: "diningTable",
-    officeChair: "desk",
-    armchair: "coffeeTable",
+  const seatTargets: Record<string, string[]> = {
+    chair: ["diningTable", "roundTable", "ovalTable", "teaTable", "barTable"],
+    officeChair: ["desk", "lDesk", "trainingTable"],
+    armchair: ["coffeeTable", "roundTable", "ovalTable", "teaTable"],
   };
   for (const seat of after.plan.furniture) {
-    const targetType = seatTargets[seat.type];
-    if (!targetType) continue;
-    const targets = after.plan.furniture.filter((f) => f.type === targetType);
+    const targetTypes = seatTargets[seat.type];
+    if (!targetTypes) continue;
+    const targets = after.plan.furniture.filter((f) => targetTypes.includes(f.type));
     if (!targets.length) continue;
     const radians = ((seat.rot || 0) * Math.PI) / 180,
       front = { x: -Math.sin(radians), y: Math.cos(radians) };

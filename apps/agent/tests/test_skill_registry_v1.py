@@ -44,6 +44,14 @@ def test_pool_is_strict_v1_and_active_allowlist_is_exact():
         "kitchen-line-l-u",
         "bathroom-standard",
         "entry-storage",
+        "aging-friendly",
+        "tea-room",
+        "dining-island",
+        "kids-room",
+        "media-room",
+        "studio-micro",
+        "tatami-multipurpose",
+        "villa-ground-floor",
     }
     assert (
         active
@@ -57,12 +65,12 @@ def test_pool_is_strict_v1_and_active_allowlist_is_exact():
         | whole_home
     )
     reserved = {item["id"] for item in snapshots if item["activation"] == "reserved"}
-    assert len(reserved) == 16
+    assert len(reserved) == 8
     assert "photo-object-import" in active
     summary = registry.pool_summary()
     assert summary["skills"] == 33
-    assert summary["active"] == 17
-    assert summary["reserved"] == 16
+    assert summary["active"] == 25
+    assert summary["reserved"] == 8
     judgements = json.loads((ROOT / "_framework" / "judgements.v1.json").read_text())
     assert judgements["schemaVersion"] == "actiscape.judgements.v1"
     assert len(judgements["judgements"]) == 69

@@ -32,11 +32,16 @@ export function agentProxy(app: FastifyInstance, store?: ProjectStore) {
       const convTaskMatch = pathname.match(
         /^\/api\/agent\/conversations\/([^/]+)\/tasks$/,
       );
+      const localOnlyModes = new Set(["reconstruct_floorplan", "asset_import"]);
+      const preferLocal =
+        Boolean(body.preferLocal) || localOnlyModes.has(String(body.mode || ""));
+      delete body.preferLocal;
       if (
         req.method === "POST" &&
         convTaskMatch &&
         agentArtsConfigured() &&
-        body.projectId
+        body.projectId &&
+        !preferLocal
       ) {
         const conversationId = convTaskMatch[1];
         try {

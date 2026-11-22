@@ -1,3 +1,4 @@
+import os
 import asyncio
 import base64
 import json
@@ -198,6 +199,8 @@ class Roles:
         bounded_schema: bool = False,
     ):
         options = {**model_settings(), **(model_options or {})}
+        if images and "dashscope" in str(options.get("base_url", "")).lower() and "vl" not in str(options.get("model", "")).lower():
+            options["model"] = os.environ.get("ACTISCAPE_VISION_MODEL", "qwen3-vl-plus")
         self.store.event(
             task_id,
             "agent_start",

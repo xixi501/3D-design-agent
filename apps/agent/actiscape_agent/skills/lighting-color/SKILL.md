@@ -2,15 +2,17 @@
 name: lighting-color
 description: 先按"环境 / 任务 / 重点"三层定比例，再按房间给照度与色温，最后把灯位落到家具上（餐桌吊灯对中、阅读角落地灯、镜前灯垂直照面），并让配色落到可采购的材质。当用户问"灯怎么布、家里太暗、晚上太刺眼、色温选多少、颜色怎么配不翻车"时使用；不适用于需要电气施工图（回路、线径、开关点位）或只调家具位置的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（照明表 + 人工照度估算）。
+compatibility: 需要 catalog.search / scene.read / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（照明表
+  + 人工照度估算）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: verified
   level: structure
   owner: member3
   kind: modifier
   activation: active
-  judgement_refs: "J-ASSET-02,J-COL-01,J-COL-02,J-CUR-01,J-CIR-07,J-DOOR-02,J-LIGHT-01,J-LIGHT-02,J-LIGHT-03,J-LIGHT-04,J-VER-02,J-WALL-01"
+  judgement_refs: J-ASSET-02,J-COL-01,J-COL-02,J-CUR-01,J-CIR-07,J-DOOR-02,J-LIGHT-01,J-LIGHT-02,J-LIGHT-03,J-LIGHT-04,J-VER-02,J-WALL-01
+  capabilities: scene.read,catalog.search,candidate.review
 ---
 
 # 照明分层与配色

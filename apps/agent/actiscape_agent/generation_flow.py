@@ -3,6 +3,7 @@ from .generation_roles import GenerationRoles
 from .generation_schemas import resolve_request
 from .scene_projection import ensure_text_scene_draft, sync_text_scene_program
 from .scene_registry import get_scene_registry
+from .multiroom_generator import is_multiroom_generation_request, run_multiroom_generation
 from .skill_registry import get_registry
 from .store import TaskError, fingerprint
 
@@ -31,6 +32,10 @@ class GenerationFlow:
         if any(project["plan"].get(k) for k in COLLECTIONS) or project.get("roomLabelArchive"):
             raise TaskError(
                 "PROJECT_NOT_EMPTY", "文字生成仅用于空白项目，请新建项目；现有内容没有被覆盖", 409
+            )
+        if is_multiroom_generation_request(task["input"]):
+            return await run_multiroom_generation(
+                store=self.store, client=self.client, task=task, project=project
             )
         old = task.get("generation", {})
         source_hash = fingerprint(task["input"])
@@ -149,8 +154,27 @@ class GenerationFlow:
                 room_kind=room.skillRoomKind,
                 area_m2=area_m2,
             )
+            raw_sel = dict(generation.get("skillSelection") or {})
+            if generation.get("autonomous"):
+                valid_primaries = [c["id"] for c in candidates["primary"]]
+                valid_mods = {c["id"] for c in candidates["modifiers"]}
+                if raw_sel.get("primarySkillId") not in valid_primaries and valid_primaries:
+                    preferred = next((sid for sid in room.skillIds if sid in valid_primaries), valid_primaries[0])
+                    raw_sel["primarySkillId"] = preferred
+                desired_mods = list(raw_sel.get("modifierSkillIds") or [])
+                if generation.get("styleId") == "aging_care" and "aging-friendly" in valid_mods:
+                    if "aging-friendly" not in desired_mods:
+                        desired_mods.insert(0, "aging-friendly")
+                elif generation.get("styleId") and "style-coherence" in valid_mods:
+                    if "style-coherence" not in desired_mods:
+                        desired_mods.append("style-coherence")
+                if "lighting-color" in valid_mods and len(desired_mods) < 2 and "lighting-color" not in desired_mods:
+                    desired_mods.append("lighting-color")
+                raw_sel["modifierSkillIds"] = [m for m in desired_mods if m in valid_mods][:2]
+                if not raw_sel.get("reason"):
+                    raw_sel["reason"] = f"按房间类型 {room.id} 与风格 {generation.get('style')} 自动匹配主技能与修饰技能"
             selection = registry.validate_selection(
-                generation.get("skillSelection", {}),
+                raw_sel,
                 candidates,
                 mode="generate_rectangular",
             )

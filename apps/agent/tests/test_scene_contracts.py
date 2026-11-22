@@ -35,6 +35,11 @@ def test_scene_registry_is_versioned_data_and_catalogue_keys_are_real():
         "bathroom",
         "entry",
         "circulation",
+        "dining_hall",
+        "tea_room",
+        "media_room",
+        "kids_room",
+        "multipurpose",
     }
     catalogue = json.loads((ROOT / "fixtures/catalog.json").read_text())
     unknown = {
@@ -136,8 +141,11 @@ def test_whole_home_room_types_are_generation_support():
 
 
 def test_reserved_room_is_not_presented_as_generation_support():
-    text = "设计一间儿童房，宽4米，深3.6米，南墙门居中，有窗"
-    result = resolve_request(_requested("kids_room", "儿童房", text), text)
+    kids_text = "设计一间儿童房，宽4米，深3.6米，南墙门居中，有窗"
+    kids_res = resolve_request(_requested("kids_room", "儿童房", kids_text), kids_text)
+    assert kids_res["unsupported"] is False
+    text = "设计一间婴儿房，宽3米，深2.4米，南墙门居中，有窗"
+    result = resolve_request(_requested("nursery", "婴儿房", text), text)
     assert result["unsupported"] is True
     assert "reserved" in result["question"]
 

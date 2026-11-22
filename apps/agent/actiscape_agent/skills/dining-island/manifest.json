@@ -4,13 +4,21 @@
   "name": "餐厨一体与中岛",
   "version": "0.2.0",
   "kind": "layout",
-  "status": "conformant",
-  "activation": "reserved",
+  "status": "verified",
+  "activation": "active",
   "summary": "4–30㎡ 餐厨一体：先定中岛角色（操作/早餐/兼餐桌），再定岛台对橱柜的通道、桌岛是并台还是分置，最后排吧椅与吊灯。",
   "appliesTo": {
-    "modes": ["generate_rectangular"],
-    "roomKinds": ["kitchen"],
-    "areaM2": [4, 30],
+    "modes": [
+      "generate_rectangular"
+    ],
+    "roomKinds": [
+      "dining_hall",
+      "kitchen"
+    ],
+    "areaM2": [
+      12,
+      80
+    ],
     "projectState": "empty",
     "requiredInputs": [
       "含墙体与门窗的场景或户型图",
@@ -53,6 +61,24 @@
   "validation": {
     "structure": true,
     "dryRun": true,
-    "realCore": false
+    "realCore": true
+  },
+  "stageHints": {
+    "intake": [
+      "什么时候用"
+    ],
+    "asset": [
+      "第 1 步 "
+    ],
+    "layout": [
+      "第 2 步 "
+    ],
+    "check": [
+      "怎么验证"
+    ],
+    "repair": [
+      "第 6 步 ",
+      "怎么验证"
+    ]
   }
 }

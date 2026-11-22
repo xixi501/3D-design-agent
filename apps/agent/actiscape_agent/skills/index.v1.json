@@ -7,8 +7,8 @@
       "id": "aging-friendly",
       "version": "0.2.0",
       "kind": "modifier",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "balcony-laundry",
@@ -28,8 +28,8 @@
       "id": "dining-island",
       "version": "0.2.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "entry-storage",
@@ -84,8 +84,8 @@
       "id": "kids-room",
       "version": "0.2.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "kitchen-line-l-u",
@@ -133,8 +133,8 @@
       "id": "media-room",
       "version": "0.2.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "nursery",
@@ -189,8 +189,8 @@
       "id": "studio-micro",
       "version": "0.2.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "style-coherence",
@@ -203,15 +203,15 @@
       "id": "tatami-multipurpose",
       "version": "0.2.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "tea-room",
       "version": "0.2.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     },
     {
       "id": "universal-spatial-base",
@@ -231,45 +231,45 @@
       "id": "villa-ground-floor",
       "version": "0.2.0",
       "kind": "layout",
-      "status": "conformant",
-      "activation": "reserved"
+      "status": "verified",
+      "activation": "active"
     }
   ],
   "active": [
+    "aging-friendly",
     "bathroom-standard",
+    "dining-island",
     "entry-storage",
     "floorplan-intake",
     "floorplan-reconstruction",
     "guest-bedroom",
     "home-office",
+    "kids-room",
     "kitchen-line-l-u",
     "layout-check-repair",
     "lighting-color",
     "living-dining-open",
     "living-dining-small",
     "master-bedroom",
+    "media-room",
     "photo-object-import",
     "rectangular-living-reading",
     "social-reading-zone",
+    "studio-micro",
     "style-coherence",
-    "universal-spatial-base"
+    "tatami-multipurpose",
+    "tea-room",
+    "universal-spatial-base",
+    "villa-ground-floor"
   ],
   "reserved": [
-    "aging-friendly",
     "balcony-laundry",
-    "dining-island",
     "gaming-room",
     "home-gym",
-    "kids-room",
-    "media-room",
     "nursery",
     "office-workstation",
     "pet-friendly",
     "rental-makeover",
-    "studio-micro",
-    "tatami-multipurpose",
-    "tea-room",
-    "utility-storage",
-    "villa-ground-floor"
+    "utility-storage"
   ]
 }

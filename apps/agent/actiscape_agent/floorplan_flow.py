@@ -137,6 +137,18 @@ class FloorplanFlow:
 
     async def ground(self, state, task):
         try:
+            if (
+                task.get("generation", {}).get("floorplanMode") == "hybrid"
+                or "[混合高精度重建]" in (task.get("input") or "")
+            ):
+                from .floorplan_hybrid import run_hybrid_floorplan_reconstruction
+
+                return await run_hybrid_floorplan_reconstruction(
+                    store=self.store,
+                    client=self.client,
+                    task=task,
+                    project=state["project"],
+                )
             if task["generation"].get("workflowVersion") == 4:
                 from .floorplan_v4 import FloorplanV4
                 from .floorplan_v4_2 import FloorplanV42

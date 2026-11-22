@@ -1,16 +1,19 @@
 ---
 name: universal-spatial-base
-description: 所有房间与所有 Agent 阶段默认挂载的 L0 通用空间底座。规定毫米坐标、rot=0/90/180/270 的宽深互换、门洞 800 mm 净空、柜门/抽屉 450–600 mm 开启包络、台面 z=host.z+host.h 吸附、支撑父子关系，以及 Candidate -> CheckScene -> Commit 唯一写入口。适用于客餐厅、卧室、书房、厨房、卫生间、玄关、过道及照片资产入场；不适用于刚体动力学、地震模拟或绕过门禁直接写库。
+description: 所有房间与所有 Agent 阶段默认挂载的 L0 通用空间底座。规定毫米坐标、rot=0/90/180/270 的宽深互换、门洞 800
+  mm 净空、柜门/抽屉 450–600 mm 开启包络、台面 z=host.z+host.h 吸附、支撑父子关系，以及 Candidate -> CheckScene
+  -> Commit 唯一写入口。适用于客餐厅、卧室、书房、厨房、卫生间、玄关、过道及照片资产入场；不适用于刚体动力学、地震模拟或绕过门禁直接写库。
 license: MIT
 compatibility: 需要 scene.read / candidate.preflight / candidate.review；只提供公理与约束，不声明写场景能力。
 metadata:
-  version: "0.1.0"
+  version: 0.1.0
   status: verified
   level: universal
   owner: member1
   kind: universal
   activation: active
-  judgement_refs: "J-CIR-01,J-CIR-06,J-ASSET-02,J-OVER-01,J-DOOR-02,J-VER-01,J-VER-02"
+  judgement_refs: J-CIR-01,J-CIR-06,J-ASSET-02,J-OVER-01,J-DOOR-02,J-VER-01,J-VER-02
+  capabilities: scene.read,candidate.preflight,candidate.review
 ---
 
 # L0 通用空间底座

@@ -87,6 +87,9 @@ async def test_recognition_output_profile_reaches_model_without_changing_other_r
     from actiscape_agent.model import create_model
 
     monkeypatch.setenv("DEEPSEEK_API_KEY", "test-only-not-a-credential")
+    monkeypatch.delenv("DEEPSEEK_BASE_URL", raising=False)
+    monkeypatch.delenv("MODEL_URL", raising=False)
+    monkeypatch.delenv("DEEPSEEK_MODEL", raising=False)
     options = FLOORPLAN_RECOGNITION_OPTIONS if recognition else {}
     model = create_model(**options)
     wire = model._get_request_payload([HumanMessage("inspect image")])

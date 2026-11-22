@@ -1,16 +1,20 @@
 ---
 name: living-dining-open
-description: 在 30–60㎡ 的 LDK 一体大空间里，用"三段分区 + 一条环线"排出会客、用餐、西厨（或工作角），并用地毯与灯位在开放平面上划区，保证从入户门到每一区都有通长通道、分区不把大厅切成两半。当用户要布置 LDK / 客餐厨一体 / 大横厅，或提出"要分区但不要隔断"时使用；不适用于 30㎡ 以下的小客餐厅，也不适用于需要砌墙隔断的改造。
+description: 在 30–60㎡ 的 LDK 一体大空间里，用"三段分区 + 一条环线"排出会客、用餐、西厨（或工作角），并用地毯与灯位在开放平面上划区，保证从入户门到每一区都有通长通道、分区不把大厅切成两半。当用户要布置
+  LDK / 客餐厨一体 / 大横厅，或提出"要分区但不要隔断"时使用；不适用于 30㎡ 以下的小客餐厅，也不适用于需要砌墙隔断的改造。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标方案
+  + 人工量尺）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: verified
   level: structure
   owner: member3
   kind: layout
   activation: active
-  judgement_refs: "J-CIR-01,J-CIR-02,J-PROP-01,J-PROP-02,J-PROP-03,J-LAY-01,J-LIGHT-01,J-COL-01,J-STY-01,J-STY-03,J-CUR-01,J-DOOR-01,J-WIN-01,J-STA-01,J-STA-03,J-VER-01,J-VER-02"
+  judgement_refs: J-CIR-01,J-CIR-02,J-PROP-01,J-PROP-02,J-PROP-03,J-LAY-01,J-LIGHT-01,J-COL-01,J-STY-01,J-STY-03,J-CUR-01,J-DOOR-01,J-WIN-01,J-STA-01,J-STA-03,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.render,candidate.review
 ---
 
 # LDK 一体大空间的分区与动线

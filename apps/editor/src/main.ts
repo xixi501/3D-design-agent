@@ -28,6 +28,7 @@ import { Ov } from "./modeling/furniture-3d.js";
 import { Fh } from "./modeling/furniture-2d.js";
 import * as THREE from "three";
 import { initSafetyTwinPlugin } from "./plugins/safety-twin-plugin.js";
+import { initSceneGalleryPlugin } from "./plugins/scene-gallery-plugin.js";
 const root = document.querySelector("#app")!;
 root.innerHTML = `<header class="app-bar">
   <div class="brand-block">
@@ -1688,6 +1689,12 @@ safetyTwinPlugin = initSafetyTwinPlugin({
   setSelectionIds: (ids) => {
     if (ids[0]) setSelection({ id: ids[0], collection: "furniture" });
   },
+  notifyMessage: message,
+});
+initSceneGalleryPlugin({
+  getProject: () => project,
+  openProject: open,
+  setViewMode: (m) => setView(m, false),
   notifyMessage: message,
 });
 renderCatalog();

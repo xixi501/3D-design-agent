@@ -2,15 +2,17 @@
 name: living-dining-small
 description: 在 8–25㎡ 的客餐厅里，用"一个主墙 + 一条贯穿通道"的方法排出沙发组与餐桌，保证 700 通行、门窗不被挡，并给出小空间的取舍顺序。当用户要布置客餐厅、给出面积或户型图、或要求"只改客厅/餐厅某一块"时使用；不适用于需要拆改墙体、整栋/别墅或水电改造的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按第 4 节的降级路径执行（文字方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按第 4 节的降级路径执行（文字方案 + 人工量尺）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: verified
   level: structure
   owner: member3
   kind: layout
   activation: active
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-03,J-CIR-07,J-CUR-01,J-DOOR-01,J-PROP-01,J-PROP-02,J-WIN-02,J-VER-01,J-VER-02,J-STA-01"
+  judgement_refs: J-CIR-01,J-CIR-02,J-CIR-03,J-CIR-07,J-CUR-01,J-DOOR-01,J-PROP-01,J-PROP-02,J-WIN-02,J-VER-01,J-VER-02,J-STA-01
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 小空间客餐厅布置

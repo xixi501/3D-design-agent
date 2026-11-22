@@ -1,3 +1,4 @@
+from .autonomous_harmonizer import harmonize_autonomous_proposal, synthesize_initial_proposal_from_scope
 from langchain_core.tools import tool
 
 from .addition_semantics import semantic_errors
@@ -19,7 +20,7 @@ BRIEF_PROMPT = (
     RULES
     + """你是主控 Agent，负责把用户原话整理为 GenerationRequest。先调用 generation_context 读取当前信息。
 只提取用户明确提供的信息；缺少的数据必须为 null，不得猜测净尺寸、入口或窗的位置。原文未提是否有窗，windows=null；明确无窗才返回 windows=[]。
-purpose 只能从输入 roomTypes 的 active ID 中选择；主卧、次卧、书房、厨房、卫生间、玄关和过道都在支持范围，不要因为房间不是客餐厅就拒绝；reserved、未知用途、不规则轮廓、多房间与照片生成 status=unsupported。
+purpose 只能从输入 roomTypes 的 active ID 中选择；客餐厅、独立餐厅(dining_hall)、茶室(tea_room)、影音室(media_room)、儿童房(kids_room)、多功能榻榻米(multipurpose)、主卧、次卧、书房、厨房、卫生间、玄关和过道都在支持范围；若用户提到“自由发挥/你定/默认/[自主发挥]/几张桌子”，请正常提取 purpose、style 与用户提到的家具（如“几张桌子”填 count=3 的餐桌），缺少的尺寸门窗保持 null 交由系统先验自动补全，不要返回 unsupported。
 width 是横向室内净宽，depth 是纵向室内净深。尺寸保留原始数值和 mm/cm/m 单位，不自行换算，不把面积当长宽。
 北/上 north，东/右 east，南/下 south，西/左 west。明确“居中”才 position=center；明确距离则 position=offset，水平从左侧量开口起点、竖直从上侧量。
 只说“靠左/靠右”等而没有距离，position=null，并提出补充问题。不要擅自给 400、500 等位置。
@@ -237,6 +238,14 @@ class GenerationRoles:
             return fallback
 
     async def candidate(self, task, project, scope, proposal, round, authorization=None):
+        _live_gen = ((self.store.task(task["id"], internal=True) if hasattr(self.store, "task") else None) or {}).get("generation") or task.get("generation") or {}
+        if _live_gen.get("autonomous"):
+            catalogue = await self._catalogue(task)
+            proposal = harmonize_autonomous_proposal(
+                proposal,
+                catalogue,
+                _live_gen.get("dimensions") or {},
+            )
         request = {
             "kind": "initialize",
             "taskId": task["id"],
@@ -271,6 +280,30 @@ class GenerationRoles:
         return candidate
 
     async def design(self, task, layout, scope, last_report, round):
+        _live_gen_d = ((self.store.task(task["id"], internal=True) if hasattr(self.store, "task") else None) or {}).get("generation") or task.get("generation") or {}
+        if _live_gen_d.get("autonomous") and round == 0:
+            try:
+                _cat_d = await self._catalogue(task)
+                _fast_prop = synthesize_initial_proposal_from_scope(
+                    scope, _cat_d, _live_gen_d.get("dimensions") or {}
+                )
+                _fast_cand = await self.candidate(
+                    {**task, "generation": _live_gen_d},
+                    layout,
+                    scope,
+                    _fast_prop,
+                    round,
+                    _live_gen_d.get("editAuthorization"),
+                )
+                if (_fast_cand.get("checks") or {}).get("passed"):
+                    self.store.event(
+                        task["id"],
+                        "neuro_symbolic_fast_track",
+                        {"editCount": len(_fast_prop["edits"]), "candidateId": _fast_cand["id"]},
+                    )
+                    return _fast_prop
+            except Exception:
+                pass
         @tool
         async def precheck_initialization(edits: list[Edit]) -> dict:
             """Check a complete furniture layout against the frozen rectangular shell; does not write the formal project."""

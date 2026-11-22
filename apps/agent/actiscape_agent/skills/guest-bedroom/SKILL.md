@@ -1,16 +1,19 @@
 ---
 name: guest-bedroom
-description: 在 6–14㎡ 的次卧/客房里，先判断这间房是"临时住 + 收纳"还是"长期住"，再在床靠墙与床居中两种摆法之间取舍，安排衣柜、书桌与折叠书桌，并让开门扇、窗帘与 700 通行。当用户要布置次卧、客房、客房兼书房，或说"这间平时没人住、来人要能睡"时使用；不适用于主卧、儿童房、需要拆改墙体或改门窗的任务。
+description: 在 6–14㎡ 的次卧/客房里，先判断这间房是"临时住 + 收纳"还是"长期住"，再在床靠墙与床居中两种摆法之间取舍，安排衣柜、书桌与折叠书桌，并让开门扇、窗帘与
+  700 通行。当用户要布置次卧、客房、客房兼书房，或说"这间平时没人住、来人要能睡"时使用；不适用于主卧、儿童房、需要拆改墙体或改门窗的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.3.0"
+  version: 0.3.0
   status: verified
   level: structure
   owner: member3
   kind: layout
   activation: active
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-04,J-CIR-06,J-CUR-01,J-DOOR-02,J-PROP-01,J-STA-01,J-VER-01,J-VER-02"
+  judgement_refs: J-CIR-01,J-CIR-02,J-CIR-04,J-CIR-06,J-CUR-01,J-DOOR-02,J-PROP-01,J-STA-01,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 次卧 / 客房布置

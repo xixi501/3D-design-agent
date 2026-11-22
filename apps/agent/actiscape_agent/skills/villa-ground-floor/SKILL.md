@@ -2,15 +2,17 @@
 name: villa-ground-floor
 description: 独栋别墅首层：在 8.0×12.0m 量级的首层里分开"公共动线"（入户→玄关→客厅→餐厨→庭院）与"服务动线"（入户/侧门→家政设备间→厨房），定楼梯与电梯位置、挑空范围、家政设备间与庭院视线，并按人数算玄关收纳量。当用户给出独栋/联排首层平面、要求"动静分开、进门不见厅、餐厨看院子"时使用；不适用于多层全屋规划、需要改结构或加建的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字分区 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字分区 + 人工量尺）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: 0.2.0
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-02,J-DOOR-02,J-ENT-01,J-LIGHT-01,J-STA-02,J-STA-03,J-VER-01,J-VER-02"
+  activation: active
+  judgement_refs: J-CIR-01,J-CIR-02,J-DOOR-02,J-ENT-01,J-LIGHT-01,J-STA-02,J-STA-03,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 独栋别墅首层

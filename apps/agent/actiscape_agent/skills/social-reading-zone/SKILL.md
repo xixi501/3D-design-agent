@@ -2,15 +2,18 @@
 name: social-reading-zone
 description: 在已有一组会客家具的客厅里，先把对象声明成"会客组 / 阅读组"，再只对目标组下发编辑，新增或重排一个"单人椅 + 落地灯 + 边几（可加书架）"的阅读角，并守住组内通道、台面支撑与到门洞的连通。当用户说"只动阅读角、沙发那套别动""想加个能坐一下午的角落"时使用；不适用于整间客厅重排、需要换主沙发或拆改墙体的任务。
 license: MIT
-compatibility: 需要 scene.read / candidate.propose + candidate.preflight / candidate.review / candidate.preflight / candidate.review / catalog.search；工具未落地时按"依赖什么"一节的降级路径执行（分组清单 + 文字坐标 + 人工量尺）。
+compatibility: 需要 scene.read / candidate.propose + candidate.preflight / candidate.review
+  / candidate.preflight / candidate.review / catalog.search；工具未落地时按"依赖什么"一节的降级路径执行（分组清单
+  + 文字坐标 + 人工量尺）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: verified
   level: structure
   owner: member3
   kind: edit
   activation: active
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-07,J-OVER-01,J-CUR-01,J-WIN-01,J-LIGHT-01,J-LIGHT-02,J-LIGHT-03,J-LAY-01,J-PROP-02,J-STY-03,J-VER-01,J-VER-02"
+  judgement_refs: J-CIR-01,J-CIR-02,J-CIR-07,J-OVER-01,J-CUR-01,J-WIN-01,J-LIGHT-01,J-LIGHT-02,J-LIGHT-03,J-LAY-01,J-PROP-02,J-STY-03,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.render,candidate.review
 ---
 
 # 会客 + 阅读的功能分组与局部调整

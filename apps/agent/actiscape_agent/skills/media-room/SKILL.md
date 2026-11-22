@@ -2,15 +2,17 @@
 name: media-room
 description: 在 10–25㎡ 的影音/娱乐室里，按"屏幕对角线 × 1.2–1.6"的观看距离定屏幕与沙发位，再排侧向通道、音箱位、遮光与设备柜散热。当用户要一间家庭影院、影音室、游戏室，或说"想投个大屏、周末看电影"时使用；不适用于客厅兼影院、需要声学装修（吸音/隔声施工）、需要投影吊装与强弱电布线的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: 0.2.0
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-07,J-CUR-01,J-ENT-03,J-LIGHT-01,J-LIGHT-05,J-OVER-01,J-PROP-01,J-WIN-01,J-VER-01,J-VER-02"
+  activation: active
+  judgement_refs: J-CIR-01,J-CIR-02,J-CIR-07,J-CUR-01,J-ENT-03,J-LIGHT-01,J-LIGHT-05,J-OVER-01,J-PROP-01,J-WIN-01,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 影音 / 娱乐室

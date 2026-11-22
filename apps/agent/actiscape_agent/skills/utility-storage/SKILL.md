@@ -2,15 +2,16 @@
 name: utility-storage
 description: 布置 2–6㎡ 的家政间或储藏间：把洗烘、清洁工具、囤货分成三区，按柜深与通道宽度排 400 浅柜、600 标准柜，处理洞洞板挂具、通风防潮、门后空间与扫地机基站位置和电源。当用户要在小房间放洗衣机烘干机、囤纸巾清洁剂、或问"家政柜怎么做深、扫拖一体机放哪"时使用；不适用于需要新增地漏/排水立管、拆改墙体或整间改厨房/卫浴的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 设备说明书）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 设备说明书）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: conformant
   level: structure
   owner: member3
   kind: layout
   activation: reserved
-  judgement_refs: "J-BAL-01,J-CIR-01,J-CIR-06,J-CIR-09,J-DOOR-01,J-DOOR-02,J-OVER-01,J-VER-01,J-VER-02,J-WALL-01"
+  judgement_refs: J-BAL-01,J-CIR-01,J-CIR-06,J-CIR-09,J-DOOR-01,J-DOOR-02,J-OVER-01,J-VER-01,J-VER-02,J-WALL-01
 ---
 
 # 家政间 / 储藏间

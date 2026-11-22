@@ -2,15 +2,17 @@
 name: balcony-laundry
 description: 在 1.2–6㎡ 的生活阳台里排洗衣机、烘干机、洗衣池与晾晒：决定叠放还是并排、留洗衣机前操作面、定晾衣杆高度与长度、处理地漏与排水、并与通客厅的推拉门/窗帘避让。当用户要"阳台改洗衣房""洗衣机烘干机怎么放""晾衣杆装多高"时使用；不适用于需要改排水立管与楼板、封阳台改结构、以及要做阳光房的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字方案 + 人工量尺），状态仍为
+  pending_adaptation。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: conformant
   level: structure
   owner: member3
   kind: layout
   activation: reserved
-  judgement_refs: "J-BAL-01,J-CIR-01,J-DOOR-01,J-CUR-01,J-VER-01,J-VER-02"
+  judgement_refs: J-BAL-01,J-CIR-01,J-DOOR-01,J-CUR-01,J-VER-01,J-VER-02
 ---
 
 # 生活阳台与家政

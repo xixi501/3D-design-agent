@@ -1,16 +1,20 @@
 ---
 name: master-bedroom
-description: 为主卧定"床头墙 + 床侧通道 + 衣柜前净空"的骨架，再在衣柜、梳妆、电视三者之间做明确取舍，并处理窗帘与窗下净空。当用户要布置 10–20㎡ 主卧、给出大床与衣柜尺寸，或纠结"要衣柜还是要梳妆台/电视"时使用；不适用于儿童房、老人房（防跌倒要求不同）或需要改门洞与水电点位的任务。
+description: 为主卧定"床头墙 + 床侧通道 + 衣柜前净空"的骨架，再在衣柜、梳妆、电视三者之间做明确取舍，并处理窗帘与窗下净空。当用户要布置 10–20㎡
+  主卧、给出大床与衣柜尺寸，或纠结"要衣柜还是要梳妆台/电视"时使用；不适用于儿童房、老人房（防跌倒要求不同）或需要改门洞与水电点位的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标
+  + 人工量尺）。
 metadata:
-  version: "0.3.0"
+  version: 0.3.0
   status: verified
   level: structure
   owner: member3
   kind: layout
   activation: active
-  judgement_refs: "J-CIR-04,J-CIR-06,J-CIR-08,J-CUR-01,J-PROP-01,J-STA-01,J-LIGHT-02,J-DOOR-02,J-OVER-01,J-ASSET-02,J-VER-01,J-VER-02"
+  judgement_refs: J-CIR-04,J-CIR-06,J-CIR-08,J-CUR-01,J-PROP-01,J-STA-01,J-LIGHT-02,J-DOOR-02,J-OVER-01,J-ASSET-02,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.render,candidate.review
 ---
 
 # 主卧：睡眠区、收纳与梳妆取舍

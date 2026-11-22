@@ -1,16 +1,19 @@
 ---
 name: office-workstation
-description: 在 30–60㎡ 的小型办公或居家工作室里，先把平面分成"工位区 / 会议区 / 打印收纳区 / 入口通道"四块，再按 1200×600 起、1400×700 舒适的工位尺寸排布，保证 900 主通道、会议室门不被挡、高柜不挡窗，并给出插座与网口的位置建议。当用户要布置小型办公室、共享工位、工作室，或说"给团队排 4–8 个位子、留一间会议室"时使用；不适用于需要水电点位设计、拆改墙体或整层办公区规划的任务。
+description: 在 30–60㎡ 的小型办公或居家工作室里，先把平面分成"工位区 / 会议区 / 打印收纳区 / 入口通道"四块，再按 1200×600
+  起、1400×700 舒适的工位尺寸排布，保证 900 主通道、会议室门不被挡、高柜不挡窗，并给出插座与网口的位置建议。当用户要布置小型办公室、共享工位、工作室，或说"给团队排
+  4–8 个位子、留一间会议室"时使用；不适用于需要水电点位设计、拆改墙体或整层办公区规划的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: conformant
   level: structure
   owner: member3
   kind: layout
   activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-05,J-DOOR-01,J-DOOR-02,J-LIGHT-02,J-OVER-01,J-PROP-01,J-STY-01,J-STA-03,J-VER-01,J-VER-02,J-WIN-01"
+  judgement_refs: J-CIR-01,J-CIR-02,J-CIR-05,J-DOOR-01,J-DOOR-02,J-LIGHT-02,J-OVER-01,J-PROP-01,J-STY-01,J-STA-03,J-VER-01,J-VER-02,J-WIN-01
 ---
 
 # 小型办公工位与会议室

@@ -1,16 +1,20 @@
 ---
 name: kitchen-line-l-u
-description: 给 3–10㎡ 的独立厨房选形（一字 / L / U / 双排）并排橱柜、冰箱与水槽灶台：先按开间定形，再压操作三角、备餐顺序、吊柜避窗与冰箱开门侧。当用户要做厨房、说"厨房太窄/放不下冰箱/吊柜挡窗"或只改厨房某一段时使用；不适用于餐厨一体与中岛（转 dining-island）、需要改燃气与排水点位、或需要拆改墙体的任务。
+description: 给 3–10㎡ 的独立厨房选形（一字 / L / U / 双排）并排橱柜、冰箱与水槽灶台：先按开间定形，再压操作三角、备餐顺序、吊柜避窗与冰箱开门侧。当用户要做厨房、说"厨房太窄/放不下冰箱/吊柜挡窗"或只改厨房某一段时使用；不适用于餐厨一体与中岛（转
+  dining-island）、需要改燃气与排水点位、或需要拆改墙体的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径走（文字坐标方案 + 人工量尺），状态仍为 pending_adaptation。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径走（文字坐标方案 + 人工量尺），状态仍为
+  pending_adaptation。
 metadata:
-  version: "0.3.0"
+  version: 0.3.0
   status: verified
   level: structure
   owner: member3
   kind: layout
   activation: active
-  judgement_refs: "J-KIT-01,J-KIT-02,J-KIT-03,J-KIT-04,J-CIR-01,J-WIN-01,J-VER-01,J-VER-02"
+  judgement_refs: J-KIT-01,J-KIT-02,J-KIT-03,J-KIT-04,J-CIR-01,J-WIN-01,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 一字 / L / U 形厨房布置

@@ -1,16 +1,19 @@
 ---
 name: studio-micro
-description: 在 20–40㎡ 的开间/一居里，把睡眠、会客、用餐、工作四件事排进同一间屋：先定"哪件家具不能折叠"的优先顺序，再用书架、帘、地台做软隔断，靠折叠与可移动家具留出 ≥700 的连续走道。当用户给出开间/一居的面积或户型、要求"一间当几间用"、或想分区又不想砌墙时使用；不适用于需要拆改墙体、分间出租或整栋/别墅的任务。
+description: 在 20–40㎡ 的开间/一居里，把睡眠、会客、用餐、工作四件事排进同一间屋：先定"哪件家具不能折叠"的优先顺序，再用书架、帘、地台做软隔断，靠折叠与可移动家具留出
+  ≥700 的连续走道。当用户给出开间/一居的面积或户型、要求"一间当几间用"、或想分区又不想砌墙时使用；不适用于需要拆改墙体、分间出租或整栋/别墅的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: 0.2.0
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CUR-01,J-LIGHT-01,J-PROP-03,J-STA-01,J-VER-01,J-VER-02"
+  activation: active
+  judgement_refs: J-CIR-01,J-CIR-02,J-CUR-01,J-LIGHT-01,J-PROP-03,J-STA-01,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 开间/一居多功能合一

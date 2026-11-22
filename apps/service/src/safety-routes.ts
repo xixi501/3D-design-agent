@@ -1,14 +1,80 @@
 import crypto from "node:crypto";
+import path from "node:path";
 import type { FastifyInstance } from "fastify";
 import {
   auditSafety,
   checkScene,
+  clone,
+  collections,
   exportPlanToMujocoXml,
   SceneError,
+  type Command,
+  type Plan,
   type SafetyProfile,
 } from "../../../packages/scene-core/src/index.js";
+import { businessDiff } from "../../../packages/scene-core/src/candidate.js";
 import { buildMcpOpenApiSpec } from "./mcp-openapi.js";
+import {
+  applyStylePackToPlan,
+  buildTemplatePlan,
+  compileSafeHouseSpec,
+  SHOWCASE_TEMPLATES,
+  STYLE_THEME_PACKS,
+} from "./showcase-templates.js";
 import type { ProjectStore } from "./store.js";
+
+const FIXTURES_DIR = path.resolve(import.meta.dirname, "../../../fixtures");
+
+function buildPlanReplaceCommands(before: Plan, after: Plan): Command[] {
+  const commands: Command[] = [
+    {
+      type: "project",
+      patch: {
+        name: after.name,
+        height: after.height,
+        phase: after.phase,
+        look: clone(after.look) ?? null,
+        north: clone(after.north) ?? null,
+        ...(after.source ? { source: clone(after.source) } : {}),
+      },
+    },
+  ];
+  // Delete dependents BEFORE walls and nodes so node/wall cascade-delete never triggers NOT_FOUND
+  const deleteOrder = [
+    ...collections.filter((k) => k !== "walls" && k !== "nodes"),
+    "walls" as const,
+    "nodes" as const,
+  ];
+  for (const key of deleteOrder) {
+    if (!collections.includes(key)) continue;
+    for (const oldItem of before[key]) {
+      commands.push({ type: "delete", collection: key, id: oldItem.id });
+    }
+  }
+  for (const key of collections) {
+    for (const newItem of after[key]) {
+      commands.push({ type: "add", collection: key, object: clone(newItem) });
+    }
+  }
+  return commands;
+}
+
+function buildStyleUpdateCommands(before: Plan, styled: Plan): Command[] {
+  const commands: Command[] = [];
+  for (const afterRoom of styled.rooms) {
+    if (before.rooms.some((r) => r.id === afterRoom.id)) {
+      const { id, ...patch } = clone(afterRoom) as any;
+      commands.push({ type: "update", collection: "rooms", id, patch });
+    }
+  }
+  for (const afterFurn of styled.furniture) {
+    if (before.furniture.some((f) => f.id === afterFurn.id)) {
+      const { id, ...patch } = clone(afterFurn) as any;
+      commands.push({ type: "update", collection: "furniture", id, patch });
+    }
+  }
+  return commands;
+}
 
 export function safetyRoutes(
   app: FastifyInstance,
@@ -25,6 +91,106 @@ export function safetyRoutes(
         ? `${forwardedProto.split(",")[0].trim()}://${forwardedHost.split(",")[0].trim()}`
         : undefined);
     return buildMcpOpenApiSpec(inferredServer);
+  });
+
+  app.get("/api/style-packs", async () => ({
+    stylePacks: Object.values(STYLE_THEME_PACKS),
+  }));
+
+  app.get("/api/templates", async () => ({
+    templates: SHOWCASE_TEMPLATES.map(({ spec, ...meta }) => meta),
+  }));
+
+  app.get("/api/templates/:templateId/plan", async (req) => {
+    const templateId = String((req.params as any).templateId || "");
+    const { meta, plan } = buildTemplatePlan(templateId, FIXTURES_DIR);
+    return { meta: { ...meta, spec: undefined }, plan };
+  });
+
+  app.post("/api/projects/:id/apply-style-pack", async (req) => {
+    const id = (req.params as any).id;
+    const project = store.get(id);
+    const body = (req.body as any) || {};
+    const styleId = String(body.styleId || "modern");
+    if (!STYLE_THEME_PACKS[styleId]) {
+      throw new SceneError("UNKNOWN_STYLE_PACK", `未知风格主题包: ${styleId}`, 400);
+    }
+    const pack = STYLE_THEME_PACKS[styleId];
+    const styledPlan = applyStylePackToPlan(project.plan, styleId);
+    const commands = buildStyleUpdateCommands(project.plan, styledPlan);
+    const result = store.mutate(id, "commands", {
+      operationId: body.operationId || `style-pack-${styleId}-${crypto.randomUUID()}`,
+      baseRevision: body.baseRevision ?? project.revision,
+      summary: `应用「${pack.label}」全屋硬装材质与三维家具风格`,
+      commands,
+    });
+    if (!result.replayed) notify(id, result.project.revision);
+    return {
+      project: result.project,
+      stylePack: pack,
+      checks: checkScene(result.project.plan),
+    };
+  });
+
+  app.post("/api/projects/:id/apply-template", async (req) => {
+    const id = (req.params as any).id;
+    const project = store.get(id);
+    const body = (req.body as any) || {};
+    const templateId = String(body.templateId || "");
+    const { meta, plan: rawPlan } = buildTemplatePlan(templateId, FIXTURES_DIR);
+    const finalPlan =
+      body.styleId && STYLE_THEME_PACKS[body.styleId]
+        ? applyStylePackToPlan(rawPlan, body.styleId)
+        : rawPlan;
+    const commands = buildPlanReplaceCommands(project.plan, finalPlan);
+    const result = store.mutate(id, "commands", {
+      operationId: body.operationId || `tpl-${templateId}-${crypto.randomUUID()}`,
+      baseRevision: body.baseRevision ?? project.revision,
+      summary: `载入精品样板场景：${meta.name}`,
+      commands,
+    });
+    if (!result.replayed) notify(id, result.project.revision);
+    return {
+      project: result.project,
+      template: { ...meta, spec: undefined },
+      checks: checkScene(result.project.plan),
+      safetyAudit: auditSafety(result.project.plan),
+    };
+  });
+
+  app.post("/api/projects/:id/initialize-housespec", async (req) => {
+    const id = (req.params as any).id;
+    const project = store.get(id);
+    const body = (req.body as any) || {};
+    if (!body.spec || typeof body.spec !== "object") {
+      throw new SceneError("INVALID_HOUSESPEC", "缺少有效的 HouseSpec 结构定义", 400);
+    }
+    const beforePlan = clone(project.plan);
+    const compiledPlan = compileSafeHouseSpec(body.spec, {
+      styleId: body.styleId,
+      furnitureStyle: body.furnitureStyle,
+      safetyProfile: body.safetyProfile,
+      anchorTallCabinets: body.anchorTallCabinets ?? true,
+      autoHealCollisions: body.autoHealCollisions ?? true,
+    });
+    const diff = businessDiff(beforePlan, compiledPlan);
+    const commands = buildPlanReplaceCommands(beforePlan, compiledPlan);
+    const result = store.mutate(id, "commands", {
+      operationId: body.operationId || `housespec-init-${crypto.randomUUID()}`,
+      baseRevision: body.baseRevision ?? project.revision,
+      summary: String(body.summary || compiledPlan.name || "AI 多房间全屋场景生成").slice(0, 200),
+      commands,
+    });
+    if (!result.replayed) notify(id, result.project.revision);
+    const checks = checkScene(result.project.plan);
+    return {
+      project: result.project,
+      diff,
+      checks,
+      safetyAudit: auditSafety(result.project.plan),
+      roomCount: result.project.plan.rooms.length,
+      furnitureCount: result.project.plan.furniture.length,
+    };
   });
 
   app.post("/api/projects/:id/safety-audit", async (req) => {
@@ -53,7 +219,7 @@ export function safetyRoutes(
       safetyAudit: safety,
       combinedIssues,
       blockingCount: combinedIssues.filter(
-        (i) => i.level === "error" && i.blocking !== false,
+        (i: any) => i.level === "error" && i.blocking !== false,
       ).length,
     };
   });

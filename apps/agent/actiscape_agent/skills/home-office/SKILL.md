@@ -1,16 +1,20 @@
 ---
 name: home-office
-description: 布置书房或居家办公位：书桌对窗但离窗墙留出窗帘与暖气的位置，屏幕侧光不背光，椅后留出起身与推椅的净空，视频背景保持干净，并分随手、存档、背景三处收纳。当用户要在一间 5–15㎡ 的房间里放书桌、说"每天开会/要对着窗/别把走廊拍进去"时使用；不适用于多人开放式工位或需要弱电布线的整层办公。
+description: 布置书房或居家办公位：书桌对窗但离窗墙留出窗帘与暖气的位置，屏幕侧光不背光，椅后留出起身与推椅的净空，视频背景保持干净，并分随手、存档、背景三处收纳。当用户要在一间
+  5–15㎡ 的房间里放书桌、说"每天开会/要对着窗/别把走廊拍进去"时使用；不适用于多人开放式工位或需要弱电布线的整层办公。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review / candidate.render；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标
+  + 人工量尺）。
 metadata:
-  version: "0.3.0"
+  version: 0.3.0
   status: verified
   level: structure
   owner: member3
   kind: layout
   activation: active
-  judgement_refs: "J-CIR-01,J-CIR-05,J-CUR-01,J-OVER-01,J-DOOR-02,J-ASSET-02,J-LIGHT-02,J-LIGHT-03,J-STY-03,J-VER-01,J-VER-02"
+  judgement_refs: J-CIR-01,J-CIR-05,J-CUR-01,J-OVER-01,J-DOOR-02,J-ASSET-02,J-LIGHT-02,J-LIGHT-03,J-STY-03,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.render,candidate.review
 ---
 
 # 书房 / 居家办公：采光、久坐与画面

@@ -37,6 +37,9 @@ const ROOM_KIND_BY_TYPE: Record<string, SceneRoomKind> = {
   utility: "utility",
   storage: "utility",
   multipurpose: "multipurpose",
+  dining_hall: "living_dining",
+  tea_room: "multipurpose",
+  media_room: "multipurpose",
   other: "other",
 };
 

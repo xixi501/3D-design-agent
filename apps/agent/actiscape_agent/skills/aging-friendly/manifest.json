@@ -4,13 +4,22 @@
   "name": "适老化布置",
   "version": "0.2.0",
   "kind": "modifier",
-  "status": "conformant",
-  "activation": "reserved",
+  "status": "verified",
+  "activation": "active",
   "summary": "长者卧室与卫浴：净宽取更严格的 800、无高差、扶手与助力、床边与马桶旁转移空间、夜间起夜照明、圆角固定家具与 450 坐高。",
   "appliesTo": {
-    "modes": ["generate_rectangular", "edit"],
-    "roomKinds": ["bedroom", "bathroom"],
-    "areaM2": [9, 30],
+    "modes": [
+      "generate_rectangular",
+      "edit"
+    ],
+    "roomKinds": [
+      "bedroom",
+      "bathroom"
+    ],
+    "areaM2": [
+      9,
+      45
+    ],
     "projectState": "any",
     "requiredInputs": [
       "含墙体与门窗的场景或户型图",
@@ -23,7 +32,11 @@
     "需要护理床/移位机等医疗设备",
     "普通卧室布置且无行动限制（转 master-bedroom）"
   ],
-  "capabilities": ["scene.read", "candidate.review"],
+  "capabilities": [
+    "scene.read",
+    "catalog.search",
+    "candidate.review"
+  ],
   "judgements": [
     "J-BATH-01",
     "J-BATH-02",
@@ -45,6 +58,24 @@
   "validation": {
     "structure": true,
     "dryRun": true,
-    "realCore": false
+    "realCore": true
+  },
+  "stageHints": {
+    "intake": [
+      "什么时候用"
+    ],
+    "asset": [
+      "第 1 步 "
+    ],
+    "layout": [
+      "第 2 步 "
+    ],
+    "check": [
+      "怎么验证"
+    ],
+    "repair": [
+      "第 7 步 ",
+      "怎么验证"
+    ]
   }
 }

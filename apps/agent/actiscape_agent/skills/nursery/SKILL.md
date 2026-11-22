@@ -2,15 +2,16 @@
 name: nursery
 description: 布置 6–12㎡ 的婴儿房或月嫂房：婴儿床两侧各留 600 双通道、床不压窗下与空调直吹、尿布台 750 高且不靠窗可单手操作、哺乳椅配夜灯、玩具收纳放下层，并处理小件与电线的安全固定。当用户要准备待产房、请月嫂、或说"床放哪、夜里喂奶怎么走"时使用；不适用于需要拆改墙体、加装空调/新风管线或改造插座点位的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 安全清单）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"一节的降级路径执行（文字坐标 + 人工量尺 + 安全清单）。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: conformant
   level: structure
   owner: member3
   kind: layout
   activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-04,J-CUR-01,J-DOOR-02,J-LIGHT-03,J-OVER-01,J-SAFE-01,J-STA-01,J-STA-03,J-VER-01,J-VER-02,J-WIN-01"
+  judgement_refs: J-CIR-01,J-CIR-04,J-CUR-01,J-DOOR-02,J-LIGHT-03,J-OVER-01,J-SAFE-01,J-STA-01,J-STA-03,J-VER-01,J-VER-02,J-WIN-01
 ---
 
 # 婴儿房 / 月嫂房

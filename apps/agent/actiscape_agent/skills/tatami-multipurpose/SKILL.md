@@ -2,15 +2,17 @@
 name: tatami-multipurpose
 description: 在 5–12㎡ 的榻榻米/多功能房里，决定地台占多大、做上翻还是侧抽、地台如何让开门扇与窗，并排出升降桌与软隔断的通行。当用户要"做个榻榻米、下面收纳、来客人能睡"，或要把小房间兼作书房/储物/客房时使用；不适用于需要拆改墙体、加建阁楼、或地台要压在管道井/检修口上的任务。
 license: MIT
-compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight / candidate.preflight / candidate.review；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
+compatibility: 需要 catalog.search / scene.read / candidate.propose + candidate.preflight
+  / candidate.preflight / candidate.review；工具未落地时按"依赖什么"里的降级路径执行（文字坐标方案 + 人工量尺）。
 metadata:
-  version: "0.2.0"
-  status: conformant
+  version: 0.2.0
+  status: verified
   level: structure
   owner: member3
   kind: layout
-  activation: reserved
-  judgement_refs: "J-CIR-01,J-CIR-02,J-CIR-09,J-CUR-01,J-DOOR-01,J-DOOR-02,J-STA-01,J-VER-01,J-VER-02"
+  activation: active
+  judgement_refs: J-CIR-01,J-CIR-02,J-CIR-09,J-CUR-01,J-DOOR-01,J-DOOR-02,J-STA-01,J-VER-01,J-VER-02
+  capabilities: scene.read,catalog.search,candidate.propose,candidate.preflight,candidate.review
 ---
 
 # 榻榻米 / 多功能房

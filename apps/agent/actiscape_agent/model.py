@@ -50,4 +50,11 @@ def create_model(**overrides: Any) -> ActiDeepSeek:
     # lookup when only MODEL_API_KEY is present.
     if "api_key" not in overrides and not settings.get("api_key"):
         settings.pop("api_key", None)
-    return ActiDeepSeek(**{**settings, **overrides})
+    merged = {**settings, **overrides}
+    if "deepseek.com" not in str(merged.get("base_url", "")).lower():
+        eb = dict(merged.get("extra_body") or {})
+        eb.pop("thinking", None)
+        merged["extra_body"] = eb
+        if "qwen" in str(merged.get("model", "")).lower():
+            eb["enable_thinking"] = False
+    return ActiDeepSeek(**merged)

@@ -4,13 +4,14 @@ description: 在动手布置前，把户型图或一句文字需求整理成"可
 license: MIT
 compatibility: 需要 scene.read / candidate.preflight；图纸解析与尺寸标注识别归主系统，本技能只负责"信息补齐与确认"，不重跑识图。
 metadata:
-  version: "0.2.0"
+  version: 0.2.0
   status: verified
   level: structure
   owner: member3
   kind: intake
   activation: active
-  judgement_refs: "J-STA-01,J-STA-02,J-STA-03,J-VER-01"
+  judgement_refs: J-STA-01,J-STA-02,J-STA-03,J-VER-01
+  capabilities: scene.read,candidate.preflight
 ---
 
 # 户型图/需求进场：先补齐，再布置

@@ -1,13 +1,32 @@
 import { api, post } from "../api.js";
 import { FloorplanPanel } from "./floorplan.js";
 
+function safeUuid(): string {
+  const c = globalThis.crypto as Crypto | undefined;
+  if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  if (c && typeof c.getRandomValues === "function") {
+    const b = new Uint8Array(16);
+    c.getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
+    const r = (Math.random() * 16) | 0;
+    return (ch === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 type Context = {
   projectId?: string;
   selectedIds: string[];
   selectionLabel?: string;
   blank?: boolean;
 };
+
 const active = new Set(["queued", "running", "waiting_input", "committing"]);
+
 const phases: Record<string, string> = {
   reading: "读取场景",
   understanding: "理解需求",
@@ -21,6 +40,7 @@ const phases: Record<string, string> = {
   repairing: "修复候选",
   committing: "确认提交",
 };
+
 const statusLabels: Record<string, string> = {
   queued: "等待执行",
   running: "处理中",
@@ -31,6 +51,7 @@ const statusLabels: Record<string, string> = {
   conflict: "版本冲突，已暂停",
   cancelled: "已取消",
 };
+
 const fieldLabels: Record<string, string> = {
   x: "X",
   y: "Y",
@@ -41,6 +62,151 @@ const fieldLabels: Record<string, string> = {
   h: "高",
   color: "颜色",
 };
+
+const ROOM_PURPOSE_LABELS: Record<string, string> = {
+  living_dining: "客餐厅",
+  reading_lounge: "阅读会客间",
+  master_bedroom: "主卧室",
+  guest_bedroom: "次卧室",
+  study: "独立书房",
+  kitchen: "厨房",
+  bathroom: "卫生间",
+  entry: "玄关门厅",
+  circulation: "走廊过道",
+  dining_hall: "欧式/宴会餐厅",
+  tea_room: "新中式茶室",
+  media_room: "沉浸影音厅",
+  kids_room: "儿童成长房",
+  multipurpose: "榻榻米多功能房",
+};
+
+const STYLE_OPTIONS = [
+  { id: "european", label: "🏛️ 欧式古典", hint: "欧式古典" },
+  { id: "chinese", label: "🎋 新中式", hint: "新中式" },
+  { id: "modern", label: "✨ 现代极简", hint: "现代极简" },
+  { id: "japanese", label: "🌿 日式原木", hint: "日式原木" },
+  { id: "cream", label: "🧁 法式奶油", hint: "法式奶油" },
+  { id: "aging_care", label: "🛡️ 适老康养", hint: "适老康养" },
+];
+
+const MODIFIER_SKILL_IDS = new Set([
+  "style-coherence",
+  "lighting-color",
+  "storage-ergonomics",
+  "circulation-ergonomics",
+  "openable-clearance",
+  "furniture-clearance-repair",
+  "layout-preserve-edit",
+  "asset-photo-import",
+]);
+
+const CHAT_UX_CSS = `
+.chat-freeplay-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  background: #f4efe6;
+  border: 1px solid #e2d9c8;
+  font-size: 12px;
+  color: #3d372e;
+}
+.chat-freeplay-row[hidden] { display: none !important; }
+.chat-freeplay-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.chat-freeplay-row small {
+  color: #776f63;
+  font-size: 11px;
+}
+.chat-floorplan-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.chat-floorplan-group[hidden] { display: none !important; }
+.chat-fp-primary {
+  background: linear-gradient(135deg, #1e2724 0%, #2f433c 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #1e2724 !important;
+  font-weight: 600;
+}
+.chat-fp-secondary {
+  font-size: 11.5px !important;
+  padding: 4px 8px !important;
+  opacity: 0.85;
+}
+.chat-style-apply {
+  width: 100%;
+  margin-top: 4px;
+  background: #fff8f1 !important;
+  border: 1px solid #d98254 !important;
+  color: #9c4421 !important;
+  font-size: 12px !important;
+  font-weight: 600;
+}
+.chat-style-apply[hidden] { display: none !important; }
+.skill-dispatch-card {
+  margin: 8px 0;
+  padding: 9px 11px;
+  border-radius: 10px;
+  background: #f6f3ec;
+  border: 1px solid #dfd7c7;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+.skill-dispatch-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: #2b3531;
+  margin-bottom: 6px;
+}
+.skill-dispatch-head span {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #8c5332;
+  background: #efe5d6;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+.skill-stage-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.skill-stage-pill {
+  font-size: 10.5px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: #ffffff;
+  border: 1px solid #dcd3c3;
+  color: #4a453d;
+}
+.skill-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.skill-chip {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.skill-chip.base { background: #e2e8f0; color: #334155; }
+.skill-chip.primary { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.skill-chip.modifier { background: #e0f2fe; color: #075985; }
+`;
+
 function node<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   text?: string,
@@ -50,6 +216,45 @@ function node<K extends keyof HTMLElementTagNameMap>(
   if (text !== undefined) element.textContent = text;
   if (className) element.className = className;
   return element;
+}
+
+function buildSkillDispatchCard(skillsUsed: any[], repairs = 0): HTMLElement {
+  const card = node("div", undefined, "skill-dispatch-card");
+  const head = node("div", undefined, "skill-dispatch-head");
+  head.append(
+    node("strong", "🧠 Skill 池五阶段动态注入"),
+    node("span", `${skillsUsed.length} 项激活技能`),
+  );
+  const track = node("div", undefined, "skill-stage-track");
+  const stages = [
+    "① Intake 理解",
+    "② Asset 选型",
+    "③ Layout 排布",
+    "④ Check 门禁",
+    repairs > 0 ? `⑤ Repair 自愈(${repairs})` : "⑤ Commit 落库",
+  ];
+  for (const st of stages) {
+    track.append(node("span", st, "skill-stage-pill"));
+  }
+  const chips = node("div", undefined, "skill-chip-row");
+  for (const s of skillsUsed) {
+    const id = String(s.id || s);
+    const cls =
+      id === "universal-spatial-base"
+        ? "skill-chip base"
+        : MODIFIER_SKILL_IDS.has(id)
+          ? "skill-chip modifier"
+          : "skill-chip primary";
+    const roleTag =
+      id === "universal-spatial-base"
+        ? "底座"
+        : MODIFIER_SKILL_IDS.has(id)
+          ? "修饰"
+          : "主技能";
+    chips.append(node("span", `${roleTag} · ${id}`, cls));
+  }
+  card.append(head, track, chips);
+  return card;
 }
 
 export class ChatPanel {
@@ -63,12 +268,28 @@ export class ChatPanel {
   private connection = node("p", undefined, "chat-connection muted");
   private brief = node("details", undefined, "chat-brief");
   private briefTask?: string;
-  private floorplanUpload = node("button", "上传户型图复现客餐厅");
+  private floorplanGroup = node("div", undefined, "chat-floorplan-group");
+  private floorplanUpload = node(
+    "button",
+    "📐 上传户型图 · AI 全屋高精度直出 3D",
+    "chat-fp-primary",
+  );
+  private floorplanDraftUpload = node(
+    "button",
+    "📝 上传户型图（分步草稿核对模式）",
+    "chat-fp-secondary",
+  );
   private floorplanFile = node("input");
+  private floorplanHybridMode = true;
   private photoUpload = node("button", "上传物品照片转 3D");
   private quick = node("div", undefined, "chat-quick");
   private stylePicker = node("div", undefined, "chat-styles");
+  private styleApplyBtn = node("button", "", "chat-style-apply");
+  private freePlayRow = node("div", undefined, "chat-freeplay-row");
+  private freePlayCheckbox = node("input");
+  private freePlay = true;
   private styleHint = "";
+  private selectedStyleId = "";
   onPhotoImport?: () => void;
   private projectId?: string;
   private conversationId?: string;
@@ -78,6 +299,7 @@ export class ChatPanel {
   private sequence = 0;
   private sending = false;
   private lastRefresh?: string;
+
   constructor(
     private getContext: () => Context,
     private onCommit: (projectId: string, generated?: boolean) => Promise<void>,
@@ -87,57 +309,101 @@ export class ChatPanel {
       label: string;
     }) => void,
   ) {
+    if (!document.querySelector("#chat-rich-ux-style")) {
+      const st = document.createElement("style");
+      st.id = "chat-rich-ux-style";
+      st.textContent = CHAT_UX_CSS;
+      document.head.appendChild(st);
+    }
+
     this.floorplanUpload.type = "button";
+    this.floorplanDraftUpload.type = "button";
     this.floorplanFile.type = "file";
     this.floorplanFile.accept = "image/png,image/jpeg,.png,.jpg,.jpeg";
     this.floorplanFile.hidden = true;
-    this.floorplanUpload.onclick = () => this.floorplanFile.click();
+    this.floorplanUpload.onclick = () => {
+      this.floorplanHybridMode = true;
+      this.floorplanFile.click();
+    };
+    this.floorplanDraftUpload.onclick = () => {
+      this.floorplanHybridMode = false;
+      this.floorplanFile.click();
+    };
+    this.floorplanGroup.append(this.floorplanUpload, this.floorplanDraftUpload);
+
     this.photoUpload.type = "button";
     this.photoUpload.dataset.testid = "chat-photo-import";
     this.photoUpload.onclick = () => this.onPhotoImport?.();
     this.floorplanFile.onchange = () => {
       const file = this.floorplanFile.files?.[0];
-      if (file) void this.uploadFloorplan(file);
+      if (file) void this.uploadFloorplan(file, this.floorplanHybridMode);
       this.floorplanFile.value = "";
     };
+
+    this.freePlayCheckbox.type = "checkbox";
+    this.freePlayCheckbox.checked = true;
+    this.freePlayCheckbox.onchange = () => {
+      this.freePlay = this.freePlayCheckbox.checked;
+      this.renderMode();
+    };
+    const fpLabel = node("label");
+    fpLabel.append(this.freePlayCheckbox, node("span", "🪄 自由发挥补全细节"));
+    this.freePlayRow.append(fpLabel, node("small", "免追问直出单间/套间/全屋"));
+
     this.input.placeholder =
       "例如：把这把椅子向左移动 200 毫米，再在旁边加一盏落地灯";
     this.input.setAttribute("aria-label", "对话需求");
     this.input.maxLength = 4000;
     this.input.rows = 4;
     this.brief.open = true;
-    for (const style of ["暖木极简", "现代东方", "奶油自然"]) {
-      const button = node("button", style, "chat-style");
+
+    this.styleApplyBtn.type = "button";
+    this.styleApplyBtn.hidden = true;
+    this.styleApplyBtn.onclick = () => void this.applySelectedStylePack();
+
+    for (const opt of STYLE_OPTIONS) {
+      const button = node("button", opt.label, "chat-style");
       button.type = "button";
+      button.dataset.styleId = opt.id;
       button.onclick = () => {
-        this.styleHint = this.styleHint === style ? "" : style;
+        if (this.selectedStyleId === opt.id) {
+          this.selectedStyleId = "";
+          this.styleHint = "";
+        } else {
+          this.selectedStyleId = opt.id;
+          this.styleHint = opt.hint;
+        }
         this.stylePicker
-          .querySelectorAll(".chat-style")
+          .querySelectorAll<HTMLButtonElement>(".chat-style")
           .forEach((b) =>
-            b.classList.toggle("active", b.textContent === this.styleHint),
+            b.classList.toggle("active", b.dataset.styleId === this.selectedStyleId),
           );
-        if (this.styleHint)
-          this.input.placeholder = `描述空间，AI 会按「${style}」方向设计`;
+        this.renderMode();
       };
       this.stylePicker.append(button);
     }
+
     const form = node("form"),
       actions = node("div", undefined, "chat-actions");
     actions.append(this.send, this.cancel);
     this.send.type = "submit";
     this.cancel.type = "button";
-    form.append(this.input, actions);
+    form.append(this.freePlayRow, this.input, actions);
+
     this.quick.append(
-      this.suggestion("试试：生成一个 6×4.2 米的客餐厅"),
-      this.suggestion("试试：把茶几往左移 200 毫米"),
-      this.suggestion("试试：打开电视柜检查净空"),
+      this.suggestion("试试：生成一个有几张桌子的餐厅，风格为欧式，剩余你自由发挥"),
+      this.suggestion("试试：生成一套新中式两室两厅一厨一卫全屋方案，自由发挥"),
+      this.suggestion("试试：生成一个适老康养主卧带衣帽间和无障碍独卫套间"),
+      this.suggestion("试试：把餐桌往右移 300 毫米"),
     );
+
     this.root.append(
       this.context,
       this.connection,
       this.quick,
       this.stylePicker,
-      this.floorplanUpload,
+      this.styleApplyBtn,
+      this.floorplanGroup,
       this.floorplanFile,
       this.photoUpload,
       this.brief,
@@ -146,7 +412,7 @@ export class ChatPanel {
       form,
       node(
         "p",
-        "方向按二维平面图，长度为毫米。检查通过后自动保存，可用上方撤销按钮恢复。",
+        "支持宽泛描述自由发挥、多房套间生成、六大风格换装与户型图高精度 3D 重建。可用上方撤销按钮随时恢复。",
         "muted chat-help",
       ),
     );
@@ -162,6 +428,7 @@ export class ChatPanel {
       }
     };
   }
+
   private suggestion(text: string) {
     const button = node("button", text, "chat-suggestion");
     button.type = "button";
@@ -171,13 +438,36 @@ export class ChatPanel {
     };
     return button;
   }
+
+  private async applySelectedStylePack() {
+    if (!this.projectId || !this.selectedStyleId || this.sending) return;
+    this.sending = true;
+    this.notice.textContent = `正在应用「${this.styleHint}」主题材质与3D家具造型…`;
+    this.render();
+    try {
+      await post(`/projects/${this.projectId}/apply-style-pack`, {
+        styleId: this.selectedStyleId,
+      });
+      await this.onCommit(this.projectId, false);
+      this.notice.textContent = `已将当前空间切换为「${this.styleHint}」风格主题。`;
+    } catch (error) {
+      this.notice.textContent = (error as Error).message;
+    } finally {
+      this.sending = false;
+      this.render();
+    }
+  }
+
   focus() {
     this.input.focus();
     this.input.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
+
   openFloorplan() {
+    this.floorplanHybridMode = true;
     this.floorplanFile.click();
   }
+
   mount(host: HTMLElement, projectId: string) {
     if (this.root.parentElement !== host) host.replaceChildren(this.root);
     const context = this.getContext();
@@ -198,36 +488,61 @@ export class ChatPanel {
     }
     this.renderMode();
   }
+
   private mode(): "edit" | "generate_rectangular" | "reconstruct_floorplan" {
     return (
       this.current()?.mode ||
       (this.getContext().blank ? "generate_rectangular" : "edit")
     );
   }
+
   private renderMode() {
-    this.floorplanUpload.hidden = !this.getContext().blank || !!this.current();
-    this.floorplanUpload.disabled =
-      this.sending || !this.getContext().blank || !!this.current();
-    this.floorplanUpload.title = this.getContext().blank
-      ? "上传清晰的单层 PNG/JPEG，先核对草稿再生成"
+    const isBlank = !!this.getContext().blank;
+    const hasActive = !!this.current();
+    this.floorplanGroup.hidden = !isBlank || hasActive;
+    this.floorplanUpload.disabled = this.sending || !isBlank || hasActive;
+    this.floorplanDraftUpload.disabled = this.sending || !isBlank || hasActive;
+    this.floorplanUpload.title = isBlank
+      ? "VLM + OpenCV 联合识别房间、门窗、家具并三级自动标尺，一步生成可编辑 3D 全屋"
       : "请先新建空白项目";
+
     if (this.mode() === "reconstruct_floorplan") {
-      this.context.textContent = "户型图复现 · 先核对整层结构与客餐厅原图布局";
-      this.input.placeholder = "补充图中信息，或打开草稿标定尺寸、校正对象。";
+      this.freePlayRow.hidden = true;
+      this.styleApplyBtn.hidden = true;
+      this.context.textContent = "户型图三维重建 · VLM 语义理解 + OpenCV 墙轴对齐";
+      this.input.placeholder = "可补充风格偏好（如：新中式 / 日式原木）或标定说明。";
       this.brief.hidden = true;
       return;
     }
-    this.stylePicker.hidden = !this.getContext().blank;
-    const generating = this.mode() === "generate_rectangular",
-      context = this.getContext();
+
+    this.stylePicker.hidden = false;
+    const generating = this.mode() === "generate_rectangular";
+    this.freePlayRow.hidden = !generating;
+    this.styleApplyBtn.hidden = isBlank || !this.selectedStyleId;
+    if (!this.styleApplyBtn.hidden) {
+      this.styleApplyBtn.disabled = this.sending;
+      this.styleApplyBtn.textContent = `🎨 一键将当前空间换装为「${this.styleHint}」`;
+    }
+
+    const context = this.getContext();
     this.context.textContent = generating
-      ? "生成房间 · 只在空白项目中创建一个矩形空间"
+      ? this.freePlay
+        ? "生成空间 · 支持一句话自由发挥、连通套间与全屋多房生成"
+        : "精确生成 · 未指定的净宽、净深与门窗信息将逐项向你确认"
       : context.selectionLabel
         ? `当前选择：${context.selectionLabel}`
-        : "可先选中家具，再说“这把椅子”或“它”。";
-    this.input.placeholder = generating
-      ? "例如：设计一个客餐厅，室内净宽6米、净深4米，南墙入口距左侧400毫米，北墙窗居中。"
-      : "例如：把这把椅子向左移动 200 毫米，再在旁边加一盏落地灯";
+        : "可先选中家具，或点选上方风格标签一键换装当前空间。";
+
+    if (this.styleHint && generating) {
+      this.input.placeholder = `描述空间想法，AI 将按「${this.styleHint}」自动搭配材质与成套家具`;
+    } else {
+      this.input.placeholder = generating
+        ? this.freePlay
+          ? "例如：生成一个有几张桌子的欧式餐厅，剩余自由发挥；或生成一套两室两厅全屋方案"
+          : "例如：设计一个客餐厅，室内净宽6米、净深4米，南墙入口距左侧400毫米，北墙窗居中。"
+        : "例如：把这把椅子向左移动 200 毫米，再在旁边加一盏落地灯";
+    }
+
     const task =
       this.current()?.mode === "generate_rectangular"
         ? this.current()
@@ -240,14 +555,16 @@ export class ChatPanel {
     this.brief.replaceChildren(
       node(
         "summary",
-        task?.status === "completed" ? "生成时的需求摘要" : "房间需求摘要",
+        task?.status === "completed" ? "生成时的空间与技能摘要" : "空间需求与技能调度",
       ),
     );
     if (!g?.brief) {
       this.brief.append(
         node(
           "p",
-          "需要：横向净宽、纵向净深、用途、入口和窗的位置。可说明没有窗。",
+          this.freePlay
+            ? "已开启「自由发挥」：只需说出房间类型、风格或大致家具想法，未指定的建筑尺寸、门窗与软装由建筑先验自动补全。"
+            : "精确模式需要：横向净宽、纵向净深、用途、入口和窗的位置。",
           "muted",
         ),
       );
@@ -265,11 +582,11 @@ export class ChatPanel {
         south: "南／下墙",
         west: "西／左墙",
       };
+    const purposeKey = b.roomType || b.purpose || "";
+    const purposeLabel =
+      b.roomName || ROOM_PURPOSE_LABELS[purposeKey] || purposeKey || "待补充";
     this.brief.append(
-      node(
-        "p",
-        `用途：${b.purpose === "living_dining" ? "客餐厅" : b.purpose === "reading_lounge" ? "阅读会客间" : "待补充"}`,
-      ),
+      node("p", `空间类型：${purposeLabel}`),
       node("p", `室内净宽 ${dimension(b.width)} × 净深 ${dimension(b.depth)}`),
     );
     for (const [kind, label] of [
@@ -292,32 +609,28 @@ export class ChatPanel {
       this.brief.append(
         node(
           "p",
-          `家具：${g.furniture.map((f: any) => `${f.query} × ${f.count}`).join("，")}`,
+          `资产配置：${g.furniture.map((f: any) => `${f.query} × ${f.count}`).join("，")}`,
         ),
       );
-    if (g.style) this.brief.append(node("p", `风格：${g.style}`));
+    if (g.style) this.brief.append(node("p", `风格主题：${g.style}`));
     if (g.missing?.length)
       this.brief.append(
         node("p", `待确认：${g.missing.join("；")}`, "chat-missing"),
       );
     const used = g.skillsUsed || task.result?.skillsUsed;
-    if (used?.length)
-      this.brief.append(
-        node(
-          "p",
-          `设计技能：${used.map((s: any) => `${s.id} @ ${s.version}`).join("，")}`,
-          "muted",
-        ),
-      );
+    if (used?.length) {
+      this.brief.append(buildSkillDispatchCard(used, task.result?.repairs || 0));
+    }
     if (g.defaults?.length) {
       const details = node("details");
       details.append(
-        node("summary", "采用的默认值"),
+        node("summary", "AI 自动补全的建筑与软装先验"),
         node("p", g.defaults.join("；")),
       );
       this.brief.append(details);
     }
   }
+
   private async load() {
     const project = this.projectId,
       seq = this.sequence;
@@ -356,12 +669,14 @@ export class ChatPanel {
       }
     }
   }
+
   private current() {
     return this.tasks
       .slice()
       .reverse()
       .find((t) => active.has(t.status));
   }
+
   private render() {
     this.renderMode();
     const currentTask = this.current();
@@ -387,8 +702,8 @@ export class ChatPanel {
         node(
           "p",
           this.mode() === "generate_rectangular"
-            ? "描述你的矩形房间和需求，缺少的尺寸与门窗信息会一起询问。"
-            : "告诉我想调整哪些家具。支持增删、摆放、尺寸和颜色修改。",
+            ? "描述你的房间、套间或全屋想法（支持欧式/新中式/现代/日式/奶油/适老），AI 会自动匹配 Skill 并直出 3D 空间。"
+            : "告诉我想调整哪些家具，支持增删、摆放、尺寸和颜色修改。",
           "muted",
         ),
       );
@@ -404,7 +719,11 @@ export class ChatPanel {
     for (const task of visibleTasks) {
       const entry = node("article", undefined, "chat-task");
       entry.dataset.task = task.id;
-      entry.append(node("div", task.input, "chat-user"));
+      const cleanUserText = String(task.input || "")
+        .replace(/\n*\[自主发挥\]/g, "")
+        .replace(/\n*\[混合高精度重建\]/g, "")
+        .trim();
+      entry.append(node("div", cleanUserText || task.input, "chat-user"));
       const reply = node("div", undefined, "chat-assistant"),
         badge = node(
           "strong",
@@ -422,9 +741,9 @@ export class ChatPanel {
         const label = task.phaseLabel || "";
         const currentIndex = /提交|保存/.test(label)
           ? 3
-          : /检查|渲染|核对|修复/.test(label)
+          : /检查|渲染|核对|修复|标尺/.test(label)
             ? 2
-            : /生成|设计|选择|理解/.test(label)
+            : /生成|设计|选择|理解|识别|对齐/.test(label)
               ? 1
               : 0;
         for (const [index, text] of [
@@ -578,40 +897,61 @@ export class ChatPanel {
           ),
         );
         reply.append(card);
+
+        if (result.skillsUsed?.length) {
+          reply.append(
+            buildSkillDispatchCard(result.skillsUsed, result.repairs || 0),
+          );
+        }
+
         const basis = node("details");
         basis.append(node("summary", "AI 设计依据"));
-        if (result.generation?.mode === "reconstruct_floorplan") {
+        if (result.generation?.mode === "reconstruct_floorplan_hybrid") {
+          const hm = result.generation;
+          reply.append(
+            node(
+              "p",
+              `混合高精度重建已完成：共焊接 ${hm.roomCount || 0} 个连通房间、布置 ${result.changes?.length || 0} 件 3D 家具（${hm.scaleBasis || "自动标尺"}）。`,
+            ),
+          );
+        } else if (result.generation?.mode === "generate_multiroom") {
+          const gm = result.generation;
+          reply.append(
+            node(
+              "p",
+              `已生成 ${gm.roomCount || 0} 空间连通方案（风格：${gm.styleLabel || "现代"}），共配置 ${result.changes?.length || 0} 件成套家具并完成墙体与软装对齐。`,
+            ),
+          );
+        } else if (result.generation?.mode === "reconstruct_floorplan") {
           reply.append(
             node(
               "p",
               `整层结构与 ${result.changes?.length || 0} 件客餐厅家具已作为一个事务保存，保留确认时的原图布局。`,
             ),
           );
-          for (const skill of result.skillsUsed || [])
-            basis.append(
-              node("p", `复现技能 ${skill.id} @ ${skill.version}`, "muted"),
-            );
         }
         if (result.generation?.dimensions) {
           const d = result.generation.dimensions;
           reply.append(
             node(
               "p",
-              `已生成净尺寸 ${d.width} × ${d.depth} mm 的矩形房间，墙体、门窗和家具作为一个事务保存。`,
+              `已生成净尺寸 ${d.width} × ${d.depth} mm 的空间，墙体、门窗、材质和家具作为一个事务保存。`,
             ),
           );
-          for (const skill of result.skillsUsed || [])
-            basis.append(
-              node(
-                "p",
-                `设计技能 ${skill.id} @ ${skill.version} · ${skill.contentHash.slice(0, 12)}`,
-                "muted",
-              ),
-            );
+        }
+        for (const skill of result.skillsUsed || []) {
+          basis.append(
+            node(
+              "p",
+              `激活技能 ${skill.id} @ ${skill.version}${skill.contentHash ? ` · ${String(skill.contentHash).slice(0, 12)}` : ""}`,
+              "muted",
+            ),
+          );
         }
         if (basis.childElementCount > 1) reply.append(basis);
+
         const list = node("ul");
-        for (const change of result.changes || []) {
+        for (const change of (result.changes || []).slice(0, 24)) {
           const label =
             change.action === "added"
               ? "新增"
@@ -620,7 +960,7 @@ export class ChatPanel {
                 : "修改";
           const fields =
             change.action === "updated"
-              ? change.fields
+              ? (change.fields || [])
                   .map(
                     (f: any) =>
                       `${fieldLabels[f.field] || f.field} ${f.before ?? 0} → ${f.after ?? 0}`,
@@ -631,19 +971,25 @@ export class ChatPanel {
             node("li", `${label} ${change.name}${fields ? `：${fields}` : ""}`),
           );
         }
+        if ((result.changes || []).length > 24) {
+          list.append(
+            node("li", `…其余 ${(result.changes || []).length - 24} 项资产已同步落库`, "muted"),
+          );
+        }
         reply.append(list);
+
         const details = node("details"),
           summary = node("summary", "检查结果与证据");
         details.append(summary);
         details.append(
           node(
             "p",
-            `事务版本 ${result.committedRevision} · ${task.modelCalls} 次模型请求 · 修复 ${result.repairs || 0} 轮`,
+            `事务版本 ${result.committedRevision} · ${task.modelCalls ?? 0} 次模型请求 · 修复 ${result.repairs || 0} 轮`,
             "muted",
           ),
         );
         details.append(
-          node("p", result.review?.summary || "确定性检查与截图检查通过。"),
+          node("p", result.review?.summary || "确定性几何门禁检查通过。"),
         );
         for (const item of result.evidence || []) {
           if (
@@ -662,9 +1008,6 @@ export class ChatPanel {
           link.append(img);
           details.append(link);
         }
-        details.append(
-          node("p", "检查视图使用透明墙体并隐藏吊顶，以便观察家具。", "muted"),
-        );
         if (result.checks?.limitations)
           details.append(
             node("p", result.checks.limitations.join("；"), "muted"),
@@ -719,10 +1062,11 @@ export class ChatPanel {
       current?.status === "waiting_input"
         ? "补充说明"
         : this.mode() === "generate_rectangular"
-          ? "生成房间"
+          ? "生成空间"
           : "发送";
     if (nearBottom) this.messages.scrollTop = this.messages.scrollHeight;
   }
+
   private update(task: any) {
     const index = this.tasks.findIndex((t) => t.id === task.id);
     if (index < 0) this.tasks.push(task);
@@ -741,6 +1085,7 @@ export class ChatPanel {
       );
     }
   }
+
   private watchActive() {
     const task = this.current();
     if (!task) {
@@ -767,7 +1112,7 @@ export class ChatPanel {
       if (e.kind === "phase")
         this.update({
           id: task.id,
-          phaseLabel: phases[e.data.phase] || "处理中",
+          phaseLabel: e.data?.label || phases[e.data?.phase] || "处理中",
         });
       if (e.kind === "brief" || e.kind === "brief_frozen")
         this.update({ id: task.id, generation: e.data });
@@ -788,6 +1133,7 @@ export class ChatPanel {
         this.connection.textContent = "任务连接中断，正在重新读取状态…";
     };
   }
+
   async requestRepair(
     brief: string,
     selectedIds: string[] = [],
@@ -808,7 +1154,7 @@ export class ChatPanel {
       const task = await post<any>(
         `/agent/conversations/${this.conversationId}/tasks`,
         {
-          requestId: crypto.randomUUID(),
+          requestId: safeUuid(),
           projectId: context.projectId,
           input: brief,
           selectedIds,
@@ -829,22 +1175,28 @@ export class ChatPanel {
       this.render();
     }
   }
+
   private async submit() {
     const typed = this.input.value.trim();
-    const input =
+    if (!typed || this.sending) return;
+    const context = this.getContext();
+    if (context.projectId !== this.projectId) return;
+    const current = this.current();
+    const isBlankGen = !current && this.mode() === "generate_rectangular";
+    let input =
       this.styleHint && typed
         ? `${typed}\n\n设计方向：${this.styleHint}`
         : typed;
-    if (!input || this.sending) return;
-    const context = this.getContext();
-    if (context.projectId !== this.projectId) return;
+    if (isBlankGen && this.freePlay && !input.includes("[自主发挥]")) {
+      input = `${input}\n[自主发挥]`;
+    }
+
     this.sending = true;
     this.notice.textContent = "";
     this.render();
     try {
       if (!this.conversationId) await this.load();
       if (!this.conversationId) throw new Error("设计助手暂不可用");
-      const current = this.current();
       if (current && current.status !== "waiting_input")
         throw new Error("请等待当前任务完成或先取消任务");
       const route = current
@@ -865,10 +1217,11 @@ export class ChatPanel {
         previous?.signature === signature
           ? previous.body
           : {
-              requestId: crypto.randomUUID(),
+              requestId: safeUuid(),
               projectId: this.projectId,
               input,
               selectedIds: context.selectedIds,
+              ...(isBlankGen ? { preferLocal: true } : {}),
               ...(!current && this.mode() !== "edit"
                 ? { mode: this.mode() }
                 : {}),
@@ -888,6 +1241,7 @@ export class ChatPanel {
       this.render();
     }
   }
+
   private reviewFloorplan(task: any) {
     new FloorplanPanel(
       task.projectId,
@@ -911,7 +1265,8 @@ export class ChatPanel {
       task.status === "completed",
     );
   }
-  private async uploadFloorplan(file: File) {
+
+  private async uploadFloorplan(file: File, hybridMode = true) {
     if (this.sending) return;
     if (!this.getContext().blank) {
       this.notice.textContent = "请先新建空白项目，再上传户型图。";
@@ -922,7 +1277,9 @@ export class ChatPanel {
       return;
     }
     this.sending = true;
-    this.notice.textContent = "上传并校验原图…";
+    this.notice.textContent = hybridMode
+      ? "正在上传户型图并启动 VLM + OpenCV 全屋高精度直出…"
+      : "上传并校验原图…";
     this.render();
     const project = this.projectId;
     try {
@@ -937,11 +1294,14 @@ export class ChatPanel {
       });
       if (project !== this.projectId)
         throw new Error("当前项目已切换，原图已保存，请在目标项目重新选择");
-      const input =
-        this.input.value.trim() ||
-        "请识别这张单层户型图，保留整层结构，并复现客餐厅原图家具布局。先提供草稿供我确认。";
+      const userTyped = this.input.value.trim();
+      const styleSuffix = this.styleHint ? `\n设计方向：${this.styleHint}` : "";
+      const input = hybridMode
+        ? `${userTyped || "请识别这张单层户型图的全屋房间、门窗与家具，自动标定比例尺并直出可编辑 3D 全屋空间。"}${styleSuffix}\n[混合高精度重建]`
+        : userTyped ||
+          "请识别这张单层户型图，保留整层结构，并复现客餐厅原图家具布局。先提供草稿供我确认。";
       const key = `actiscape-floorplan-pending:${this.conversationId}`,
-        signature = JSON.stringify({ imageId: image.id, input });
+        signature = JSON.stringify({ imageId: image.id, input, hybridMode });
       let previous: any;
       try {
         previous = JSON.parse(localStorage.getItem(key) || "null");
@@ -950,11 +1310,12 @@ export class ChatPanel {
         previous?.signature === signature
           ? previous.body
           : {
-              requestId: crypto.randomUUID(),
+              requestId: safeUuid(),
               projectId: this.projectId,
               input,
               mode: "reconstruct_floorplan",
               imageId: image.id,
+              preferLocal: true,
               selectedIds: [],
             };
       localStorage.setItem(key, JSON.stringify({ signature, body }));
@@ -965,7 +1326,9 @@ export class ChatPanel {
       localStorage.removeItem(key);
       if (project !== this.projectId) return;
       this.input.value = "";
-      this.notice.textContent = "原图已保存，正在识别草稿；正式项目暂未改变。";
+      this.notice.textContent = hybridMode
+        ? "原图已上传，AI 正在执行多模态语义识别、墙轴焊接与三级标尺校准…"
+        : "原图已保存，正在识别草稿；正式项目暂未改变。";
       this.update(task);
       this.watchActive();
     } catch (error) {
@@ -976,6 +1339,7 @@ export class ChatPanel {
       this.render();
     }
   }
+
   private async cancelTask() {
     const current = this.current();
     if (!current) return;
@@ -986,11 +1350,12 @@ export class ChatPanel {
       this.notice.textContent = (error as Error).message;
     }
   }
+
   private async retry(id: string) {
     try {
       this.update(
         await post(`/agent/tasks/${id}/resume`, {
-          requestId: crypto.randomUUID(),
+          requestId: safeUuid(),
           input: "",
           selectedIds: this.getContext().selectedIds,
         }),

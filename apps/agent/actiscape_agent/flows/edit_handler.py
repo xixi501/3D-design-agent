@@ -10,6 +10,11 @@ from ..policy import RepairPolicyRouter
 from ..scene_projection import ensure_edit_scene_draft, sync_edit_scene_program
 from ..skill_registry import get_registry
 from ..store import TaskError
+from ..memory_profile import recall_and_update_household_memory
+from ..procurement_client import generate_procurement_quote
+from ..rag_standards import retrieve_standard_citations
+from ..sandbox_solver import solve_safe_placements
+from ..telemetry import trace_stage
 from .base import LayoutTaskHandler
 
 
@@ -163,19 +168,67 @@ class EditTaskHandler(LayoutTaskHandler):
         return {"scope": scope, "authorization": authorization, "route": "design"}
 
     async def design(self, wf, state: dict[str, Any], task: dict[str, Any]) -> dict:
-        if state.get("intent", {}).get("operations") and not state["intent"].get(
-            "additions"
+        with trace_stage(
+            "edit.design_proposal",
+            {"task_id": task.get("id"), "repairs": state.get("repairs", 0)},
         ):
-            return {"proposal": exact_proposal(state["project"], state["intent"])}
-        proposal = await wf.roles.design(
-            task,
-            state["project"],
-            state["intent"],
-            state["scope"],
-            state.get("last_report"),
-            state.get("repairs", 0),
-        )
-        return {"proposal": proposal}
+            if state.get("intent", {}).get("operations") and not state["intent"].get(
+                "additions"
+            ):
+                return {"proposal": exact_proposal(state["project"], state["intent"])}
+            text = str(task.get("input") or "")
+            safety_cues = any(
+                kw in text for kw in ("适老", "轮椅", "无障碍", "防震", "抗震", "地震", "雷达", "看护")
+            )
+            last_issues = (state.get("last_report") or {}).get("issues") or []
+            safety_codes = [
+                str(i.get("code"))
+                for i in last_issues
+                if isinstance(i, dict)
+                and str(i.get("code") or "")
+                in {
+                    "WHEELCHAIR_TURNING_BLOCKED",
+                    "SEISMIC_TOPPLE_BED_HAZARD",
+                    "SEISMIC_TOPPLE_EXIT_BLOCKED",
+                    "SENSOR_BLIND_SPOT",
+                }
+            ]
+            if safety_cues or safety_codes:
+                household = await recall_and_update_household_memory(
+                    text, scope_key=str(task.get("conversationId") or task.get("projectId") or "default")
+                )
+                solved = await solve_safe_placements(
+                    state["project"]["plan"],
+                    target_ids=list((state.get("scope") or {}).get("targetIds") or []),
+                )
+                citations = await retrieve_standard_citations(
+                    safety_codes
+                    or [
+                        "WHEELCHAIR_TURNING_BLOCKED",
+                        "SEISMIC_TOPPLE_BED_HAZARD",
+                        "SENSOR_BLIND_SPOT",
+                    ]
+                )
+                quote = await generate_procurement_quote(
+                    str(task.get("projectId") or ""),
+                    state["project"]["plan"],
+                    issue_codes=safety_codes,
+                )
+                gen = dict(task.get("generation") or {})
+                gen["householdMemory"] = household
+                gen["sandboxSolver"] = solved
+                gen["standardCitations"] = citations
+                gen["procurementQuote"] = quote
+                task["generation"] = gen
+            proposal = await wf.roles.design(
+                task,
+                state["project"],
+                state["intent"],
+                state["scope"],
+                state.get("last_report"),
+                state.get("repairs", 0),
+            )
+            return {"proposal": proposal}
 
     async def create_candidate(
         self, wf, state: dict[str, Any], task: dict[str, Any]

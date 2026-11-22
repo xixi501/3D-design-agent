@@ -25,6 +25,9 @@ import {
 export * from "./types.js";
 export * from "./room-kinds.js";
 export * from "./actions.js";
+import { auditSafety } from "./safety-audit.js";
+export * from "./safety-audit.js";
+export * from "./mujoco-export.js";
 export {
   Wc as wallGeometry,
   F0 as projectToWall,
@@ -108,7 +111,7 @@ export function validatePlan(plan: Plan) {
       !s ||
       typeof s !== "object" ||
       Array.isArray(s) ||
-      !["floorplan", "activity-groups"].includes(s.kind)
+      !["floorplan", "activity-groups", "safety-profile"].includes(s.kind)
     )
       throw new SceneError("INVALID_DOCUMENT", "来源信息类型无效");
     if (s.kind === "floorplan") {
@@ -1144,6 +1147,24 @@ export function checkScene(plan: Plan) {
         }
       }
     }
+  if ((plan.source as any)?.safetyProfile?.enabled === true) {
+    const safetyReport = auditSafety(plan);
+    for (const si of safetyReport.issues) {
+      if (si.level === "error") {
+        issues.push({
+          code: si.code,
+          objectIds: si.objectIds,
+          roomId: si.roomId,
+          message: si.message,
+          level: si.level,
+          metric: si.metric,
+          category: "furniture",
+          fixableByFurniture: si.fixableByFurniture,
+          owner: "furniture",
+        });
+      }
+    }
+  }
   for (const issue of issues) {
     if (issue.category) continue;
     const structural = issue.code.startsWith("STRUCT_");

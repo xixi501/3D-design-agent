@@ -417,6 +417,10 @@ class RepairPolicyRouter:
     """Map deterministic check codes to the smallest role-scoped repair."""
 
     ROUTES: ClassVar[dict[str, tuple[str, str]]] = {
+        "SEISMIC_TOPPLE_EXIT_BLOCKED": ("design", "anchor_or_relocate_tall_furniture"),
+        "SEISMIC_TOPPLE_BED_HAZARD": ("design", "anchor_or_relocate_tall_furniture"),
+        "WHEELCHAIR_TURNING_BLOCKED": ("design", "clear_wheelchair_turning_circle"),
+        "SENSOR_BLIND_SPOT": ("design", "clear_mmwave_radar_los"),
         "OPENABLE_FRONT_BLOCKED": ("design", "clear_openable_envelope"),
         "DOOR_CABINET_CONFLICT": ("design", "move_cabinet_out_of_door_swing"),
         "SURFACE_ITEM_OVERHANG": ("design", "rehost_or_floor_surface_item"),
@@ -491,7 +495,16 @@ class RepairPolicyRouter:
                 ),
                 maxDeltaMm=0
                 if action in ("rehost_or_floor_surface_item", "stop")
-                else 600,
+                else (
+                    2400
+                    if action
+                    in (
+                        "anchor_or_relocate_tall_furniture",
+                        "clear_wheelchair_turning_circle",
+                        "clear_mmwave_radar_los",
+                    )
+                    else 600
+                ),
             )
         return None
 

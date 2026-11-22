@@ -1,0 +1,206 @@
+{
+  "version": 2,
+  "name": "演境 · 独居老人适老与鸿蒙看护隐患房",
+  "height": 2800,
+  "phase": "renovate",
+  "source": {
+    "kind": "safety-profile",
+    "safetyProfile": {
+      "enabled": true,
+      "elderlyWheelchair": true,
+      "wheelchairDiameterMm": 1500,
+      "accessibleCorridorMm": 850,
+      "seismicIntensity": 7,
+      "radarCheck": true,
+      "minRadarCoverageRatio": 0.85,
+      "radarSensors": [
+        {
+          "id": "harmony-mmwave-elderly-01",
+          "name": "华为鸿蒙 AI 辅助康养跌倒毫米波雷达",
+          "x": 320,
+          "y": 320,
+          "z": 2400,
+          "fovDeg": 135,
+          "maxRangeMm": 7200
+        }
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "id": "nd_nw",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "nd_ne",
+      "x": 5200,
+      "y": 0
+    },
+    {
+      "id": "nd_se",
+      "x": 5200,
+      "y": 4200
+    },
+    {
+      "id": "nd_sw",
+      "x": 0,
+      "y": 4200
+    }
+  ],
+  "walls": [
+    {
+      "id": "wl_n",
+      "a": "nd_nw",
+      "b": "nd_ne",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    },
+    {
+      "id": "wl_e",
+      "a": "nd_ne",
+      "b": "nd_se",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    },
+    {
+      "id": "wl_s",
+      "a": "nd_se",
+      "b": "nd_sw",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    },
+    {
+      "id": "wl_w",
+      "a": "nd_sw",
+      "b": "nd_nw",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    }
+  ],
+  "openings": [
+    {
+      "id": "op_win_north",
+      "wall": "wl_n",
+      "type": "window",
+      "pos": 3600,
+      "width": 1600,
+      "sill": 900,
+      "head": 2400,
+      "hinge": 0,
+      "side": 1
+    },
+    {
+      "id": "op_door_south",
+      "wall": "wl_s",
+      "type": "door",
+      "pos": 4300,
+      "width": 950,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0,
+      "side": 1
+    }
+  ],
+  "furniture": [
+    {
+      "id": "elderly_bed_01",
+      "key": "bed18",
+      "type": "bed",
+      "name": "适老护理双人床",
+      "w": 1800,
+      "d": 2000,
+      "h": 920,
+      "color": "#c8b8a2",
+      "x": 3950,
+      "y": 1350,
+      "rot": 90,
+      "placement": "floor",
+      "z": 0
+    },
+    {
+      "id": "radar_blocker_wardrobe",
+      "key": "wardrobe",
+      "type": "wardrobe",
+      "name": "高大隔断衣柜（遮挡雷达且未锚固）",
+      "w": 1700,
+      "d": 600,
+      "h": 2250,
+      "color": "#8c6d53",
+      "x": 1350,
+      "y": 950,
+      "rot": 0,
+      "placement": "floor",
+      "z": 0,
+      "opt": {
+        "wallAnchored": false,
+        "open": false
+      }
+    },
+    {
+      "id": "wheelchair_blocker_table",
+      "key": "coffeeTable",
+      "type": "coffeeTable",
+      "name": "大茶几（侵占轮椅回转圆）",
+      "w": 1300,
+      "d": 800,
+      "h": 450,
+      "color": "#a8845e",
+      "x": 1450,
+      "y": 2650,
+      "rot": 0,
+      "placement": "floor",
+      "z": 0
+    },
+    {
+      "id": "elderly_sofa_01",
+      "key": "sofa",
+      "type": "sofa",
+      "name": "长者扶手沙发",
+      "w": 1900,
+      "d": 880,
+      "h": 840,
+      "color": "#8e9aa8",
+      "x": 3500,
+      "y": 3550,
+      "rot": 180,
+      "placement": "floor",
+      "z": 0
+    },
+    {
+      "id": "elderly_nightstand_01",
+      "key": "nightstand",
+      "type": "nightstand",
+      "name": "床头呼叫柜",
+      "w": 500,
+      "d": 450,
+      "h": 550,
+      "color": "#b59676",
+      "x": 4700,
+      "y": 2600,
+      "rot": 90,
+      "placement": "floor",
+      "z": 0
+    }
+  ],
+  "structs": [],
+  "beams": [],
+  "rooms": [
+    {
+      "id": "rm_elderly_suite",
+      "name": "适老康养起居卧房",
+      "x": 2600,
+      "y": 2100,
+      "floor": "oak",
+      "wall": "latexWarm"
+    }
+  ],
+  "measures": [],
+  "elec": [],
+  "voids": [],
+  "comments": []
+}

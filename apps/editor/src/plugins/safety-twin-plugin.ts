@@ -1,0 +1,587 @@
+import { api, post } from "../api.js";
+import type { Project } from "../../../../packages/scene-core/src/index.js";
+import type { ThreeView } from "../views/three-view.js";
+import { SafetyTwinOverlay } from "./safety-overlay.js";
+import {
+  SeismicWaveDrillController,
+  type SeismicDrillStatus,
+} from "./seismic-drill.js";
+
+export interface SafetyTwinHostBridge {
+  three: ThreeView;
+  getProject: () => Project | undefined;
+  openProject: (project: Project) => Promise<void>;
+  setViewMode: (mode: string) => void;
+  setSelectionIds?: (ids: string[]) => void;
+  notifyMessage: (msg: string) => void;
+}
+
+const PLUGIN_CSS = `
+#safety-twin-btn {
+  background: linear-gradient(135deg, #0f766e 0%, #0369a1 100%);
+  color: #ffffff;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 5px 11px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(3, 105, 161, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+#safety-twin-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(3, 105, 161, 0.34);
+}
+#safety-twin-btn.active {
+  outline: 2px solid #38bdf8;
+}
+.safety-twin-drawer {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 368px;
+  max-height: calc(100% - 28px);
+  overflow-y: auto;
+  z-index: 45;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(14px);
+  color: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 14px;
+  padding: 14px 15px;
+  box-shadow: 0 18px 42px rgba(2, 6, 23, 0.48);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.safety-twin-drawer[hidden] { display: none !important; }
+.st-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+.st-head strong { font-size: 14px; letter-spacing: 0.02em; color: #f1f5f9; }
+.st-badge {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(6, 182, 212, 0.2);
+  color: #67e8f9;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+}
+.st-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.st-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.st-preset-btn {
+  background: rgba(30, 41, 59, 0.85);
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 11.5px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.st-preset-btn:hover {
+  border-color: #38bdf8;
+  background: rgba(30, 58, 138, 0.45);
+}
+.st-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.st-kpi {
+  background: rgba(30, 41, 59, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 9px;
+  padding: 7px 8px;
+  text-align: center;
+}
+.st-kpi small { display: block; color: #94a3b8; font-size: 10.5px; margin-bottom: 2px; }
+.st-kpi b { font-size: 13.5px; }
+.st-kpi.ok { border-color: rgba(16, 185, 129, 0.5); }
+.st-kpi.ok b { color: #34d399; }
+.st-kpi.danger { border-color: rgba(239, 68, 68, 0.6); background: rgba(127, 29, 29, 0.28); }
+.st-kpi.danger b { color: #fca5a5; }
+.st-layers {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding: 6px 8px;
+  background: rgba(15, 23, 42, 0.55);
+  border-radius: 8px;
+  color: #cbd5e1;
+  font-size: 11.5px;
+}
+.st-layers label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.st-actions { display: grid; gap: 7px; margin-bottom: 10px; }
+.st-btn {
+  width: 100%;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.st-btn:active { transform: scale(0.99); }
+.st-btn-scan { background: #0284c7; color: #fff; }
+.st-btn-quake { background: linear-gradient(135deg, #dc2626, #b45309); color: #fff; }
+.st-btn-reset { background: #334155; color: #f8fafc; border-color: #64748b; }
+.st-btn-anchor { background: rgba(37, 99, 235, 0.28); color: #93c5fd; border-color: rgba(96, 165, 250, 0.5); }
+.st-btn-agent { background: linear-gradient(135deg, #059669, #0d9488); color: #fff; }
+.st-btn-mujoco { background: rgba(51, 65, 85, 0.75); color: #e2e8f0; border-color: rgba(148, 163, 184, 0.35); }
+.st-progress {
+  height: 6px;
+  background: rgba(51, 65, 85, 0.8);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0;
+}
+.st-progress > i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  transition: width 0.08s linear;
+}
+.st-issues {
+  max-height: 155px;
+  overflow-y: auto;
+  display: grid;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.st-issue {
+  padding: 6px 8px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  background: rgba(127, 29, 29, 0.35);
+  border-left: 3px solid #ef4444;
+  color: #fecaca;
+}
+.st-issue.ok {
+  background: rgba(6, 78, 59, 0.35);
+  border-left-color: #10b981;
+  color: #a7f3d0;
+}
+.st-issue.warn {
+  background: rgba(120, 53, 15, 0.35);
+  border-left-color: #f59e0b;
+  color: #fde68a;
+}
+.st-citations {
+  font-size: 11px;
+  color: #94a3b8;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  padding-top: 7px;
+}
+.st-citations summary { cursor: pointer; color: #cbd5e1; font-weight: 600; }
+.st-citations ul { margin: 5px 0 0; padding-left: 16px; }
+`;
+
+export function initSafetyTwinPlugin(host: SafetyTwinHostBridge) {
+  if (!document.getElementById("actiscape-safety-plugin-css")) {
+    const style = document.createElement("style");
+    style.id = "actiscape-safety-plugin-css";
+    style.textContent = PLUGIN_CSS;
+    document.head.appendChild(style);
+  }
+
+  const overlay = new SafetyTwinOverlay(host.three.scene);
+  const drill = new SeismicWaveDrillController(host.three);
+  let lastAudit: any = null;
+
+  // 1. Add toolbar button in .stage-actions
+  const stageActions = document.querySelector(".stage-actions");
+  const toggleBtn = document.createElement("button");
+  toggleBtn.id = "safety-twin-btn";
+  toggleBtn.dataset.testid = "safety-twin-btn";
+  toggleBtn.type = "button";
+  toggleBtn.textContent = "🛡️ 安全与鸿蒙推演";
+  toggleBtn.title = "适老无障碍、7度地震刚体推演与鸿蒙毫米波雷达看护热力图";
+  if (stageActions) {
+    stageActions.prepend(toggleBtn);
+  }
+
+  // 2. Add MuJoCo export entry in .export-actions
+  const exportDetails = document.querySelector(".export-actions");
+  if (exportDetails) {
+    const mjBtn = document.createElement("button");
+    mjBtn.id = "export-mujoco-menu";
+    mjBtn.type = "button";
+    mjBtn.textContent = "导出 MuJoCo 具身仿真 (.xml)";
+    mjBtn.onclick = () => triggerMujocoDownload();
+    exportDetails.appendChild(mjBtn);
+  }
+
+  // 3. Mount floating cockpit drawer inside #viewport
+  const viewport = document.getElementById("viewport") || document.body;
+  const drawer = document.createElement("aside");
+  drawer.className = "safety-twin-drawer";
+  drawer.dataset.testid = "safety-twin-drawer";
+  drawer.hidden = true;
+  drawer.innerHTML = `
+    <div class="st-head">
+      <div>
+        <strong>🛡️ 居家安全与鸿蒙康养数字孪生</strong>
+        <div><span class="st-badge">Huawei Cloud AgentArts · 0.01mm 确定性门禁</span></div>
+      </div>
+      <button type="button" class="st-close" aria-label="关闭安全推演面板">✕</button>
+    </div>
+
+    <div class="st-presets">
+      <button type="button" class="st-preset-btn" data-preset="elderly-care-hazard">
+        🧓 <b>适老与看护隐患房</b><br><small>轮椅受阻 + 雷达遮挡盲区</small>
+      </button>
+      <button type="button" class="st-preset-btn" data-preset="seismic-bedroom-hazard">
+        ⚡ <b>7度地震震害推演房</b><br><small>高柜砸床/堵门 vs 墙锚对比</small>
+      </button>
+    </div>
+
+    <div class="st-kpis">
+      <div class="st-kpi" id="st-kpi-wheel"><small>无障碍轮椅圆</small><b>待检测</b></div>
+      <div class="st-kpi" id="st-kpi-seismic"><small>7度抗震倾覆</small><b>待检测</b></div>
+      <div class="st-kpi" id="st-kpi-radar"><small>鸿蒙毫米波覆盖</small><b>待检测</b></div>
+    </div>
+
+    <div class="st-layers">
+      <label><input type="checkbox" data-layer="radar" checked> 鸿蒙雷达热力图</label>
+      <label><input type="checkbox" data-layer="wheelchair" checked> 1.5m轮椅圆</label>
+      <label><input type="checkbox" data-layer="seismic" checked> 倾覆扫掠包络</label>
+    </div>
+
+    <div class="st-actions">
+      <button type="button" class="st-btn st-btn-scan" id="st-run-audit">🔍 运行全屋安全体检与鸿蒙雷达仿真</button>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:6px;">
+        <button type="button" class="st-btn st-btn-quake" id="st-run-quake">⚡ 8秒 7度地震波演练</button>
+        <button type="button" class="st-btn st-btn-reset" id="st-reset-quake">↺ 无损复位</button>
+      </div>
+      <div id="st-quake-hud" hidden>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#fcd34d;">
+          <span id="st-quake-label">地震波加载中…</span>
+          <span id="st-quake-time">0.0 / 8.0s</span>
+        </div>
+        <div class="st-progress"><i id="st-quake-bar"></i></div>
+      </div>
+      <button type="button" class="st-btn st-btn-anchor" id="st-anchor-all">🔩 一键全屋高柜加装 L 型防震墙锚</button>
+      <button type="button" class="st-btn st-btn-agent" id="st-ask-agent">🤖 呼叫 AgentArts 防灾适老自动改造</button>
+      <button type="button" class="st-btn st-btn-mujoco" id="st-dl-mujoco">📦 导出 MuJoCo 具身智能仿真 (.xml)</button>
+    </div>
+
+    <div class="st-issues" id="st-issue-list">
+      <div class="st-issue ok">点击上方样板间或「运行全屋安全体检」查看三维空间审计报告。</div>
+    </div>
+
+    <details class="st-citations" id="st-citations-box">
+      <summary>📚 命中国家标准与鸿蒙康养规范条款</summary>
+      <ul id="st-citations-list"><li>GB 50763-2012《无障碍设计规范》轮椅回转直径 ≥ 1500mm</li><li>GB 50011-2010《建筑抗震设计规范》§13.2 高柜防倾覆锚固</li><li>华为鸿蒙智家 60GHz 毫米波跌倒看护视距标准 ≥ 85%</li></ul>
+    </details>
+  `;
+  viewport.appendChild(drawer);
+
+  const renderAuditResult = (res: any) => {
+    lastAudit = res;
+    const sa = res.safetyAudit;
+    overlay.render(sa);
+
+    // Update KPI cards
+    const kpiWheel = drawer.querySelector("#st-kpi-wheel")!;
+    const minWheel = sa.wheelchairCircles?.[0];
+    if (minWheel) {
+      kpiWheel.className = `st-kpi ${minWheel.passed ? "ok" : "danger"}`;
+      kpiWheel.querySelector("b")!.textContent = `Ø${minWheel.maxDiameterMm}mm`;
+    } else {
+      kpiWheel.className = "st-kpi ok";
+      kpiWheel.querySelector("b")!.textContent = "达标";
+    }
+
+    const kpiSeismic = drawer.querySelector("#st-kpi-seismic")!;
+    const unanchoredCrit = (sa.toppleZones || []).filter(
+      (z: any) => !z.anchored && z.hazardCodes.length > 0,
+    );
+    const anchoredCount = (sa.toppleZones || []).filter((z: any) => z.anchored).length;
+    if (unanchoredCrit.length > 0) {
+      kpiSeismic.className = "st-kpi danger";
+      kpiSeismic.querySelector("b")!.textContent = `${unanchoredCrit.length} 处高危`;
+    } else {
+      kpiSeismic.className = "st-kpi ok";
+      kpiSeismic.querySelector("b")!.textContent =
+        anchoredCount > 0 ? `${anchoredCount}柜已锚固` : "安全";
+    }
+
+    const kpiRadar = drawer.querySelector("#st-kpi-radar")!;
+    const covPct = ((sa.radar?.coverageRatio ?? 1) * 100).toFixed(1);
+    const radarOk = (sa.radar?.coverageRatio ?? 1) >= 0.85;
+    kpiRadar.className = `st-kpi ${radarOk ? "ok" : "danger"}`;
+    kpiRadar.querySelector("b")!.textContent = `${covPct}%`;
+
+    // Render issue list
+    const listEl = drawer.querySelector("#st-issue-list")!;
+    listEl.innerHTML = "";
+    const issues: any[] = res.combinedIssues || sa.issues || [];
+    if (!issues.length) {
+      const okDiv = document.createElement("div");
+      okDiv.className = "st-issue ok";
+      okDiv.textContent =
+        "✅ 零安全与几何冲突！轮椅 1500mm 畅通、高柜防震稳固、鸿蒙毫米波看护覆盖达标。";
+      listEl.appendChild(okDiv);
+    } else {
+      for (const issue of issues) {
+        const item = document.createElement("div");
+        item.className = `st-issue ${issue.level === "warning" ? "warn" : ""}`;
+        item.textContent = `[${issue.code}] ${issue.message}`;
+        listEl.appendChild(item);
+      }
+    }
+
+    // Render standard citations
+    if (sa.standardCitations?.length) {
+      const ul = drawer.querySelector("#st-citations-list")!;
+      ul.innerHTML = "";
+      for (const c of sa.standardCitations) {
+        const li = document.createElement("li");
+        li.textContent = `${c.standard}（${c.clause}）：${c.requirement}`;
+        ul.appendChild(li);
+      }
+      (drawer.querySelector("#st-citations-box") as HTMLDetailsElement).open = true;
+    }
+  };
+
+  const runAudit = async () => {
+    const proj = host.getProject();
+    if (!proj) {
+      host.notifyMessage("请先打开一个空间或点击上方隐患样板间");
+      return;
+    }
+    drill.reset();
+    host.setViewMode("3d");
+    const res = await post(`/projects/${proj.id}/safety-audit`, {
+      enabled: true,
+      elderlyWheelchair: true,
+      seismicIntensity: 7,
+      radarCheck: true,
+    });
+    renderAuditResult(res);
+    host.notifyMessage(
+      `安全体检完成：发现 ${res.blockingCount} 项阻断性安全/几何隐患，鸿蒙雷达覆盖率 ${(res.safetyAudit.radar.coverageRatio * 100).toFixed(1)}%`,
+    );
+  };
+
+  const triggerMujocoDownload = () => {
+    const proj = host.getProject();
+    if (!proj) {
+      host.notifyMessage("请先打开一个项目再导出 MuJoCo 场景");
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = `/api/projects/${proj.id}/export-mujoco`;
+    a.download = `actiscape-${proj.id.slice(0, 8)}-mujoco.xml`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    host.notifyMessage("已导出标准 MuJoCo MJCF (.xml) 具身智能物理仿真场景");
+  };
+
+  toggleBtn.onclick = () => {
+    const nextOpen = drawer.hidden;
+    drawer.hidden = !nextOpen;
+    toggleBtn.classList.toggle("active", nextOpen);
+    if (nextOpen && host.getProject()) {
+      void runAudit().catch((e) => host.notifyMessage(e.message || String(e)));
+    } else if (!nextOpen) {
+      drill.reset();
+      overlay.hide();
+    }
+  };
+
+  drawer.querySelector(".st-close")!.addEventListener("click", () => {
+    drawer.hidden = true;
+    toggleBtn.classList.remove("active");
+    drill.reset();
+    overlay.hide();
+  });
+
+  drawer.querySelectorAll<HTMLInputElement>("[data-layer]").forEach((cb) => {
+    cb.onchange = () => {
+      overlay.setLayerVisibility({
+        [cb.dataset.layer!]: cb.checked,
+      });
+    };
+  });
+
+  drawer.querySelectorAll<HTMLButtonElement>("[data-preset]").forEach((btn) => {
+    btn.onclick = async () => {
+      try {
+        drill.reset();
+        const presetName = btn.dataset.preset!;
+        const planDoc = await api(`/examples/${presetName}`);
+        const created = await post("/projects", { document: planDoc });
+        await host.openProject(created);
+        host.setViewMode("3d");
+        await runAudit();
+      } catch (e: any) {
+        host.notifyMessage(e?.message || "加载隐患样板间失败");
+      }
+    };
+  });
+
+  drawer.querySelector("#st-run-audit")!.addEventListener("click", () => {
+    void runAudit().catch((e) => host.notifyMessage(e.message || String(e)));
+  });
+
+  const renderDrillStatus = (st: SeismicDrillStatus) => {
+    const hud = drawer.querySelector<HTMLElement>("#st-quake-hud")!;
+    hud.hidden = false;
+    drawer.querySelector("#st-quake-label")!.textContent = st.running
+      ? `⚡ ${st.intensity}度罕遇地震波 (PGA ${st.pgaG}g) 推演中…`
+      : `🛑 震后损毁定格（点“无损复位”1ms 恢复）`;
+    drawer.querySelector("#st-quake-time")!.textContent =
+      `${st.elapsedSec.toFixed(1)} / ${st.durationSec.toFixed(1)}s`;
+    drawer.querySelector<HTMLElement>("#st-quake-bar")!.style.width =
+      `${Math.min(100, (st.elapsedSec / st.durationSec) * 100)}%`;
+
+    if (st.events.length > 0) {
+      const listEl = drawer.querySelector("#st-issue-list")!;
+      listEl.innerHTML = "";
+      for (const ev of [...st.events].reverse()) {
+        const div = document.createElement("div");
+        div.className = `st-issue ${
+          ev.kind === "anchored_safe"
+            ? "ok"
+            : ev.kind === "rocking"
+              ? "warn"
+              : ""
+        }`;
+        div.textContent = ev.message;
+        listEl.appendChild(div);
+      }
+    }
+  };
+
+  drawer.querySelector("#st-run-quake")!.addEventListener("click", async () => {
+    const proj = host.getProject();
+    if (!proj) {
+      host.notifyMessage("请先打开空间再启动地震波演练");
+      return;
+    }
+    host.setViewMode("3d");
+    if (!lastAudit || lastAudit.projectId !== proj.id) {
+      await runAudit();
+    }
+    drill.start(proj.plan, {
+      intensity: 7,
+      toppleZones: lastAudit?.safetyAudit?.toppleZones || [],
+      onUpdate: renderDrillStatus,
+    });
+  });
+
+  drawer.querySelector("#st-reset-quake")!.addEventListener("click", () => {
+    drill.reset();
+    drawer.querySelector<HTMLElement>("#st-quake-hud")!.hidden = true;
+    if (lastAudit) renderAuditResult(lastAudit);
+    host.notifyMessage("已无损复位全部家具三维位姿（未改动项目正式数据）");
+  });
+
+  drawer.querySelector("#st-anchor-all")!.addEventListener("click", async () => {
+    const proj = host.getProject();
+    if (!proj) return;
+    try {
+      drill.reset();
+      const res = await post(`/projects/${proj.id}/anchor-furniture`, {
+        anchored: true,
+        baseRevision: proj.revision,
+      });
+      await host.openProject(res.project);
+      host.setViewMode("3d");
+      await runAudit();
+      host.notifyMessage(
+        `已为 ${res.anchoredCount} 件高大柜体加装 L 型防震墙锚！现在可再次点击「8秒 7度地震波演练」验证稳固效果。`,
+      );
+    } catch (e: any) {
+      host.notifyMessage(e?.message || "加装防震墙锚失败");
+    }
+  });
+
+  drawer.querySelector("#st-ask-agent")!.addEventListener("click", async () => {
+    const proj = host.getProject();
+    if (!proj) return;
+    try {
+      drill.reset();
+      // Ensure safety-profile is persisted on the project so Candidate/CheckScene enforces it
+      const profRes = await post(`/projects/${proj.id}/safety-profile`, {
+        enabled: true,
+        elderlyWheelchair: true,
+        seismicIntensity: 7,
+        radarCheck: true,
+        baseRevision: proj.revision,
+      });
+      await host.openProject(profRes.project);
+
+      const issues: any[] = lastAudit?.safetyAudit?.issues || profRes.safetyAudit?.issues || [];
+      const targetIds = [
+        ...new Set(issues.flatMap((i: any) => i.objectIds || [])),
+      ].filter((id) => proj.plan.furniture.some((f) => f.id === id));
+
+      if (targetIds.length && host.setSelectionIds) {
+        host.setSelectionIds(targetIds as string[]);
+      }
+
+      const prompt =
+        targetIds.length > 0
+          ? "请对当前房间进行适老化与防震看护安全改造：移开阻挡 1500mm 轮椅无障碍回转圆的茶几或家具，调整遮挡鸿蒙毫米波跌倒雷达的高柜位置并靠墙避开卧床与逃生门洞，确保通过全部安全检查。"
+          : "请检查并优化当前房间的适老轮椅 1500mm 通行净空、高柜抗震安全位姿与鸿蒙毫米波雷达看护覆盖率。";
+
+      const textarea = document.querySelector<HTMLTextAreaElement>(
+        ".chat-panel textarea",
+      );
+      const sendBtn = document.querySelector<HTMLButtonElement>(
+        ".chat-panel button.primary",
+      );
+      if (textarea && sendBtn) {
+        textarea.value = prompt;
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        sendBtn.click();
+        host.notifyMessage("已向 AgentArts 设计搭档发送防灾适老安全改造任务");
+      }
+    } catch (e: any) {
+      host.notifyMessage(e?.message || "呼叫 AI 安全改造失败");
+    }
+  });
+
+  drawer.querySelector("#st-dl-mujoco")!.addEventListener("click", () => {
+    triggerMujocoDownload();
+  });
+
+  return {
+    overlay,
+    drill,
+    runAudit,
+    onProjectChanged: () => {
+      drill.reset();
+      if (!drawer.hidden && host.getProject()) {
+        void runAudit().catch(() => {});
+      } else {
+        overlay.hide();
+      }
+    },
+  };
+}

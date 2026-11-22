@@ -282,7 +282,7 @@ export function actionCommand(
   collection: "openings" | "furniture",
   id: string,
   desiredState?: boolean,
-  action?: "toggle_open" | "toggle_on",
+  action?: "toggle_open" | "toggle_on" | "anchor_wall",
 ): Command | undefined {
   if (collection === "openings") {
     const opening = plan.openings.find((o) => o.id === id);
@@ -296,6 +296,18 @@ export function actionCommand(
   }
   const f = plan.furniture.find((f) => f.id === id);
   if (!f) return;
+  if (action === "anchor_wall")
+    return {
+      type: "update",
+      collection: "furniture",
+      id,
+      patch: {
+        opt: {
+          ...(f.opt || {}),
+          wallAnchored: desiredState ?? !f.opt?.wallAnchored,
+        },
+      },
+    };
   if (action === "toggle_on" && isTogglableFurniture(f))
     return {
       type: "update",

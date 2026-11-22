@@ -103,6 +103,9 @@ def completion_result(task: dict, state: dict, candidate: dict, revision: int):
         result["policy"] = generation.get("policy")
     result["skillsUsed"] = generation.get("skillsUsed", [])
     result["skillSelection"] = generation.get("skillSelection")
+    for extra_key in ("householdMemory", "sandboxSolver", "standardCitations", "procurementQuote"):
+        if generation.get(extra_key) is not None:
+            result[extra_key] = generation[extra_key]
     result["verification"] = {
         "mode": candidate.get("verification", "screenshots"),
         "rendered": bool(result["evidence"]),

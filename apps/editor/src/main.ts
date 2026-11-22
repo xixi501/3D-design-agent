@@ -27,6 +27,7 @@ import { displayProjectName, displayRoomName, roomArea } from "./ui/labels.js";
 import { Ov } from "./modeling/furniture-3d.js";
 import { Fh } from "./modeling/furniture-2d.js";
 import * as THREE from "three";
+import { initSafetyTwinPlugin } from "./plugins/safety-twin-plugin.js";
 const root = document.querySelector("#app")!;
 root.innerHTML = `<header class="app-bar">
   <div class="brand-block">
@@ -937,11 +938,13 @@ async function refresh() {
     next = await api<Project>(`/projects/${id}`);
   if (seq === loadSequence && id === project?.id) await display(next);
 }
+let safetyTwinPlugin: ReturnType<typeof initSafetyTwinPlugin> | undefined;
 async function open(next: Project) {
   events?.close();
   pendingRevision = -1;
   lastFailure = false;
   await display(next, true);
+  safetyTwinPlugin?.onProjectChanged();
   const url = new URL(location.href);
   url.searchParams.set("project", next.id);
   window.history.replaceState(null, "", url);
@@ -1677,6 +1680,16 @@ if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug"))
     drawFurniture: Fh,
     THREE,
   };
+safetyTwinPlugin = initSafetyTwinPlugin({
+  three,
+  getProject: () => project,
+  openProject: open,
+  setViewMode: (m) => setView(m, false),
+  setSelectionIds: (ids) => {
+    if (ids[0]) setSelection({ id: ids[0], collection: "furniture" });
+  },
+  notifyMessage: message,
+});
 renderCatalog();
 try {
   const params = new URLSearchParams(location.search);

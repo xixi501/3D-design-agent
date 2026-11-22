@@ -55,7 +55,7 @@ export type CandidateEdit =
       type: "action";
       collection: "openings" | "furniture";
       id: string;
-      action: "toggle_open" | "toggle_on";
+      action: "toggle_open" | "toggle_on" | "anchor_wall";
       /** When present, make the request idempotent by setting this state. */
       desiredState?: boolean;
     }

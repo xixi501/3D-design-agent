@@ -1,0 +1,199 @@
+{
+  "version": 2,
+  "name": "演境 · 7度地震非结构震害推演房",
+  "height": 2800,
+  "phase": "renovate",
+  "source": {
+    "kind": "safety-profile",
+    "safetyProfile": {
+      "enabled": true,
+      "elderlyWheelchair": true,
+      "wheelchairDiameterMm": 1500,
+      "accessibleCorridorMm": 850,
+      "seismicIntensity": 7,
+      "radarCheck": true,
+      "minRadarCoverageRatio": 0.85,
+      "radarSensors": [
+        {
+          "id": "harmony-mmwave-seismic-01",
+          "name": "华为鸿蒙 AI 超感看护传感器",
+          "x": 320,
+          "y": 320,
+          "z": 2400,
+          "fovDeg": 135,
+          "maxRangeMm": 7000
+        }
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "id": "sn_nw",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "sn_ne",
+      "x": 4800,
+      "y": 0
+    },
+    {
+      "id": "sn_se",
+      "x": 4800,
+      "y": 4000
+    },
+    {
+      "id": "sn_sw",
+      "x": 0,
+      "y": 4000
+    }
+  ],
+  "walls": [
+    {
+      "id": "sw_n",
+      "a": "sn_nw",
+      "b": "sn_ne",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    },
+    {
+      "id": "sw_e",
+      "a": "sn_ne",
+      "b": "sn_se",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    },
+    {
+      "id": "sw_s",
+      "a": "sn_se",
+      "b": "sn_sw",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    },
+    {
+      "id": "sw_w",
+      "a": "sn_sw",
+      "b": "sn_nw",
+      "t": 200,
+      "bearing": true,
+      "status": "existing"
+    }
+  ],
+  "openings": [
+    {
+      "id": "sop_win_north",
+      "wall": "sw_n",
+      "type": "window",
+      "pos": 2500,
+      "width": 1600,
+      "sill": 950,
+      "head": 2400,
+      "hinge": 0,
+      "side": 1
+    },
+    {
+      "id": "sop_door_escape",
+      "wall": "sw_s",
+      "type": "door",
+      "pos": 3850,
+      "width": 920,
+      "sill": 0,
+      "head": 2100,
+      "hinge": 0,
+      "side": 1
+    }
+  ],
+  "furniture": [
+    {
+      "id": "seismic_master_bed",
+      "key": "bed18",
+      "type": "bed",
+      "name": "主卧双人床",
+      "w": 1800,
+      "d": 2050,
+      "h": 920,
+      "color": "#cabaa6",
+      "x": 3150,
+      "y": 1350,
+      "rot": 0,
+      "placement": "floor",
+      "z": 0
+    },
+    {
+      "id": "unanchored_wardrobe_bed",
+      "key": "wardrobe",
+      "type": "wardrobe",
+      "name": "床侧高大衣柜（未锚固·砸床高危）",
+      "w": 1200,
+      "d": 500,
+      "h": 2200,
+      "color": "#7d5c43",
+      "x": 4420,
+      "y": 1400,
+      "rot": 90,
+      "placement": "floor",
+      "z": 0,
+      "opt": {
+        "wallAnchored": false,
+        "open": false
+      }
+    },
+    {
+      "id": "unanchored_cabinet_exit",
+      "key": "displayCabinet",
+      "type": "displayCabinet",
+      "name": "门旁高大书柜（未锚固·堵门高危）",
+      "w": 1000,
+      "d": 420,
+      "h": 2050,
+      "color": "#8f6f52",
+      "x": 330,
+      "y": 3250,
+      "rot": 270,
+      "placement": "floor",
+      "z": 0,
+      "opt": {
+        "wallAnchored": false,
+        "open": false
+      }
+    },
+    {
+      "id": "anchored_demo_cabinet",
+      "key": "sideboard",
+      "type": "sideboard",
+      "name": "已加装L型墙锚示范柜",
+      "w": 900,
+      "d": 420,
+      "h": 1580,
+      "color": "#5f7d8c",
+      "x": 1050,
+      "y": 360,
+      "rot": 0,
+      "placement": "floor",
+      "z": 0,
+      "opt": {
+        "wallAnchored": true,
+        "open": false
+      }
+    }
+  ],
+  "structs": [],
+  "beams": [],
+  "rooms": [
+    {
+      "id": "rm_seismic_bedroom",
+      "name": "7度抗震推演主卧",
+      "x": 2400,
+      "y": 2000,
+      "floor": "walnut",
+      "wall": "latexWhite"
+    }
+  ],
+  "measures": [],
+  "elec": [],
+  "voids": [],
+  "comments": []
+}

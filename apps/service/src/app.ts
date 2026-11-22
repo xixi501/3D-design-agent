@@ -32,6 +32,7 @@ import { sceneDraftRoutes } from "./scene-draft-routes.js";
 import { RoutedFloorplanStore } from "./scene-floorplan-drafts.js";
 import { agentProxy } from "./agent-proxy.js";
 import { agentArtsProxy } from "./agentarts-proxy.js";
+import { safetyRoutes } from "./safety-routes.js";
 
 const VALID_REF_VIEWS = new Set<ReferenceViewLabel>([
   "back",
@@ -147,6 +148,7 @@ export async function createApp(options: {
   sceneDraftRoutes(app, sceneDrafts);
   agentProxy(app, store);
   agentArtsProxy(app);
+  safetyRoutes(app, store, notify);
   app.get(
     "/api/catalog",
     {
@@ -462,6 +464,8 @@ export async function createApp(options: {
     { id: "full-home-showcase", name: "全屋样板间" },
     { id: "modeling-gallery", name: "家具与建模展台" },
     { id: "glb-display", name: "贴图 GLB 展台" },
+    { id: "elderly-care-hazard", name: "适老与鸿蒙看护隐患房" },
+    { id: "seismic-bedroom-hazard", name: "7度地震震害推演房" },
   ]);
   app.get("/api/examples/:name", async (req) => {
     const name = (req.params as any).name;
@@ -471,6 +475,8 @@ export async function createApp(options: {
         "full-home-showcase",
         "modeling-gallery",
         "glb-display",
+        "elderly-care-hazard",
+        "seismic-bedroom-hazard",
       ].includes(name)
     )
       throw new SceneError("NOT_FOUND", "样例不存在", 404);

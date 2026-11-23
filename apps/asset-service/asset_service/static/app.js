@@ -1,11 +1,15 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const $ = (id) => document.getElementById(id);
 const input = $('image-input');
 const submit = $('submit');
 let selectedFile = null;
+let selectedFiles = [];
+let selectedViews = [];
+let modelRadius = 1;
 let currentModel = null;
 let activeAsset = null;
 const apiKey = $('api-key');
@@ -43,11 +47,43 @@ function choose(file) {
   $('preview-empty').hidden = true;
   $('job-status').textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB`;
 }
-input.addEventListener('change', () => choose(input.files[0]));
+input.multiple = true;
+function chooseMany(files) {
+  const incoming = Array.from(files);
+  if (incoming.length > 6) { showError(new Error('At most 6 photos')); return; }
+  selectedFiles = incoming;
+  choose(selectedFiles[0]);
+  const views = ['front', 'back', 'left', 'right', 'top', 'bottom'];
+  selectedViews = incoming.map((file, index) => {
+    const stem = file.name.replace(/\.[^.]+$/, '').toLowerCase();
+    return index === 0 ? 'front' : views.includes(stem) ? stem : views[index];
+  });
+  $('photo-views').replaceChildren();
+  incoming.forEach((file, index) => {
+    const row = document.createElement('label');
+    row.className = 'field';
+    row.append(document.createTextNode(file.name));
+    const select = document.createElement('select');
+    views.forEach((view) => {
+      if (index > 0 && view === 'front') return;
+      const option = new Option(view, view);
+      option.selected = selectedViews[index] === view;
+      select.add(option);
+    });
+    select.disabled = index === 0;
+    select.addEventListener('change', () => { selectedViews[index] = select.value; });
+    row.append(select);
+    $('photo-views').append(row);
+  });
+  if (selectedFiles.length) {
+    $('job-status').textContent = selectedFiles.map((file) => file.name).join(' / ');
+  }
+}
+input.addEventListener('change', () => chooseMany(input.files));
 const drop = $('drop-zone');
 ['dragenter', 'dragover'].forEach((event) => drop.addEventListener(event, (e) => { e.preventDefault(); drop.classList.add('drag'); }));
 ['dragleave', 'drop'].forEach((event) => drop.addEventListener(event, (e) => { e.preventDefault(); drop.classList.remove('drag'); }));
-drop.addEventListener('drop', (event) => choose(event.dataTransfer.files[0]));
+drop.addEventListener('drop', (event) => chooseMany(event.dataTransfer.files));
 
 function setStep(status) {
   const order = ['queued', 'running', 'succeeded'];
@@ -88,11 +124,17 @@ submit.addEventListener('click', async () => {
   $('job-error').textContent = '';
   setStep('queued');
   const form = new FormData();
-  form.append('file', selectedFile);
+  form.append('image', selectedFile);
+  selectedFiles.slice(1).forEach((file) => form.append('reference_images', file));
   form.append('name', $('asset-name').value);
-  const requestHeaders = { ...headers(), 'Idempotency-Key': (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function' ? globalThis.crypto.randomUUID() : 'idem-' + Date.now() + '-' + Math.random().toString(16).slice(2)) };
+  form.append('category', $('asset-category').value);
+  if ($('target-height').value) form.append('target_height_mm', $('target-height').value);
+  form.append('max_faces', '40000');
+  form.append('force_regenerate', String($('force-regenerate').checked));
+  form.append('reference_views', JSON.stringify(selectedViews.slice(1)));
+  const requestHeaders = { ...headers(), 'Idempotency-Key': globalThis.crypto?.randomUUID?.() || `idem-${Date.now()}-${Math.random()}` };
   try {
-    const data = await response(await fetch('/api/v1/jobs', { method: 'POST', headers: requestHeaders, body: form }));
+    const data = await response(await fetch('/api/v1/assets/generate', { method: 'POST', headers: requestHeaders, body: form }));
     $('job-status').textContent = `任务 ${data.job.id}`;
     await poll(data.job.id);
   } catch (error) { showError(error); }
@@ -102,17 +144,43 @@ const viewer = $('viewer');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(38, 1, 0.01, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.92;
+const pmrem = new THREE.PMREMGenerator(renderer);
+const environmentRoom = new RoomEnvironment(renderer);
+const environmentMap = pmrem.fromScene(environmentRoom, 0.04);
+scene.environment = environmentMap.texture;
+environmentRoom.dispose();
+pmrem.dispose();
+const fillLight = new THREE.DirectionalLight(0xe5f0ff, 0.8);
+fillLight.position.set(-3, 3, -4); scene.add(fillLight);
 viewer.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-scene.add(new THREE.HemisphereLight(0xffffff, 0x72796d, 2.5));
-const keyLight = new THREE.DirectionalLight(0xffffff, 3);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x72796d, 0.65));
+const keyLight = new THREE.DirectionalLight(0xfff7ec, 1.9);
 keyLight.position.set(3, 5, 4);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+Object.assign(keyLight.shadow.camera, { left: -3, right: 3, top: 3, bottom: -3, near: 0.1, far: 20 });
+keyLight.shadow.bias = -0.0002;
+keyLight.shadow.normalBias = 0.01;
 scene.add(keyLight);
 const grid = new THREE.GridHelper(10, 20, 0xc8cdc3, 0xe0e3dc);
+grid.visible = false;
 scene.add(grid);
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(10, 10),
+  new THREE.ShadowMaterial({ color: 0x273028, opacity: 0.16 }),
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.002;
+ground.receiveShadow = true;
+scene.add(ground);
 
 function resize() {
   const width = viewer.clientWidth;
@@ -134,13 +202,24 @@ async function showAsset(asset) {
     URL.revokeObjectURL(blobUrl);
     if (currentModel) scene.remove(currentModel);
     currentModel = gltf.scene;
+    currentModel.traverse((object) => {
+      if (!object.isMesh) return;
+      object.castShadow = true;
+      object.receiveShadow = true;
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      materials.forEach((material) => {
+        if ('envMapIntensity' in material) material.envMapIntensity = 0.7;
+      });
+    });
     scene.add(currentModel);
     const box = new THREE.Box3().setFromObject(currentModel);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     currentModel.position.sub(new THREE.Vector3(center.x, box.min.y, center.z));
     const radius = Math.max(size.x, size.y, size.z);
+    modelRadius = radius;
     grid.scale.setScalar(Math.max(radius / 2, 0.1));
+    ground.scale.setScalar(Math.max(radius, 0.1));
     camera.position.set(radius * 1.3, radius * 0.85, radius * 1.6);
     camera.near = radius / 1000;
     camera.far = radius * 100;
@@ -168,8 +247,22 @@ async function showAsset(asset) {
   const depth = physical ? physical.depth : size.d;
   const height = physical ? physical.height : size.h;
   $('meta-size').textContent = `${width.toFixed(0)} × ${depth.toFixed(0)} × ${height.toFixed(0)} mm`;
-  $('meta-mode').textContent = asset.generation.is_real_generation ? '真实生成' : 'Demo 示例';
+  const viewCount = asset.generation.reference_count || 1;
+  $('meta-mode').textContent = asset.generation.is_real_generation ? `真实生成 · ${viewCount} 视角` : 'Demo 示例';
   $('meta-scale').textContent = asset.scaleSource === 'user_confirmed' ? '用户已确认' : '类别默认，待确认';
 }
 
 health();
+document.querySelectorAll('[data-view-angle]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const angle = Number(button.dataset.viewAngle) * Math.PI / 180;
+    camera.position.set(Math.sin(angle) * modelRadius * 2.4, modelRadius * 0.6, Math.cos(angle) * modelRadius * 2.4);
+    controls.target.set(0, modelRadius * 0.4, 0);
+    controls.update();
+  });
+});
+const assetQuery = new URLSearchParams(location.search).get('asset');
+if (assetQuery) {
+  fetch(`/api/v1/assets/${encodeURIComponent(assetQuery)}`, { headers: headers() })
+    .then(response).then(({ asset }) => showAsset(asset)).catch(showError);
+}

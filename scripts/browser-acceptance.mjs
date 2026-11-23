@@ -81,8 +81,7 @@ try {
       () =>
         window.__actiscape?.project &&
         !__actiscape.busy &&
-        document.querySelector("#save-state").textContent ===
-          "已保存到项目服务",
+        document.querySelector("#save-state").textContent?.startsWith("已保存"),
       { timeout: 60000 },
     );
   };

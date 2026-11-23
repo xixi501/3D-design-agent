@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>演境 · 物品资产工作台</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="/style.css" />
     <script type="importmap">
       {
         "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+          "three": "./vendor/three/build/three.module.js",
+          "three/addons/": "./vendor/three/examples/jsm/"
         }
       }
     </script>
@@ -23,17 +24,21 @@
       <section class="intro">
         <p class="eyebrow">PHOTO → OBJECT → SPACE</p>
         <h1>让一件物品，<br />进入你的三维空间。</h1>
-        <p>上传清晰单件物品照片，获得可复用的 GLB 资产。真实生成与流程演示始终明确区分。</p>
+        <p>上传同一物品的 1–6 张不同角度照片，生成可复用的 GLB 资产。首图作为正面，其余图片可指定背面、左右侧、顶部或底部。</p>
       </section>
       <div class="workspace">
         <section class="panel controls">
           <div class="panel-title"><span>01</span><h2>提交物品</h2></div>
           <label id="drop-zone" class="drop-zone" for="image-input">
             <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" />
-            <div id="preview-empty"><span class="upload-icon">＋</span><strong>选择或拖入一张照片</strong><small>JPEG / PNG / WebP · 最大 10 MB</small></div>
+            <div id="preview-empty"><span class="upload-icon">＋</span><strong>选择或拖入 1–6 张多角度照片</strong><small>首图 = 正面 · 支持 back / left / right / top / bottom 标注</small></div>
             <img id="image-preview" alt="输入图片预览" hidden />
           </label>
+          <div id="photo-views"></div>
           <label class="field">物品名称<input id="asset-name" value="我的物品" maxlength="120" /></label>
+          <label class="field">物品类别<select id="asset-category"><option value="decor">摆件</option><option value="chair">椅子</option><option value="sofa">沙发</option><option value="bed">床</option><option value="table">桌子</option><option value="vase">花瓶</option><option value="lamp">灯具</option><option value="plant">植物</option></select></label>
+          <label class="field">目标高度 mm（可选）<input id="target-height" type="number" min="1" max="10000" placeholder="例如椅子 760" /></label>
+          <label class="force-option"><input id="force-regenerate" type="checkbox" />忽略缓存，重新生成</label>
           <label class="field">API Key（服务器配置时填写）<input id="api-key" type="password" autocomplete="off" placeholder="本地演示通常无需填写" /></label>
           <button id="submit" disabled>开始生成 <span>→</span></button>
           <div id="notice" class="notice">正在读取运行模式…</div>
@@ -49,6 +54,12 @@
           <div class="panel-title"><span>02</span><h2>三维预览</h2><a id="download" hidden>下载 GLB ↓</a></div>
           <div id="viewer">
             <div id="viewer-empty"><div class="cube">◇</div><p>模型将在这里出现</p><small>可拖动旋转 · 滚轮缩放</small></div>
+          </div>
+          <div class="view-angles" role="group" aria-label="观察角度">
+            <button type="button" data-view-angle="0">正面</button>
+            <button type="button" data-view-angle="180">背面</button>
+            <button type="button" data-view-angle="-90">左侧</button>
+            <button type="button" data-view-angle="90">右侧</button>
           </div>
           <div id="metadata" class="metadata">
             <div><small>资产身份</small><strong id="meta-id">—</strong></div>

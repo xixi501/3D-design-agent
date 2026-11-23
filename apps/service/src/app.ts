@@ -33,6 +33,7 @@ import { RoutedFloorplanStore } from "./scene-floorplan-drafts.js";
 import { agentProxy } from "./agent-proxy.js";
 import { agentArtsProxy } from "./agentarts-proxy.js";
 import { safetyRoutes } from "./safety-routes.js";
+import { registerAssetDemo } from "./asset-demo.js";
 
 const VALID_REF_VIEWS = new Set<ReferenceViewLabel>([
   "back",
@@ -499,6 +500,7 @@ export async function createApp(options: {
       .type("model/gltf-binary")
       .send(fs.createReadStream(path.join(fixtures, "textured-vase.glb"))),
   );
+  registerAssetDemo(app);
   if (options.staticDir && fs.existsSync(options.staticDir))
     await app.register(fastifyStatic, { root: options.staticDir });
   app.addHook("preClose", async () => {

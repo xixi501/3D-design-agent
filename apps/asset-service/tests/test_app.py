@@ -92,7 +92,11 @@ class AssetServiceTest(unittest.TestCase):
         self.assertEqual(asset["scaleSource"], "category_default")
         self.assertFalse(asset["spatial"]["scale_calibrated"])
 
-    def test_calibrate_without_regeneration(self) -> None:
+    def test_bed_defaults(self) -> None:
+        asset = self.generate(category="bed")["job"]["result"]
+        self.assertEqual(asset["placementType"], "floor")
+        self.assertEqual(asset["physicalDimensionsMm"]["height"], 700)
+
         first = self.generate(category="vase")["job"]["result"]
         response = self.client.post(
             f"/api/v1/assets/{first['assetId']}/calibrate",

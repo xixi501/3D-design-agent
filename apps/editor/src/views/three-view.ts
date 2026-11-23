@@ -18,10 +18,14 @@ import {
 } from "../../../../packages/scene-core/src/index.js";
 import { Ov, Ba, j0, Cp } from "../modeling/furniture-3d.js";
 import { ensureAssets } from "../modeling/asset-cache.js";
+import { ensureHeroAssets, heroAssetFor } from "../modeling/hero-assets.js";
+import { applySurfaceRecipe } from "../modeling/surface-materials.js";
+import { WebGLPathTracer } from "three-gpu-pathtracer";
 import { Ko, zd, Qu, Lu, Ps, ei, Hd, qC } from "../modeling/surfaces.js";
 import { Gr } from "../../../../packages/scene-core/src/inherited/footprints.js";
 import type { EditBase } from "../api.js";
 import { displayRoomName } from "../ui/labels.js";
+import { RealismPipeline, createWindowLight } from "./realism.js";
 export const floorColors: Record<string, string> = {
   oak: "#c7ab82",
   walnut: "#826145",
@@ -78,6 +82,13 @@ export class ThreeView {
   private textures = new Map<string, THREE.Texture>();
   private transientMaterials: THREE.Material[] = [];
   private transientTextures: THREE.Texture[] = [];
+  private realism?: RealismPipeline;
+  private softwareRendering = false;
+  private walkCeiling = new THREE.Group();
+  photoTracer?: WebGLPathTracer;
+  private photoReady = false;
+  private photoMatrix = new THREE.Matrix4();
+  private photoEnvironmentTarget?: THREE.WebGLRenderTarget;
   private drag?: {
     f: Furniture;
     base: EditBase;
@@ -99,25 +110,54 @@ export class ThreeView {
     public onWalkChange?: (on: boolean) => void,
     public onInteractionChange?: (info?: { label: string }) => void,
     public onInteractionNotice?: (text: string) => void,
+    options: { realism?: boolean } = {},
   ) {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       preserveDrawingBuffer: true,
     });
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    const gl = this.renderer.getContext();
+    const rendererInfo = gl.getExtension("WEBGL_debug_renderer_info");
+    const rendererName = String(
+      rendererInfo
+        ? gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL)
+        : gl.getParameter(gl.RENDERER),
+    );
+    const software = /swiftshader|llvmpipe|softpipe|software/i.test(rendererName);
+    const params = new URLSearchParams(location.search);
+    const forceRealism = params.has("realism") || params.has("pathtrace");
+    const useRealism = options.realism && (!software || forceRealism);
+    this.softwareRendering = software && !useRealism;
+    this.renderer.setPixelRatio(
+      software ? 1 : Math.min(devicePixelRatio, useRealism ? 1.5 : 2),
+    );
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.25;
+    this.renderer.toneMappingExposure = useRealism ? 1.05 : 1.25;
     host.append(this.renderer.domElement);
     this.renderer.domElement.dataset.testid = "three-canvas";
-    this.scene.background = new THREE.Color("#e9e3d8");
-    this.scene.add(new THREE.HemisphereLight("#fff8ef", "#b2bcc7", 2.4));
-    const sun = new THREE.DirectionalLight("#fff4e0", 2.8);
+    this.scene.background = new THREE.Color(
+      useRealism ? "#d9d5ce" : "#e9e3d8",
+    );
+    this.scene.add(
+      new THREE.HemisphereLight(
+        "#fff8ef",
+        "#7d8790",
+        useRealism ? 0.85 : 2.4,
+      ),
+    );
+    const sun = new THREE.DirectionalLight(
+      "#fff4e0",
+      useRealism ? 2.2 : 2.8,
+    );
     sun.position.set(8, 14, 10);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(
+      software ? 1024 : useRealism ? 4096 : 2048,
+      software ? 1024 : useRealism ? 4096 : 2048,
+    );
     Object.assign(sun.shadow.camera, {
       left: -20,
       right: 20,
@@ -126,7 +166,8 @@ export class ThreeView {
       near: 0.1,
       far: 60,
     });
-    sun.shadow.bias = -0.0003;
+    sun.shadow.bias = useRealism ? -0.0001 : -0.0003;
+    sun.shadow.normalBias = useRealism ? 0.02 : 0;
     this.scene.add(sun, this.root);
     this.envelopeLayer.name = "open-envelopes";
     this.scene.add(this.envelopeLayer);
@@ -138,6 +179,22 @@ export class ThreeView {
     this.controls.target.set(4.5, 0, 3);
     this.controls.enableDamping = true;
     this.controls.maxPolarAngle = Math.PI * 0.49;
+    if (useRealism) {
+      this.realism = new RealismPipeline(this.renderer, this.scene, this.camera);
+    }
+    if (params.has("pathtrace")) {
+      const compatibleScene = THREE.Scene.prototype as any;
+      compatibleScene.backgroundRotation ??= new THREE.Euler();
+      compatibleScene.environmentRotation ??= new THREE.Euler();
+      this.photoTracer = new WebGLPathTracer(this.renderer);
+      this.photoTracer.bounces = 5;
+      this.photoTracer.transmissiveBounces = 3;
+      this.photoTracer.renderScale = 0.5;
+      this.photoTracer.minSamples = 1;
+      this.photoTracer.dynamicLowRes = false;
+      const background = this.scene.userData.realismBackground as THREE.Texture | undefined;
+      if (background) this.scene.environment = background;
+    }
     new ResizeObserver(() => this.resize()).observe(host);
     const canvas = this.renderer.domElement;
     canvas.addEventListener(
@@ -348,7 +405,17 @@ export class ThreeView {
           this.checkWalkInteraction();
         }
       } else this.controls.update();
-      if (this.host.clientWidth) this.renderer.render(this.scene, this.camera);
+      if (this.host.clientWidth) {
+        const stylized = ["diorama", "colorplan"].includes(this.plan?.look?.style);
+        if (!stylized && this.photoTracer && this.photoReady) {
+          if (!this.photoMatrix.equals(this.camera.matrixWorld)) {
+            this.photoMatrix.copy(this.camera.matrixWorld);
+            this.photoTracer.updateCamera();
+          }
+          this.photoTracer.renderSample();
+        } else if (!stylized && this.realism) this.realism.render();
+        else this.renderer.render(this.scene, this.camera);
+      }
     });
   }
   resize() {
@@ -358,6 +425,7 @@ export class ThreeView {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    this.realism?.setSize(w, h);
   }
   box(
     w: number,
@@ -375,15 +443,78 @@ export class ThreeView {
     root.add(mesh);
     return mesh;
   }
-  material(options: THREE.MeshStandardMaterialParameters) {
+  private applyFallbackMaterials(root: THREE.Object3D) {
+    const replacements = new Map<string, THREE.Material>();
+    root.traverse((object) => {
+      if (!(object instanceof THREE.Mesh)) return;
+      const replace = (original: THREE.Material) => {
+        if (!(original instanceof THREE.MeshStandardMaterial)) return original;
+        if (replacements.has(original.uuid)) return replacements.get(original.uuid)!;
+        const material = new THREE.MeshLambertMaterial({
+          color: original.color,
+          map: original.map,
+          transparent: original.transparent,
+          opacity: original.opacity,
+          side: original.side,
+          alphaTest: original.alphaTest,
+          emissive: original.emissive,
+          emissiveIntensity: original.emissiveIntensity,
+          depthWrite: original.depthWrite,
+        });
+        replacements.set(original.uuid, material);
+        this.transientMaterials.push(material);
+        return material;
+      };
+      object.material = Array.isArray(object.material)
+        ? object.material.map(replace)
+        : replace(object.material);
+    });
+  }
+
+  material(
+    options: THREE.MeshStandardMaterialParameters,
+    detail?: "floor" | "wall",
+  ) {
+    if (this.realism && detail) {
+      const prefix = detail === "floor" ? "wood_floor" : "painted_plaster_wall";
+      options.normalMap = this.imageTexture(`${prefix}_nor_gl_1k.jpg`);
+      options.roughnessMap = this.imageTexture(`${prefix}_rough_1k.jpg`);
+      options.normalScale = new THREE.Vector2(
+        detail === "floor" ? 0.45 : 0.18,
+        detail === "floor" ? 0.45 : 0.18,
+      );
+      options.roughness = 1;
+    }
     const m = new THREE.MeshStandardMaterial(options);
     this.transientMaterials.push(m);
     return m;
   }
+  imageTexture(file: string, color = false) {
+    const cache = `image:${file}`;
+    if (!this.textures.has(cache)) {
+      const texture = new THREE.TextureLoader().load(`/textures/${file}`);
+      if (color) texture.colorSpace = THREE.SRGBColorSpace;
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.anisotropy = Math.min(
+        8,
+        this.renderer.capabilities.getMaxAnisotropy(),
+      );
+      this.textures.set(cache, texture);
+    }
+    return this.textures.get(cache)!;
+  }
   texture(key: string, wall = false) {
     const cache = (wall ? "wall:" : "floor:") + key;
     if (!this.textures.has(cache)) {
-      const texture = new THREE.CanvasTexture(wall ? Lu(key) : zd(key));
+      const photographic =
+        this.realism && !wall && ["oak", "wood", "walnut"].includes(key);
+      const texture = photographic
+        ? this.imageTexture("wood_floor_diff_1k.jpg", true)
+        : new THREE.CanvasTexture(wall ? Lu(key) : zd(key));
+      if (photographic) {
+        this.textures.set(cache, texture);
+        return texture;
+      }
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       texture.anisotropy = 4;
@@ -404,10 +535,13 @@ export class ThreeView {
   }
   async rebuild(plan: Plan, base: EditBase) {
     const generation = ++this.generation;
-    await ensureAssets([
-      ...new Set(
-        plan.furniture.filter((f) => f.modelId).map((f) => f.modelId!),
-      ),
+    await Promise.all([
+      ensureAssets([
+        ...new Set(
+          plan.furniture.filter((f) => f.modelId).map((f) => f.modelId!),
+        ),
+      ]),
+      ensureHeroAssets(plan.furniture.map((f) => f.key)),
     ]);
     if (generation !== this.generation) return;
     this.plan = plan;
@@ -437,7 +571,7 @@ export class ThreeView {
         map.anisotropy = 4;
         this.transientTextures.push(map);
       }
-      const mat = this.material({ map, roughness: recipe.rough });
+      const mat = this.material({ map, roughness: recipe.rough }, "floor");
       for (const rect of room.rects) {
         const mesh = this.box(
           rect.w / 1000,
@@ -582,7 +716,7 @@ export class ThreeView {
         color: w.color || finish.color,
         roughness: 0.9,
         ...(finish.tex ? { map: this.texture(finish.tex, true) } : {}),
-      });
+      }, "wall");
       const height = (w.h || plan.height) / 1000,
         thickness = w.t / 1000,
         holes = plan.openings
@@ -615,18 +749,37 @@ export class ThreeView {
             color: "#697986",
             roughness: 0.5,
           }),
-          glass = new THREE.MeshStandardMaterial({
-            color: "#b6daea",
-            transparent: true,
-            opacity: 0.26,
-            roughness: 0.1,
-            side: THREE.DoubleSide,
-          });
+          glass = this.realism
+            ? new THREE.MeshPhysicalMaterial({
+                color: "#ffffff",
+                transparent: false,
+                opacity: 1,
+                roughness: 0.03,
+                transmission: 0.92,
+                thickness: 0.008,
+                ior: 1.45,
+                depthWrite: false,
+                side: THREE.DoubleSide,
+              })
+            : new THREE.MeshStandardMaterial({
+                color: "#b6daea",
+                transparent: true,
+                opacity: 0.26,
+                roughness: 0.1,
+                side: THREE.DoubleSide,
+              });
         const bottom = o.sill / 1000,
           top = o.head / 1000,
           span = o.width / 1000,
           opening = new THREE.Group();
         group.add(opening);
+        if (this.realism && /window|Window|glass|bay/i.test(o.type)) {
+          const side = roomOnSide(1) ? 1 : -1;
+          const light = createWindowLight(span, top - bottom);
+          light.position.set(o.pos / 1000, (bottom + top) / 2, side * 0.12);
+          light.rotation.y = side > 0 ? Math.PI : 0;
+          opening.add(light);
+        }
         this.box(
           span,
           0.035,
@@ -751,7 +904,7 @@ export class ThreeView {
           color: w.color || finish.color,
           roughness: 0.9,
           ...(finish.tex ? { map: this.texture(finish.tex, true) } : {}),
-        });
+        }, "wall");
         const surfacePanel = (
           a: number,
           b: number,
@@ -843,6 +996,28 @@ export class ThreeView {
         m.rotation.y = -Math.atan2(c.y - a.y, c.x - a.x);
       }
     }
+    if (this.realism) {
+      this.walkCeiling.clear();
+      const material = this.material({ color: "#eeeae2", roughness: 0.92 });
+      for (const room of rooms.regions) {
+        for (const rect of room.rects) {
+          const mesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(rect.w / 1000, rect.h / 1000),
+            material,
+          );
+          mesh.rotation.x = Math.PI / 2;
+          mesh.position.set(
+            (rect.x + rect.w / 2) / 1000,
+            plan.height / 1000 - 0.02,
+            (rect.y + rect.h / 2) / 1000,
+          );
+          mesh.receiveShadow = true;
+          this.walkCeiling.add(mesh);
+        }
+      }
+      this.walkCeiling.visible = this.walking;
+      this.root.add(this.walkCeiling);
+    }
     const stylized = ["diorama", "colorplan"].includes(plan.look?.style);
     Ba.on = !stylized || plan.look?.round !== false;
     Ba.max = stylized ? 0.03 : 0.012;
@@ -850,7 +1025,7 @@ export class ThreeView {
     for (const f of plan.furniture) {
       j0.set(f.id, f.opt?.on !== false);
       Cp.set(f.id, f.opt?.on === false ? 0 : 1);
-      const group = Ov(f, plan) as THREE.Group;
+      const group = ((!stylized && heroAssetFor(f, (material) => this.transientMaterials.push(material))) || Ov(f, plan)) as THREE.Group;
       const label = rooms.regions.find((r: any) =>
           r.rects.some(
             (p: any) =>
@@ -867,6 +1042,20 @@ export class ThreeView {
       group.traverse((o) => {
         o.userData.fid = f.id;
         o.userData.collection = "furniture";
+        if (
+          this.realism &&
+          !group.userData.heroAsset &&
+          f.type !== "model" &&
+          o instanceof THREE.Mesh
+        ) {
+          for (const m of Array.isArray(o.material)
+            ? o.material
+            : [o.material]) {
+            if (m instanceof THREE.MeshStandardMaterial) {
+              applySurfaceRecipe(f, m, (file) => this.imageTexture(file));
+            }
+          }
+        }
         if (f.type === "model" && o instanceof THREE.Mesh) {
           for (const m of Array.isArray(o.material)
             ? o.material
@@ -883,6 +1072,31 @@ export class ThreeView {
     }
     this.drawActionEnvelopes(plan);
     this.rebuildInteractionMarkers(plan);
+    if (this.softwareRendering) this.applyFallbackMaterials(this.root);
+    this.realism?.setRoomBounds(geo.bounds);
+    this.realism?.tuneMaterials(this.root);
+    if (this.photoTracer) {
+      this.photoReady = false;
+      if (this.scene.userData.realismBackground) {
+        this.scene.environment = this.scene.userData.realismBackground;
+      } else if (!this.photoEnvironmentTarget) {
+        const generator = new THREE.PMREMGenerator(this.renderer);
+        this.photoEnvironmentTarget = generator.fromEquirectangular(
+          this.scene.background as THREE.Texture,
+        );
+        this.scene.environment = this.photoEnvironmentTarget.texture;
+        generator.dispose();
+      }
+      try {
+        this.photoTracer.setScene(this.scene, this.camera);
+        this.photoReady = true;
+        this.photoMatrix.copy(this.camera.matrixWorld);
+      } catch (error) {
+        console.error("Path tracing initialization failed", (error as Error).stack);
+        this.photoTracer = undefined;
+        this.report("路径追踪初始化失败，已回退实时渲染");
+      }
+    }
     this.resize();
   }
 
@@ -977,14 +1191,30 @@ export class ThreeView {
     return sprite;
   }
   private openFrontPanels(group: THREE.Group, f: Furniture) {
-    if (!openableSpec(f)) return;
+    const spec = openableSpec(f);
+    if (!spec) return;
     const w = f.w / 1000,
       h = f.h / 1000,
       d = f.d / 1000;
+    const material = this.material({ color: f.color || "#eee9df", roughness: 0.8 });
+    if (spec.mode === "drawer") {
+      const drawer = new THREE.Group();
+      const travel = Math.min(0.35, d * 0.6);
+      drawer.position.set(0, h * 0.28, d / 2 + travel / 2);
+      const box = new THREE.Mesh(
+        new THREE.BoxGeometry(w * 0.86, h * 0.28, d * 0.58),
+        material,
+      );
+      box.castShadow = true;
+      box.userData.fid = f.id;
+      box.userData.collection = "furniture";
+      drawer.add(box);
+      group.add(drawer);
+      return;
+    }
     const count = w > 1.35 ? 2 : 1;
     const panelW = (w / count) * 0.92,
       panelH = h * 0.86;
-    const material = this.material({ color: f.color || "#eee9df", roughness: 0.8 });
     for (let i = 0; i < count; i++) {
       const left = i === 0;
       const pivot = new THREE.Group();
@@ -1002,7 +1232,11 @@ export class ThreeView {
       panel.userData.fid = f.id;
       panel.userData.collection = "furniture";
       pivot.add(panel);
-      pivot.rotation.y = (left ? 1 : -1) * (Math.PI * 0.44);
+      if (spec.mode === "slide") {
+        pivot.position.x += (left ? -1 : 1) * w * 0.32;
+      } else {
+        pivot.rotation.y = (left ? 1 : -1) * (Math.PI * 0.44);
+      }
       group.add(pivot);
     }
   }
@@ -1271,22 +1505,29 @@ export class ThreeView {
     // Layout clearance envelopes are an editing aid, not part of the room.
     // Showing them in walkthrough makes an open cabinet look like a green mat.
     this.envelopeLayer.visible = !on;
+    this.walkCeiling.visible = on;
     this.clearWalkInteraction();
     if (on) {
       this.orbitSave = {
         position: this.camera.position.clone(),
         target: this.controls.target.clone(),
       };
+      this.camera.fov = 55;
+      this.camera.updateProjectionMatrix();
       const room = this.plan?.rooms[0];
-      this.camera.position.set(
-        (room?.x || 0) / 1000,
-        1.65,
-        (room?.y || 0) / 1000,
-      );
-      this.yaw = Math.PI;
-      this.pitch = 0;
+      const origin = { x: room?.x || 0, y: room?.y || 0 };
+      this.camera.position.set(origin.x / 1000, 1.65, origin.y / 1000);
+      const anchor = this.plan?.furniture.find((f) =>
+        ["sofa", "bed", "diningTable", "desk"].includes(f.type),
+      ) || this.plan?.furniture[0];
+      this.yaw = anchor
+        ? Math.atan2(-(anchor.x - origin.x), -(anchor.y - origin.y))
+        : 0;
+      this.pitch = -0.08;
       this.report("漫游中：WASD 移动，左右方向键转向，拖动视图环顾，Esc 退出");
     } else if (this.orbitSave) {
+      this.camera.fov = 45;
+      this.camera.updateProjectionMatrix();
       this.camera.position.copy(this.orbitSave.position);
       this.controls.target.copy(this.orbitSave.target);
       this.controls.update();

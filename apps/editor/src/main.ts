@@ -69,7 +69,7 @@ root.innerHTML = `<header class="app-bar">
       <div class="stage-actions">
         <button id="frame" title="适应视图">适应</button>
         <button id="source-image" hidden>原图</button>
-        <button id="walk" title="第一人称漫游">漫游</button>
+        <button id="walk" title="第一人称漫游">漫游</button><button id="photoreal" title="在当前机位累积采样，生成高质量效果图">拍大片</button>
         <button id="open-all" data-testid="open-all">一键全开</button>
         <button id="undo" title="Ctrl Z">撤销</button>
         <button id="redo" title="Ctrl Shift Z">重做</button>
@@ -264,6 +264,7 @@ const three = new ThreeView(
     $("#walk-target-text").textContent = info.label;
   },
   showWalkToast,
+  { realism: true },
 );
 let walkMapTimer: ReturnType<typeof setInterval> | undefined;
 function startWalkMap(on: boolean) {
@@ -1863,6 +1864,14 @@ $("#selection-toggle").onclick = () => {
     return;
   const ok = three.toggleInteractive(selection.id, selection.collection);
   if (!ok) message("该对象没有可开启的柜门、抽屉或电器状态");
+};
+$("#photoreal").onclick = () => {
+  if (!project) return;
+  const params = new URLSearchParams(location.search);
+  params.set("project", project.id);
+  params.set("pathtrace", "");
+  params.delete("realism");
+  location.search = params.toString();
 };
 $("#walk").onclick = () => {
   const entering = !three.walking;

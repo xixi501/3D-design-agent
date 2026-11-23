@@ -20,9 +20,10 @@ CATEGORY_HEIGHTS_MM = {
     "side_table": 520,
     "table": 520,
     "sofa": 840,
+    "bed": 700,
     "decor": 250,
 }
-FLOOR_CATEGORIES = {"plant", "chair", "side_table", "table", "sofa"}
+FLOOR_CATEGORIES = {"plant", "chair", "side_table", "table", "sofa", "bed"}
 
 
 def placement_for_category(category: str) -> str:

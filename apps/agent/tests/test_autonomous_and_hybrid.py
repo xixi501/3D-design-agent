@@ -137,3 +137,60 @@ def test_repair_layout_skips_ambiguous_name_and_allows_rotation():
     assert "rot" in scope["fieldMask"]["sofa1"]
     assert "rot" in scope["fieldMask"]["ct1"]
     assert "targetBounds" not in scope
+
+
+def test_repair_layout_resume_preserves_selected_ids_and_strips_operations(tmp_path):
+    from actiscape_agent.edit_execution import compile_scope
+    from actiscape_agent.store import TaskStore
+
+    # 1. compile_scope strips fabricated operations on repair_layout
+    project = {
+        "plan": {
+            "furniture": [
+                {"id": "sofa1", "name": "三人沙发", "key": "sofa", "x": 4600, "y": 2100, "w": 2200, "d": 950, "rot": 180},
+                {"id": "dt1", "name": "餐桌", "key": "diningTable", "x": 4600, "y": 2100, "w": 1600, "d": 900, "rot": 0},
+                {"id": "ct1", "name": "茶几", "key": "coffeeTable", "x": 1750, "y": 2050, "w": 1200, "d": 600, "rot": 0},
+            ],
+            "source": {},
+        }
+    }
+    intent = {
+        "target_ids": ["sofa1", "dt1"],
+        "reference_ids": ["ct1"],
+        "delete_ids": [],
+        "field_permissions": {"sofa1": ["x", "y"]},
+        "additions": [],
+        "operations": [{"target_id": "dt1", "action": "update", "values": {"y": 3000}, "quote": "fabricated"}],
+        "area": "local",
+    }
+    scope = compile_scope(
+        project,
+        intent,
+        {"choices": []},
+        {},
+        task_mode="repair_layout",
+        task={"selectedIds": ["sofa1", "dt1"]},
+    )
+    assert set(scope["targetIds"]) == {"sofa1", "dt1"}
+    assert "rot" in scope["fieldMask"]["sofa1"]
+
+    # 2. TaskStore.resume preserves original repair_layout selectedIds on empty-input retry
+    store = TaskStore(tmp_path)
+    conv = store.create_conversation("p1")
+    task = store.create_task(
+        conv["id"],
+        {
+            "requestId": "req-1",
+            "input": "修复沙发与餐桌重叠",
+            "selectedIds": ["sofa1", "dt1"],
+            "mode": "repair_layout",
+        },
+    )
+    store.update(task["id"], status="failed", error="temporary error")
+    # Simulate retry while user has unrelated coffeeTable (ct1) selected on canvas!
+    resumed = store.resume(
+        task["id"],
+        {"requestId": "req-retry-1", "input": "", "selectedIds": ["ct1"]},
+    )
+    assert resumed["selectedIds"] == ["sofa1", "dt1"]
+    store.close()

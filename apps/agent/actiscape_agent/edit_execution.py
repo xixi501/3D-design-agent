@@ -35,11 +35,16 @@ def compile_scope(
             "target_ids": targets,
             "reference_ids": [i for i in intent["reference_ids"] if i in furniture],
             "field_permissions": {
-                key: value
-                for key, value in (intent.get("field_permissions") or {}).items()
-                if key in targets
+                tid: list(
+                    dict.fromkeys(
+                        list((intent.get("field_permissions") or {}).get(tid) or [])
+                        + ["x", "y", "rot"]
+                    )
+                )
+                for tid in targets
             },
             "delete_ids": [i for i in intent["delete_ids"] if i in targets],
+            "operations": [],
         }
         if authorized and not intent["target_ids"]:
             raise TaskError(
@@ -191,7 +196,7 @@ async def authorize_edit(store, client, task, project, scope, intent, *, kind="e
         "referenceIds": [
             id for id in intent.get("reference_ids", []) if id not in scope["targetIds"]
         ],
-        "operations": intent.get("operations", []),
+        "operations": [] if task.get("mode") == "repair_layout" else intent.get("operations", []),
         "scope": scope,
     }
     if kind == "initialize":

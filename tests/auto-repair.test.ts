@@ -135,3 +135,51 @@ test("HTTP POST /api/projects/:id/auto-repair resolves cabinet-on-bed overlap at
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+
+test("autoRepairScene restores misplaced sofa from dining table back to living zone without disturbing dining cluster", () => {
+  const plan = blankPlan();
+  plan.name = "客餐厅语义修复测试";
+  plan.nodes = [
+    { id: "n0", x: -100, y: -100 },
+    { id: "n1", x: 6100, y: -100 },
+    { id: "n2", x: 6100, y: 4300 },
+    { id: "n3", x: -100, y: 4300 },
+  ];
+  plan.walls = [
+    { id: "w0", a: "n0", b: "n1", t: 200, status: "existing" },
+    { id: "w1", a: "n1", b: "n2", t: 200, status: "existing" },
+    { id: "w2", a: "n2", b: "n3", t: 200, status: "existing" },
+    { id: "w3", a: "n3", b: "n0", t: 200, status: "existing" },
+  ];
+  plan.openings = [
+    { id: "op-win", type: "window", wall: "w0", pos: 3100, width: 1600, sill: 900, height: 1500 },
+    { id: "op-door", type: "door", wall: "w2", pos: 3100, width: 900, height: 2100, swing: "in", hinge: "left" },
+  ];
+  plan.rooms = [
+    { id: "r0", x: 3000, y: 2100, name: "客餐厅", mat: "oak", ceil: { type: "none", drop: 0, edgeW: 300, cove: false } },
+  ];
+  const tv = createFurniture("tvCabinet", 1300, 200, { rot: 0 });
+  const ct = createFurniture("coffeeTable", 1750, 2050, { rot: 0 });
+  const lamp = createFurniture("floorLamp", 200, 1450, { rot: 0 });
+  const dt = createFurniture("diningTable", 4600, 2100, { rot: 0 });
+  const c1 = createFurniture("chair", 4200, 1330, { rot: 0 });
+  const c2 = createFurniture("chair", 5000, 1330, { rot: 0 });
+  const c3 = createFurniture("chair", 4200, 2870, { rot: 180 });
+  const c4 = createFurniture("chair", 5000, 2870, { rot: 180 });
+  // Misplace sofa directly onto dining table!
+  const sofa = createFurniture("sofa", 4600, 2100, { rot: 180 });
+  plan.furniture = [tv, ct, lamp, dt, c1, c2, c3, c4, sofa];
+
+  const res = autoRepairScene(plan);
+  assert.equal(res.fixableAfter, 0, JSON.stringify(res.remainingIssues));
+  const dtAfter = res.plan.furniture.find((f) => f.id === dt.id)!;
+  const sofaAfter = res.plan.furniture.find((f) => f.id === sofa.id)!;
+  // Dining table stays anchored inside its 4 chairs!
+  assert.equal(dtAfter.x, 4600, "diningTable must stay inside its 4-chair cluster");
+  assert.equal(dtAfter.y, 2100, "diningTable must stay inside its 4-chair cluster");
+  // Sofa returns to the living zone opposite TV cabinet & coffee table!
+  assert.ok(sofaAfter.x < 2600, `sofa should return to living zone (left half), got x=${sofaAfter.x}`);
+  assert.ok(sofaAfter.y > ct.y + 500, `sofa should sit behind coffeeTable relative to TV, got y=${sofaAfter.y}`);
+  assert.equal(sofaAfter.rot, 180, `sofa should face north toward coffeeTable & TV, got rot=${sofaAfter.rot}`);
+});

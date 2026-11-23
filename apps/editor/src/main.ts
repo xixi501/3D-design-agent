@@ -920,29 +920,44 @@ function buildStructuredRepairBrief(
   repairIds: string[],
 ) {
   const MAX_REPAIR_ISSUES = 8;
+  const repairSet = new Set(repairIds);
+  const dirLabel = (rot: number) => {
+    const r = (((Math.round((rot || 0) / 90) * 90) % 360) + 360) % 360;
+    return r === 0 ? "朝南+Y" : r === 180 ? "朝北-Y" : r === 90 ? "朝西-X" : "朝东+X";
+  };
   const targetLines = repairIds.map((id) => {
     const f = plan.furniture.find((item) => item.id === id);
     return f
-      ? `- [ID:${f.id}] ${f.name}（位置 ${Math.round(f.x)},${Math.round(f.y)}，尺寸 ${f.w}×${f.d}×${f.h} mm，角度 ${f.rot}°）`
+      ? `- [ID:${f.id}] ${f.name}（位置 ${Math.round(f.x)},${Math.round(f.y)}，尺寸 ${f.w}×${f.d}×${f.h} mm，角度 ${f.rot}°/${dirLabel(f.rot)}）`
       : `- [ID:${id}]`;
   });
+  const contextLines = plan.furniture
+    .filter((f) => !repairSet.has(f.id))
+    .slice(0, 14)
+    .map(
+      (f) =>
+        `- ${f.name}（${f.type}，位置 ${Math.round(f.x)},${Math.round(f.y)}，尺寸 ${f.w}×${f.d} mm，${dirLabel(f.rot)}）`,
+    );
   const issueLines = issues.slice(0, MAX_REPAIR_ISSUES).map((iss: any) => {
     const ids = (iss.objectIds || [])
       .filter((id: string) => plan.furniture.some((f) => f.id === id))
       .join(", ");
     return `- [${iss.code || "ISSUE"}] ${iss.message}${ids ? `（涉及家具 ID: ${ids}）` : ""}`;
   });
-  return `请作为精准布局修复 Agent，严格按以下已定位的家具 ID 与冲突项做最小必要位姿调整：
-目标家具清单：
+  return `请作为室内空间深度重排与冲突修复专家，严格按室内设计功能分区常识消除以下冲突（不仅要不重叠，更要摆回符合生活动线与功能关系的合理位置）：
+已授权可移动目标家具清单：
 ${targetLines.join("\n")}
+
+房间内其他参考家具（请勿移动，用于判断客厅/餐厅/卧室等功能区与朝向）：
+${contextLines.length ? contextLines.join("\n") : "（无其他参考家具）"}
 
 待消除冲突：
 ${issueLines.join("\n")}
 
-硬约束：
-1. 只能移动、旋转或加装墙锚于上述目标家具 ID，不得修改未授权对象，不得移动墙体、门窗或新增房间；
-2. 若目标为台面物品，放回其宿主台面中心安全范围；
-3. 本次待消除冲突必须全部归零，不得提交仅微调几毫米的无效方案。`;
+硬约束与室内设计原则：
+1. 只能移动、旋转或加装墙锚于上述已授权目标家具 ID，不得修改参考家具、墙体或门窗；
+2. 必须判断哪件家具“跑偏/误入其他功能区”，优先把跑偏家具放回正确功能区：例如沙发应回到茶几与电视柜对面并面向茶几/电视柜（茶几距沙发前缘 450–650 mm）；餐桌应保留在餐椅群中央不可拆散；衣柜/书柜/高柜/床应背贴实墙、正面朝向室内并避开门窗；
+3. 本次待消除冲突必须全部归零，且不能产生新的碰撞、阻挡门洞或阻挡柜门开启问题。`;
 }
 async function repairScene(roomId?: string) {
   if (!project || busy || repairing) return;

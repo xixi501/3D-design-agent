@@ -1151,6 +1151,10 @@ export class ChatPanel {
     try {
       if (!this.conversationId) await this.load();
       if (!this.conversationId) throw new Error("设计助手暂不可用");
+      const existing = this.current();
+      if (existing && existing.status === "waiting_input") {
+        await post(`/agent/tasks/${existing.id}/cancel`, {}).catch(() => {});
+      }
       const task = await post<any>(
         `/agent/conversations/${this.conversationId}/tasks`,
         {
@@ -1354,11 +1358,16 @@ export class ChatPanel {
 
   private async retry(id: string) {
     try {
+      const prev = this.tasks.find((t) => t.id === id);
+      const retrySelected =
+        prev?.mode === "repair_layout" && Array.isArray(prev.selectedIds) && prev.selectedIds.length
+          ? prev.selectedIds
+          : this.getContext().selectedIds;
       this.update(
         await post(`/agent/tasks/${id}/resume`, {
           requestId: safeUuid(),
           input: "",
-          selectedIds: this.getContext().selectedIds,
+          selectedIds: retrySelected,
         }),
       );
       this.watchActive();

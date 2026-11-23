@@ -133,9 +133,10 @@ export function safetyRoutes(
       preferredMoveIds,
       includeSafety,
     });
+    const dryRun = Boolean(body.dryRun);
     let finalProject = project;
     let applied = false;
-    if (repaired.commands.length > 0) {
+    if (!dryRun && repaired.commands.length > 0) {
       const result = store.mutate(id, "commands", {
         operationId:
           body.operationId || `auto-repair-${crypto.randomUUID()}`,
@@ -150,6 +151,8 @@ export function safetyRoutes(
     return {
       project: finalProject,
       applied,
+      dryRun,
+      commands: repaired.commands,
       changes: repaired.changes,
       issuesBefore: repaired.issuesBefore,
       issuesAfter: repaired.issuesAfter,

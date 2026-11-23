@@ -42,6 +42,39 @@ class EditTaskHandler(LayoutTaskHandler):
             return {"route": "end", "final": no_change(state["project"], intent["summary"])}
         if state.get("version_retries", 0) and state.get("intent"):
             intent = state["intent"]
+        if intent is None and task.get("mode") == "repair_layout":
+            furniture_list = (state["project"].get("plan") or {}).get("furniture") or []
+            furniture_ids = {f["id"] for f in furniture_list}
+            valid_selected = [
+                tid for tid in (task.get("selectedIds") or []) if tid in furniture_ids
+            ]
+            if valid_selected:
+                safety_active = bool(
+                    ((state["project"].get("plan") or {}).get("source") or {})
+                    .get("safetyProfile", {})
+                    .get("enabled")
+                )
+                allowed_fields = ["x", "y", "rot"] + (["opt"] if safety_active else [])
+                reference_ids = [
+                    f["id"] for f in furniture_list if f["id"] not in valid_selected
+                ][:20]
+                intent = {
+                    "status": "ready",
+                    "summary": f"布局深度重排修复（授权目标 {len(valid_selected)} 件，结合房间功能分区与朝向重排）",
+                    "question": "",
+                    "target_ids": valid_selected,
+                    "reference_ids": reference_ids,
+                    "delete_ids": [],
+                    "field_permissions": {tid: list(allowed_fields) for tid in valid_selected},
+                    "additions": [],
+                    "operations": [],
+                    "area": "room",
+                    "skillSelection": {
+                        "primarySkillId": None,
+                        "modifierSkillIds": [],
+                        "reason": "结构化布局修复：跳过冗余识别，直达空间设计重排阶段",
+                    },
+                }
         if intent is None:
             intent = await wf.roles.ground(
                 task, state["project"], conversation, history, skill_candidates
@@ -176,6 +209,65 @@ class EditTaskHandler(LayoutTaskHandler):
                 "additions"
             ):
                 return {"proposal": exact_proposal(state["project"], state["intent"])}
+            if task.get("mode") == "repair_layout" and state.get("repairs", 0) == 0:
+                scope = state.get("scope") or {}
+                allowed_targets = set(scope.get("targetIds") or [])
+                field_mask = scope.get("fieldMask") or {}
+                if allowed_targets:
+                    try:
+                        safety_active = bool(
+                            ((state["project"].get("plan") or {}).get("source") or {})
+                            .get("safetyProfile", {})
+                            .get("enabled")
+                        )
+                        allowed_rooms = scope.get("allowedRoomIds") or []
+                        req_body: dict[str, Any] = {
+                            "dryRun": True,
+                            "targetIds": list(allowed_targets),
+                            "includeSafety": safety_active,
+                        }
+                        if len(allowed_rooms) == 1:
+                            req_body["roomId"] = allowed_rooms[0]
+                        solved = await wf.client.request(
+                            f"/projects/{task['projectId']}/auto-repair",
+                            req_body,
+                        )
+                        if (
+                            isinstance(solved, dict)
+                            and solved.get("fixableAfter") == 0
+                            and solved.get("commands")
+                        ):
+                            edits = []
+                            for cmd in solved["commands"]:
+                                if (
+                                    cmd.get("type") != "update"
+                                    or cmd.get("collection") != "furniture"
+                                ):
+                                    continue
+                                cid = cmd.get("id")
+                                if cid not in allowed_targets:
+                                    continue
+                                allowed_fields = set(field_mask.get(cid) or [])
+                                values = {
+                                    k: v
+                                    for k, v in (cmd.get("patch") or {}).items()
+                                    if k in allowed_fields
+                                }
+                                if values:
+                                    edits.append({"type": "update", "id": cid, "values": values})
+                            if edits:
+                                return {
+                                    "proposal": {
+                                        "summary": str(
+                                            solved.get("summary")
+                                            or "语义布局求解器生成零冲突方案并交由视觉复核"
+                                        )[:200],
+                                        "edits": edits,
+                                        "noChange": False,
+                                    }
+                                }
+                    except Exception:
+                        pass
             text = str(task.get("input") or "")
             safety_cues = any(
                 kw in text for kw in ("适老", "轮椅", "无障碍", "防震", "抗震", "地震", "雷达", "看护")

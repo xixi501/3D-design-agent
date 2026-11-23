@@ -500,7 +500,15 @@ class TaskStore:
                     id,
                     status="queued",
                     input=message,
-                    selected=body.get("selectedIds") or task["selectedIds"],
+                    selected=(
+                        task["selectedIds"]
+                        if task["mode"] == "repair_layout" and task["selectedIds"] and not str(body.get("input") or "").strip()
+                        else (
+                            list(dict.fromkeys(list(task["selectedIds"]) + list(body.get("selectedIds") or [])))[:20]
+                            if task["mode"] == "repair_layout" and task["selectedIds"]
+                            else (body.get("selectedIds") or task["selectedIds"])
+                        )
+                    ),
                     generation=generation,
                     cancel_requested=0,
                     error=None,

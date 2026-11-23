@@ -125,6 +125,369 @@ function issueSeverityRank(issue: any): number {
   return 10;
 }
 
+type FurnitureRole =
+  | "sofa"
+  | "armchair"
+  | "coffeeTable"
+  | "tvCabinet"
+  | "diningTable"
+  | "diningChair"
+  | "bed"
+  | "nightstand"
+  | "wardrobe"
+  | "wallCabinet"
+  | "desk"
+  | "officeChair"
+  | "decorCorner"
+  | "other";
+
+function furnitureRole(f: Furniture): FurnitureRole {
+  const k = `${f.key || ""} ${f.type || ""} ${f.name || ""}`.toLowerCase();
+  if (/tvcab|cabtv|tvstand|mediaconsole|电视柜/.test(k)) return "tvCabinet";
+  if (/coffeetable|roundcoffee|ovalcoffee|nesttables|teatable|茶几|茶台/.test(k))
+    return "coffeeTable";
+  if (/diningtable|roundtable|餐桌/.test(k)) return "diningTable";
+  if (/officechair|deskchair|办公椅|电脑椅/.test(k)) return "officeChair";
+  if (/armchair|lounge|recliner|accentchair|单人沙发|休闲椅/.test(k))
+    return "armchair";
+  if (/sofa|loveseat|sectional|couch|沙发/.test(k)) return "sofa";
+  if (/nightstand|bedside|床头柜/.test(k)) return "nightstand";
+  if (/bed|luohan|床/.test(k)) return "bed";
+  if (/wardrobe|cabslide|cabwardrobe|衣柜/.test(k)) return "wardrobe";
+  if (/desk|书桌|写字台|办公桌/.test(k)) return "desk";
+  if (/chair|stool|餐椅|椅|凳/.test(k)) return "diningChair";
+  if (/lamp|plant|pouf|ottoman|灯|绿植|盆栽/.test(k)) return "decorCorner";
+  if (/cabinet|cabtall|cabbase|book|shelf|sideboard|display|file|wine|shoe|hall|fridge|freezer|dresser|console|piano|柜|书架|冰箱/.test(k))
+    return "wallCabinet";
+  return "other";
+}
+
+function facingVec(rot: number): { dx: number; dy: number } {
+  const r = normalizeRot(rot);
+  if (r === 0) return { dx: 0, dy: 1 }; // south (+Y)
+  if (r === 180) return { dx: 0, dy: -1 }; // north (-Y)
+  if (r === 90) return { dx: -1, dy: 0 }; // west (-X)
+  return { dx: 1, dy: 0 }; // 270 -> east (+X)
+}
+
+function windowZones(plan: Plan, geo: ReturnType<typeof wallGeometry>): Aabb[] {
+  const zones: Aabb[] = [];
+  for (const o of plan.openings || []) {
+    if (!/window|bay/i.test(String(o.type || ""))) continue;
+    const w: any =
+      geo.active.find(
+        (g: any) =>
+          g.w.id === o.wall || g.ops.some((op: any) => op.o.id === o.id),
+      ) || geo.walls.get(o.wall);
+    if (!w) continue;
+    const cx = w.a.x + w.u.x * o.pos;
+    const cy = w.a.y + w.u.y * o.pos;
+    const half = Math.max(500, ((o as any).width || (o as any).w || 1400) / 2);
+    const depth = (w.t || w.w?.t || 200) / 2 + 260;
+    const horiz = Math.abs(w.u.x) >= Math.abs(w.u.y);
+    zones.push(
+      horiz
+        ? { x0: cx - half, y0: cy - depth, x1: cx + half, y1: cy + depth }
+        : { x0: cx - depth, y0: cy - half, x1: cx + depth, y1: cy + half },
+    );
+  }
+  return zones;
+}
+
+function backWallDistance(f: Furniture, region: RoomRegionInfo | undefined): number {
+  if (!region) return 0;
+  const rects = region.rects.length ? region.rects : [region.bb];
+  const box = rotatedAabb(f);
+  const r = normalizeRot(f.rot);
+  let best = Infinity;
+  for (const rect of rects) {
+    const innerX0 = rect.x + 100;
+    const innerX1 = rect.x + rect.w - 100;
+    const innerY0 = rect.y + 100;
+    const innerY1 = rect.y + rect.h - 100;
+    if (r === 0) best = Math.min(best, Math.abs(box.y0 - innerY0));
+    else if (r === 180) best = Math.min(best, Math.abs(innerY1 - box.y1));
+    else if (r === 270) best = Math.min(best, Math.abs(box.x0 - innerX0));
+    else best = Math.min(best, Math.abs(innerX1 - box.x1));
+  }
+  return Number.isFinite(best) ? best : 0;
+}
+
+function frontWallDistance(f: Furniture, region: RoomRegionInfo | undefined): number {
+  if (!region) return 2000;
+  const rects = region.rects.length ? region.rects : [region.bb];
+  const box = rotatedAabb(f);
+  const r = normalizeRot(f.rot);
+  let best = Infinity;
+  for (const rect of rects) {
+    if (
+      f.x < rect.x - 100 ||
+      f.x > rect.x + rect.w + 100 ||
+      f.y < rect.y - 100 ||
+      f.y > rect.y + rect.h + 100
+    ) {
+      continue;
+    }
+    const innerX0 = rect.x + 100;
+    const innerX1 = rect.x + rect.w - 100;
+    const innerY0 = rect.y + 100;
+    const innerY1 = rect.y + rect.h - 100;
+    if (r === 0) best = Math.min(best, innerY1 - box.y1);
+    else if (r === 180) best = Math.min(best, box.y0 - innerY0);
+    else if (r === 270) best = Math.min(best, innerX1 - box.x1);
+    else best = Math.min(best, box.x0 - innerX0);
+  }
+  return Number.isFinite(best) ? best : 2000;
+}
+
+function minWallDistance(f: Furniture, region: RoomRegionInfo | undefined): number {
+  if (!region) return 0;
+  const rects = region.rects.length ? region.rects : [region.bb];
+  const box = rotatedAabb(f);
+  let best = Infinity;
+  for (const rect of rects) {
+    best = Math.min(
+      best,
+      Math.abs(box.y0 - (rect.y + 100)),
+      Math.abs(rect.y + rect.h - 100 - box.y1),
+      Math.abs(box.x0 - (rect.x + 100)),
+      Math.abs(rect.x + rect.w - 100 - box.x1),
+    );
+  }
+  return Number.isFinite(best) ? best : 0;
+}
+
+function boxEdgeGap(a: Aabb, b: Aabb): number {
+  const dx = Math.max(0, Math.max(a.x0 - b.x1, b.x0 - a.x1));
+  const dy = Math.max(0, Math.max(a.y0 - b.y1, b.y0 - a.y1));
+  return Math.hypot(dx, dy);
+}
+
+function inTvSofaCorridor(
+  box: Aabb,
+  tv: Furniture | undefined,
+  sofa: Furniture | undefined,
+): boolean {
+  if (!tv || !sofa) return false;
+  const tvb = rotatedAabb(tv);
+  const sfb = rotatedAabb(sofa);
+  const corr: Aabb = {
+    x0: Math.min(tvb.x0, sfb.x0) + 120,
+    x1: Math.max(tvb.x1, sfb.x1) - 120,
+    y0: Math.min(tvb.y0, sfb.y0) + 120,
+    y1: Math.max(tvb.y1, sfb.y1) - 120,
+  };
+  if (corr.x1 <= corr.x0 || corr.y1 <= corr.y0) return false;
+  return boxesOverlap2d(box, corr, -40);
+}
+
+function itemSemanticPenalty(
+  plan: Plan,
+  f: Furniture,
+  region: RoomRegionInfo | undefined,
+  winZones: Aabb[],
+): number {
+  if (DECOR_COVERINGS.has(f.key) || isSurfaceItem(f)) return 0;
+  const role = furnitureRole(f);
+  const box = rotatedAabb(f);
+  const peers = plan.furniture.filter(
+    (o) =>
+      o.id !== f.id &&
+      !DECOR_COVERINGS.has(o.key) &&
+      !isSurfaceItem(o) &&
+      (!region || pointInRects(o.x, o.y, region.rects, -120)),
+  );
+  const byRole = (r: FurnitureRole) => peers.filter((p) => furnitureRole(p) === r);
+  const nearest = (list: Furniture[]) => {
+    let best: Furniture | undefined;
+    let bestD = Infinity;
+    for (const item of list) {
+      const d = Math.hypot(item.x - f.x, item.y - f.y);
+      if (d < bestD) {
+        bestD = d;
+        best = item;
+      }
+    }
+    return best;
+  };
+
+  let pen = 0;
+  const fwd = facingVec(f.rot);
+  const tv = nearest(byRole("tvCabinet"));
+  const ct = nearest(byRole("coffeeTable"));
+  const sofa = nearest(byRole("sofa"));
+  const dTable = nearest(byRole("diningTable"));
+  const bed = nearest(byRole("bed"));
+  const desk = nearest(byRole("desk"));
+
+  if (role === "sofa") {
+    if (tv) {
+      const tvFwd = facingVec(tv.rot);
+      const vx = f.x - tv.x;
+      const vy = f.y - tv.y;
+      const inFront = vx * tvFwd.dx + vy * tvFwd.dy;
+      const lat = Math.abs(vx * -tvFwd.dy + vy * tvFwd.dx);
+      const faceDot = fwd.dx * -tvFwd.dx + fwd.dy * -tvFwd.dy;
+      if (inFront < 900) pen += 2800;
+      else if (inFront < 1800) pen += (1800 - inFront) * 0.8;
+      else if (inFront > 4200) pen += (inFront - 4200) * 0.7;
+      if (faceDot < 0.5) pen += 2600;
+      if (lat > 700) pen += Math.min(2200, (lat - 700) * 0.9);
+      if (ct) {
+        const ctInFront = (ct.x - tv.x) * tvFwd.dx + (ct.y - tv.y) * tvFwd.dy;
+        if (inFront < ctInFront + 150) pen += 3200;
+      }
+    }
+    if (ct) {
+      const ctb = rotatedAabb(ct);
+      const cx = ct.x - f.x;
+      const cy = ct.y - f.y;
+      const proj = cx * fwd.dx + cy * fwd.dy;
+      const lat = Math.abs(cx * -fwd.dy + cy * fwd.dx);
+      const fHalf = fwd.dx !== 0 ? (box.x1 - box.x0) / 2 : (box.y1 - box.y0) / 2;
+      const cHalf = fwd.dx !== 0 ? (ctb.x1 - ctb.x0) / 2 : (ctb.y1 - ctb.y0) / 2;
+      const gap = proj - fHalf - cHalf;
+      if (proj <= 0) pen += 2400;
+      else if (gap < 250 || gap > 950) pen += Math.min(2200, Math.abs(gap - 500) * 1.2);
+      if (lat > 550) pen += Math.min(2000, (lat - 550) * 1.0);
+    }
+    if (dTable && (ct || tv)) {
+      const dDist = Math.hypot(f.x - dTable.x, f.y - dTable.y);
+      if (dDist < 1500) pen += 2200;
+    }
+    if (!tv && !ct) {
+      const bd = backWallDistance(f, region);
+      if (bd > 350) pen += 700;
+    }
+    const frontD = frontWallDistance(f, region);
+    if (frontD < 700) pen += 2200;
+  } else if (role === "coffeeTable") {
+    if (sofa) {
+      const sFwd = facingVec(sofa.rot);
+      const sfb = rotatedAabb(sofa);
+      const cx = f.x - sofa.x;
+      const cy = f.y - sofa.y;
+      const proj = cx * sFwd.dx + cy * sFwd.dy;
+      const lat = Math.abs(cx * -sFwd.dy + cy * sFwd.dx);
+      const sHalf = sFwd.dx !== 0 ? (sfb.x1 - sfb.x0) / 2 : (sfb.y1 - sfb.y0) / 2;
+      const cHalf = sFwd.dx !== 0 ? (box.x1 - box.x0) / 2 : (box.y1 - box.y0) / 2;
+      const gap = proj - sHalf - cHalf;
+      if (proj <= 0) pen += 2400;
+      else if (gap < 250 || gap > 900) pen += Math.min(2000, Math.abs(gap - 500) * 1.2);
+      if (lat > 500) pen += Math.min(1800, (lat - 500) * 1.0);
+      if (f.w > f.d * 1.2 && sofa.w > sofa.d * 1.2) {
+        const sameAxis = (normalizeRot(f.rot) % 180) === (normalizeRot(sofa.rot) % 180);
+        if (!sameAxis) pen += 700;
+      }
+    }
+  } else if (role === "tvCabinet") {
+    const bd = backWallDistance(f, region);
+    const fd = frontWallDistance(f, region);
+    if (bd > 200) pen += 2600 + Math.min(1000, bd);
+    if (fd < 900) pen += 3000;
+    if (sofa) {
+      const vx = sofa.x - f.x;
+      const vy = sofa.y - f.y;
+      const inFront = vx * fwd.dx + vy * fwd.dy;
+      const lat = Math.abs(vx * -fwd.dy + vy * fwd.dx);
+      if (inFront < 1000) pen += 2400;
+      if (lat > 700) pen += Math.min(1800, (lat - 700) * 0.8);
+    }
+  } else if (role === "diningTable") {
+    const chairs = byRole("diningChair");
+    if (chairs.length >= 2) {
+      let cx = 0;
+      let cy = 0;
+      for (const ch of chairs) {
+        cx += ch.x;
+        cy += ch.y;
+      }
+      cx /= chairs.length;
+      cy /= chairs.length;
+      const distCluster = Math.hypot(f.x - cx, f.y - cy);
+      if (distCluster > 650) pen += 3200 + Math.min(4000, (distCluster - 650) * 2.2);
+    }
+    if (inTvSofaCorridor(box, tv, sofa)) pen += 2200;
+  } else if (role === "diningChair") {
+    if (dTable) {
+      const dtb = rotatedAabb(dTable);
+      const gap = boxEdgeGap(box, dtb);
+      const vx = dTable.x - f.x;
+      const vy = dTable.y - f.y;
+      const len = Math.max(1, Math.hypot(vx, vy));
+      const dot = (vx * fwd.dx + vy * fwd.dy) / len;
+      if (gap > 380) pen += 1200 + Math.min(2000, (gap - 380) * 1.2);
+      if (dot < 0.45) pen += 1800;
+    }
+  } else if (role === "wardrobe" || role === "wallCabinet") {
+    const bd = backWallDistance(f, region);
+    const fd = frontWallDistance(f, region);
+    if (bd > 200) pen += 2600 + Math.min(1500, bd);
+    if (fd < 600) pen += 3200;
+    if (f.h >= 1100) {
+      for (const wz of winZones) {
+        if (boxesOverlap2d(box, wz, 0)) pen += 1500;
+      }
+    }
+    if (inTvSofaCorridor(box, tv, sofa)) pen += 2000;
+  } else if (role === "bed") {
+    const bd = backWallDistance(f, region);
+    const fd = frontWallDistance(f, region);
+    if (bd > 200) pen += 3000 + Math.min(1200, bd);
+    if (fd < 600) pen += 2500;
+    for (const ns of byRole("nightstand")) {
+      const gap = boxEdgeGap(box, rotatedAabb(ns));
+      if (gap > 600) pen += 1200;
+    }
+  } else if (role === "nightstand") {
+    const bd = backWallDistance(f, region);
+    if (bd > 250) pen += 1400;
+    if (bed) {
+      const gap = boxEdgeGap(box, rotatedAabb(bed));
+      if (gap > 350) pen += 1800 + Math.min(1800, gap);
+      if (normalizeRot(f.rot) !== normalizeRot(bed.rot)) pen += 900;
+    }
+  } else if (role === "desk") {
+    const bd = backWallDistance(f, region);
+    const fd = frontWallDistance(f, region);
+    if (bd > 250) pen += 1200;
+    if (fd < 600) pen += 2000;
+  } else if (role === "officeChair") {
+    if (desk) {
+      const gap = boxEdgeGap(box, rotatedAabb(desk));
+      const vx = desk.x - f.x;
+      const vy = desk.y - f.y;
+      const len = Math.max(1, Math.hypot(vx, vy));
+      const dot = (vx * fwd.dx + vy * fwd.dy) / len;
+      if (gap > 420) pen += 1400 + Math.min(1500, gap);
+      if (dot < 0.45) pen += 1600;
+    }
+  } else if (role === "decorCorner") {
+    const wd = minWallDistance(f, region);
+    const nearLiving =
+      (sofa && boxEdgeGap(box, rotatedAabb(sofa)) <= 450) ||
+      (tv && boxEdgeGap(box, rotatedAabb(tv)) <= 450);
+    if (wd > 450 && !nearLiving) pen += 900;
+    if (inTvSofaCorridor(box, tv, sofa)) pen += 2000;
+  }
+  return Math.round(pen);
+}
+
+function planSemanticPenalty(
+  plan: Plan,
+  regions: RoomRegionInfo[],
+  winZones: Aabb[],
+  roomFurnitureIds?: Set<string>,
+): number {
+  let total = 0;
+  for (const f of plan.furniture) {
+    if (roomFurnitureIds && !roomFurnitureIds.has(f.id)) continue;
+    const reg = regionForFurniture(f, regions);
+    total += itemSemanticPenalty(plan, f, reg, winZones);
+  }
+  return Math.round(total);
+}
+
 function isWallHuggingType(f: Furniture): boolean {
   const k = `${f.key || ""} ${f.type || ""}`.toLowerCase();
   return /wardrobe|cabinet|cab|book|shelf|sideboard|fridge|tv|bed|desk|dresser|shoe|console|sofa|piano/.test(
@@ -261,6 +624,7 @@ interface ScoreVector {
   scopedCount: number;
   globalCount: number;
   metricSum: number;
+  semanticPenalty: number;
   displacement: number;
 }
 
@@ -271,6 +635,8 @@ function evaluatePlan(
   roomId: string | undefined,
   roomFurnitureIds: Set<string>,
   targetIds?: Set<string>,
+  regions: RoomRegionInfo[] = [],
+  winZones: Aabb[] = [],
 ): { score: ScoreVector; allIssues: any[]; scopedIssues: any[] } {
   const allIssues = collectAllIssues(plan, includeSafety);
   const scopedIssues = filterScopeIssues(
@@ -298,11 +664,15 @@ function evaluatePlan(
     displacement += Math.hypot(f.x - orig.x, f.y - orig.y);
     if (normalizeRot(f.rot) !== normalizeRot(orig.rot)) displacement += 350;
   }
+  const semPen = regions.length
+    ? planSemanticPenalty(plan, regions, winZones, roomFurnitureIds.size ? roomFurnitureIds : undefined)
+    : 0;
   return {
     score: {
       scopedCount: scopedIssues.length,
       globalCount: allFixable.length,
       metricSum: Math.round(metricSum),
+      semanticPenalty: semPen,
       displacement: Math.round(displacement),
     },
     allIssues,
@@ -314,6 +684,9 @@ function isBetter(a: ScoreVector, b: ScoreVector): boolean {
   if (a.scopedCount !== b.scopedCount) return a.scopedCount < b.scopedCount;
   if (a.globalCount !== b.globalCount) return a.globalCount < b.globalCount;
   if (a.metricSum !== b.metricSum) return a.metricSum < b.metricSum;
+  if (Math.abs(a.semanticPenalty - b.semanticPenalty) > 80) {
+    return a.semanticPenalty < b.semanticPenalty;
+  }
   return a.displacement < b.displacement;
 }
 
@@ -450,7 +823,7 @@ interface Pose {
   x: number;
   y: number;
   rot: number;
-  bucket?: "local" | "wall" | "grid";
+  bucket?: "semantic" | "local" | "wall" | "grid";
   wallSide?: string;
 }
 
@@ -462,6 +835,7 @@ function generatePoses(
   doors: Aabb[],
   ignoreIds: Set<string> = new Set(),
   preferPerimeter = false,
+  winZones: Aabb[] = [],
 ): Pose[] {
   const raw: Pose[] = [];
   const seen = new Set<string>();
@@ -470,7 +844,7 @@ function generatePoses(
     x: number,
     y: number,
     rot: number,
-    bucket: "local" | "wall" | "grid" = "local",
+    bucket: "semantic" | "local" | "wall" | "grid" = "local",
     wallSide?: string,
   ) => {
     const sx = Math.round(x / 25) * 25;
@@ -538,27 +912,219 @@ function generatePoses(
     }
   }
 
-  // 3. Dining chair table-orbit slots
-  if (/chair|stool/i.test(`${f.key} ${f.type}`)) {
-    const tables = plan.furniture.filter(
-      (t) =>
-        t.id !== f.id &&
-        /diningtable|roundtable|table/i.test(`${t.key} ${t.type}`) &&
-        (!region || pointInRects(t.x, t.y, region.rects, -100)),
-    );
+  // 3. Semantic interior-design anchor poses
+  const role = furnitureRole(f);
+  const roomPeers = plan.furniture.filter(
+    (p) =>
+      p.id !== f.id &&
+      !DECOR_COVERINGS.has(p.key) &&
+      !isSurfaceItem(p) &&
+      (!region || pointInRects(p.x, p.y, region.rects, -120)),
+  );
+  if (role === "sofa") {
+    const tvs = roomPeers.filter((p) => furnitureRole(p) === "tvCabinet");
+    const cts = roomPeers.filter((p) => furnitureRole(p) === "coffeeTable");
+    for (const ct of cts) {
+      const ctb = rotatedAabb(ct);
+      const tv = tvs[0];
+      const dirs: Array<{ dx: number; dy: number; rot: number; alignX?: number; alignY?: number }> = tv
+        ? (() => {
+            const tvFwd = facingVec(tv.rot);
+            return [
+              {
+                dx: tvFwd.dx,
+                dy: tvFwd.dy,
+                rot: normalizeRot(tv.rot + 180),
+                alignX: tv.x,
+                alignY: tv.y,
+              },
+            ];
+          })()
+        : [
+            { dx: 0, dy: 1, rot: 180 },
+            { dx: 0, dy: -1, rot: 0 },
+            { dx: 1, dy: 0, rot: 90 },
+            { dx: -1, dy: 0, rot: 270 },
+          ];
+      for (const dir of dirs) {
+        const sb = rotatedAabb({ ...f, x: 0, y: 0, rot: dir.rot });
+        const sfHalf = dir.dx !== 0 ? (sb.x1 - sb.x0) / 2 : (sb.y1 - sb.y0) / 2;
+        const ctEdge =
+          dir.dy > 0
+            ? ctb.y1
+            : dir.dy < 0
+              ? ctb.y0
+              : dir.dx > 0
+                ? ctb.x1
+                : ctb.x0;
+        const latCenters = new Set<number>();
+        if (dir.dy !== 0) {
+          latCenters.add(ct.x);
+          if (dir.alignX !== undefined) {
+            latCenters.add(dir.alignX);
+            latCenters.add((ct.x + dir.alignX) / 2);
+          }
+          for (const shift of [-400, -200, 200, 400]) latCenters.add(ct.x + shift);
+        } else {
+          latCenters.add(ct.y);
+          if (dir.alignY !== undefined) {
+            latCenters.add(dir.alignY);
+            latCenters.add((ct.y + dir.alignY) / 2);
+          }
+          for (const shift of [-400, -200, 200, 400]) latCenters.add(ct.y + shift);
+        }
+        const depths: number[] = [];
+        for (const gap of [450, 550, 650, 800]) {
+          depths.push(ctEdge + (dir.dx + dir.dy) * (gap + sfHalf));
+        }
+        if (region) {
+          const wallFace =
+            dir.dy > 0
+              ? region.bb.y + region.bb.h - 135 - sfHalf
+              : dir.dy < 0
+                ? region.bb.y + 135 + sfHalf
+                : dir.dx > 0
+                  ? region.bb.x + region.bb.w - 135 - sfHalf
+                  : region.bb.x + 135 + sfHalf;
+          depths.push(wallFace);
+        }
+        for (const dPos of depths) {
+          for (const lPos of latCenters) {
+            push(
+              dir.dy !== 0 ? lPos : dPos,
+              dir.dy !== 0 ? dPos : lPos,
+              dir.rot,
+              "semantic",
+            );
+          }
+        }
+      }
+    }
+    if (cts.length === 0 && tvs.length > 0) {
+      for (const tv of tvs) {
+        const tvFwd = facingVec(tv.rot);
+        const sRot = normalizeRot(tv.rot + 180);
+        for (const dist of [2200, 2600, 3000, 3400]) {
+          for (const shift of [0, -300, 300]) {
+            push(
+              tv.x + tvFwd.dx * dist + -tvFwd.dy * shift,
+              tv.y + tvFwd.dy * dist + tvFwd.dx * shift,
+              sRot,
+              "semantic",
+            );
+          }
+        }
+      }
+    }
+  } else if (role === "coffeeTable") {
+    for (const s of roomPeers.filter((p) => furnitureRole(p) === "sofa")) {
+      const sFwd = facingVec(s.rot);
+      const sfb = rotatedAabb(s);
+      const sRot = normalizeRot(s.rot);
+      const cRot = sRot % 180;
+      const cb = rotatedAabb({ ...f, x: 0, y: 0, rot: cRot });
+      const cHalf = sFwd.dx !== 0 ? (cb.x1 - cb.x0) / 2 : (cb.y1 - cb.y0) / 2;
+      const sEdge =
+        sFwd.dy > 0 ? sfb.y1 : sFwd.dy < 0 ? sfb.y0 : sFwd.dx > 0 ? sfb.x1 : sfb.x0;
+      for (const gap of [420, 520, 620]) {
+        const dPos = sEdge + (sFwd.dx + sFwd.dy) * (gap + cHalf);
+        for (const shift of [0, -200, 200]) {
+          push(
+            sFwd.dy !== 0 ? s.x + shift : dPos,
+            sFwd.dy !== 0 ? dPos : s.y + shift,
+            cRot,
+            "semantic",
+          );
+        }
+      }
+    }
+  } else if (role === "tvCabinet" && region) {
+    for (const s of roomPeers.filter((p) => furnitureRole(p) === "sofa")) {
+      const sFwd = facingVec(s.rot);
+      const tvRot = normalizeRot(s.rot + 180);
+      const tb = rotatedAabb({ ...f, x: 0, y: 0, rot: tvRot });
+      const tHalf = sFwd.dx !== 0 ? (tb.x1 - tb.x0) / 2 : (tb.y1 - tb.y0) / 2;
+      const wallPos =
+        sFwd.dy < 0
+          ? region.bb.y + 135 + tHalf
+          : sFwd.dy > 0
+            ? region.bb.y + region.bb.h - 135 - tHalf
+            : sFwd.dx < 0
+              ? region.bb.x + 135 + tHalf
+              : region.bb.x + region.bb.w - 135 - tHalf;
+      for (const shift of [0, -300, 300, -600, 600]) {
+        push(
+          sFwd.dy !== 0 ? s.x + shift : wallPos,
+          sFwd.dy !== 0 ? wallPos : s.y + shift,
+          tvRot,
+          "semantic",
+        );
+      }
+    }
+  } else if (role === "diningChair") {
+    const tables = roomPeers.filter((t) => furnitureRole(t) === "diningTable");
     for (const t of tables) {
       const tb = rotatedAabb(t);
       const pad = f.d / 2 + 80;
       const offsets = [-t.w * 0.28, 0, t.w * 0.28];
       for (const ox of offsets) {
-        push(t.x + ox, tb.y0 - pad, 0);
-        push(t.x + ox, tb.y1 + pad, 180);
+        push(t.x + ox, tb.y0 - pad, 0, "semantic");
+        push(t.x + ox, tb.y1 + pad, 180, "semantic");
       }
       const vOffsets = [-t.d * 0.25, 0, t.d * 0.25];
       for (const oy of vOffsets) {
-        push(tb.x0 - pad, t.y + oy, 270);
-        push(tb.x1 + pad, t.y + oy, 90);
+        push(tb.x0 - pad, t.y + oy, 270, "semantic");
+        push(tb.x1 + pad, t.y + oy, 90, "semantic");
       }
+    }
+  } else if (role === "nightstand") {
+    for (const b of roomPeers.filter((p) => furnitureRole(p) === "bed")) {
+      const bb = rotatedAabb(b);
+      const bRot = normalizeRot(b.rot);
+      const nb = rotatedAabb({ ...f, x: 0, y: 0, rot: bRot });
+      const nw = nb.x1 - nb.x0;
+      const nd = nb.y1 - nb.y0;
+      for (const gap of [60, 140, 240]) {
+        if (bRot === 0 || bRot === 180) {
+          const ny = bRot === 0 ? bb.y0 + nd / 2 : bb.y1 - nd / 2;
+          push(bb.x0 - gap - nw / 2, ny, bRot, "semantic");
+          push(bb.x1 + gap + nw / 2, ny, bRot, "semantic");
+        } else {
+          const nx = bRot === 270 ? bb.x0 + nw / 2 : bb.x1 - nw / 2;
+          push(nx, bb.y0 - gap - nd / 2, bRot, "semantic");
+          push(nx, bb.y1 + gap + nd / 2, bRot, "semantic");
+        }
+      }
+    }
+  } else if (role === "officeChair") {
+    for (const d of roomPeers.filter((p) => furnitureRole(p) === "desk")) {
+      const dFwd = facingVec(d.rot);
+      const db = rotatedAabb(d);
+      const cRot = normalizeRot(d.rot + 180);
+      const pad = f.d / 2 + 120;
+      if (dFwd.dy !== 0) {
+        const y = dFwd.dy > 0 ? db.y1 + pad : db.y0 - pad;
+        push(d.x, y, cRot, "semantic");
+      } else {
+        const x = dFwd.dx > 0 ? db.x1 + pad : db.x0 - pad;
+        push(x, d.y, cRot, "semantic");
+      }
+    }
+  } else if (role === "decorCorner") {
+    for (const s of roomPeers.filter((p) => furnitureRole(p) === "sofa" || furnitureRole(p) === "tvCabinet")) {
+      const sb = rotatedAabb(s);
+      const pad = Math.max(f.w, f.d) / 2 + 100;
+      push(sb.x0 - pad, s.y, baseRot, "semantic");
+      push(sb.x1 + pad, s.y, baseRot, "semantic");
+      push(s.x, sb.y0 - pad, baseRot, "semantic");
+      push(s.x, sb.y1 + pad, baseRot, "semantic");
+    }
+    if (region) {
+      const m = 150 + Math.max(f.w, f.d) / 2;
+      push(region.bb.x + m, region.bb.y + m, baseRot, "semantic");
+      push(region.bb.x + region.bb.w - m, region.bb.y + m, baseRot, "semantic");
+      push(region.bb.x + m, region.bb.y + region.bb.h - m, baseRot, "semantic");
+      push(region.bb.x + region.bb.w - m, region.bb.y + region.bb.h - m, baseRot, "semantic");
     }
   }
 
@@ -654,8 +1220,9 @@ function generatePoses(
     .map((pose) => {
       const cand: Furniture = { ...f, x: pose.x, y: pose.y, rot: pose.rot };
       const box = rotatedAabb(cand);
-      let penalty = Math.hypot(pose.x - f.x, pose.y - f.y);
-      if (pose.rot !== baseRot) penalty += 350;
+      const semPen = itemSemanticPenalty(plan, cand, region, winZones);
+      let penalty = semPen * 1.6 + Math.hypot(pose.x - f.x, pose.y - f.y) * 0.25;
+      if (pose.rot !== baseRot) penalty += 120;
       if (region && !aabbInsideRects(box, region.rects, 85)) penalty += 50_000;
       for (const { box: ob } of otherBoxes) {
         if (boxesOverlap2d(box, ob, 15)) penalty += 25_000;
@@ -704,7 +1271,10 @@ function generatePoses(
     pickedKeys.add(k);
     picked.push(p);
   };
-  for (const r of ranked.filter((x) => x.pose.bucket === "local").slice(0, preferPerimeter ? 4 : 8)) {
+  for (const r of ranked.filter((x) => x.pose.bucket === "semantic").slice(0, 8)) {
+    addPose(r.pose);
+  }
+  for (const r of ranked.filter((x) => x.pose.bucket === "local").slice(0, preferPerimeter ? 3 : 5)) {
     addPose(r.pose);
   }
   for (const side of ["N", "S", "W", "E"]) {
@@ -712,10 +1282,10 @@ function generatePoses(
       addPose(r.pose);
     }
   }
-  for (const r of ranked.filter((x) => x.pose.bucket === "grid").slice(0, 4)) {
+  for (const r of ranked.filter((x) => x.pose.bucket === "grid").slice(0, 3)) {
     addPose(r.pose);
   }
-  return picked.slice(0, 18);
+  return picked.slice(0, 22);
 }
 
 function applyPose(plan: Plan, id: string, pose: Partial<Furniture>): Plan {
@@ -766,8 +1336,34 @@ export function autoRepairScene(
   const targetRegion = options.roomId
     ? regions.find((r) => r.roomId === options.roomId)
     : undefined;
-  const roomFurnitureIds = furnitureIdsInRoom(working, targetRegion);
+  const initialQuickIssues = filterScopeIssues(
+    collectAllIssues(working, includeSafety),
+    options.roomId,
+    furnitureIdsInRoom(working, targetRegion),
+    targetIdSet,
+  );
+  const affectedRegions: RoomRegionInfo[] = targetRegion
+    ? [targetRegion]
+    : (() => {
+        const regSet = new Set<RoomRegionInfo>();
+        for (const iss of initialQuickIssues) {
+          for (const id of iss.objectIds || []) {
+            const f = working.furniture.find((x) => x.id === id);
+            const r = f ? regionForFurniture(f, regions) : undefined;
+            if (r) regSet.add(r);
+          }
+        }
+        return regSet.size ? [...regSet] : regions;
+      })();
+  const roomFurnitureIds = new Set<string>(
+    working.furniture
+      .filter((f) =>
+        affectedRegions.some((r) => pointInRects(f.x, f.y, r.rects, -120)),
+      )
+      .map((f) => f.id),
+  );
   const doors = doorZones(working, geo);
+  const winZones = windowZones(working, geo);
 
   const initialEval = evaluatePlan(
     working,
@@ -776,6 +1372,8 @@ export function autoRepairScene(
     options.roomId,
     roomFurnitureIds,
     targetIdSet,
+    regions,
+    winZones,
   );
   const initialCodes = new Set(
     initialEval.scopedIssues.map((i: any) => String(i.code || "")),
@@ -854,11 +1452,16 @@ export function autoRepairScene(
         }
       }
 
+      const effectivePriority = (item: Furniture) => {
+        const reg = targetRegion || regionForFurniture(item, regions);
+        const curSem = itemSemanticPenalty(currentPlan, item, reg, winZones);
+        return movePriority(item, preferred) - Math.min(200, curSem * 0.035);
+      };
       const orderedTargets = [...candidateIds]
         .map((id) => currentPlan.furniture.find((f) => f.id === id)!)
         .filter(Boolean)
         .filter((f) => !DECOR_COVERINGS.has(f.key) || involvedIds.length === 1)
-        .sort((a, b) => movePriority(a, preferred) - movePriority(b, preferred));
+        .sort((a, b) => effectivePriority(a) - effectivePriority(b));
 
       let bestPlan = currentPlan;
       let bestEval = currentEval;
@@ -883,6 +1486,8 @@ export function autoRepairScene(
               options.roomId,
               roomFurnitureIds,
               targetIdSet,
+              regions,
+              winZones,
             );
             if (isBetter(ev.score, bestEval.score)) {
               bestPlan = trial;
@@ -899,6 +1504,8 @@ export function autoRepairScene(
                 options.roomId,
                 roomFurnitureIds,
                 targetIdSet,
+                regions,
+                winZones,
               );
               if (isBetter(ev.score, bestEval.score)) {
                 bestPlan = trial;
@@ -924,6 +1531,7 @@ export function autoRepairScene(
             doors,
             new Set(),
             preferPerimeter,
+            winZones,
           );
           for (const pose of poses) {
             if (Date.now() - startedAt > timeBudgetMs) break;
@@ -935,15 +1543,20 @@ export function autoRepairScene(
               options.roomId,
               roomFurnitureIds,
               targetIdSet,
+              regions,
+              winZones,
             );
             if (isBetter(ev.score, bestEval.score)) {
               bestPlan = trial;
               bestEval = ev;
-              if (ev.score.scopedCount === 0) break;
+              if (ev.score.scopedCount === 0 && ev.score.semanticPenalty <= 250) break;
             }
           }
         }
-        if (bestEval.score.scopedCount < currentEval.score.scopedCount) {
+        if (
+          bestEval.score.scopedCount < currentEval.score.scopedCount &&
+          bestEval.score.semanticPenalty <= 600
+        ) {
           break;
         }
       }
@@ -1006,6 +1619,8 @@ export function autoRepairScene(
               options.roomId,
               roomFurnitureIds,
               targetIdSet,
+              regions,
+              winZones,
             );
             if (isBetter(ev.score, bestEval.score)) {
               bestPlan = trial;

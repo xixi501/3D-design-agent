@@ -188,7 +188,10 @@ def role_model_options(
             opts["reasoning_effort"] = explicit_fast or "low"
             eb = dict(opts.get("extra_body") or {})
             eb.pop("thinking", None)
-            eb["enable_thinking"] = False
+            # Keep light native reasoning (effort=low) for deepseek-v4.1-flash so exact
+            # skill/schema IDs stay accurate; disable thinking for qwen fast/vision models.
+            if "qwen" in str(opts.get("model", "")).lower():
+                eb["enable_thinking"] = False
             opts["extra_body"] = eb
 
     if overrides:

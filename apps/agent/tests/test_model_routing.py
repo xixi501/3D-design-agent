@@ -36,7 +36,7 @@ def test_role_model_options_tiers_text_vision_and_effort(monkeypatch):
         f_opts = role_model_options(fast_role, has_images=False)
         assert f_opts["model"] == "deepseek-v4.1-flash"
         assert f_opts["reasoning_effort"] == "low"
-        assert f_opts["extra_body"]["enable_thinking"] is False
+        assert f_opts.get("extra_body", {}).get("thinking") is None
 
     # 3. Image-bearing requests ALWAYS route to ACTISCAPE_VISION_MODEL even if text model is on another host!
     monkeypatch.setenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")

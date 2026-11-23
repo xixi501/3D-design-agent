@@ -51,10 +51,13 @@ def create_model(**overrides: Any) -> ActiDeepSeek:
     if "api_key" not in overrides and not settings.get("api_key"):
         settings.pop("api_key", None)
     merged = {**settings, **overrides}
+    merged.pop("provider", None)
     if "deepseek.com" not in str(merged.get("base_url", "")).lower():
         eb = dict(merged.get("extra_body") or {})
-        eb.pop("thinking", None)
-        merged["extra_body"] = eb
-        if "qwen" in str(merged.get("model", "")).lower():
+        thinking_cfg = eb.pop("thinking", None)
+        if isinstance(thinking_cfg, dict) and thinking_cfg.get("type") == "disabled":
             eb["enable_thinking"] = False
+        if "qwen" in str(merged.get("model", "")).lower() and "enable_thinking" not in eb:
+            eb["enable_thinking"] = False
+        merged["extra_body"] = eb
     return ActiDeepSeek(**merged)

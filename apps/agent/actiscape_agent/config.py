@@ -98,3 +98,106 @@ def vision_model_settings() -> dict:
         "api_key": os.environ.get("ACTISCAPE_VISION_API_KEY", "local"),
         **FLOORPLAN_VISION_OPTIONS,
     }
+
+
+FAST_ROLES = frozenset({"main", "policy", "assets", "structure", "coordinator", "check"})
+
+
+def _is_vision_capable_model(model_name: str) -> bool:
+    low = str(model_name or "").lower()
+    return any(tag in low for tag in ("vl", "omni", "vision", "4o"))
+
+
+def fallback_model_settings() -> dict | None:
+    """Optional text-model fallback (e.g. Aliyun Bailian qwen-plus) when primary times out/errors."""
+    fb_model = os.environ.get("ACTISCAPE_FALLBACK_MODEL", "").strip()
+    if not fb_model:
+        return None
+    is_qwen_fb = "qwen" in fb_model.lower()
+    vision_base = os.environ.get("ACTISCAPE_VISION_BASE_URL", "").strip()
+    base_url = (
+        os.environ.get("ACTISCAPE_FALLBACK_BASE_URL")
+        or (vision_base if (is_qwen_fb and "dashscope" in vision_base.lower()) else "")
+        or os.environ.get("DEEPSEEK_BASE_URL")
+        or os.environ.get("MODEL_URL")
+        or "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    ).rstrip("/")
+    api_key = (
+        os.environ.get("ACTISCAPE_FALLBACK_API_KEY")
+        or (os.environ.get("ACTISCAPE_VISION_API_KEY") if (is_qwen_fb and "dashscope" in base_url.lower()) else "")
+        or model_api_key()
+        or os.environ.get("ACTISCAPE_VISION_API_KEY")
+        or ""
+    )
+    settings: dict = {
+        "model": fb_model,
+        "base_url": base_url,
+        "reasoning_effort": "low",
+        "timeout": 90,
+        "max_retries": 0,
+        "max_tokens": 8192,
+        "extra_body": {} if "deepseek.com" in base_url.lower() else {"enable_thinking": False},
+    }
+    if api_key:
+        settings["api_key"] = api_key
+    return settings
+
+
+def role_model_options(
+    role: str,
+    *,
+    has_images: bool = False,
+    overrides: dict | None = None,
+) -> dict:
+    """Resolve tiered model, endpoint, and reasoning effort per agent role.
+
+    - Image-bearing requests ALWAYS route to ACTISCAPE_VISION_MODEL (e.g. qwen3-vl-plus)
+      with full base_url + api_key switch whenever configured, regardless of text provider.
+    - Pure-text `design` role uses high reasoning effort for complex spatial layout.
+    - Pure-text fast roles (`main`, `policy`, `assets`, `structure`, `coordinator`, `check`)
+      use low reasoning effort (and disable thinking on non-deepseek.com hosts like DashScope)
+      for 2-3x faster, lower-cost execution.
+    """
+    opts = dict(model_settings())
+    if has_images:
+        vision_model_env = os.environ.get("ACTISCAPE_VISION_MODEL", "").strip()
+        if vision_model_env or not _is_vision_capable_model(opts.get("model", "")):
+            v = vision_model_settings()
+            # Only switch endpoint when vision env is explicitly configured (not default local-vllm dummy)
+            if vision_model_env or os.environ.get("ACTISCAPE_VISION_BASE_URL", "").strip():
+                opts["model"] = v["model"]
+                opts["base_url"] = v["base_url"]
+                if v.get("api_key"):
+                    opts["api_key"] = v["api_key"]
+                opts["reasoning_effort"] = "low"
+                eb = dict(opts.get("extra_body") or {})
+                eb.pop("thinking", None)
+                if "deepseek.com" not in str(v["base_url"]).lower():
+                    eb["enable_thinking"] = False
+                opts["extra_body"] = eb
+    elif role == "design":
+        design_effort = (
+            os.environ.get("DEEPSEEK_DESIGN_REASONING_EFFORT", "").strip()
+            or os.environ.get("DEEPSEEK_REASONING_EFFORT", "high")
+        )
+        opts["reasoning_effort"] = design_effort
+    elif role in FAST_ROLES:
+        is_non_official = "deepseek.com" not in str(opts.get("base_url", "")).lower()
+        if is_non_official:
+            explicit_fast = os.environ.get("DEEPSEEK_FAST_REASONING_EFFORT", "").strip()
+            opts["reasoning_effort"] = explicit_fast or "low"
+            eb = dict(opts.get("extra_body") or {})
+            eb.pop("thinking", None)
+            eb["enable_thinking"] = False
+            opts["extra_body"] = eb
+
+    if overrides:
+        # Merge caller overrides while preserving extra_body keys cleanly
+        merged_eb = {
+            **dict(opts.get("extra_body") or {}),
+            **dict(overrides.get("extra_body") or {}),
+        }
+        opts.update(overrides)
+        if merged_eb:
+            opts["extra_body"] = merged_eb
+    return opts

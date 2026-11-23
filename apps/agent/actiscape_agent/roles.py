@@ -1,6 +1,7 @@
 import os
 import asyncio
 import base64
+import inspect
 import json
 import time
 from collections.abc import Callable
@@ -14,7 +15,7 @@ from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
 
 from .client import SceneClient
-from .config import model_settings
+from .config import fallback_model_settings, model_settings, role_model_options
 from .model import create_model
 from .role_contracts import StageResultV1
 from .schemas import AssetSelection, Edit, Intent, Proposal, Review
@@ -178,6 +179,27 @@ class Roles:
         self.store, self.client, self.model_factory = store, client, model_factory
         self._catalogues: dict[str, dict] = {}
 
+    def _factory_accepts_overrides(self) -> bool:
+        sig = inspect.signature(self.model_factory)
+        return any(
+            p.kind == inspect.Parameter.VAR_KEYWORD or p.name == "model"
+            for p in sig.parameters.values()
+        )
+
+    def _build_model(self, overrides: dict[str, Any]):
+        if not overrides:
+            return self.model_factory()
+        sig = inspect.signature(self.model_factory)
+        accepts_kwargs = any(
+            p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+        )
+        if accepts_kwargs:
+            return self.model_factory(**overrides)
+        if not sig.parameters:
+            return self.model_factory()
+        filtered = {k: v for k, v in overrides.items() if k in sig.parameters}
+        return self.model_factory(**filtered)
+
     async def catalogue(self, task_id: str):
         """Read the immutable catalogue once per task; task scope is frozen."""
         if task_id not in self._catalogues:
@@ -198,9 +220,14 @@ class Roles:
         terminal_result: Callable[[], dict | None] | None = None,
         bounded_schema: bool = False,
     ):
-        options = {**model_settings(), **(model_options or {})}
-        if images and "dashscope" in str(options.get("base_url", "")).lower() and "vl" not in str(options.get("model", "")).lower():
-            options["model"] = os.environ.get("ACTISCAPE_VISION_MODEL", "qwen3-vl-plus")
+        options = role_model_options(role, has_images=bool(images), overrides=model_options)
+        base_settings = model_settings()
+        # Only pass keys that differ from defaults (or explicit overrides) to model_factory
+        effective_overrides = {
+            k: v
+            for k, v in options.items()
+            if (model_options and k in model_options) or base_settings.get(k) != v
+        }
         self.store.event(
             task_id,
             "agent_start",
@@ -251,10 +278,13 @@ class Roles:
                 + str(error)[:2000]
             )
 
-        for attempt in range(3):
+        fallback_used = False
+        active_overrides = dict(effective_overrides)
+        active_model_name = str(options.get("model") or "")
+        for attempt in range(4):
             try:
                 agent = create_agent(
-                    self.model_factory(**(model_options or {})),
+                    self._build_model(active_overrides),
                     tools,
                     response_format=ToolStrategy(
                         schema, handle_errors=recover_schema if bounded_schema else True
@@ -359,7 +389,32 @@ class Roles:
                     or (isinstance(status, int) and status >= 500)
                     or type(error).__name__ in ("APITimeoutError", "APIConnectionError")
                 )
-                if not transient or attempt == 2:
+                fb = (
+                    fallback_model_settings()
+                    if (not images and not fallback_used and self._factory_accepts_overrides())
+                    else None
+                )
+                can_fallback = bool(fb and fb.get("model") and fb.get("model") != active_model_name)
+                if can_fallback and (not transient or attempt >= 1):
+                    fallback_used = True
+                    self.store.event(
+                        task_id,
+                        "model_fallback",
+                        {
+                            "role": role,
+                            "fromModel": active_model_name,
+                            "toModel": fb["model"],
+                            "httpStatus": status,
+                            "errorType": type(error).__name__,
+                        },
+                    )
+                    active_overrides = {
+                        **active_overrides,
+                        **fb,
+                    }
+                    active_model_name = str(fb["model"])
+                    continue
+                if not transient or attempt >= 2:
                     raise TaskError(
                         "MODEL_ERROR",
                         f"{role} 模型调用失败（{type(error).__name__}，HTTP {status or '无'}）",

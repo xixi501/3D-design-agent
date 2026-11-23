@@ -194,6 +194,44 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
             return await mgr.cancel(id)
         return mgr.store.cancel(id)
 
+    @app.post("/procurement-quote")
+    async def procurement_quote(body: dict):
+        import time as _time
+        from .procurement_client import generate_procurement_quote
+        from .rag_standards import retrieve_standard_citations
+
+        t0 = _time.perf_counter()
+        project_id = str(body.get("projectId") or "unknown")
+        plan = body.get("plan") if isinstance(body.get("plan"), dict) else {}
+        issue_codes = [
+            str(c) for c in (body.get("issueCodes") or []) if isinstance(c, str) and c.strip()
+        ]
+        try:
+            budget = max(500, min(100000, int(body.get("budgetLimitCny") or 5000)))
+        except (TypeError, ValueError):
+            budget = 5000
+        quote, citations = await asyncio.gather(
+            generate_procurement_quote(
+                project_id,
+                plan,
+                issue_codes=issue_codes or None,
+                budget_limit_cny=budget,
+            ),
+            retrieve_standard_citations(
+                issue_codes
+                or [
+                    "WHEELCHAIR_TURNING_BLOCKED",
+                    "SEISMIC_TOPPLE_BED_HAZARD",
+                    "SENSOR_BLIND_SPOT",
+                ]
+            ),
+        )
+        return {
+            "quote": quote,
+            "citations": citations,
+            "elapsedMs": round((_time.perf_counter() - t0) * 1000),
+        }
+
     @app.get("/tasks/{id}/events")
     async def events(
         id: str, request: Request, after: int = 0, last_event_id: str | None = Header(default=None)

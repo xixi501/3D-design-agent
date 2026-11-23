@@ -189,3 +189,30 @@ def test_telemetry_and_repair_router_handle_new_safety_codes():
         assert directive is not None
         assert directive.targetRole == "design"
         assert directive.objectIds == ["obj-1"]
+
+
+def test_http_procurement_quote_endpoint(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from actiscape_agent.app import create_app
+
+    monkeypatch.delenv("PROCUREMENT_AGENT_URL", raising=False)
+    monkeypatch.setenv("ACTISCAPE_AGENT_DATA_DIR", str(tmp_path))
+    client = TestClient(create_app())
+    resp = client.post(
+        "/procurement-quote",
+        json={
+            "projectId": "p-test-bom",
+            "budgetLimitCny": 3000,
+            "issueCodes": ["SEISMIC_TOPPLE_BED_HAZARD", "SENSOR_BLIND_SPOT"],
+            "plan": {
+                "furniture": [
+                    {"id": "w1", "name": "高大衣柜", "type": "wardrobe", "h": 2100, "opt": {}},
+                ]
+            },
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["quote"]["totalEstimatedCny"] > 0
+    assert len(data["quote"]["lineItems"]) >= 1
+    assert len(data["citations"]) >= 1

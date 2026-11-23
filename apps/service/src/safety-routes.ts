@@ -387,6 +387,82 @@ export function safetyRoutes(
     };
   });
 
+  app.post("/api/projects/:id/procurement-quote", async (req) => {
+    const started = Date.now();
+    const id = (req.params as any).id;
+    const project = store.get(id);
+    const body = (req.body as any) || {};
+    const budgetLimitCny = Math.max(
+      500,
+      Math.min(100000, Number(body.budgetLimitCny) || 5000),
+    );
+    const safety = auditSafety(project.plan, {
+      ...(project.plan.source?.safetyProfile || {}),
+      enabled: true,
+    });
+    const issueCodes: string[] =
+      Array.isArray(body.issueCodes) && body.issueCodes.length
+        ? body.issueCodes.filter((x: unknown): x is string => typeof x === "string")
+        : (safety.issues || []).map((i: any) => String(i.code || "")).filter(Boolean);
+
+    const agentBase = (
+      process.env.ACTISCAPE_AGENT_URL || "http://127.0.0.1:3132"
+    ).replace(/\/+$/, "");
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 50_000);
+    try {
+      const upstream = await fetch(`${agentBase}/procurement-quote`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          projectId: id,
+          plan: project.plan,
+          issueCodes,
+          budgetLimitCny,
+        }),
+        signal: controller.signal,
+      });
+      if (!upstream.ok) {
+        const errText = await upstream.text().catch(() => "");
+        throw new SceneError(
+          "PROCUREMENT_UPSTREAM_ERROR",
+          `采购报价子智能体暂时不可用（HTTP ${upstream.status}）${errText ? `: ${errText.slice(0, 120)}` : ""}`,
+          502,
+        );
+      }
+      const data = (await upstream.json()) as any;
+      return {
+        projectId: id,
+        quote: data.quote,
+        citations:
+          Array.isArray(data.citations) && data.citations.length
+            ? data.citations
+            : safety.standardCitations,
+        safetySummary: {
+          blockingCount: safety.issues.filter((i: any) => i.level === "error").length,
+          radarCoveragePct:
+            typeof safety.radar?.coverageRatio === "number"
+              ? Math.round(safety.radar.coverageRatio * 1000) / 10
+              : null,
+          wheelchairPassed: safety.wheelchairCircles?.[0]?.passed ?? true,
+          unanchoredHighRiskCount: (safety.toppleZones || []).filter(
+            (h: any) => !h.wallAnchored && (h.strikesBed || h.blocksExit),
+          ).length,
+        },
+        elapsedMs: Date.now() - started,
+      };
+    } catch (error: any) {
+      if (error instanceof SceneError) throw error;
+      throw new SceneError(
+        "PROCUREMENT_UNAVAILABLE",
+        `呼叫采购报价服务超时或连接失败：${error?.message || "未知错误"}`,
+        502,
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+  });
+
   app.get("/api/projects/:id/export-mujoco", async (req, reply) => {
     const id = (req.params as any).id;
     const project = store.get(id);

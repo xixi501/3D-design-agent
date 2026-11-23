@@ -149,6 +149,34 @@ const PLUGIN_CSS = `
 .st-btn-anchor { background: rgba(37, 99, 235, 0.28); color: #93c5fd; border-color: rgba(96, 165, 250, 0.5); }
 .st-btn-agent { background: linear-gradient(135deg, #059669, #0d9488); color: #fff; }
 .st-btn-mujoco { background: rgba(51, 65, 85, 0.75); color: #e2e8f0; border-color: rgba(148, 163, 184, 0.35); }
+.st-btn-quote { background: linear-gradient(135deg, #0d9488, #0284c7); color: #f8fafc; border-color: rgba(56,189,248,0.45); }
+.st-budget-select {
+  background: #1e293b; color: #e2e8f0; border: 1px solid rgba(148,163,184,0.35);
+  border-radius: 7px; padding: 6px 8px; font-size: 11px; font-weight: 600;
+}
+.st-quote-panel {
+  margin-top: 8px; padding: 9px 10px; border-radius: 9px;
+  background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(56, 189, 248, 0.35);
+  display: flex; flex-direction: column; gap: 7px; font-size: 11px;
+}
+.st-quote-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap; }
+.st-quote-badge {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; background: rgba(14, 165, 233, 0.18); color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+.st-quote-badge.local { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; border-color: rgba(148,163,184,0.35); }
+.st-quote-total { font-size: 13px; font-weight: 700; color: #fcd34d; }
+.st-quote-summary { color: #cbd5e1; line-height: 1.4; }
+.st-quote-items { display: flex; flex-direction: column; gap: 5px; max-height: 210px; overflow-y: auto; }
+.st-quote-item {
+  padding: 6px 8px; border-radius: 6px; background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+.st-quote-item-top { display: flex; justify-content: space-between; gap: 6px; font-weight: 600; color: #f8fafc; }
+.st-quote-item-meta { color: #94a3b8; font-size: 10px; margin-top: 2px; }
+.st-quote-item-purpose { color: #cbd5e1; font-size: 10px; margin-top: 3px; line-height: 1.35; }
+.st-quote-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .st-progress {
   height: 6px;
   background: rgba(51, 65, 85, 0.8);
@@ -284,12 +312,22 @@ export function initSafetyTwinPlugin(host: SafetyTwinHostBridge) {
       </div>
       <button type="button" class="st-btn st-btn-anchor" id="st-anchor-all">🔩 一键全屋高柜加装 L 型防震墙锚</button>
       <button type="button" class="st-btn st-btn-agent" id="st-ask-agent">🤖 呼叫 AgentArts 防灾适老自动改造</button>
+      <div style="display:grid;grid-template-columns:1fr 1.65fr;gap:6px;">
+        <select id="st-budget-select" class="st-budget-select" title="改造采购预算上限">
+          <option value="2000">预算 ≤ ¥2,000</option>
+          <option value="5000" selected>预算 ≤ ¥5,000</option>
+          <option value="10000">预算 ≤ ¥10,000</option>
+        </select>
+        <button type="button" class="st-btn st-btn-quote" id="st-gen-quote">🧾 生成改造采购报价 (A2A)</button>
+      </div>
       <button type="button" class="st-btn st-btn-mujoco" id="st-dl-mujoco">📦 导出 MuJoCo 具身智能仿真 (.xml)</button>
     </div>
 
     <div class="st-issues" id="st-issue-list">
       <div class="st-issue ok">点击上方样板间或「运行全屋安全体检」查看三维空间审计报告。</div>
     </div>
+
+    <div class="st-quote-panel" id="st-quote-panel" hidden></div>
 
     <details class="st-citations" id="st-citations-box">
       <summary>📚 命中国家标准与鸿蒙康养规范条款</summary>
@@ -550,6 +588,159 @@ export function initSafetyTwinPlugin(host: SafetyTwinHostBridge) {
     }
   });
 
+  const quotePanel = drawer.querySelector<HTMLDivElement>("#st-quote-panel")!;
+  const quoteBtn = drawer.querySelector<HTMLButtonElement>("#st-gen-quote")!;
+  const budgetSelect = drawer.querySelector<HTMLSelectElement>("#st-budget-select")!;
+  let lastQuoteResult: any = null;
+
+  const escHtml = (s: unknown) =>
+    String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const buildQuoteMarkdown = (q: any) => {
+    const items = Array.isArray(q?.lineItems) ? q.lineItems : [];
+    const lines = [
+      `# 演境 · 居家防灾与适老改造 BOM 采购清单`,
+      `- 报价来源：${q?.provider === "agentarts-a2a-subagent" ? "华为云 AgentArts A2A 采购子智能体" : "本地参考价目表"}`,
+      `- 预估总价：¥${q?.totalEstimatedCny ?? 0} 元（${q?.withinBudget ? "预算内" : "超出预算"}）`,
+      `- 摘要：${q?.summary || ""}`,
+      "",
+      "| SKU | 产品名称 | 品牌/生态 | 渠道 | 单价(¥) | 数量 | 小计(¥) | 改造用途 |",
+      "| :--- | :--- | :--- | :--- | ---: | ---: | ---: | :--- |",
+      ...items.map(
+        (it: any) =>
+          `| ${it.skuId || "-"} | ${it.productName || "-"} | ${it.brandOrEcosystem || "-"} | ${it.channel || "-"} | ${it.unitPriceCny ?? 0} | ${it.quantity ?? 1} | ${it.subtotalCny ?? 0} | ${it.safetyPurpose || ""} |`,
+      ),
+    ];
+    return lines.join("\n");
+  };
+
+  const downloadQuoteCsv = (q: any) => {
+    const items = Array.isArray(q?.lineItems) ? q.lineItems : [];
+    const csvEsc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const header = ["SKU编号", "产品名称", "品牌/生态", "采购渠道", "单价(元)", "数量", "小计(元)", "对应安全用途"];
+    const rows = items.map((it: any) => [
+      it.skuId || "",
+      it.productName || "",
+      it.brandOrEcosystem || "",
+      it.channel || "",
+      it.unitPriceCny ?? 0,
+      it.quantity ?? 1,
+      it.subtotalCny ?? 0,
+      it.safetyPurpose || "",
+    ]);
+    rows.push(["合计", q?.summary || "", "", "", "", items.length, q?.totalEstimatedCny ?? 0, q?.withinBudget ? "预算内" : "超预算"]);
+    const csv = "\uFEFF" + [header, ...rows].map((r) => r.map(csvEsc).join(",")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `actiscape-safety-bom-${Date.now()}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const renderQuotePanel = (res: any) => {
+    lastQuoteResult = res;
+    const q = res?.quote;
+    if (!q) {
+      quotePanel.hidden = true;
+      return;
+    }
+    const isCloud = q.provider === "agentarts-a2a-subagent";
+    const items = Array.isArray(q.lineItems) ? q.lineItems : [];
+    const secs = res.elapsedMs ? `${(res.elapsedMs / 1000).toFixed(1)}s` : "";
+    quotePanel.innerHTML = `
+      <div class="st-quote-head">
+        <span class="st-quote-badge ${isCloud ? "" : "local"}">${isCloud ? "☁️ 华为云 AgentArts A2A 实时报价" : "📦 本地参考价目表兜底"}${secs ? ` · ${secs}` : ""}</span>
+        <span class="st-quote-total">¥${escHtml(q.totalEstimatedCny ?? 0)} ${q.withinBudget ? "✅ 预算内" : "⚠️ 超预算"}</span>
+      </div>
+      <div class="st-quote-summary">${escHtml(q.summary || `共 ${items.length} 项改造设备与加固五金`)}</div>
+      <div class="st-quote-items">
+        ${
+          items.length
+            ? items
+                .map(
+                  (it: any) => `
+          <div class="st-quote-item">
+            <div class="st-quote-item-top">
+              <span>${escHtml(it.productName || it.category)}</span>
+              <span style="color:#fcd34d;white-space:nowrap;">¥${escHtml(it.subtotalCny ?? (it.unitPriceCny || 0) * (it.quantity || 1))}</span>
+            </div>
+            <div class="st-quote-item-meta">${escHtml(it.skuId || "")} · ${escHtml(it.brandOrEcosystem || "")} · ${escHtml(it.channel || "")} · ¥${escHtml(it.unitPriceCny ?? 0)} × ${escHtml(it.quantity ?? 1)}</div>
+            ${it.safetyPurpose ? `<div class="st-quote-item-purpose">${escHtml(it.safetyPurpose)}</div>` : ""}
+          </div>`,
+                )
+                .join("")
+            : '<div class="st-quote-item">当前房间暂无高危硬件改造采购需求。</div>'
+        }
+      </div>
+      <div class="st-quote-actions">
+        <button type="button" class="st-btn st-btn-reset" id="st-quote-copy">📋 复制清单</button>
+        <button type="button" class="st-btn st-btn-mujoco" id="st-quote-csv">⬇️ 导出 BOM (.csv)</button>
+      </div>
+    `;
+    quotePanel.hidden = false;
+    quotePanel.querySelector("#st-quote-copy")?.addEventListener("click", async () => {
+      const md = buildQuoteMarkdown(q);
+      try {
+        await navigator.clipboard.writeText(md);
+        host.notifyMessage("📋 已复制改造 BOM 采购清单（Markdown 格式）");
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = md;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        host.notifyMessage("📋 已复制改造 BOM 采购清单");
+      }
+    });
+    quotePanel.querySelector("#st-quote-csv")?.addEventListener("click", () => {
+      downloadQuoteCsv(q);
+      host.notifyMessage("⬇️ 已导出改造 BOM 采购报价单 (.csv)");
+    });
+    if (Array.isArray(res.citations) && res.citations.length) {
+      const ul = drawer.querySelector("#st-citations-list")!;
+      ul.innerHTML = "";
+      for (const c of res.citations) {
+        const li = document.createElement("li");
+        const code = c.standard || c.code || "";
+        const clause = c.clause ? ` ${c.clause}` : "";
+        li.textContent = `${code}${clause}：${c.summary || c.excerpt || c.title || ""}`;
+        ul.appendChild(li);
+      }
+      (drawer.querySelector("#st-citations-box") as HTMLDetailsElement).open = true;
+    }
+  };
+
+  quoteBtn.addEventListener("click", async () => {
+    const proj = host.getProject();
+    if (!proj) return;
+    const prevLabel = quoteBtn.textContent;
+    quoteBtn.disabled = true;
+    quoteBtn.textContent = "⏳ 呼叫华为云采购子智能体…";
+    try {
+      const budgetLimitCny = Number(budgetSelect.value) || 5000;
+      const res = await post<any>(`/projects/${proj.id}/procurement-quote`, {
+        budgetLimitCny,
+      });
+      renderQuotePanel(res);
+      const isCloud = res?.quote?.provider === "agentarts-a2a-subagent";
+      host.notifyMessage(
+        `🧾 ${isCloud ? "华为云 A2A 采购子智能体" : "参考价目表"}已生成改造报价：预估 ¥${res?.quote?.totalEstimatedCny ?? 0} 元`,
+      );
+    } catch (e: any) {
+      host.notifyMessage(e?.message || "生成改造采购报价失败");
+    } finally {
+      quoteBtn.disabled = false;
+      quoteBtn.textContent = prevLabel;
+    }
+  });
+
   drawer.querySelector("#st-dl-mujoco")!.addEventListener("click", () => {
     triggerMujocoDownload();
   });
@@ -560,6 +751,9 @@ export function initSafetyTwinPlugin(host: SafetyTwinHostBridge) {
     runAudit,
     onProjectChanged: () => {
       drill.reset();
+      if (lastQuoteResult && lastQuoteResult.projectId !== host.getProject()?.id) {
+        quotePanel.hidden = true;
+      }
       if (!drawer.hidden && host.getProject()) {
         void runAudit().catch(() => {});
       } else {

@@ -218,6 +218,37 @@ function node<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
+function buildProcurementQuoteCard(quote: any): HTMLElement {
+  const card = node("div", "", "skill-dispatch-card");
+  const isCloud = quote?.provider === "agentarts-a2a-subagent";
+  const head = node("div", "", "skill-dispatch-head");
+  head.append(
+    node(
+      "strong",
+      isCloud ? "🧾 华为云 A2A 改造采购清单" : "🧾 改造采购参考清单",
+    ),
+    node(
+      "span",
+      `¥${quote?.totalEstimatedCny ?? 0} · ${quote?.withinBudget ? "预算内" : "超预算"}`,
+    ),
+  );
+  card.append(head);
+  if (quote?.summary) {
+    card.append(node("p", String(quote.summary), "muted"));
+  }
+  const ul = node("ul");
+  for (const item of (quote?.lineItems || []).slice(0, 8)) {
+    ul.append(
+      node(
+        "li",
+        `${item.productName || item.category} × ${item.quantity ?? 1}（¥${item.subtotalCny ?? item.unitPriceCny ?? 0} · ${item.channel || item.brandOrEcosystem || ""}）`,
+      ),
+    );
+  }
+  card.append(ul);
+  return card;
+}
+
 function buildSkillDispatchCard(skillsUsed: any[], repairs = 0): HTMLElement {
   const card = node("div", undefined, "skill-dispatch-card");
   const head = node("div", undefined, "skill-dispatch-head");
@@ -902,6 +933,9 @@ export class ChatPanel {
           reply.append(
             buildSkillDispatchCard(result.skillsUsed, result.repairs || 0),
           );
+        }
+        if (result.procurementQuote?.lineItems?.length) {
+          reply.append(buildProcurementQuoteCard(result.procurementQuote));
         }
 
         const basis = node("details");

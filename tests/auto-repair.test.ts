@@ -183,3 +183,58 @@ test("autoRepairScene restores misplaced sofa from dining table back to living z
   assert.ok(sofaAfter.y > ct.y + 500, `sofa should sit behind coffeeTable relative to TV, got y=${sofaAfter.y}`);
   assert.equal(sofaAfter.rot, 180, `sofa should face north toward coffeeTable & TV, got rot=${sofaAfter.rot}`);
 });
+
+
+test("checkScene detects deep chair-on-table overlap and autoRepairScene restores chair cleanly without moving table", () => {
+  const plan = buildTemplatePlan("euro-banquet-dining", "fixtures").plan;
+  const dt6 = plan.furniture.find((f) => f.type === "diningTable")!;
+  const ch0 = plan.furniture.find((f) => f.type === "chair")!;
+  assert.ok(dt6 && ch0);
+  // Drag chair dead-center onto the 6-seat dining table
+  ch0.x = dt6.x;
+  ch0.y = dt6.y;
+  const beforeIssues = checkScene(plan).issues.filter((i) => i.code === "POSSIBLE_OVERLAP");
+  assert.ok(beforeIssues.length >= 1, "Severe chair-on-diningTable overlap must be detected as POSSIBLE_OVERLAP");
+
+  const res = autoRepairScene(plan);
+  assert.equal(res.fixableAfter, 0, JSON.stringify(res.remainingIssues));
+  const dtAfter = res.plan.furniture.find((f) => f.id === dt6.id)!;
+  const chAfter = res.plan.furniture.find((f) => f.id === ch0.id)!;
+  assert.equal(dtAfter.x, dt6.x, "Dining table should remain stationary when single chair overlaps it");
+  assert.equal(dtAfter.y, dt6.y, "Dining table should remain stationary when single chair overlaps it");
+  // Chair returns near the table outside its footprint
+  assert.ok(Math.hypot(chAfter.x - dt6.x, chAfter.y - dt6.y) < 1600, "Chair should stay seated near dining table");
+});
+
+test("autoRepairScene snaps displaced round dining table back into exact center of its 4 orphaned chairs", () => {
+  const plan = buildTemplatePlan("euro-banquet-dining", "fixtures").plan;
+  const roundTables = plan.furniture.filter((f) => f.type === "roundTable");
+  assert.ok(roundTables.length >= 2);
+  const leftTable = roundTables.sort((a, b) => a.x - b.x)[0];
+  const expectedX = leftTable.x;
+  const expectedY = leftTable.y;
+  // Drag left round table into north wall!
+  leftTable.y = 350;
+  const res = autoRepairScene(plan);
+  assert.equal(res.fixableAfter, 0, JSON.stringify(res.remainingIssues));
+  const ltAfter = res.plan.furniture.find((f) => f.id === leftTable.id)!;
+  assert.ok(Math.abs(ltAfter.x - expectedX) <= 50, `Expected x~${expectedX}, got ${ltAfter.x}`);
+  assert.ok(Math.abs(ltAfter.y - expectedY) <= 50, `Expected y~${expectedY}, got ${ltAfter.y}`);
+  assert.equal(res.semanticPenaltyAfter, 0, `Expected semanticPenaltyAfter=0, got ${res.semanticPenaltyAfter}`);
+});
+
+
+test("autoRepairScene snaps displaced bed back between its orphaned nightstands against wall", () => {
+  const plan = buildTemplatePlan("modern-3bhk-fullhome", "fixtures").plan;
+  const bed = plan.furniture.find((f) => f.type === "bed")!;
+  const origX = bed.x;
+  const origY = bed.y;
+  const origRot = bed.rot;
+  bed.y = 250; // jam bed into north wall
+  const res = autoRepairScene(plan);
+  assert.equal(res.fixableAfter, 0, JSON.stringify(res.remainingIssues));
+  const bedAfter = res.plan.furniture.find((f) => f.id === bed.id)!;
+  assert.ok(Math.abs(bedAfter.x - origX) <= 100, `Expected bed x~${origX}, got ${bedAfter.x}`);
+  assert.ok(Math.abs(bedAfter.y - origY) <= 100, `Expected bed y~${origY}, got ${bedAfter.y}`);
+  assert.equal(bedAfter.rot, origRot);
+});

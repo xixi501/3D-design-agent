@@ -236,6 +236,7 @@ class EditTaskHandler(LayoutTaskHandler):
                             isinstance(solved, dict)
                             and solved.get("fixableAfter") == 0
                             and solved.get("commands")
+                            and int(solved.get("semanticPenaltyAfter") or 0) <= 450
                         ):
                             edits = []
                             for cmd in solved["commands"]:

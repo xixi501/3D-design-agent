@@ -713,27 +713,70 @@ export function checkScene(plan: Plan) {
       owner: "structure",
     });
   }
+  const SEAT_TUCK_TYPES = new Set(["chair", "officeChair", "barStool"]);
+  const TABLE_TUCK_TYPES = new Set([
+    "diningTable",
+    "roundTable",
+    "desk",
+    "trainingTable",
+    "teaTable",
+    "coffeeTable",
+    "kitchenIsland",
+    "counter",
+  ]);
   for (let i = 0; i < boxes.length; i++)
     for (let j = i + 1; j < boxes.length; j++) {
       const a = boxes[i],
         b = boxes[j];
       if (
-        !KU(a.f.type, b.f.type) &&
-        a.f.parentObjectId !== b.f.id &&
-        b.f.parentObjectId !== a.f.id &&
-        !(a.f.parentObjectId && a.f.parentObjectId === b.f.parentObjectId) &&
-        Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) > 20 &&
-        Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 20 &&
-        Math.min(a.z + a.f.h, b.z + b.f.h) - Math.max(a.z, b.z) > 20 &&
-        Ts(a.polygons, b.polygons) > 20
-      )
-        issues.push({
-          code: "POSSIBLE_OVERLAP",
-          objectIds: [a.f.id, b.f.id],
-          message: `${a.f.name} 与 ${b.f.name} 的参数化轮廓及高度区间重叠，请检查实际形状`,
-          level: "warning",
-          metric: Ts(a.polygons, b.polygons),
-        });
+        a.f.parentObjectId === b.f.id ||
+        b.f.parentObjectId === a.f.id ||
+        (a.f.parentObjectId && a.f.parentObjectId === b.f.parentObjectId)
+      ) {
+        continue;
+      }
+      if (
+        Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) <= 20 ||
+        Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) <= 20 ||
+        Math.min(a.z + a.f.h, b.z + b.f.h) - Math.max(a.z, b.z) <= 20
+      ) {
+        continue;
+      }
+      const pen = Ts(a.polygons, b.polygons);
+      if (pen <= 20) continue;
+      if (KU(a.f.type, b.f.type)) {
+        const aSeat = SEAT_TUCK_TYPES.has(a.f.type);
+        const bSeat = SEAT_TUCK_TYPES.has(b.f.type);
+        const aTable = TABLE_TUCK_TYPES.has(a.f.type);
+        const bTable = TABLE_TUCK_TYPES.has(b.f.type);
+        if ((aSeat && bTable) || (bSeat && aTable)) {
+          const seat = aSeat ? a : b;
+          const tbl = aSeat ? b : a;
+          const centerInside =
+            seat.f.x > tbl.x0 + 20 &&
+            seat.f.x < tbl.x1 - 20 &&
+            seat.f.y > tbl.y0 + 20 &&
+            seat.f.y < tbl.y1 - 20;
+          // Allow realistic shallow under-table seat tuck (<=180mm with chair center outside);
+          // flag deeper penetration or chair center inside table as a real overlap!
+          if (!centerInside && pen <= 180) continue;
+          issues.push({
+            code: "POSSIBLE_OVERLAP",
+            objectIds: [a.f.id, b.f.id],
+            message: `${a.f.name} 与 ${b.f.name} 重叠过深（侵入 ${Math.round(pen)} mm），超出合理入座推入深度`,
+            level: "warning",
+            metric: pen,
+          });
+        }
+        continue;
+      }
+      issues.push({
+        code: "POSSIBLE_OVERLAP",
+        objectIds: [a.f.id, b.f.id],
+        message: `${a.f.name} 与 ${b.f.name} 的参数化轮廓及高度区间重叠，请检查实际形状`,
+        level: "warning",
+        metric: pen,
+      });
     }
   for (const { f, polygons, z } of boxes)
     for (const w of geo.active) {

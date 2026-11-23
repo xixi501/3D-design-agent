@@ -160,6 +160,8 @@ export function safetyRoutes(
       fixableAfter: repaired.fixableAfter,
       resolvedCodes: repaired.resolvedCodes,
       remainingIssues: repaired.remainingIssues,
+      semanticPenaltyBefore: repaired.semanticPenaltyBefore,
+      semanticPenaltyAfter: repaired.semanticPenaltyAfter,
       elapsedMs: repaired.elapsedMs,
       summary: repaired.summary,
       checks: checkScene(finalProject.plan),

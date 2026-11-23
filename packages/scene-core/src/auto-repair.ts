@@ -49,6 +49,8 @@ export interface AutoRepairResult {
   fixableAfter: number;
   resolvedCodes: string[];
   remainingIssues: any[];
+  semanticPenaltyBefore?: number;
+  semanticPenaltyAfter?: number;
   elapsedMs: number;
   summary: string;
 }
@@ -281,6 +283,147 @@ function inTvSofaCorridor(
   return boxesOverlap2d(box, corr, -40);
 }
 
+interface ChairCluster {
+  chairs: Furniture[];
+  bboxCx: number;
+  bboxCy: number;
+  rayCx: number;
+  rayCy: number;
+  preferredRots: number[];
+}
+
+function findOrphanedChairClusters(
+  plan: Plan,
+  selfTableId: string,
+  region: RoomRegionInfo | undefined,
+  tableRef?: Furniture,
+): ChairCluster[] {
+  const peers = plan.furniture.filter(
+    (o) =>
+      o.id !== selfTableId &&
+      !DECOR_COVERINGS.has(o.key) &&
+      !isSurfaceItem(o) &&
+      (!region || pointInRects(o.x, o.y, region.rects, -120)),
+  );
+  const otherTables = peers.filter(
+    (p) => furnitureRole(p) === "diningTable" || p.type === "teaTable",
+  );
+  const allChairs = peers.filter((p) => furnitureRole(p) === "diningChair");
+  if (!allChairs.length) return [];
+
+  // A chair is already served if another dining table sits right in front of it
+  const orphaned = allChairs.filter((ch) => {
+    const chBox = rotatedAabb(ch);
+    const chFwd = facingVec(ch.rot);
+    for (const t of otherTables) {
+      const tb = rotatedAabb(t);
+      const gap = boxEdgeGap(chBox, tb);
+      if (gap > 520) continue;
+      const vx = t.x - ch.x;
+      const vy = t.y - ch.y;
+      const len = Math.max(1, Math.hypot(vx, vy));
+      const dot = (vx * chFwd.dx + vy * chFwd.dy) / len;
+      if (dot > 0.35) return false;
+    }
+    return true;
+  });
+  if (!orphaned.length) return [];
+
+  // Connected-components clustering within 2500mm
+  const visited = new Set<string>();
+  const clusters: ChairCluster[] = [];
+  const tblHalfW = (tableRef?.w || 1400) / 2;
+  const tblHalfD = (tableRef?.d || 900) / 2;
+  for (const seed of orphaned) {
+    if (visited.has(seed.id)) continue;
+    const comp: Furniture[] = [];
+    const queue: Furniture[] = [seed];
+    visited.add(seed.id);
+    while (queue.length) {
+      const cur = queue.shift()!;
+      comp.push(cur);
+      for (const nxt of orphaned) {
+        if (visited.has(nxt.id)) continue;
+        if (Math.hypot(nxt.x - cur.x, nxt.y - cur.y) <= 2500) {
+          visited.add(nxt.id);
+          queue.push(nxt);
+        }
+      }
+    }
+    const xs = comp.map((c) => c.x);
+    const ys = comp.map((c) => c.y);
+    const bboxCx = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const bboxCy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    let rx = 0;
+    let ry = 0;
+    let nsCount = 0;
+    let ewCount = 0;
+    for (const c of comp) {
+      const fv = facingVec(c.rot);
+      const isNS = fv.dy !== 0;
+      if (isNS) nsCount++;
+      else ewCount++;
+      const halfSpan = isNS ? tblHalfD : tblHalfW;
+      const pushDist = (c.d || 520) / 2 + halfSpan + 140;
+      rx += c.x + fv.dx * pushDist;
+      ry += c.y + fv.dy * pushDist;
+    }
+    rx /= comp.length;
+    ry /= comp.length;
+    const preferredRots =
+      nsCount >= ewCount ? [0, 90] : [90, 0];
+    clusters.push({
+      chairs: comp,
+      bboxCx,
+      bboxCy,
+      rayCx: rx,
+      rayCy: ry,
+      preferredRots,
+    });
+  }
+  return clusters.sort((a, b) => b.chairs.length - a.chairs.length);
+}
+
+function findOrphanedNightstands(
+  plan: Plan,
+  selfBedId: string,
+  region: RoomRegionInfo | undefined,
+): Furniture[] {
+  const peers = plan.furniture.filter(
+    (o) =>
+      o.id !== selfBedId &&
+      !DECOR_COVERINGS.has(o.key) &&
+      !isSurfaceItem(o) &&
+      (!region || pointInRects(o.x, o.y, region.rects, -120)),
+  );
+  const otherBeds = peers.filter((p) => furnitureRole(p) === "bed");
+  return peers.filter((p) => {
+    if (furnitureRole(p) !== "nightstand") return false;
+    const nb = rotatedAabb(p);
+    return !otherBeds.some((b) => boxEdgeGap(nb, rotatedAabb(b)) <= 450);
+  });
+}
+
+function findOrphanedOfficeChairs(
+  plan: Plan,
+  selfDeskId: string,
+  region: RoomRegionInfo | undefined,
+): Furniture[] {
+  const peers = plan.furniture.filter(
+    (o) =>
+      o.id !== selfDeskId &&
+      !DECOR_COVERINGS.has(o.key) &&
+      !isSurfaceItem(o) &&
+      (!region || pointInRects(o.x, o.y, region.rects, -120)),
+  );
+  const otherDesks = peers.filter((p) => furnitureRole(p) === "desk");
+  return peers.filter((p) => {
+    if (furnitureRole(p) !== "officeChair") return false;
+    const cb = rotatedAabb(p);
+    return !otherDesks.some((d) => boxEdgeGap(cb, rotatedAabb(d)) <= 450);
+  });
+}
+
 function itemSemanticPenalty(
   plan: Plan,
   f: Furniture,
@@ -394,18 +537,45 @@ function itemSemanticPenalty(
       if (lat > 700) pen += Math.min(1800, (lat - 700) * 0.8);
     }
   } else if (role === "diningTable") {
-    const chairs = byRole("diningChair");
-    if (chairs.length >= 2) {
-      let cx = 0;
-      let cy = 0;
-      for (const ch of chairs) {
-        cx += ch.x;
-        cy += ch.y;
+    const orphanedClusters = findOrphanedChairClusters(plan, f.id, region, f);
+    if (orphanedClusters.length > 0) {
+      // Strongly attract diningTable back into the exact center of its orphaned chair ring!
+      let bestDist = Infinity;
+      for (const cl of orphanedClusters) {
+        const targetX = cl.chairs.length >= 2 ? cl.bboxCx : cl.rayCx;
+        const targetY = cl.chairs.length >= 2 ? cl.bboxCy : cl.rayCy;
+        const dBbox = Math.hypot(f.x - targetX, f.y - targetY);
+        const dRay = Math.hypot(f.x - cl.rayCx, f.y - cl.rayCy);
+        bestDist = Math.min(bestDist, dBbox, dRay);
       }
-      cx /= chairs.length;
-      cy /= chairs.length;
-      const distCluster = Math.hypot(f.x - cx, f.y - cy);
-      if (distCluster > 650) pen += 3200 + Math.min(4000, (distCluster - 650) * 2.2);
+      if (bestDist > 220) {
+        pen += 3600 + Math.min(6000, (bestDist - 220) * 2.2);
+      }
+    }
+    // Multi-table symmetry alignment: when peer dining tables form a neat row or column, stay aligned!
+    const peerTables = byRole("diningTable");
+    if (peerTables.length >= 2) {
+      const sameRow =
+        Math.max(...peerTables.map((t) => t.y)) - Math.min(...peerTables.map((t) => t.y)) <= 120;
+      const sameCol =
+        Math.max(...peerTables.map((t) => t.x)) - Math.min(...peerTables.map((t) => t.x)) <= 120;
+      if (sameRow) {
+        const rowY = peerTables.reduce((s, t) => s + t.y, 0) / peerTables.length;
+        const dy = Math.abs(f.y - rowY);
+        if (dy > 250) pen += Math.min(1800, dy * 0.7);
+      } else if (sameCol) {
+        const colX = peerTables.reduce((s, t) => s + t.x, 0) / peerTables.length;
+        const dx = Math.abs(f.x - colX);
+        if (dx > 250) pen += Math.min(1800, dx * 0.7);
+      }
+    }
+    // Dining tables need walk/seating clearance around them; penalize shoving against walls or cabinets
+    if (region && region.bb.w >= 3200 && region.bb.h >= 3200) {
+      const wd = minWallDistance(f, region);
+      if (wd < 650) pen += 1100;
+    }
+    for (const cab of peers.filter((p) => furnitureRole(p) === "wallCabinet" || furnitureRole(p) === "wardrobe")) {
+      if (boxEdgeGap(box, rotatedAabb(cab)) < 450) pen += 950;
     }
     if (inTvSofaCorridor(box, tv, sofa)) pen += 2200;
   } else if (role === "diningChair") {
@@ -435,9 +605,11 @@ function itemSemanticPenalty(
     const fd = frontWallDistance(f, region);
     if (bd > 200) pen += 3000 + Math.min(1200, bd);
     if (fd < 600) pen += 2500;
-    for (const ns of byRole("nightstand")) {
+    const orphanNs = findOrphanedNightstands(plan, f.id, region);
+    for (const ns of orphanNs) {
       const gap = boxEdgeGap(box, rotatedAabb(ns));
-      if (gap > 600) pen += 1200;
+      if (gap > 450) pen += 1800 + Math.min(2000, gap * 0.8);
+      if (normalizeRot(f.rot) !== normalizeRot(ns.rot)) pen += 900;
     }
   } else if (role === "nightstand") {
     const bd = backWallDistance(f, region);
@@ -452,6 +624,11 @@ function itemSemanticPenalty(
     const fd = frontWallDistance(f, region);
     if (bd > 250) pen += 1200;
     if (fd < 600) pen += 2000;
+    const orphanCh = findOrphanedOfficeChairs(plan, f.id, region);
+    for (const ch of orphanCh) {
+      const gap = boxEdgeGap(box, rotatedAabb(ch));
+      if (gap > 450) pen += 1800 + Math.min(2000, gap * 0.9);
+    }
   } else if (role === "officeChair") {
     if (desk) {
       const gap = boxEdgeGap(box, rotatedAabb(desk));
@@ -1061,11 +1238,139 @@ function generatePoses(
         );
       }
     }
+  } else if (role === "diningTable") {
+    // 1. Orphaned dining chair clusters -> exact centroid & ray-projected center!
+    const clusters = findOrphanedChairClusters(plan, f.id, region, f);
+    for (const cl of clusters) {
+      const anchors: Array<[number, number]> = [
+        [cl.bboxCx, cl.bboxCy],
+        [cl.rayCx, cl.rayCy],
+      ];
+      for (const [ax, ay] of anchors) {
+        for (const r of cl.preferredRots) {
+          push(ax, ay, r, "semantic");
+          for (const [dx, dy] of [
+            [50, 0],
+            [-50, 0],
+            [0, 50],
+            [0, -50],
+            [100, 0],
+            [-100, 0],
+            [0, 100],
+            [0, -100],
+          ]) {
+            push(ax + dx, ay + dy, r, "semantic");
+          }
+        }
+      }
+    }
+    // 2. Peer dining table row/column symmetry anchors
+    const peerTables = roomPeers.filter((p) => furnitureRole(p) === "diningTable");
+    if (peerTables.length >= 2) {
+      const sortedX = [...peerTables].sort((a, b) => a.x - b.x);
+      const sortedY = [...peerTables].sort((a, b) => a.y - b.y);
+      const sameRow =
+        Math.max(...peerTables.map((t) => t.y)) - Math.min(...peerTables.map((t) => t.y)) <= 150;
+      if (sameRow) {
+        const rowY = peerTables.reduce((s, t) => s + t.y, 0) / peerTables.length;
+        const stepX = sortedX[1].x - sortedX[0].x;
+        if (stepX >= 1400) {
+          push(sortedX[0].x - stepX, rowY, baseRot, "semantic");
+          push(sortedX[sortedX.length - 1].x + stepX, rowY, baseRot, "semantic");
+          push((sortedX[0].x + sortedX[1].x) / 2, rowY, baseRot, "semantic");
+        }
+      }
+      const sameCol =
+        Math.max(...peerTables.map((t) => t.x)) - Math.min(...peerTables.map((t) => t.x)) <= 150;
+      if (sameCol) {
+        const colX = peerTables.reduce((s, t) => s + t.x, 0) / peerTables.length;
+        const stepY = sortedY[1].y - sortedY[0].y;
+        if (stepY >= 1400) {
+          push(colX, sortedY[0].y - stepY, baseRot, "semantic");
+          push(colX, sortedY[sortedY.length - 1].y + stepY, baseRot, "semantic");
+        }
+      }
+    }
+    // 3. Spacious open room center / quadrant fallback (away from walls)
+    if (region) {
+      const cx = region.bb.x + region.bb.w / 2;
+      const cy = region.bb.y + region.bb.h / 2;
+      for (const [tx, ty] of [
+        [0.5, 0.5],
+        [0.25, 0.5],
+        [0.75, 0.5],
+        [0.5, 0.3],
+        [0.5, 0.7],
+      ]) {
+        push(region.bb.x + region.bb.w * tx, region.bb.y + region.bb.h * ty, baseRot, "semantic");
+      }
+      push(cx, cy, (baseRot + 90) % 360, "semantic");
+    }
+  } else if (role === "bed") {
+    const orphanNs = findOrphanedNightstands(plan, f.id, region);
+    if (orphanNs.length >= 2) {
+      const sorted = [...orphanNs].sort((a, b) => a.x - b.x || a.y - b.y);
+      const ns0 = sorted[0];
+      const ns1 = sorted[sorted.length - 1];
+      const bRot = normalizeRot(ns0.rot);
+      const bb = rotatedAabb({ ...f, x: 0, y: 0, rot: bRot });
+      const bW = bb.x1 - bb.x0;
+      const bD = bb.y1 - bb.y0;
+      const mx = (ns0.x + ns1.x) / 2;
+      const my = (ns0.y + ns1.y) / 2;
+      const nb0 = rotatedAabb(ns0);
+      if (bRot === 0) push(mx, nb0.y0 + bD / 2, bRot, "semantic");
+      else if (bRot === 180) push(mx, nb0.y1 - bD / 2, bRot, "semantic");
+      else if (bRot === 270) push(nb0.x0 + bW / 2, my, bRot, "semantic");
+      else push(nb0.x1 - bW / 2, my, bRot, "semantic");
+    } else if (orphanNs.length === 1) {
+      const ns = orphanNs[0];
+      const bRot = normalizeRot(ns.rot);
+      const bb = rotatedAabb({ ...f, x: 0, y: 0, rot: bRot });
+      const bW = bb.x1 - bb.x0;
+      const bD = bb.y1 - bb.y0;
+      const nb = rotatedAabb(ns);
+      for (const gap of [80, 160]) {
+        if (bRot === 0 || bRot === 180) {
+          const y = bRot === 0 ? nb.y0 + bD / 2 : nb.y1 - bD / 2;
+          push(nb.x1 + gap + bW / 2, y, bRot, "semantic");
+          push(nb.x0 - gap - bW / 2, y, bRot, "semantic");
+        } else {
+          const x = bRot === 270 ? nb.x0 + bW / 2 : nb.x1 - bW / 2;
+          push(x, nb.y1 + gap + bD / 2, bRot, "semantic");
+          push(x, nb.y0 - gap - bD / 2, bRot, "semantic");
+        }
+      }
+    }
+  } else if (role === "desk") {
+    for (const ch of findOrphanedOfficeChairs(plan, f.id, region)) {
+      const fv = facingVec(ch.rot);
+      const dRot = normalizeRot(ch.rot + 180);
+      const db = rotatedAabb({ ...f, x: 0, y: 0, rot: dRot });
+      const dHalf = fv.dx !== 0 ? (db.x1 - db.x0) / 2 : (db.y1 - db.y0) / 2;
+      const cb = rotatedAabb(ch);
+      const cEdge = fv.dy > 0 ? cb.y1 : fv.dy < 0 ? cb.y0 : fv.dx > 0 ? cb.x1 : cb.x0;
+      for (const gap of [100, 180, 260]) {
+        const pos = cEdge + (fv.dx + fv.dy) * (gap + dHalf);
+        push(fv.dy !== 0 ? ch.x : pos, fv.dy !== 0 ? pos : ch.y, dRot, "semantic");
+      }
+    }
+  } else if (role === "armchair") {
+    for (const ct of roomPeers.filter((p) => furnitureRole(p) === "coffeeTable")) {
+      const ctb = rotatedAabb(ct);
+      const pad = Math.max(f.w, f.d) / 2 + 450;
+      push(ctb.x0 - pad, ct.y, 270, "semantic");
+      push(ctb.x1 + pad, ct.y, 90, "semantic");
+      push(ct.x, ctb.y0 - pad, 0, "semantic");
+      push(ct.x, ctb.y1 + pad, 180, "semantic");
+    }
   } else if (role === "diningChair") {
-    const tables = roomPeers.filter((t) => furnitureRole(t) === "diningTable");
+    const tables = roomPeers.filter(
+      (t) => furnitureRole(t) === "diningTable" || t.type === "teaTable",
+    );
     for (const t of tables) {
       const tb = rotatedAabb(t);
-      const pad = f.d / 2 + 80;
+      const pad = f.d / 2 + 120;
       const offsets = [-t.w * 0.28, 0, t.w * 0.28];
       for (const ox of offsets) {
         push(t.x + ox, tb.y0 - pad, 0, "semantic");
@@ -1745,6 +2050,8 @@ export function autoRepairScene(
     fixableAfter,
     resolvedCodes,
     remainingIssues: currentEval.scopedIssues,
+    semanticPenaltyBefore: initialEval.score.semanticPenalty,
+    semanticPenaltyAfter: currentEval.score.semanticPenalty,
     elapsedMs,
     summary,
   };

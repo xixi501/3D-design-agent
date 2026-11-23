@@ -640,7 +640,10 @@ function isFixableError(issue: any) {
   return (
     (issue.level === "error" ||
       issue.code === "POSSIBLE_OVERLAP" ||
-      issue.category === "overlap") &&
+      issue.category === "overlap" ||
+      String(issue.code || "").startsWith("SEISMIC_") ||
+      issue.code === "WHEELCHAIR_TURNING_BLOCKED" ||
+      issue.code === "SENSOR_BLIND_SPOT") &&
     issue.fixableByFurniture !== false
   );
 }
@@ -886,16 +889,16 @@ function confirmRepair(
   const dialog = $<HTMLDialogElement>("#repair-confirm");
   const body = $("#repair-confirm-body");
   const names = [...new Set(targetNames)];
-  body.innerHTML = `<div class="dialog-kicker">AI REPAIR</div>
-    <h2>${roomName ? `修复「${esc(roomName)}」` : "修复当前空间"}</h2>
-    <p class="muted">AI 会生成一个可检查的修复候选。只有目标问题真正消失，候选才会提交。</p>
-    <div class="repair-confirm-block"><b>本次允许调整的家具</b><ul>${names.map((name) => `<li>${esc(name)}</li>`).join("")}</ul></div>
-    <p class="muted">${total} 项可移动家具问题。不会移动墙体、门窗，也不会新增房间。${structural ? `另有 ${structural} 项结构问题需要进入结构编辑。` : ""}</p>
-    <div class="actions"><button id="repair-confirm-cancel">取消</button><button id="repair-confirm-submit" class="primary">确认并开始修复</button></div>`;
+  body.innerHTML = `<div class="dialog-kicker">SMART AUTO REPAIR</div>
+    <h2>${roomName ? `修复「${esc(roomName)}」` : "一键智能修复"}</h2>
+    <p class="muted">直接读取结构化检查结果与精确物体 ID，使用确定性几何求解引擎在房间内秒级消除重叠与净空冲突，并通过同一套检查门禁验收。</p>
+    <div class="repair-confirm-block"><b>本次定位到的目标家具</b><ul>${names.map((name) => `<li>${esc(name)}</li>`).join("")}</ul></div>
+    <p class="muted">${total} 项可移动家具问题。不会移动墙体、门窗，也不会新增房间；所有改动作为单次事务保存，支持上方随时「撤销」。${structural ? `另有 ${structural} 项结构问题需要进入结构编辑。` : ""}</p>
+    <div class="actions"><button id="repair-confirm-cancel">取消</button><button id="repair-confirm-ai">交给 AI 深度重排</button><button id="repair-confirm-submit" class="primary">⚡ 立即一键修复</button></div>`;
   dialog.showModal();
-  return new Promise<boolean>((resolve) => {
+  return new Promise<"auto" | "ai" | false>((resolve) => {
     let settled = false;
-    const finish = (value: boolean) => {
+    const finish = (value: "auto" | "ai" | false) => {
       if (settled) return;
       settled = true;
       dialog.oncancel = null;
@@ -903,12 +906,43 @@ function confirmRepair(
       resolve(value);
     };
     $("#repair-confirm-cancel").onclick = () => finish(false);
-    $("#repair-confirm-submit").onclick = () => finish(true);
+    $("#repair-confirm-ai").onclick = () => finish("ai");
+    $("#repair-confirm-submit").onclick = () => finish("auto");
     dialog.oncancel = (event) => {
       event.preventDefault();
       finish(false);
     };
   });
+}
+function buildStructuredRepairBrief(
+  plan: Plan,
+  issues: any[],
+  repairIds: string[],
+) {
+  const MAX_REPAIR_ISSUES = 8;
+  const targetLines = repairIds.map((id) => {
+    const f = plan.furniture.find((item) => item.id === id);
+    return f
+      ? `- [ID:${f.id}] ${f.name}（位置 ${Math.round(f.x)},${Math.round(f.y)}，尺寸 ${f.w}×${f.d}×${f.h} mm，角度 ${f.rot}°）`
+      : `- [ID:${id}]`;
+  });
+  const issueLines = issues.slice(0, MAX_REPAIR_ISSUES).map((iss: any) => {
+    const ids = (iss.objectIds || [])
+      .filter((id: string) => plan.furniture.some((f) => f.id === id))
+      .join(", ");
+    return `- [${iss.code || "ISSUE"}] ${iss.message}${ids ? `（涉及家具 ID: ${ids}）` : ""}`;
+  });
+  return `请作为精准布局修复 Agent，严格按以下已定位的家具 ID 与冲突项做最小必要位姿调整：
+目标家具清单：
+${targetLines.join("\n")}
+
+待消除冲突：
+${issueLines.join("\n")}
+
+硬约束：
+1. 只能移动、旋转或加装墙锚于上述目标家具 ID，不得修改未授权对象，不得移动墙体、门窗或新增房间；
+2. 若目标为台面物品，放回其宿主台面中心安全范围；
+3. 本次待消除冲突必须全部归零，不得提交仅微调几毫米的无效方案。`;
 }
 async function repairScene(roomId?: string) {
   if (!project || busy || repairing) return;
@@ -938,14 +972,14 @@ async function repairScene(roomId?: string) {
     return;
   }
   const total = issues.length;
-  if (!roomId && total > 8) {
+  if (!roomId && total > 12) {
     await openRepairScope();
     return;
   }
   const repairIds: string[] = [
     ...new Set<string>(
       issues
-        .slice(0, 8)
+        .slice(0, 12)
         .flatMap((i: any): string[] =>
           (i.objectIds || []).filter(
             (id: unknown): id is string => typeof id === "string",
@@ -954,7 +988,7 @@ async function repairScene(roomId?: string) {
         .filter((id: string) => target.plan.furniture.some((f) => f.id === id))
         .filter((id: string) => !roomId || roomFurniture.has(id)),
     ),
-  ].slice(0, 12);
+  ].slice(0, 16);
   if (!repairIds.length) {
     message("当前问题没有可授权的家具目标，请在画布中选中家具后再试。");
     return;
@@ -963,50 +997,61 @@ async function repairScene(roomId?: string) {
     const item = target.plan.furniture.find((f) => f.id === id);
     return item?.name || item?.type || id;
   });
-  if (
-    !(await confirmRepair(
-      room ? displayRoomName(room) : undefined,
-      total,
-      targetNames,
-      structural.length,
-    ))
-  )
-    return;
+  const choice = await confirmRepair(
+    room ? displayRoomName(room) : undefined,
+    total,
+    targetNames,
+    structural.length,
+  );
+  if (!choice) return;
+
   repairing = true;
   try {
-    const messages = [...new Set(issues.map((i: any) => i.message as string))];
-    const MAX_REPAIR_ISSUES = 8;
-    const lines = messages
-      .slice(0, MAX_REPAIR_ISSUES)
-      .map((message) => `- ${message}`);
-    if (messages.length > MAX_REPAIR_ISSUES)
-      lines.push(
-        `- 本次先处理前 ${MAX_REPAIR_ISSUES} 项；其余 ${messages.length - MAX_REPAIR_ISSUES} 项完成后再点一次修复`,
-      );
-    const brief = `请作为布局修复 Agent，修复当前场景的以下硬伤，只做最小必要调整：
-${lines.join("\n")}
+    if (choice === "auto") {
+      busy = true;
+      document.body.classList.add("saving");
+      saved("正在精准求解无冲突位姿…");
+      try {
+        const res = await post<any>(`/projects/${target.id}/auto-repair`, {
+          operationId: newId(),
+          baseRevision: target.revision,
+          ...(roomId ? { roomId } : {}),
+          preferredMoveIds:
+            selection?.collection === "furniture" ? [selection.id] : [],
+          includeSafety: Boolean(target.plan.source?.safetyProfile?.enabled),
+        });
+        if (res.project) {
+          await display(res.project);
+          safetyTwinPlugin?.onProjectChanged();
+        }
+        message(
+          res.applied
+            ? `✅ ${res.summary}（可点上方「撤销」还原）`
+            : `⚠️ ${res.summary}`,
+        );
+        if (!res.applied || res.fixableAfter > 0) {
+          saved(
+            res.applied
+              ? `已修复 ${res.fixableBefore - res.fixableAfter}/${res.fixableBefore} 项`
+              : "未找到无冲突位姿",
+            res.fixableAfter > 0,
+          );
+        }
+      } finally {
+        busy = false;
+        document.body.classList.remove("saving");
+      }
+      return;
+    }
 
-要求：
-1. 只移动/调整发生冲突的家具或台面物品，不移动墙体、门窗，不新增房间；
-2. 对餐椅优先围绕餐桌四周布置，对台面物品优先放回宿主台面中心/安全范围；
-3. 保持家具清单和风格不变，不要用“整体重做”规避问题；
-4. 本次目标问题必须真正消失；若无法修复，明确告诉我原因，不要提交一个只改几毫米的候选；
-5. 只能修改本次授权的 target 家具，不得把墙体/门窗 ID 当作家具。`;
-    if (brief.length > 4000)
-      throw new Error(
-        "当前问题过多，修复说明超过任务上限；请先处理当前视图附近的问题",
-      );
+    const brief = buildStructuredRepairBrief(target.plan, issues, repairIds);
     const started = await chat.requestRepair(
       brief,
       repairIds,
       roomId ? [roomId] : [],
     );
     if (started)
-      message(
-        messages.length > 8
-          ? `AI 正在处理前 ${MAX_REPAIR_ISSUES} 项（共 ${messages.length} 条唯一问题）…`
-          : "AI 修复任务已提交，正在生成可检查候选…",
-      );
+      message("AI 深度修复任务已提交，正在实时流式求解…");
   } catch (error) {
     fail(error);
   } finally {

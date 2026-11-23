@@ -94,3 +94,46 @@ def test_hybrid_floorplan_three_tier_scale_and_wall_welding():
     }
     spec_t3, meta_t3 = compile_hybrid_housespec(vlm_t3, cv_axes)
     assert "第3级" in meta_t3["scaleBasis"]
+def test_repair_layout_skips_ambiguous_name_and_allows_rotation():
+    from actiscape_agent.edit_execution import compile_scope
+    from actiscape_agent.workflow import ambiguous_name
+
+    project = {
+        "id": "p1",
+        "revision": 3,
+        "plan": {
+            "furniture": [
+                {"id": "sofa1", "key": "sofa", "type": "sofa", "name": "三人沙发", "x": 2000, "y": 2000, "w": 2000, "d": 900, "h": 850, "rot": 0},
+                {"id": "ct1", "key": "coffeeTable", "type": "table", "name": "茶几", "x": 2000, "y": 2100, "w": 1200, "d": 600, "h": 450, "rot": 0},
+                {"id": "c1", "key": "chair", "type": "chair", "name": "餐椅", "x": 5000, "y": 2000, "w": 480, "d": 480, "h": 850, "rot": 0},
+                {"id": "c2", "key": "chair", "type": "chair", "name": "餐椅", "x": 5600, "y": 2000, "w": 480, "d": 480, "h": 850, "rot": 0},
+            ],
+            "rooms": [{"id": "r1", "name": "客厅", "x": 2000, "y": 2000}],
+        },
+    }
+    task = {
+        "mode": "repair_layout",
+        "selectedIds": ["sofa1", "ct1"],
+        "input": "修复三人沙发与茶几重叠；对餐椅优先围绕餐桌布置",
+    }
+    assert ambiguous_name(task, project, {"focusIds": []}) is None
+
+    scope = compile_scope(
+        project,
+        {
+            "target_ids": ["sofa1", "ct1"],
+            "delete_ids": [],
+            "additions": [],
+            "reference_ids": [],
+            "area": "local",
+            "field_permissions": {"sofa1": ["x", "y"], "ct1": ["x", "y"]},
+            "operations": [],
+        },
+        {"choices": [], "candidate_keys": []},
+        {},
+        task_mode="repair_layout",
+        task=task,
+    )
+    assert "rot" in scope["fieldMask"]["sofa1"]
+    assert "rot" in scope["fieldMask"]["ct1"]
+    assert "targetBounds" not in scope

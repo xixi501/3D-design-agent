@@ -28,6 +28,7 @@ export * from "./actions.js";
 import { auditSafety } from "./safety-audit.js";
 export * from "./safety-audit.js";
 export * from "./mujoco-export.js";
+export * from "./auto-repair.js";
 export {
   Wc as wallGeometry,
   F0 as projectToWall,

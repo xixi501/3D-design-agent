@@ -534,33 +534,16 @@ export function initSafetyTwinPlugin(host: SafetyTwinHostBridge) {
         radarCheck: true,
         baseRevision: proj.revision,
       });
-      await host.openProject(profRes.project);
-
-      const issues: any[] = lastAudit?.safetyAudit?.issues || profRes.safetyAudit?.issues || [];
-      const targetIds = [
-        ...new Set(issues.flatMap((i: any) => i.objectIds || [])),
-      ].filter((id) => proj.plan.furniture.some((f) => f.id === id));
-
-      if (targetIds.length && host.setSelectionIds) {
-        host.setSelectionIds(targetIds as string[]);
-      }
-
-      const prompt =
-        targetIds.length > 0
-          ? "请对当前房间进行适老化与防震看护安全改造：移开阻挡 1500mm 轮椅无障碍回转圆的茶几或家具，调整遮挡鸿蒙毫米波跌倒雷达的高柜位置并靠墙避开卧床与逃生门洞，确保通过全部安全检查。"
-          : "请检查并优化当前房间的适老轮椅 1500mm 通行净空、高柜抗震安全位姿与鸿蒙毫米波雷达看护覆盖率。";
-
-      const textarea = document.querySelector<HTMLTextAreaElement>(
-        ".chat-panel textarea",
-      );
-      const sendBtn = document.querySelector<HTMLButtonElement>(
-        ".chat-panel button.primary",
-      );
-      if (textarea && sendBtn) {
-        textarea.value = prompt;
-        textarea.dispatchEvent(new Event("input", { bubbles: true }));
-        sendBtn.click();
-        host.notifyMessage("已向 AgentArts 设计搭档发送防灾适老安全改造任务");
+      const repairRes = await post<any>(`/projects/${proj.id}/auto-repair`, {
+        includeSafety: true,
+        baseRevision: profRes.project.revision,
+      });
+      await host.openProject(repairRes.project || profRes.project);
+      await runAudit();
+      if (repairRes.applied) {
+        host.notifyMessage(`🛡️ 防灾适老自动改造完成：${repairRes.summary}`);
+      } else {
+        host.notifyMessage(repairRes.summary || "当前空间已通过防灾适老与鸿蒙雷达体检");
       }
     } catch (e: any) {
       host.notifyMessage(e?.message || "呼叫 AI 安全改造失败");

@@ -1160,6 +1160,7 @@ export class ChatPanel {
           selectedIds,
           allowedRoomIds,
           mode: "repair_layout",
+          preferLocal: true,
         },
       );
       this.update(task);

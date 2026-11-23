@@ -3,6 +3,7 @@ import path from "node:path";
 import type { FastifyInstance } from "fastify";
 import {
   auditSafety,
+  autoRepairScene,
   checkScene,
   clone,
   collections,
@@ -105,6 +106,62 @@ export function safetyRoutes(
     const templateId = String((req.params as any).templateId || "");
     const { meta, plan } = buildTemplatePlan(templateId, FIXTURES_DIR);
     return { meta: { ...meta, spec: undefined }, plan };
+  });
+
+  app.post("/api/projects/:id/auto-repair", async (req) => {
+    const id = (req.params as any).id;
+    const project = store.get(id);
+    const body = (req.body as any) || {};
+    const roomId =
+      typeof body.roomId === "string" && body.roomId.trim()
+        ? body.roomId.trim()
+        : undefined;
+    const targetIds = Array.isArray(body.targetIds)
+      ? body.targetIds.filter((x: unknown): x is string => typeof x === "string")
+      : undefined;
+    const preferredMoveIds = Array.isArray(body.preferredMoveIds)
+      ? body.preferredMoveIds.filter(
+          (x: unknown): x is string => typeof x === "string",
+        )
+      : undefined;
+    const includeSafety = Boolean(
+      body.includeSafety || project.plan.source?.safetyProfile?.enabled,
+    );
+    const repaired = autoRepairScene(project.plan, {
+      roomId,
+      targetIds,
+      preferredMoveIds,
+      includeSafety,
+    });
+    let finalProject = project;
+    let applied = false;
+    if (repaired.commands.length > 0) {
+      const result = store.mutate(id, "commands", {
+        operationId:
+          body.operationId || `auto-repair-${crypto.randomUUID()}`,
+        baseRevision: body.baseRevision ?? project.revision,
+        summary: repaired.summary.slice(0, 200),
+        commands: repaired.commands,
+      });
+      finalProject = result.project;
+      applied = true;
+      if (!result.replayed) notify(id, result.project.revision);
+    }
+    return {
+      project: finalProject,
+      applied,
+      changes: repaired.changes,
+      issuesBefore: repaired.issuesBefore,
+      issuesAfter: repaired.issuesAfter,
+      fixableBefore: repaired.fixableBefore,
+      fixableAfter: repaired.fixableAfter,
+      resolvedCodes: repaired.resolvedCodes,
+      remainingIssues: repaired.remainingIssues,
+      elapsedMs: repaired.elapsedMs,
+      summary: repaired.summary,
+      checks: checkScene(finalProject.plan),
+      ...(includeSafety ? { safetyAudit: auditSafety(finalProject.plan) } : {}),
+    };
   });
 
   app.post("/api/projects/:id/apply-style-pack", async (req) => {

@@ -61,6 +61,8 @@ class State(TypedDict, total=False):
 
 def ambiguous_name(task: dict, project: dict, conversation: dict) -> str | None:
     """Conservative guard for duplicated, unqualified display names, independent of model confidence."""
+    if task.get("mode") == "repair_layout" and (task.get("selectedIds") or []):
+        return None
     text = task["input"]
     if conversation["focusIds"] and any(
         word in text for word in ("它", "这把", "这盏", "这件", "刚才")

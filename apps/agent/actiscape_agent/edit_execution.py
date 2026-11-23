@@ -148,10 +148,21 @@ def compile_scope(
 
     if task_mode == "repair_layout":
         scope["checkProfile"] = "strict-repair"
+        safety_active = bool(
+            ((project.get("plan") or {}).get("source") or {})
+            .get("safetyProfile", {})
+            .get("enabled")
+        )
+        for tid in targets:
+            allowed_fields = list(dict.fromkeys(list(permissions.get(tid, [])) + ["x", "y", "rot"]))
+            if safety_active and "opt" not in allowed_fields:
+                allowed_fields.append("opt")
+            permissions[tid] = allowed_fields
+        scope["fieldMask"] = permissions
     allowed_room_ids = (task or {}).get("allowedRoomIds") or []
     if allowed_room_ids:
         scope["allowedRoomIds"] = list(dict.fromkeys(allowed_room_ids))
-    if intent["area"] == "local" and (counts or (targets and not intent.get("operations"))):
+    if task_mode != "repair_layout" and intent["area"] == "local" and (counts or (targets and not intent.get("operations"))):
         anchors = [furniture[id] for id in set(references + targets)]
         if not anchors:
             raise TaskError("NEEDS_INPUT", "请选中新增家具附近的参考对象，或说明放在房间哪个区域")

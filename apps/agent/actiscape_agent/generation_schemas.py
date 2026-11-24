@@ -112,6 +112,8 @@ _ROOM_PRIORS_M: dict[str, tuple[float, float]] = {
     "entry": (2.6, 2.2),
     "multipurpose": (4.2, 3.6),
     "circulation": (4.0, 1.6),
+    "teaching_lab": (9.0, 6.6),
+    "seminar_classroom": (7.2, 5.6),
 }
 
 
@@ -122,6 +124,10 @@ def is_autonomous_delegation(user_input: str) -> bool:
 
 def _infer_room_purpose_from_text(user_input: str) -> str:
     t = (user_input or "").strip()
+    if any(k in t for k in ("实验室", "理化", "生物实验", "化学实验", "物理实验", "实训室", "实验教室")):
+        return "teaching_lab"
+    if any(k in t for k in ("研讨室", "多媒体教室", "虚拟教学", "培训室", "教室")):
+        return "seminar_classroom"
     if "客餐厅" in t or ("客厅" in t and "餐" in t):
         return "living_dining"
     if any(k in t for k in ("餐厅", "饭厅", "宴会厅", "餐饮", "餐桌")):
@@ -174,7 +180,8 @@ def _enrich_autonomous_furniture(
     merged: list[dict[str, Any]] = [dict(item) for item in base_furniture]
     chair_q = (style_pack or {}).get("diningChairQuery", "餐椅")
 
-    table_count_override = _parse_cn_count(user_input, "餐桌|圆桌|长桌|桌子", default_vague=3)
+    is_edu_room = bool(room and room.id in ("teaching_lab", "seminar_classroom"))
+    table_count_override = None if is_edu_room else _parse_cn_count(user_input, "餐桌|圆桌|长桌|桌子", default_vague=3)
     has_table = any("桌" in item["query"] and "书桌" not in item["query"] for item in merged)
     if table_count_override is not None:
         preferred_table_q = "圆餐桌" if (table_count_override >= 2 and "长桌" not in user_input) else "餐桌"

@@ -72,6 +72,15 @@ const SURFACE_HOST_KEYS = new Set([
   "uCounter",
   "island",
   "kitchenIsland",
+  "conferenceTable",
+  "trainingTable",
+  "curveTrainingTable",
+  "workbench",
+  "pantryCounter",
+  "barCounter",
+  "deskBench2",
+  "deskBench4",
+  "lectern",
 ]);
 
 export function openableSpec(f: Furniture): OpenableSpec | undefined {

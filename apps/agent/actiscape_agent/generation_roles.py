@@ -20,7 +20,7 @@ BRIEF_PROMPT = (
     RULES
     + """你是主控 Agent，负责把用户原话整理为 GenerationRequest。先调用 generation_context 读取当前信息。
 只提取用户明确提供的信息；缺少的数据必须为 null，不得猜测净尺寸、入口或窗的位置。原文未提是否有窗，windows=null；明确无窗才返回 windows=[]。
-purpose 只能从输入 roomTypes 的 active ID 中选择；客餐厅、独立餐厅(dining_hall)、茶室(tea_room)、影音室(media_room)、儿童房(kids_room)、多功能榻榻米(multipurpose)、主卧、次卧、书房、厨房、卫生间、玄关和过道都在支持范围；若用户提到“自由发挥/你定/默认/[自主发挥]/几张桌子”，请正常提取 purpose、style 与用户提到的家具（如“几张桌子”填 count=3 的餐桌），缺少的尺寸门窗保持 null 交由系统先验自动补全，不要返回 unsupported。
+purpose 只能从输入 roomTypes 的 active ID 中选择；客餐厅、独立餐厅(dining_hall)、茶室(tea_room)、影音室(media_room)、儿童房(kids_room)、多功能榻榻米(multipurpose)、理化生物教学实验室(teaching_lab)、多媒体研讨教室(seminar_classroom)、主卧、次卧、书房、厨房、卫生间、玄关和过道都在支持范围；若用户提到“自由发挥/你定/默认/[自主发挥]/几张桌子”，请正常提取 purpose、style 与用户提到的家具（如“几张桌子”填 count=3 的餐桌），缺少的尺寸门窗保持 null 交由系统先验自动补全，不要返回 unsupported。
 width 是横向室内净宽，depth 是纵向室内净深。尺寸保留原始数值和 mm/cm/m 单位，不自行换算，不把面积当长宽。
 北/上 north，东/右 east，南/下 south，西/左 west。明确“居中”才 position=center；明确距离则 position=offset，水平从左侧量开口起点、竖直从上侧量。
 只说“靠左/靠右”等而没有距离，position=null，并提出补充问题。不要擅自给 400、500 等位置。
@@ -52,7 +52,8 @@ DESIGN_PROMPT = (
 在最终返回前必须调用 precheck_initialization 检查整个方案。根据具体检查结果与尺寸修正，不能只改摘要。
 若 repairDirective 存在，优先执行其中的 action（如 clear_openable_envelope、rehost_or_floor_surface_item、separate_objects）并只移动 objectIds；不得扩大房间、改门窗或减少规定数量。
 若 lastReport 不为空，应改变产生问题的位置和朝向；不能重复同一无效位置。
-summary 简短说明区域组织和主要阅读座位。先确保几何正确，再考虑美观。
+若房间为理化生物教学实验室(teaching_lab)或多媒体研讨教室(seminar_classroom)，优先遵循教学活动单元（EAU）排布：黑板/白板/投影幕布居中靠北墙、讲台置前朝学生区、实验岛台/会议桌居中成排留足通道、玻璃门展示柜/储物柜/书架靠侧墙正朝室内并留 >=450 mm 开启净空，严禁混入床铺或居家沙发。
+summary 简短说明区域组织和主要座位/教学区。先确保几何正确，再考虑美观。
 """
 )
 CHECK_PROMPT = (
@@ -130,6 +131,22 @@ class GenerationRoles:
                 "书柜": ["书柜", "书架"],
                 "餐椅": ["餐椅", "chair"],
                 "阅读椅": ["单人沙发", "armchair"],
+                "黑板": ["上下升降黑板", "slidingBoard"],
+                "上下升降黑板": ["上下升降黑板", "slidingBoard"],
+                "白板": ["移动白板", "whiteboard"],
+                "幕布": ["投影幕布", "projScreen"],
+                "讲台": ["可升降讲台", "lectern"],
+                "实验台": ["中岛台", "kitchenIsland", "工具台"],
+                "实验操作台": ["中岛台", "kitchenIsland"],
+                "演示台": ["中岛台", "kitchenIsland"],
+                "圆凳": ["圆凳", "stool"],
+                "实验凳": ["圆凳", "stool"],
+                "器材柜": ["展示柜", "displayCabinet", "储物柜"],
+                "玻璃门展示柜": ["展示柜", "displayCabinet"],
+                "玻璃门器材柜": ["展示柜", "displayCabinet"],
+                "标本柜": ["展示柜", "displayCabinet"],
+                "研讨桌": ["会议桌", "conferenceTable", "培训桌"],
+                "研讨椅": ["培训椅", "trainingChair"],
             }
             result = []
             for query in queries[:50]:

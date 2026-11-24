@@ -11,7 +11,7 @@ export interface SceneGalleryHostBridge {
 interface TemplateMeta {
   id: string;
   name: string;
-  tier: "single" | "suite" | "full_home" | "safety_lab";
+  tier: "edu_lab" | "single" | "suite" | "full_home" | "safety_lab";
   tierLabel: string;
   styleId: string;
   styleLabel: string;
@@ -188,6 +188,7 @@ const GALLERY_CSS = `
   color: #5a5246;
   font-weight: 600;
 }
+.sg-badge.tier-edu_lab { background: #dcfce7; color: #166534; }
 .sg-badge.tier-suite { background: #e0f2fe; color: #0369a1; }
 .sg-badge.tier-full_home { background: #fef3c7; color: #b45309; }
 .sg-badge.tier-safety_lab { background: #fee2e2; color: #b91c1c; }
@@ -356,6 +357,7 @@ export function initSceneGalleryPlugin(host: SceneGalleryHostBridge) {
     const hasRooms = !!cur?.plan.rooms.length;
     const tiers: Array<[string, string]> = [
       ["all", `全部 (${templates.length})`],
+      ["edu_lab", "教学实验样板"],
       ["single", "精品单间"],
       ["suite", "连通套间"],
       ["full_home", "单层复杂全屋"],

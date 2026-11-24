@@ -547,6 +547,96 @@
           "count": 1
         }
       ]
+    },
+    {
+      "id": "teaching_lab",
+      "label": "理化生物教学实验室",
+      "status": "active",
+      "skillRoomKind": "multipurpose",
+      "skillIds": [
+        "studio-micro",
+        "tatami-multipurpose"
+      ],
+      "floorMaterial": "tile",
+      "wallMaterial": "latexWhite",
+      "policy": {
+        "geometry": "rectangular_v1",
+        "checks": [
+          "room_bounds",
+          "door_clearance"
+        ]
+      },
+      "defaultFurniture": [
+        {
+          "query": "上下升降黑板",
+          "count": 1
+        },
+        {
+          "query": "可升降讲台",
+          "count": 1
+        },
+        {
+          "query": "中岛台",
+          "count": 2
+        },
+        {
+          "query": "圆凳",
+          "count": 4
+        },
+        {
+          "query": "展示柜",
+          "count": 2
+        },
+        {
+          "query": "储物柜",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "seminar_classroom",
+      "label": "多媒体研讨教室",
+      "status": "active",
+      "skillRoomKind": "multipurpose",
+      "skillIds": [
+        "studio-micro",
+        "tatami-multipurpose"
+      ],
+      "floorMaterial": "oak",
+      "wallMaterial": "latexWhite",
+      "policy": {
+        "geometry": "rectangular_v1",
+        "checks": [
+          "room_bounds",
+          "door_clearance"
+        ]
+      },
+      "defaultFurniture": [
+        {
+          "query": "移动白板",
+          "count": 1
+        },
+        {
+          "query": "投影幕布",
+          "count": 1
+        },
+        {
+          "query": "会议桌",
+          "count": 1
+        },
+        {
+          "query": "培训椅",
+          "count": 6
+        },
+        {
+          "query": "书架",
+          "count": 1
+        },
+        {
+          "query": "储物柜",
+          "count": 1
+        }
+      ]
     }
   ],
   "categories": [

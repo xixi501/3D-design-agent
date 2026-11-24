@@ -262,7 +262,7 @@ export function compileSafeHouseSpec(
 export interface ShowcaseTemplateMeta {
   id: string;
   name: string;
-  tier: "single" | "suite" | "full_home" | "safety_lab";
+  tier: "edu_lab" | "single" | "suite" | "full_home" | "safety_lab";
   tierLabel: string;
   styleId: string;
   styleLabel: string;
@@ -276,6 +276,147 @@ export interface ShowcaseTemplateMeta {
 }
 
 export const SHOWCASE_TEMPLATES: ShowcaseTemplateMeta[] = [
+  {
+    id: "bio-chem-teaching-lab",
+    name: "演境 · 基础理化与生物教学实验室",
+    tier: "edu_lab",
+    tierLabel: "教学实验样板",
+    styleId: "modern",
+    styleLabel: "🧪 理化生物实验室",
+    roomCount: 1,
+    areaSummary: "9.2m × 6.8m（62.6㎡ · 22 件参数化教学设施）",
+    highlights: [
+      "上下升降黑板 + 投影幕布 + 可升降讲台 + 教师演示实验台",
+      "4 组学生分组实验岛台与 8 把圆凳，通道 ≥ 1100 mm",
+      "2 个可开合玻璃门器材标本柜 + 备品清洗台，支持一键放入 3D 实验仪器并导出 VR GLB",
+    ],
+    anchorTallCabinets: true,
+    spec: {
+      name: "演境 · 基础理化与生物教学实验室",
+      height: 3000,
+      phase: "original",
+      autoElec: false,
+      walls: [
+        { a: [0, 0], b: [9200, 0], t: 200, bearing: true },
+        {
+          a: [9200, 0],
+          b: [9200, 6800],
+          t: 200,
+          bearing: true,
+          openings: [
+            { type: "window", from: 1200, to: 3000, sill: 950, head: 2450 },
+            { type: "window", from: 4000, to: 5800, sill: 950, head: 2450 },
+          ],
+        },
+        {
+          a: [9200, 6800],
+          b: [0, 6800],
+          t: 200,
+          bearing: true,
+          openings: [{ type: "door", from: 4050, to: 5150, into: [4600, 5600] }],
+        },
+        { a: [0, 6800], b: [0, 0], t: 200, bearing: true },
+      ],
+      rooms: [
+        {
+          at: [4600, 3400],
+          name: "基础理化与生物教学实验室",
+          mat: "tile",
+          wallMat: "latexWhite",
+          ceil: { type: "none" },
+        },
+      ],
+      furniture: [
+        { key: "slidingBoard", at: [4400, 220], rot: 0, name: "上下升降教学黑板" },
+        { key: "projScreen", at: [7550, 170], rot: 0, name: "教学投影幕布" },
+        { key: "lectern", at: [2350, 1150], rot: 0, name: "教师可升降讲台" },
+        { key: "kitchenIsland", at: [5200, 1150], rot: 0, name: "教师演示实验台" },
+        { key: "kitchenIsland", at: [3000, 3000], rot: 0, name: "学生实验台 A1（显微观察）" },
+        { key: "stool", at: [2550, 3720], rot: 180, name: "实验圆凳 A1-1" },
+        { key: "stool", at: [3450, 3720], rot: 180, name: "实验圆凳 A1-2" },
+        { key: "kitchenIsland", at: [6000, 3000], rot: 0, name: "学生实验台 A2（化学滴定）" },
+        { key: "stool", at: [5550, 3720], rot: 180, name: "实验圆凳 A2-1" },
+        { key: "stool", at: [6450, 3720], rot: 180, name: "实验圆凳 A2-2" },
+        { key: "kitchenIsland", at: [3000, 4900], rot: 0, name: "学生实验台 B1（生物切片）" },
+        { key: "stool", at: [2550, 5620], rot: 180, name: "实验圆凳 B1-1" },
+        { key: "stool", at: [3450, 5620], rot: 180, name: "实验圆凳 B1-2" },
+        { key: "kitchenIsland", at: [6000, 4900], rot: 0, name: "学生实验台 B2（酸碱中和）" },
+        { key: "stool", at: [5550, 5620], rot: 180, name: "实验圆凳 B2-1" },
+        { key: "stool", at: [6450, 5620], rot: 180, name: "实验圆凳 B2-2" },
+        { key: "displayCabinet", at: [320, 1850], rot: 270, name: "玻璃门仪器标本柜 1" },
+        { key: "displayCabinet", at: [320, 3150], rot: 270, name: "玻璃门仪器标本柜 2" },
+        { key: "lockers", at: [345, 4800], rot: 270, name: "实验护目镜与实验服储物柜" },
+        { key: "pantryCounter", at: [8620, 2100], rot: 90, name: "实验备品清洗台 1" },
+        { key: "pantryCounter", at: [8620, 4600], rot: 90, name: "实验备品清洗台 2" },
+        { key: "fileCabinet", at: [8800, 6220], rot: 90, name: "实验安全记录与试剂台账柜" },
+      ],
+    },
+  },
+  {
+    id: "multimedia-seminar-room",
+    name: "演境 · 跨学科多媒体研讨教室",
+    tier: "edu_lab",
+    tierLabel: "教学实验样板",
+    styleId: "modern",
+    styleLabel: "🎓 多媒体研讨室",
+    roomCount: 1,
+    areaSummary: "7.6m × 5.8m（44.1㎡ · 14 件教学研讨设施）",
+    highlights: [
+      "移动白板 + 悬挂投影幕布 + 移动会议平板 + 讲台",
+      "6 座协作研讨长桌活动组，支持小组讨论与虚拟教学展示",
+      "西墙书架与储物柜开启净空与南门通行全量校验通过",
+    ],
+    anchorTallCabinets: true,
+    spec: {
+      name: "演境 · 跨学科多媒体研讨教室",
+      height: 3000,
+      phase: "original",
+      autoElec: false,
+      walls: [
+        { a: [0, 0], b: [7600, 0], t: 200, bearing: true },
+        {
+          a: [7600, 0],
+          b: [7600, 5800],
+          t: 200,
+          bearing: true,
+          openings: [{ type: "window", from: 1800, to: 4000, sill: 950, head: 2450 }],
+        },
+        {
+          a: [7600, 5800],
+          b: [0, 5800],
+          t: 200,
+          bearing: true,
+          openings: [{ type: "door", from: 3250, to: 4350, into: [3800, 4600] }],
+        },
+        { a: [0, 5800], b: [0, 0], t: 200, bearing: true },
+      ],
+      rooms: [
+        {
+          at: [3800, 2900],
+          name: "跨学科多媒体研讨室",
+          mat: "oak",
+          wallMat: "latexWhite",
+          ceil: { type: "none" },
+        },
+      ],
+      furniture: [
+        { key: "whiteboard", at: [2000, 200], rot: 0, name: "书写白板" },
+        { key: "projScreen", at: [4600, 170], rot: 0, name: "投影幕布" },
+        { key: "mobileDisplay", at: [6450, 1100], rot: 0, name: "交互智慧屏" },
+        { key: "lectern", at: [2200, 1250], rot: 0, name: "可升降讲台" },
+        { key: "conferenceTable", at: [4100, 3100], rot: 0, name: "跨学科研讨长桌" },
+        { key: "trainingChair", at: [3100, 2220], rot: 0, name: "研讨椅 1" },
+        { key: "trainingChair", at: [4100, 2220], rot: 0, name: "研讨椅 2" },
+        { key: "trainingChair", at: [5100, 2220], rot: 0, name: "研讨椅 3" },
+        { key: "trainingChair", at: [3100, 3980], rot: 180, name: "研讨椅 4" },
+        { key: "trainingChair", at: [4100, 3980], rot: 180, name: "研讨椅 5" },
+        { key: "trainingChair", at: [5100, 3980], rot: 180, name: "研讨椅 6" },
+        { key: "bookshelf", at: [300, 1650], rot: 270, name: "专业资料书架" },
+        { key: "lockers", at: [345, 3400], rot: 270, name: "教学设备储物柜" },
+        { key: "plant", at: [6900, 5050], rot: 0, name: "室内绿植" },
+      ],
+    },
+  },
   {
     id: "euro-banquet-dining",
     name: "演境 · 欧式古典三桌宴会餐厅",

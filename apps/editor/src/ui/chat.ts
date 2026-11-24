@@ -79,6 +79,8 @@ const ROOM_PURPOSE_LABELS: Record<string, string> = {
   media_room: "沉浸影音厅",
   kids_room: "儿童成长房",
   multipurpose: "榻榻米多功能房",
+  teaching_lab: "理化生物教学实验室",
+  seminar_classroom: "多媒体研讨教室",
 };
 
 const STYLE_OPTIONS = [
@@ -313,7 +315,7 @@ export class ChatPanel {
   );
   private floorplanFile = node("input");
   private floorplanHybridMode = true;
-  private photoUpload = node("button", "上传物品照片转 3D");
+  private photoUpload = node("button", "📷 实物照片转 3D · 资产一键入场");
   private settledNoticeKey?: string;
   private autoOpenedHybridTask?: string;
   private confirmBeforeCommit = !new URLSearchParams(location.search).has("debug") &&
@@ -329,6 +331,7 @@ export class ChatPanel {
   private styleHint = "";
   private selectedStyleId = "";
   onPhotoImport?: () => void;
+  private lastGeneratedAsset?: { id: string; name: string };
   private projectId?: string;
   private conversationId?: string;
   private tasks: any[] = [];
@@ -446,6 +449,8 @@ export class ChatPanel {
     form.append(this.freePlayRow, this.confirmCommitRow, this.input, actions);
 
     this.quick.append(
+      this.suggestion("试试：生成一个 9.0×6.6 米的基础理化教学实验室，自由发挥"),
+      this.suggestion("试试：生成一个 7.2×5.6 米的多媒体研讨教室，自由发挥"),
       this.suggestion("试试：生成一个有几张桌子的餐厅，风格为欧式，剩余你自由发挥"),
       this.suggestion("试试：生成一套新中式两室两厅一厨一卫全屋方案，自由发挥"),
       this.suggestion("试试：生成一个适老康养主卧带衣帽间和无障碍独卫套间"),
@@ -1398,6 +1403,11 @@ export class ChatPanel {
       try {
         previous = JSON.parse(localStorage.getItem(pendingKey) || "null");
       } catch {}
+      const wantsRecentAsset =
+        !current &&
+        !!this.lastGeneratedAsset &&
+        /(放到|放在|摆到|摆上|落位|吸附|入场)/.test(typed) &&
+        /(照片|图片|显微镜|锥形瓶|烧杯|器材|仪器|教具|标本|模型|刚生成|它)/.test(typed);
       const body =
         previous?.signature === signature
           ? previous.body
@@ -1406,8 +1416,11 @@ export class ChatPanel {
               projectId: this.projectId,
               input,
               selectedIds: context.selectedIds,
+              ...(wantsRecentAsset && this.lastGeneratedAsset
+                ? { mode: "photo_to_scene", assetId: this.lastGeneratedAsset.id }
+                : {}),
               ...(isBlankGen ? { preferLocal: true } : {}),
-              ...(!current && this.mode() !== "edit"
+              ...(!current && !wantsRecentAsset && this.mode() !== "edit"
                 ? { mode: this.mode() }
                 : {}),
             };
@@ -1592,6 +1605,58 @@ export class ChatPanel {
     } catch (error) {
       this.notice.textContent = (error as Error).message;
       await this.load();
+    } finally {
+      this.sending = false;
+      this.render();
+    }
+  }
+
+  public setLastGeneratedAsset(asset: { id: string; name: string }) {
+    this.lastGeneratedAsset = { id: asset.id, name: asset.name };
+  }
+
+  public async submitPhotoPlacement(
+    asset: { id: string; name: string; w: number; d: number; h: number },
+    hostId?: string,
+    hostName?: string,
+  ): Promise<any> {
+    if (!this.projectId) throw new Error("请先打开一个项目再放置资产");
+    if (this.current()) throw new Error("当前已有进行中的 AI 任务，请等待完成或先取消");
+    this.lastGeneratedAsset = { id: asset.id, name: asset.name };
+    this.sending = true;
+    this.notice.textContent = `正在通过台面支撑校验将「${asset.name}」自动入场…`;
+    this.render();
+    try {
+      if (!this.conversationId) await this.load();
+      if (!this.conversationId) throw new Error("设计助手暂不可用");
+      const targetDesc =
+        hostId === "__floor__"
+          ? "放地面"
+          : hostId && hostId !== "__auto__" && hostName
+            ? `放到「${hostName}」台面上`
+            : "自动匹配最佳可用台面并经台面支撑 DAG 吸附入场";
+      const payload: Record<string, any> = {
+        requestId: safeUuid(),
+        projectId: this.projectId,
+        input: `将已标定 3D 资产「${asset.name}」（${Math.round(asset.w)}×${Math.round(asset.d)}×${Math.round(asset.h)} mm）${targetDesc}`,
+        mode: "photo_to_scene",
+        assetId: asset.id,
+        selectedIds:
+          hostId && hostId !== "__auto__" && hostId !== "__floor__" ? [hostId] : [],
+      };
+      if (hostId && hostId !== "__auto__") {
+        payload.hostId = hostId;
+      }
+      const task = await post<any>(
+        `/agent/conversations/${this.conversationId}/tasks`,
+        payload,
+      );
+      this.update(task);
+      this.watchActive();
+      return task;
+    } catch (error) {
+      this.notice.textContent = (error as Error).message;
+      throw error;
     } finally {
       this.sending = false;
       this.render();

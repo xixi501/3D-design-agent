@@ -40,6 +40,8 @@ const ROOM_KIND_BY_TYPE: Record<string, SceneRoomKind> = {
   dining_hall: "living_dining",
   tea_room: "multipurpose",
   media_room: "multipurpose",
+  teaching_lab: "multipurpose",
+  seminar_classroom: "multipurpose",
   other: "other",
 };
 

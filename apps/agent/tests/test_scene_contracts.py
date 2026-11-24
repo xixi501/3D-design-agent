@@ -40,6 +40,8 @@ def test_scene_registry_is_versioned_data_and_catalogue_keys_are_real():
         "media_room",
         "kids_room",
         "multipurpose",
+        "teaching_lab",
+        "seminar_classroom",
     }
     catalogue = json.loads((ROOT / "fixtures/catalog.json").read_text())
     unknown = {

@@ -430,7 +430,7 @@ const chat = new ChatPanel(
       $("#empty-state").classList.add("is-hidden");
   },
 );
-chat.onPhotoImport = () => $<HTMLInputElement>("#photo-file").click();
+chat.onPhotoImport = () => void openPhotoAssetHub();
 chat.onTaskSettled = (task) => {
   if (task.projectId && project?.id && task.projectId !== project.id) return;
   if (task.status === "completed") {
@@ -1453,28 +1453,36 @@ async function waitPhotoJob(jobId: string): Promise<AssetGeneration> {
   throw new Error("资产任务等待超时，请稍后在资产库查看");
 }
 
+function rotatedHostDims(host: any) {
+  const rot = Math.abs(Math.round(Number(host.rot) || 0)) % 180;
+  return rot === 90 ? { w: host.d, d: host.w } : { w: host.w, d: host.d };
+}
+
 function surfaceSpot(host: any, asset: AssetRecord, plan: Plan) {
-  const halfW = asset.w / 2,
+  const dims = rotatedHostDims(host),
+    halfW = asset.w / 2,
     halfD = asset.d / 2,
-    x0 = host.x - host.w / 2 + 20,
-    x1 = host.x + host.w / 2 - 20,
-    y0 = host.y - host.d / 2 + 20,
-    y1 = host.y + host.d / 2 - 20,
+    x0 = host.x - dims.w / 2 + 20,
+    x1 = host.x + dims.w / 2 - 20,
+    y0 = host.y - dims.d / 2 + 20,
+    y1 = host.y + dims.d / 2 - 20,
     siblings = plan.furniture.filter((f) => f.parentObjectId === host.id),
     offsets = [
       [0, 0],
-      [0.35, 0],
-      [-0.35, 0],
-      [0, 0.28],
-      [0, -0.28],
-      [0.35, 0.28],
-      [-0.35, 0.28],
-      [0.35, -0.28],
-      [-0.35, -0.28],
+      [0.28, 0],
+      [-0.28, 0],
+      [0, 0.25],
+      [0, -0.25],
+      [0.32, 0.22],
+      [-0.32, 0.22],
+      [0.32, -0.22],
+      [-0.32, -0.22],
+      [0.38, 0],
+      [-0.38, 0],
     ];
   for (const [ox, oy] of offsets) {
-    const x = host.x + host.w * ox,
-      y = host.y + host.d * oy,
+    const x = Math.round(host.x + dims.w * ox),
+      y = Math.round(host.y + dims.d * oy),
       item = {
         x0: x - halfW,
         x1: x + halfW,
@@ -1494,64 +1502,178 @@ function surfaceSpot(host: any, asset: AssetRecord, plan: Plan) {
   return { x: host.x, y: host.y };
 }
 
+async function openPhotoAssetHub() {
+  const target = project;
+  if (!target) {
+    message("请先打开或新建一个空间项目");
+    return;
+  }
+  const dialog = $<HTMLDialogElement>("#dialog"),
+    body = $("#dialog-body");
+  if (dialog.open) dialog.close();
+  body.innerHTML = `<h2>📷 实物照片转 3D · 资产一键入场</h2>
+    <p class="muted">支持上传实验器材/物品照片经混元 3D-2 重建标定，或直接复用已标定资产库通过台面支撑 DAG 一键校验入场。</p>
+    <div class="photo-hub-upload">
+      <button id="hub-upload-photo" class="primary">＋ 上传新照片重建 3D（Hunyuan3D-2）</button>
+      <span class="muted">支持 PNG / JPG / WebP，自动去背、减面至 20 000 面并标定毫米尺寸</span>
+    </div>
+    <h3 class="gallery-heading">📦 已有 3D 标定资产库（一键校验入场）</h3>
+    <div id="hub-asset-list" class="photo-hub-list"><p class="muted">正在读取资产库…</p></div>`;
+  dialog.showModal();
+  $("#hub-upload-photo").onclick = () => {
+    dialog.close();
+    $<HTMLInputElement>("#photo-file").click();
+  };
+  try {
+    const raw = await api<any>("/assets");
+    const list: AssetRecord[] = Array.isArray(raw) ? raw : raw?.assets || [];
+    const container = $("#hub-asset-list");
+    if (!list.length) {
+      container.innerHTML = `<p class="muted">暂无已保存的 3D 资产，请点击上方按钮上传照片生成。</p>`;
+      return;
+    }
+    const sorted = [...list].reverse().slice(0, 12);
+    container.innerHTML = sorted
+      .map((a) => {
+        const bytes = (a as any).size ?? (a as any).byteLength ?? 0;
+        const kb = bytes ? `${(bytes / (1024 * 1024)).toFixed(2)} MB` : "";
+        const dims = `${Math.round(a.w)}×${Math.round(a.d)}×${Math.round(a.h)} mm`;
+        return `<div class="photo-asset-row" data-asset-id="${esc(a.id)}">
+          <div class="photo-asset-info">
+            <strong>${esc(a.name || a.id)}</strong>
+            <small class="muted">${esc(dims)}${kb ? ` · ${kb}` : ""}</small>
+          </div>
+          <div class="photo-asset-btns">
+            <button type="button" class="primary" data-hub-auto="${esc(a.id)}">⚡ 一键 AI 入场</button>
+            <button type="button" class="subtle" data-hub-config="${esc(a.id)}">校准 / 选台面</button>
+          </div>
+        </div>`;
+      })
+      .join("");
+    container.querySelectorAll<HTMLButtonElement>("[data-hub-auto]").forEach((btn) => {
+      btn.onclick = async () => {
+        const asset = sorted.find((a) => a.id === btn.dataset.hubAuto);
+        if (!asset) return;
+        btn.disabled = true;
+        btn.textContent = "入场中…";
+        try {
+          dialog.close();
+          await chat.submitPhotoPlacement(asset, "__auto__");
+          message(`已发起「${asset.name}」AI 自动匹配台面与门禁校验入场…`);
+        } catch (err) {
+          message(`AI 入场未能启动（${(err as Error).message}），已切换至手动校准面板。`);
+          showPhotoPreview(asset, { id: "", status: "succeeded", provider: "real-cache", name: asset.name }, target);
+        }
+      };
+    });
+    container.querySelectorAll<HTMLButtonElement>("[data-hub-config]").forEach((btn) => {
+      btn.onclick = () => {
+        const asset = sorted.find((a) => a.id === btn.dataset.hubConfig);
+        if (!asset) return;
+        showPhotoPreview(asset, { id: "", status: "succeeded", provider: "real-cache", name: asset.name }, target);
+      };
+    });
+  } catch (err) {
+    const container = document.querySelector("#hub-asset-list");
+    if (container) container.innerHTML = `<p class="muted">读取资产库失败：${esc((err as Error).message)}</p>`;
+  }
+}
+
 function showPhotoPreview(
   asset: AssetRecord,
   job: AssetGeneration["job"],
   target: Project,
-  file: File,
+  file?: File,
 ) {
   const body = $("#dialog-body"),
     dialog = $<HTMLDialogElement>("#dialog"),
     provider =
       job.provider === "real-cache"
-        ? "真实 V100 缓存，秒级命中"
+        ? "已标定 3D 资产（本地/V100 缓存）"
         : job.provider === "remote-gpu"
-          ? "远端 GPU 生成"
-          : "演示资产（队友 GPU 服务接入后自动切换真实生成）",
+          ? "远端 GPU（Hunyuan3D-2）生成"
+          : "演示资产",
     hosts = target.plan.furniture.filter(isSurfaceHost),
-    fitting = hosts.filter(
-      (host) => host.w >= asset.w + 20 && host.d >= asset.d + 20,
-    ),
+    fitting = hosts.filter((host) => {
+      const dims = rotatedHostDims(host);
+      return dims.w >= asset.w + 40 && dims.d >= asset.d + 40;
+    }),
     selected =
       selection?.collection === "furniture" &&
       fitting.some((host) => host.id === selection!.id)
         ? selection!.id
-        : fitting[0]?.id || "",
-    url = URL.createObjectURL(file);
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-  body.innerHTML = `<h2>照片物品已生成</h2>
-    <p class="muted">${esc(job.name || asset.name)} · ${esc(provider)}${job.fallback ? " · 远端失败已回退演示资产" : ""}</p>
-    <div class="photo-preview"><img src="${url}" alt="物品照片预览"><div>
+        : "__auto__",
+    url = file ? URL.createObjectURL(file) : "";
+  if (url) setTimeout(() => URL.revokeObjectURL(url), 60000);
+  const assetBytes = (asset as any).size ?? (asset as any).byteLength ?? 0;
+  const mb = assetBytes ? ` · ${(assetBytes / (1024 * 1024)).toFixed(2)} MB` : "";
+  body.innerHTML = `<h2>照片 3D 资产校准与一键入场</h2>
+    <p class="muted">${esc(job.name || asset.name)} · ${esc(provider)}${mb}${job.fallback ? " · 远端失败已回退演示资产" : ""}</p>
+    <div class="photo-preview">${url ? `<img src="${url}" alt="物品照片预览">` : `<div class="photo-preview-placeholder"><span>3D</span><small>glTF 2.0</small></div>`}<div>
       <p>当前模型尺寸：<b>${Math.round(asset.w)} × ${Math.round(asset.d)} × ${Math.round(asset.h)} mm</b></p>
       <label>确认真实高度（mm）<input id="photo-height" type="number" min="10" max="5000" step="10" value="${Math.round(asset.h)}"></label>
-      <label>放置位置<select id="photo-host"><option value="">地面</option>${fitting
-        .map(
-          (host) =>
-            `<option value="${esc(host.id)}" ${host.id === selected ? "selected" : ""}>${esc(host.name)}（台面 ${Math.round(host.w)}×${Math.round(host.d)}，高 ${Math.round(host.h)}）</option>`,
-        )
-        .join("")}</select></label>
-      <p class="muted">台面物品会自动设置 z = 台面高程 + 宿主高度；没有合适台面时放到地面。</p>
+      <label>放置位置<select id="photo-host">
+        <option value="__auto__" ${selected === "__auto__" ? "selected" : ""}>✨ 自动匹配最佳可用台面（AI 台面支撑校验）</option>
+        ${fitting
+          .map((host) => {
+            const dims = rotatedHostDims(host);
+            return `<option value="${esc(host.id)}" ${host.id === selected ? "selected" : ""}>${esc(host.name)}（台面 ${Math.round(dims.w)}×${Math.round(dims.d)}，高 ${Math.round(host.h)}）</option>`;
+          })
+          .join("")}
+        <option value="__floor__">地面</option>
+      </select></label>
+      <p class="muted">一键 AI 入场会先执行物理高度标定，再经 Candidate → 台面支撑 DAG 防悬空/防碰撞检查后原子提交（支持撤销）。</p>
     </div></div>
     <p id="photo-error" class="muted"></p>
-    <button id="place-photo" class="primary">校准并放入场景</button>`;
-  $("#place-photo").onclick = async () => {
-    const height = Number($<HTMLInputElement>("#photo-height").value),
-      hostId = $<HTMLSelectElement>("#photo-host").value;
+    <div class="photo-preview-actions">
+      <button id="place-photo" class="primary">✨ 校准并一键 AI 校验入场（推荐）</button>
+      <button id="place-photo-direct" class="subtle">直接落位（离线快速）</button>
+    </div>`;
+
+  const calibrateFromInput = async () => {
+    const height = Number($<HTMLInputElement>("#photo-height").value);
     if (!Number.isFinite(height) || height < 10 || height > 5000) {
-      $("#photo-error").textContent = "请输入 10–5000 mm 的真实高度";
-      return;
+      throw new Error("请输入 10–5000 mm 的真实高度");
     }
+    saved("正在校准物理高度…");
+    const calibrated = (
+      await post<{ asset: AssetRecord }>(
+        `/assets/${encodeURIComponent(asset.id)}/calibrate`,
+        { targetHeightMm: height },
+      )
+    ).asset;
+    chat.setLastGeneratedAsset(calibrated);
+    return calibrated;
+  };
+
+  $("#place-photo").onclick = async () => {
+    const hostVal = $<HTMLSelectElement>("#photo-host").value;
+    const hostObj =
+      hostVal && hostVal !== "__auto__" && hostVal !== "__floor__"
+        ? target.plan.furniture.find((f) => f.id === hostVal)
+        : undefined;
     try {
-      saved("正在校准尺寸…");
-      const calibrated = (
-        await post<{ asset: AssetRecord }>(
-          `/assets/${encodeURIComponent(asset.id)}/calibrate`,
-          { targetHeightMm: height },
-        )
-      ).asset;
-      const host = hostId
-          ? target.plan.furniture.find((f) => f.id === hostId)
-          : undefined,
+      const calibrated = await calibrateFromInput();
+      dialog.close();
+      await chat.submitPhotoPlacement(calibrated, hostVal, hostObj?.name);
+      message(
+        `已校准「${calibrated.name}」（高 ${Math.round(calibrated.h)} mm），正在通过 AI 台面支撑校验自动入场…`,
+      );
+    } catch (error) {
+      $("#photo-error").textContent = (error as Error).message;
+    }
+  };
+
+  $("#place-photo-direct").onclick = async () => {
+    const hostVal = $<HTMLSelectElement>("#photo-host").value;
+    try {
+      const calibrated = await calibrateFromInput();
+      const host =
+          hostVal === "__floor__"
+            ? undefined
+            : hostVal === "__auto__"
+              ? fitting[0]
+              : target.plan.furniture.find((f) => f.id === hostVal),
         room = target.plan.rooms[0],
         spot = host
           ? surfaceSpot(host, calibrated, target.plan)
@@ -1803,7 +1925,7 @@ $<HTMLInputElement>("#json-file").onchange = async (e) => {
   }
 };
 $("#upload-model").onclick = () => $<HTMLInputElement>("#glb-file").click();
-$("#upload-photo").onclick = () => $<HTMLInputElement>("#photo-file").click();
+$("#upload-photo").onclick = () => void openPhotoAssetHub();
 $<HTMLInputElement>("#photo-file").onchange = async (e) => {
   const input = e.target as HTMLInputElement,
     file = input.files?.[0];
@@ -1812,7 +1934,7 @@ $<HTMLInputElement>("#photo-file").onchange = async (e) => {
 };
 document.addEventListener("click", (e) => {
   if ((e.target as HTMLElement)?.closest?.("[data-photo-import]"))
-    $<HTMLInputElement>("#photo-file").click();
+    void openPhotoAssetHub();
 });
 $<HTMLInputElement>("#glb-file").onchange = async (e) => {
   const input = e.target as HTMLInputElement;

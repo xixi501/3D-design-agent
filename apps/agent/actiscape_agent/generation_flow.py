@@ -155,6 +155,15 @@ class GenerationFlow:
                 area_m2=area_m2,
             )
             raw_sel = dict(generation.get("skillSelection") or {})
+            if room.id in ("teaching_lab", "seminar_classroom"):
+                valid_primaries = [c["id"] for c in candidates["primary"]]
+                valid_mods = {c["id"] for c in candidates["modifiers"]}
+                if raw_sel.get("primarySkillId") not in valid_primaries and valid_primaries:
+                    preferred = next((sid for sid in room.skillIds if sid in valid_primaries), valid_primaries[0])
+                    raw_sel["primarySkillId"] = preferred
+                raw_sel["modifierSkillIds"] = [m for m in (raw_sel.get("modifierSkillIds") or []) if m in valid_mods][:2]
+                if not raw_sel.get("reason"):
+                    raw_sel["reason"] = f"教学/实验空间 {room.id} 绑定通用空间底座与多功能大跨度布局技能"
             if generation.get("autonomous"):
                 valid_primaries = [c["id"] for c in candidates["primary"]]
                 valid_mods = {c["id"] for c in candidates["modifiers"]}

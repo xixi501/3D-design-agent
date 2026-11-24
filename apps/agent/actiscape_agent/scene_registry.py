@@ -90,6 +90,11 @@ class SceneRegistry:
         return self._catalog_categories.get(key, "other")
 
     def room_type_for_label(self, label: str) -> str:
+        text = (label or '').strip()
+        if any(k in text for k in ('实验室', '理化', '化学实验', '生物实验', '物理实验', '实训室')):
+            return 'teaching_lab'
+        if any(k in text for k in ('研讨室', '多媒体教室', '教学研讨', '培训室', '虚拟教学', '教室')):
+            return 'seminar_classroom'
         return self._room_labels.get(label, "other")
 
     def public_rooms(self, *, active_only: bool = True) -> list[dict]:

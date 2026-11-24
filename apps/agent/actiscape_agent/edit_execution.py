@@ -66,7 +66,18 @@ def compile_scope(
         raise TaskError("NEEDS_INPUT", "目标不存在或不够明确，请重新选择家具")
     if any(id not in targets for id in intent["delete_ids"]):
         raise TaskError("NEEDS_INPUT", "删除对象未获得明确授权")
-    permissions = intent.get("field_permissions", {})
+    raw_permissions = intent.get("field_permissions", {})
+    delete_set = set(intent["delete_ids"])
+    target_set = set(targets)
+    permissions = {
+        id: list(fields)
+        for id, fields in raw_permissions.items()
+        if id in target_set and id not in delete_set and fields
+    }
+    if task_mode == "repair_layout":
+        for tid in targets:
+            if tid not in delete_set and not permissions.get(tid):
+                permissions[tid] = ["x", "y", "rot"]
     if intent.get("operations"):
         operation_permissions = {}
         for op in intent["operations"]:
@@ -80,15 +91,76 @@ def compile_scope(
 
     if any(id not in targets for id in permissions):
         raise TaskError("NEEDS_INPUT", "字段授权与目标不一致")
-    if any(not permissions.get(id) for id in targets if id not in intent["delete_ids"]):
+    if any(not permissions.get(id) for id in targets if id not in delete_set):
         raise TaskError("NEEDS_INPUT", "请说明这些对象需要移动、旋转、改尺寸还是改颜色")
-    choices = assets.get("choices", [])
-    if len(choices) != len(intent["additions"]) or {c["request_index"] for c in choices} != set(
-        range(len(intent["additions"]))
+
+    def _fallback_catalog_key(query: str) -> str | None:
+        q = str(query or "").strip().casefold()
+        if not q:
+            return None
+        best_key, best_score = None, 0
+        tokens = [t for t in re.split(r"[\s/、,，]+", q) if t]
+        for k, item in catalogue.items():
+            name = str(item.get("name") or "").casefold()
+            itype = str(item.get("type") or "").casefold()
+            kl = k.casefold()
+            score = 0
+            if q == kl or q == name:
+                score = 100
+            elif q in name or name in q:
+                score = 80
+            elif q in kl or q in itype:
+                score = 60
+            else:
+                hits = sum(1 for t in tokens if t in name or t in kl or t in itype)
+                if hits:
+                    score = 30 + hits * 15
+            if score > best_score:
+                best_key, best_score = k, score
+        return best_key if best_score >= 45 else None
+
+    raw_choices = list(assets.get("choices") or [])
+    additions = intent["additions"]
+    if additions:
+        indices = [c.get("request_index") for c in raw_choices if isinstance(c, dict)]
+        if (
+            len(raw_choices) == len(additions)
+            and set(indices) == set(range(1, len(additions) + 1))
+        ):
+            raw_choices = [
+                {**c, "request_index": int(c["request_index"]) - 1} for c in raw_choices
+            ]
+        by_idx: dict[int, dict] = {}
+        for idx_pos, choice in enumerate(raw_choices):
+            if not isinstance(choice, dict):
+                continue
+            ridx = choice.get("request_index")
+            if not isinstance(ridx, int) or not (0 <= ridx < len(additions)):
+                if len(raw_choices) == len(additions):
+                    ridx = idx_pos
+                else:
+                    continue
+            if ridx not in by_idx and choice.get("key") in catalogue:
+                by_idx[ridx] = {**choice, "request_index": ridx}
+        for ridx, add in enumerate(additions):
+            if ridx not in by_idx:
+                fb = _fallback_catalog_key(add.get("query", ""))
+                if fb:
+                    by_idx[ridx] = {
+                        "request_index": ridx,
+                        "key": fb,
+                        "reason": "目录规范化兜底匹配",
+                    }
+        choices = [by_idx[i] for i in sorted(by_idx)]
+    else:
+        choices = []
+
+    if len(choices) != len(additions) or {c["request_index"] for c in choices} != set(
+        range(len(additions))
     ):
         raise TaskError("ASSET_SELECTION", "新增请求与目录选择不一致")
     semantic = semantic_errors(
-        (task or {}).get("input", ""), intent["additions"], choices, catalogue
+        (task or {}).get("input", ""), additions, choices, catalogue
     )
     if semantic:
         raise TaskError("ASSET_SELECTION", "；".join(semantic))
@@ -97,11 +169,13 @@ def compile_scope(
         key = choice["key"]
         if key not in catalogue:
             raise TaskError("ASSET_SELECTION", "资产角色返回了不存在的目录配方")
-        counts[key] = counts.get(key, 0) + intent["additions"][choice["request_index"]]["count"]
+        counts[key] = counts.get(key, 0) + additions[choice["request_index"]]["count"]
     pools = []
-    candidates = list(dict.fromkeys(assets.get("candidate_keys") or []))
-    if any(key not in catalogue for key in candidates) or len(candidates) > 25:
-        raise TaskError("ASSET_SELECTION", "资产替换池包含不存在的配方或超过上限")
+    candidates = [
+        key
+        for key in dict.fromkeys(assets.get("candidate_keys") or [])
+        if key in catalogue
+    ][:25]
     for choice in choices:
         key = choice["key"]
         # Replacement candidates must serve the same catalog furniture type.

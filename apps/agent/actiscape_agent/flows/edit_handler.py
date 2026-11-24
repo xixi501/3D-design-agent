@@ -352,7 +352,7 @@ class EditTaskHandler(LayoutTaskHandler):
             client=wf.client,
             task=task,
             plan=c["state"]["plan"],
-            selection_id=f"candidate-{state.get('repairs', 0)}",
+            selection_id=f"candidate-{c['id']}",
         )
         return c
 

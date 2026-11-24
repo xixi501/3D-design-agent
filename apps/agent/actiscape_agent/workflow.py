@@ -432,8 +432,49 @@ class Workflow:
             "committing",
             committing=self.store.task(state["task_id"])["status"] == "committing",
         )
-        self.store.update(task["id"], status="committing")
         c = state["candidate"]
+        generation = dict(task.get("generation") or {})
+        if (
+            "[提交前确认]" in str(task.get("input") or "")
+            and not generation.get("commitConfirmed")
+            and task.get("mode") in ("edit", "repair_layout")
+        ):
+            preview = completion_result(task, state, c, c["baseRevision"])
+            pending = {
+                "candidateId": c["id"],
+                "operationId": c["operationId"],
+                "baseRevision": c["baseRevision"],
+                "candidateHash": c["hash"],
+                "summary": c.get("summary", ""),
+                "diff": c.get("diff", {}),
+                "changes": preview.get("changes", []),
+                "checks": c.get("checks"),
+                "evidence": preview.get("evidence", []),
+                "skillsUsed": preview.get("skillsUsed", []),
+                "focusIds": conversation_focus(c),
+            }
+            generation["pendingCommit"] = pending
+            self.store.update(task["id"], generation=generation)
+            self.store.event(
+                task["id"],
+                "commit_preview_ready",
+                {"candidateId": c["id"], "changeCount": len(pending["changes"])},
+            )
+            return {
+                "route": "end",
+                "final": {
+                    "status": "waiting_input",
+                    "message": "已生成并通过检查的修改方案（尚未写入正式场景），请确认以下要移动、删除或新增的家具后再应用：",
+                    "pendingCommit": pending,
+                    "candidateId": c["id"],
+                    "diff": c.get("diff", {}),
+                    "changes": preview.get("changes", []),
+                    "checks": c.get("checks"),
+                    "evidence": preview.get("evidence", []),
+                    "skillsUsed": preview.get("skillsUsed", []),
+                },
+            }
+        self.store.update(task["id"], status="committing")
         request = {
             "operationId": c["operationId"],
             "baseRevision": c["baseRevision"],

@@ -179,6 +179,18 @@ def create_app(directory: Path | None = None, manager_factory=TaskManager):
     async def confirm_floorplan(id: str, body: FloorplanConfirmInput):
         return await manager().confirm_floorplan(id, body.model_dump())
 
+    @app.post("/tasks/{id}/preview-hybrid-floorplan")
+    async def preview_hybrid_floorplan(id: str, body: dict):
+        return await manager().preview_hybrid_floorplan(id, body)
+
+    @app.post("/tasks/{id}/confirm-hybrid-floorplan", status_code=202)
+    async def confirm_hybrid_floorplan(id: str, body: dict):
+        return await manager().confirm_hybrid_floorplan(id, body)
+
+    @app.post("/tasks/{id}/confirm-commit")
+    async def confirm_commit(id: str, body: dict):
+        return await manager().confirm_commit(id, body)
+
     @app.post("/tasks/{id}/recheck-floorplan")
     async def recheck_floorplan(id: str, body: FloorplanConfirmInput):
         return await manager().recheck_floorplan(id, body.model_dump())

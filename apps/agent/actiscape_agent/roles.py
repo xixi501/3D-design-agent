@@ -64,6 +64,7 @@ create 必须用 scope.allowAddKeys 里的真实 key，提供 x/y；可省略尺
 只有 scope.allowActivityGroups=true 时才能填写 activityGroups，其余请求必须 activityGroups=[]；提到阅读角不等于请求保存分组。获准活动组只引用已存在的真实家具 ID，作为元数据保存；不能请求成组移动、旋转或删除权限。
 若 repairDirective 存在，优先执行其中的 action 与 objectIds，只做最小必要移动；没有安全动作时保持原方案并说明。
 上一候选检查失败时，使用 lastReport 与实际坐标修复，不要重复同一无效位置。不要为了修复而扩大授权。
+布局修复时严禁跨房间乱塞家具（如把餐椅放到卧室床边或卫生间）；餐桌与餐椅必须成组联动，多余餐椅须沿本餐厅墙边整齐放置。
 """
 )
 CHECK_PROMPT = (
@@ -73,6 +74,7 @@ CHECK_PROMPT = (
 新增数量表示本次增加的数量，原来已有的同类家具应保留；不要把“再加一盏”误判为全场只能有一盏。
 只评价本次修改和相关保护约束；既有无关问题由基准检查标出，不要求借此修改未授权对象。
 passed=true 必须同时满足代码检查通过、需求确已实现、截图无明显新增问题，且 issues=[]。
+布局修复复核时必须重点检查：① 是否出现跨房间错放（如餐椅被挪进卧室床边或卫生间）；② 餐桌移动后是否与餐椅脱节分离。若存在此类明显不合常识的摆放，必须判 passed=false 并列出对应 object_ids。
 存在阻断问题或无法验证关键要求时 passed=false，指出真实 object_ids 和具体原因。模型判断不能豁免代码阻断项。
 """
 )
@@ -319,17 +321,33 @@ class Roles:
                         },
                     )
                     previous = result.get("messages") or [HumanMessage(content=content)]
-                    result = await agent.ainvoke(
+                    recovery_eb = dict(options.get("extra_body") or {})
+                    recovery_eb["thinking"] = {"type": "disabled"}
+                    recovery_overrides = {
+                        **active_overrides,
+                        "reasoning_effort": "low",
+                        "max_tokens": max(16384, int(options.get("max_tokens") or 8192)),
+                        "extra_body": recovery_eb,
+                    }
+                    recovery_agent = create_agent(
+                        self._build_model(recovery_overrides),
+                        [],
+                        response_format=ToolStrategy(
+                            schema, handle_errors=recover_schema if bounded_schema else True
+                        ),
+                        system_prompt=prompt,
+                    )
+                    result = await recovery_agent.ainvoke(
                         {
                             "messages": [
                                 *previous,
                                 HumanMessage(
-                                    content="上一回复没有返回所需结构化结果。请基于本轮已有的需求、授权和工具结果，调用指定的结构化结果工具完成输出。不要重复展开长推理，不得虚构检查或保存成功。若需要澄清，也使用结果工具对应字段说明。"
+                                    content="上一回复因推理过长或格式缺失未能返回结构化结果。请直接基于已有推理和工具结果，立即调用指定的结构化结果工具完成输出，不要再展开长推理，也不要重复查询场景。若需要澄清，请使用结果工具对应字段说明。"
                                 ),
                             ]
                         },
                         {
-                            "recursion_limit": 32,
+                            "recursion_limit": 12,
                             "callbacks": [BudgetCallback(self.store, task_id, role)],
                         },
                     )

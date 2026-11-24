@@ -1,5 +1,6 @@
 import { api, post, toolToken } from "../api.js";
 import { FloorplanPanel } from "./floorplan.js";
+import { openHybridFloorplanReview } from "./hybrid-floorplan-review.js";
 
 function safeUuid(): string {
   const c = globalThis.crypto as Crypto | undefined;
@@ -46,10 +47,10 @@ const statusLabels: Record<string, string> = {
   running: "处理中",
   waiting_input: "需要补充说明",
   committing: "确认提交中",
-  completed: "已保存",
-  failed: "未完成",
-  conflict: "版本冲突，已暂停",
-  cancelled: "已取消",
+  completed: "AI 修改已提交",
+  failed: "本次 AI 修改未提交",
+  conflict: "场景已变化（未提交）",
+  cancelled: "已取消（场景未变）",
 };
 
 const fieldLabels: Record<string, string> = {
@@ -302,7 +303,7 @@ export class ChatPanel {
   private floorplanGroup = node("div", undefined, "chat-floorplan-group");
   private floorplanUpload = node(
     "button",
-    "📐 上传户型图 · AI 全屋高精度直出 3D",
+    "📐 上传户型图 · 识别并排校对后生成 3D",
     "chat-fp-primary",
   );
   private floorplanDraftUpload = node(
@@ -313,6 +314,12 @@ export class ChatPanel {
   private floorplanFile = node("input");
   private floorplanHybridMode = true;
   private photoUpload = node("button", "上传物品照片转 3D");
+  private settledNoticeKey?: string;
+  private autoOpenedHybridTask?: string;
+  private confirmBeforeCommit = !new URLSearchParams(location.search).has("debug") &&
+    localStorage.getItem("actiscape-confirm-before-commit") !== "0";
+  private confirmCommitRow = node("label", undefined, "chat-confirm-toggle");
+  public onTaskSettled?: (task: any) => void;
   private quick = node("div", undefined, "chat-quick");
   private stylePicker = node("div", undefined, "chat-styles");
   private styleApplyBtn = node("button", "", "chat-style-apply");
@@ -414,12 +421,29 @@ export class ChatPanel {
       this.stylePicker.append(button);
     }
 
+    const confirmCb = node("input");
+    confirmCb.type = "checkbox";
+    confirmCb.checked = this.confirmBeforeCommit;
+    confirmCb.onchange = () => {
+      this.confirmBeforeCommit = confirmCb.checked;
+      try {
+        localStorage.setItem(
+          "actiscape-confirm-before-commit",
+          this.confirmBeforeCommit ? "1" : "0",
+        );
+      } catch {}
+    };
+    this.confirmCommitRow.append(
+      confirmCb,
+      node("span", "修改/重排前先确认要移动、删除或新增的家具清单"),
+    );
+
     const form = node("form"),
       actions = node("div", undefined, "chat-actions");
     actions.append(this.send, this.cancel);
     this.send.type = "submit";
     this.cancel.type = "button";
-    form.append(this.freePlayRow, this.input, actions);
+    form.append(this.freePlayRow, this.confirmCommitRow, this.input, actions);
 
     this.quick.append(
       this.suggestion("试试：生成一个有几张桌子的餐厅，风格为欧式，剩余你自由发挥"),
@@ -711,16 +735,21 @@ export class ChatPanel {
   private render() {
     this.renderMode();
     const currentTask = this.current();
+    const latestTask = this.tasks[this.tasks.length - 1];
+    const idleLabel =
+      latestTask && ["failed", "conflict", "cancelled"].includes(latestTask.status)
+        ? "上次 AI 修改未提交 · 当前可继续发送"
+        : "空闲 · 当前可继续发送";
     this.onActivity?.({
       active: !!currentTask,
       waiting: currentTask?.status === "waiting_input",
       label: currentTask
         ? currentTask.status === "waiting_input"
           ? currentTask.mode === "reconstruct_floorplan"
-            ? "等待你核对户型草稿"
-            : "需要补充说明"
-          : currentTask.phaseLabel || "AI 正在处理你的空间…"
-        : "在线 · 等你的下一个想法",
+            ? "等待你核对户型草稿 · 确认后生成 3D"
+            : "等待你确认或补充 · 可直接回复"
+          : `${currentTask.phaseLabel || "AI 正在处理你的空间…"}（任务执行中）`
+        : idleLabel,
     });
     const nearBottom =
       this.messages.scrollHeight -
@@ -753,6 +782,8 @@ export class ChatPanel {
       const cleanUserText = String(task.input || "")
         .replace(/\n*\[自主发挥\]/g, "")
         .replace(/\n*\[混合高精度重建\]/g, "")
+        .replace(/\n*\[先校对草稿\]/g, "")
+        .replace(/\n*\[提交前确认\]/g, "")
         .trim();
       entry.append(node("div", cleanUserText || task.input, "chat-user"));
       const reply = node("div", undefined, "chat-assistant"),
@@ -896,6 +927,68 @@ export class ChatPanel {
         reply.append(details);
       }
       const result = task.result;
+      if (
+        task.status === "waiting_input" &&
+        task.generation?.hybridReviewPending &&
+        task.generation?.hybridDraft
+      ) {
+        const reviewBtn = node(
+          "button",
+          "📐 并排校对原图与识别草稿（确认尺寸/门窗后生成 3D）",
+          "primary",
+        );
+        reviewBtn.type = "button";
+        reviewBtn.onclick = () => this.reviewHybridFloorplan(task);
+        reply.append(reviewBtn);
+      }
+      if (
+        task.status === "waiting_input" &&
+        (result?.pendingCommit || task.generation?.pendingCommit)
+      ) {
+        const pending = result?.pendingCommit || task.generation?.pendingCommit;
+        const previewBox = node("div", undefined, "chat-commit-preview");
+        previewBox.append(
+          node("strong", "待确认变更清单（正式场景尚未改动）"),
+        );
+        const list = node("ul");
+        const changes: any[] = pending.changes || result?.changes || [];
+        if (changes.length) {
+          for (const ch of changes.slice(0, 20)) {
+            const act =
+              ch.action === "added"
+                ? "新增"
+                : ch.action === "deleted"
+                  ? "删除"
+                  : "移动/调整";
+            const fields = Array.isArray(ch.fields)
+              ? ch.fields
+                  .map(
+                    (f: any) =>
+                      `${fieldLabels[f.field] || f.field} ${f.before ?? ""}→${f.after ?? ""}`,
+                  )
+                  .join("，")
+              : "";
+            list.append(
+              node("li", `${act}「${ch.name || ch.id}」${fields ? `（${fields}）` : ""}`),
+            );
+          }
+          if (changes.length > 20) {
+            list.append(node("li", `…共 ${changes.length} 项变更`, "muted"));
+          }
+        } else {
+          list.append(node("li", "无家具变更"));
+        }
+        const btnRow = node("div", undefined, "chat-retry-row");
+        const applyBtn = node("button", "✅ 确认应用到场景", "primary");
+        applyBtn.type = "button";
+        applyBtn.onclick = () => void this.confirmPendingCommit(task.id);
+        const dropBtn = node("button", "放弃本次方案", "quiet");
+        dropBtn.type = "button";
+        dropBtn.onclick = () => void this.cancelTask();
+        btnRow.append(applyBtn, dropBtn);
+        previewBox.append(list, btnRow);
+        reply.append(previewBox);
+      }
       if (result?.status === "completed") {
         const checks = result.checks || result.report?.codeChecks;
         const remaining =
@@ -1068,18 +1161,28 @@ export class ChatPanel {
         ["failed", "conflict"].includes(task.status) &&
         !task.cancelRequested
       ) {
-        if (task.modelCalls >= 24 || task.elapsedSeconds >= 600)
-          reply.append(
-            node("p", "本任务预算已耗尽，请重新提交完整需求。", "muted"),
-          );
-        else {
-          const retry = node(
-            "button",
-            task.status === "conflict" ? "读取最新场景后重试" : "重试此任务",
-          );
+        const retryRow = node("div", undefined, "chat-retry-row");
+        const regenBtn = node("button", "重新生成方案", "primary");
+        regenBtn.type = "button";
+        regenBtn.title = "基于当前最新场景发起新任务，避免旧草稿或旧预算冲突";
+        regenBtn.onclick = () => void this.regenerate(task);
+        retryRow.append(regenBtn);
+        if (
+          task.status === "failed" &&
+          (task.modelCalls ?? 0) < 24 &&
+          (task.elapsedSeconds ?? 0) < 600
+        ) {
+          const retry = node("button", "重试原方案");
+          retry.type = "button";
+          retry.title = "沿用原任务目标继续重试一次";
           retry.onclick = () => void this.retry(task.id);
-          reply.append(retry);
+          retryRow.append(retry);
+        } else if ((task.modelCalls ?? 0) >= 24 || (task.elapsedSeconds ?? 0) >= 600) {
+          reply.append(
+            node("p", "原任务预算已耗尽，可点「重新生成方案」基于最新场景重来。", "muted"),
+          );
         }
+        reply.append(retryRow);
       }
       entry.append(reply);
       this.messages.append(entry);
@@ -1103,16 +1206,39 @@ export class ChatPanel {
 
   private update(task: any) {
     const index = this.tasks.findIndex((t) => t.id === task.id);
-    if (index < 0) this.tasks.push(task);
-    else {
-      const next = { ...this.tasks[index], ...task };
-      if (JSON.stringify(next) === JSON.stringify(this.tasks[index])) return;
-      this.tasks[index] = next;
+    const prev = index >= 0 ? this.tasks[index] : undefined;
+    const merged = prev ? { ...prev, ...task } : task;
+    if (prev && JSON.stringify(merged) === JSON.stringify(prev)) return;
+    if (index < 0) this.tasks.push(merged);
+    else this.tasks[index] = merged;
+    const isTerminal =
+      typeof merged.status === "string" &&
+      ["completed", "failed", "cancelled", "conflict"].includes(merged.status);
+    if (isTerminal) {
+      // Clear any stale in-progress / busy notices once the task reaches a terminal state
+      this.notice.textContent = "";
     }
     this.render();
-    if (task.status === "completed" && this.lastRefresh !== task.id) {
-      this.lastRefresh = task.id;
-      void this.onCommit(task.projectId, !!task.result?.generation).catch(
+    if (isTerminal) {
+      const key = `${merged.id}:${merged.status}:${merged.updatedAt || ""}`;
+      if (this.settledNoticeKey !== key && (!prev || active.has(prev.status))) {
+        this.settledNoticeKey = key;
+        this.onTaskSettled?.(merged);
+      }
+    }
+    if (
+      merged.status === "waiting_input" &&
+      merged.generation?.hybridReviewPending &&
+      merged.generation?.hybridDraft &&
+      this.autoOpenedHybridTask !== merged.id &&
+      !new URLSearchParams(location.search).has("debug")
+    ) {
+      this.autoOpenedHybridTask = merged.id;
+      queueMicrotask(() => this.reviewHybridFloorplan(merged));
+    }
+    if (merged.status === "completed" && this.lastRefresh !== merged.id) {
+      this.lastRefresh = merged.id;
+      void this.onCommit(merged.projectId, !!merged.result?.generation).catch(
         (error) => {
           this.notice.textContent = (error as Error).message;
         },
@@ -1126,6 +1252,13 @@ export class ChatPanel {
       this.events?.close();
       this.events = undefined;
       this.watched = undefined;
+      if (
+        /已有.*任务|正在执行|正在识别|正在上传|请稍后再试|请先完成或取消/.test(
+          this.notice.textContent || "",
+        )
+      ) {
+        this.notice.textContent = "";
+      }
       return;
     }
     if (task.cloud === true) {
@@ -1189,12 +1322,16 @@ export class ChatPanel {
       if (existing && existing.status === "waiting_input") {
         await post(`/agent/tasks/${existing.id}/cancel`, {}).catch(() => {});
       }
+      const finalBrief =
+        this.confirmBeforeCommit && !brief.includes("[提交前确认]")
+          ? `${brief}\n[提交前确认]`
+          : brief;
       const task = await post<any>(
         `/agent/conversations/${this.conversationId}/tasks`,
         {
           requestId: safeUuid(),
           projectId: context.projectId,
-          input: brief,
+          input: finalBrief,
           selectedIds,
           allowedRoomIds,
           mode: "repair_layout",
@@ -1228,6 +1365,15 @@ export class ChatPanel {
         : typed;
     if (isBlankGen && this.freePlay && !input.includes("[自主发挥]")) {
       input = `${input}\n[自主发挥]`;
+    }
+    if (
+      !isBlankGen &&
+      !current &&
+      this.mode() === "edit" &&
+      this.confirmBeforeCommit &&
+      !input.includes("[提交前确认]")
+    ) {
+      input = `${input}\n[提交前确认]`;
     }
 
     this.sending = true;
@@ -1271,6 +1417,79 @@ export class ChatPanel {
       if (context.projectId !== this.projectId) return;
       this.input.value = "";
       this.update(task);
+      this.watchActive();
+    } catch (error) {
+      this.notice.textContent = (error as Error).message;
+      await this.load();
+    } finally {
+      this.sending = false;
+      this.render();
+    }
+  }
+
+  private reviewHybridFloorplan(task: any) {
+    const draft = task.generation?.hybridDraft;
+    if (!draft) return;
+    openHybridFloorplanReview(task.id, draft, async (hybridVlm) => {
+      const next = await post(`/agent/tasks/${task.id}/confirm-hybrid-floorplan`, {
+        requestId: safeUuid(),
+        hybridVlm,
+      });
+      this.notice.textContent = "结构草稿已确认，正在立起 3D 场景并自动布置家具…";
+      this.update(next);
+      this.watchActive();
+    });
+  }
+
+  private async confirmPendingCommit(taskId: string) {
+    if (this.sending) return;
+    this.sending = true;
+    this.notice.textContent = "正在将确认后的方案原子提交到当前场景…";
+    this.render();
+    try {
+      const done = await post<any>(`/agent/tasks/${taskId}/confirm-commit`, {
+        requestId: safeUuid(),
+      });
+      this.update(done);
+    } catch (error) {
+      this.notice.textContent = (error as Error).message;
+      await this.load();
+    } finally {
+      this.sending = false;
+      this.render();
+    }
+  }
+
+  private async regenerate(prev: any) {
+    if (this.sending || !this.projectId) return;
+    this.sending = true;
+    this.notice.textContent = "正在基于当前最新场景重新生成方案…";
+    this.render();
+    try {
+      if (!this.conversationId) await this.load();
+      if (!this.conversationId) throw new Error("设计助手暂不可用");
+      const existing = this.current();
+      if (existing && existing.status === "waiting_input") {
+        await post(`/agent/tasks/${existing.id}/cancel`, {}).catch(() => {});
+      }
+      const selected =
+        prev?.mode === "repair_layout" && Array.isArray(prev.selectedIds) && prev.selectedIds.length
+          ? prev.selectedIds
+          : this.getContext().selectedIds;
+      const body: Record<string, any> = {
+        requestId: safeUuid(),
+        projectId: this.projectId,
+        input: prev.input || "",
+        selectedIds: selected,
+        preferLocal: true,
+      };
+      if (prev.mode && prev.mode !== "edit") body.mode = prev.mode;
+      if (prev.generation?.imageId) body.imageId = prev.generation.imageId;
+      const next = await post<any>(
+        `/agent/conversations/${this.conversationId}/tasks`,
+        body,
+      );
+      this.update(next);
       this.watchActive();
     } catch (error) {
       this.notice.textContent = (error as Error).message;
@@ -1336,7 +1555,7 @@ export class ChatPanel {
       const userTyped = this.input.value.trim();
       const styleSuffix = this.styleHint ? `\n设计方向：${this.styleHint}` : "";
       const input = hybridMode
-        ? `${userTyped || "请识别这张单层户型图的全屋房间、门窗与家具，自动标定比例尺并直出可编辑 3D 全屋空间。"}${styleSuffix}\n[混合高精度重建]`
+        ? `${userTyped || "请识别这张单层户型图的全屋房间、门窗与家具，自动标定比例尺并生成可校对草稿。"}${styleSuffix}\n[混合高精度重建]\n[先校对草稿]`
         : userTyped ||
           "请识别这张单层户型图，保留整层结构，并复现客餐厅原图家具布局。先提供草稿供我确认。";
       const key = `actiscape-floorplan-pending:${this.conversationId}`,

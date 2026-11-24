@@ -181,6 +181,8 @@ def role_model_options(
             or os.environ.get("DEEPSEEK_REASONING_EFFORT", "high")
         )
         opts["reasoning_effort"] = design_effort
+        design_max = int(os.environ.get("DEEPSEEK_DESIGN_MAX_TOKENS", "16384"))
+        opts["max_tokens"] = max(int(opts.get("max_tokens") or 8192), design_max)
     elif role in FAST_ROLES:
         is_non_official = "deepseek.com" not in str(opts.get("base_url", "")).lower()
         if is_non_official:

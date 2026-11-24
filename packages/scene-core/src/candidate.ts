@@ -620,6 +620,104 @@ export function checkCandidate(
   const targetIds = new Set(scope.targetIds);
   if (strict && !targetIds.size)
     add("STRICT_SCOPE_EMPTY", [], "严格修复需要至少一个目标家具");
+  if (strict && regions.length) {
+    const beforeRegions = detectRooms(before.plan).regions;
+    const findRegion = (x: number, y: number, regs: any[]) =>
+      regs.find((room: any) =>
+        room.rects.some(
+          (r: any) =>
+            x >= r.x - 20 &&
+            x <= r.x + r.w + 20 &&
+            y >= r.y - 20 &&
+            y <= r.y + r.h + 20,
+        ),
+      );
+    const roomLabel = (room: any) =>
+      String(room?.labels?.[0]?.name || room?.key || "其他房间");
+    const isBedroomOrWet = (name: string) =>
+      /卧|床|卫|浴|厕|厨|阳|bedroom|bath|toilet|kitchen|balcony/i.test(name);
+    const isLivingDiningName = (name: string) =>
+      /客|餐|厅|宴会|living|dining|banquet/i.test(name);
+    const isLivingDiningFurniture = (item: any) =>
+      /chair|diningtable|roundtable|sofa|coffeetable|tvcab|sideboard|餐椅|餐桌|沙发|茶几|电视柜/i.test(
+        `${item.key || ""} ${item.type || ""} ${item.name || ""}`,
+      ) && !/officechair|deskchair|办公椅|电脑椅/i.test(
+        `${item.key || ""} ${item.type || ""} ${item.name || ""}`,
+      );
+    const isDiningTableItem = (item: any) =>
+      /diningtable|roundtable|餐桌/i.test(
+        `${item.key || ""} ${item.type || ""} ${item.name || ""}`,
+      );
+    const isDiningChairItem = (item: any) =>
+      /chair|餐椅/i.test(
+        `${item.key || ""} ${item.type || ""} ${item.name || ""}`,
+      ) && !/officechair|deskchair|armchair|rocking|reading|办公椅|电脑椅|休闲椅|单人沙发/i.test(
+        `${item.key || ""} ${item.type || ""} ${item.name || ""}`,
+      );
+    const boxOf = (item: any) => {
+      const r = (((Math.round((item.rot || 0) / 90) * 90) % 360) + 360) % 360;
+      const hw = (r === 90 || r === 270 ? item.d : item.w) / 2;
+      const hd = (r === 90 || r === 270 ? item.w : item.d) / 2;
+      return { x0: item.x - hw, y0: item.y - hd, x1: item.x + hw, y1: item.y + hd };
+    };
+    const edgeGap = (a: any, b: any) => {
+      const ba = boxOf(a), bb = boxOf(b);
+      const dx = Math.max(0, ba.x0 - bb.x1, bb.x0 - ba.x1);
+      const dy = Math.max(0, ba.y0 - bb.y1, bb.y0 - ba.y1);
+      return Math.hypot(dx, dy);
+    };
+    const hasLivingDiningRoom = regions.some((r: any) =>
+      isLivingDiningName(roomLabel(r)),
+    );
+    for (const f of after.plan.furniture.filter((item) => changed.has(item.id))) {
+      const bf = before.plan.furniture.find((item) => item.id === f.id);
+      const beforeRoom = bf ? findRegion(bf.x, bf.y, beforeRegions) : undefined;
+      const afterRoom = findRegion(f.x, f.y, regions);
+      if (
+        beforeRoom &&
+        afterRoom &&
+        beforeRoom.key !== afterRoom.key &&
+        (!scope.allowedRoomIds ||
+          scope.allowedRoomIds.length > 1 ||
+          scope.allowedRoomIds.includes(beforeRoom.key))
+      ) {
+        add(
+          "CROSS_ROOM_DRIFT",
+          [f.id],
+          `${f.name} 跨房间移入了「${roomLabel(afterRoom)}」（原属「${roomLabel(beforeRoom)}」），请保留在原房间内重排`,
+        );
+      } else if (
+        !beforeRoom &&
+        afterRoom &&
+        hasLivingDiningRoom &&
+        isLivingDiningFurniture(f) &&
+        isBedroomOrWet(roomLabel(afterRoom))
+      ) {
+        add(
+          "CROSS_ROOM_DRIFT",
+          [f.id],
+          `${f.name} 不应摆放到「${roomLabel(afterRoom)}」，请放回客餐厅功能区`,
+        );
+      }
+      if (bf && isDiningTableItem(f)) {
+        const beforeNearby = before.plan.furniture.filter(
+          (o) => o.id !== bf.id && isDiningChairItem(o) && edgeGap(bf, o) <= 650,
+        );
+        if (beforeNearby.length >= 2) {
+          const afterNearby = after.plan.furniture.filter(
+            (o) => o.id !== f.id && isDiningChairItem(o) && edgeGap(f, o) <= 500,
+          );
+          if (afterNearby.length === 0) {
+            add(
+              "DINING_GROUP_BROKEN",
+              [f.id],
+              `${f.name} 移动后与周围餐椅脱节，请与餐椅成组移动或放回餐椅群中央`,
+            );
+          }
+        }
+      }
+    }
+  }
   const baseline = checkScene(before.plan).issues;
   const afterIssues = checkScene(after.plan).issues;
   const previous = new Map(

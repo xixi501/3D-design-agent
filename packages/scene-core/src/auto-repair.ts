@@ -579,6 +579,10 @@ function itemSemanticPenalty(
     }
     if (inTvSofaCorridor(box, tv, sofa)) pen += 2200;
   } else if (role === "diningChair") {
+    const rName = String(region?.roomName || "");
+    if (/卧|床|卫|浴|厕|厨|阳|bedroom|bath|kitchen|balcony/i.test(rName)) {
+      pen += 40000;
+    }
     if (dTable) {
       const dtb = rotatedAabb(dTable);
       const gap = boxEdgeGap(box, dtb);
@@ -586,8 +590,21 @@ function itemSemanticPenalty(
       const vy = dTable.y - f.y;
       const len = Math.max(1, Math.hypot(vx, vy));
       const dot = (vx * fwd.dx + vy * fwd.dy) / len;
-      if (gap > 380) pen += 1200 + Math.min(2000, (gap - 380) * 1.2);
-      if (dot < 0.45) pen += 1800;
+      const seatedOthers = peers.filter(
+        (p) =>
+          furnitureRole(p) === "diningChair" &&
+          boxEdgeGap(rotatedAabb(p), dtb) <= 450,
+      ).length;
+      const wallStaged =
+        seatedOthers >= 4 &&
+        backWallDistance(f, region) <= 260 &&
+        frontWallDistance(f, region) >= 500;
+      if (!wallStaged) {
+        if (gap > 380) pen += 1200 + Math.min(2000, (gap - 380) * 1.2);
+        if (dot < 0.45) pen += 1800;
+      } else {
+        pen += 350 + Math.min(450, gap * 0.15);
+      }
     }
   } else if (role === "wardrobe" || role === "wallCabinet") {
     const bd = backWallDistance(f, region);
@@ -681,6 +698,7 @@ interface RoomRect {
 
 interface RoomRegionInfo {
   roomId?: string;
+  roomName?: string;
   rects: RoomRect[];
   bb: RoomRect;
 }
@@ -696,6 +714,7 @@ function buildRegions(plan: Plan): {
     : [];
   const regions: RoomRegionInfo[] = rawRegions.map((r) => ({
     roomId: r.labels?.[0]?.id,
+    roomName: r.labels?.[0]?.name || r.key || "",
     rects: Array.isArray(r.rects) ? r.rects : [r.bb],
     bb: r.bb,
   }));
@@ -1772,7 +1791,8 @@ export function autoRepairScene(
       let bestEval = currentEval;
 
       for (const f of orderedTargets) {
-        const fRegion = targetRegion || regionForFurniture(f, regions);
+        const origItem = originals.get(f.id) || f;
+        const fRegion = targetRegion || regionForFurniture(origItem, regions);
         if (isSurfaceItem(f) && String(issue.code || "").startsWith("SURFACE_ITEM_")) {
           const surfacePoses = buildSurfaceCandidates(currentPlan, f, fRegion);
           for (const sp of surfacePoses) {
@@ -1838,24 +1858,56 @@ export function autoRepairScene(
             preferPerimeter,
             winZones,
           );
+          const coupledChairs =
+            furnitureRole(f) === "diningTable"
+              ? currentPlan.furniture.filter(
+                  (o) =>
+                    o.id !== f.id &&
+                    furnitureRole(o) === "diningChair" &&
+                    (!targetIdSet || targetIdSet.has(o.id)) &&
+                    boxEdgeGap(rotatedAabb(f), rotatedAabb(o)) <= 800,
+                )
+              : [];
           for (const pose of poses) {
             if (Date.now() - startedAt > timeBudgetMs) break;
-            const trial = applyPose(currentPlan, f.id, pose);
-            const ev = evaluatePlan(
-              trial,
-              originals,
-              includeSafety,
-              options.roomId,
-              roomFurnitureIds,
-              targetIdSet,
-              regions,
-              winZones,
-            );
-            if (isBetter(ev.score, bestEval.score)) {
-              bestPlan = trial;
-              bestEval = ev;
-              if (ev.score.scopedCount === 0 && ev.score.semanticPenalty <= 250) break;
+            const trials: Plan[] = [applyPose(currentPlan, f.id, pose)];
+            if (coupledChairs.length > 0 && pose.rot === normalizeRot(f.rot)) {
+              const dx = pose.x - f.x;
+              const dy = pose.y - f.y;
+              if (Math.hypot(dx, dy) >= 50) {
+                const grouped = clone(trials[0]);
+                let allInside = true;
+                for (const ch of coupledChairs) {
+                  const targetCh = grouped.furniture.find((item) => item.id === ch.id);
+                  if (!targetCh) continue;
+                  targetCh.x = snap50(targetCh.x + dx);
+                  targetCh.y = snap50(targetCh.y + dy);
+                  if (fRegion && !aabbInsideRects(rotatedAabb(targetCh), fRegion.rects, 45)) {
+                    allInside = false;
+                    break;
+                  }
+                }
+                if (allInside) trials.unshift(grouped);
+              }
             }
+            for (const trial of trials) {
+              const ev = evaluatePlan(
+                trial,
+                originals,
+                includeSafety,
+                options.roomId,
+                roomFurnitureIds,
+                targetIdSet,
+                regions,
+                winZones,
+              );
+              if (isBetter(ev.score, bestEval.score)) {
+                bestPlan = trial;
+                bestEval = ev;
+                if (ev.score.scopedCount === 0 && ev.score.semanticPenalty <= 250) break;
+              }
+            }
+            if (bestEval.score.scopedCount === 0 && bestEval.score.semanticPenalty <= 250) break;
           }
         }
         if (

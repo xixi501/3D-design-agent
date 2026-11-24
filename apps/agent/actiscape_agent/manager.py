@@ -151,6 +151,122 @@ class TaskManager:
         )
         return resumed
 
+    async def preview_hybrid_floorplan(self, id: str, body: dict):
+        from .floorplan_hybrid import compile_hybrid_housespec
+        from .style_packs import match_style_pack
+
+        task = self.store.task(id, internal=True)
+        if task["mode"] != "reconstruct_floorplan":
+            raise TaskError("INVALID_STATE", "此任务不是户型图任务", 409)
+        g = dict(task.get("generation") or {})
+        cv_axes = g.get("hybridCvAxes") or {"widthPx": 1000, "heightPx": 1000, "xAxes1000": [], "yAxes1000": []}
+        vlm_json = body.get("hybridVlm") or g.get("hybridVlm")
+        if not isinstance(vlm_json, dict):
+            raise TaskError("INVALID_STATE", "缺少可预览的户型识别草稿", 400)
+        style_pack = match_style_pack(None, task.get("input", ""))
+        spec, meta = compile_hybrid_housespec(vlm_json, cv_axes, style_pack)
+        return {"spec": spec, "meta": meta}
+
+    async def confirm_hybrid_floorplan(self, id: str, body: dict):
+        task = self.store.task(id, internal=True)
+        if task["mode"] != "reconstruct_floorplan" or task["cancelRequested"]:
+            raise TaskError("INVALID_STATE", "此任务不能确认户型草稿", 409)
+        if task["status"] not in ("waiting_input", "failed", "conflict"):
+            return self.store.task(id)
+        g = dict(task.get("generation") or {})
+        vlm_json = body.get("hybridVlm") or g.get("hybridVlm")
+        if not isinstance(vlm_json, dict):
+            raise TaskError("INVALID_STATE", "缺少户型识别结构数据", 400)
+        req_id = str(body.get("requestId") or f"hybrid-confirm-{id}")
+        g.update(
+            hybridVlm=vlm_json,
+            hybridConfirmed=True,
+            hybridReviewPending=False,
+        )
+        self.store.update(id, generation=g)
+        resumed = self.store.resume(
+            id, {"requestId": req_id, "input": "", "selectedIds": []}
+        )
+        self.enqueue(id)
+        self.store.event(id, "floorplan_confirmed", {"mode": "hybrid", "requestId": req_id})
+        return resumed
+
+    async def confirm_commit(self, id: str, body: dict):
+        from .client import SceneFailure
+
+        task = self.store.task(id, internal=True)
+        if task["status"] == "completed":
+            return self.store.task(id)
+        if task["status"] != "waiting_input" or task["cancelRequested"]:
+            raise TaskError("INVALID_STATE", "当前任务不在等待确认应用状态", 409)
+        g = dict(task.get("generation") or {})
+        pending = g.get("pendingCommit")
+        if not isinstance(pending, dict) or not pending.get("candidateId"):
+            raise TaskError("INVALID_STATE", "未找到待确认提交的候选方案", 409)
+        req_id = str(body.get("requestId") or f"commit-{pending['candidateId']}")
+        if not self.store.claim_action(id, {"requestId": req_id, "candidateId": pending["candidateId"]}):
+            return self.store.task(id)
+
+        self.store.update(id, status="committing")
+        try:
+            committed = await self.client.request(
+                f"/projects/{task['projectId']}/candidates/{pending['candidateId']}/commit",
+                {
+                    "operationId": pending["operationId"],
+                    "baseRevision": pending["baseRevision"],
+                    "candidateHash": pending["candidateHash"],
+                },
+            )
+        except SceneFailure as e:
+            if e.code == "REVISION_CONFLICT":
+                conflict_res = {
+                    "status": "conflict",
+                    "message": "确认期间场景版本已发生变化，未提交旧方案；请点击「重新生成方案」。",
+                    "candidateId": pending["candidateId"],
+                }
+                self.store.update(id, status="conflict", result=conflict_res, error=conflict_res["message"])
+                self.store.event(id, "status", conflict_res)
+                return self.store.task(id)
+            self.store.update(id, status="waiting_input")
+            raise
+
+        g["commitConfirmed"] = True
+        g["pendingCommit"] = None
+        self.store.update(id, generation=g)
+        rev = committed["project"]["revision"]
+        done_msg = (
+            "已确认并应用布局修复，正式场景已更新（可撤销）。"
+            if task.get("mode") == "repair_layout"
+            else f"已确认并应用修改：{str(pending.get('summary') or '').rstrip('。；; .')}（可撤销）。"
+        )
+        result = {
+            "status": "completed",
+            "message": done_msg,
+            "projectId": task["projectId"],
+            "candidateId": pending["candidateId"],
+            "baseRevision": pending["baseRevision"],
+            "committedRevision": rev,
+            "diff": pending.get("diff", {}),
+            "changes": pending.get("changes", []),
+            "checks": pending.get("checks"),
+            "evidence": pending.get("evidence", []),
+            "skillsUsed": pending.get("skillsUsed", []),
+        }
+        self.store.update(id, status="completed", result=result, error=None)
+        self.store.event(
+            id,
+            "committed",
+            {
+                "revision": rev,
+                "candidateId": pending["candidateId"],
+                "replayed": committed.get("replayed", False),
+            },
+        )
+        self.store.event(id, "status", result)
+        if pending.get("focusIds"):
+            self.store.focus(task["conversationId"], pending["focusIds"])
+        return self.store.task(id)
+
     async def reconcile_floorplan_confirmation(self, id: str):
         task = self.store.task(id, internal=True)
         if (

@@ -133,19 +133,99 @@ export class PlanView {
     this.base = base;
     this.draw();
   }
+  fullWorldBounds() {
+    if (!this.plan) return { x: 0, y: 0, w: 1000, h: 1000 };
+    const b = wallGeometry(this.plan).bounds;
+    let x0 = b.x;
+    let y0 = b.y;
+    let x1 = b.x + b.w;
+    let y1 = b.y + b.h;
+    for (const n of this.plan.nodes || []) {
+      x0 = Math.min(x0, n.x);
+      y0 = Math.min(y0, n.y);
+      x1 = Math.max(x1, n.x);
+      y1 = Math.max(y1, n.y);
+    }
+    for (const f of this.plan.furniture || []) {
+      for (const p of footprint(f)) {
+        x0 = Math.min(x0, p.x);
+        y0 = Math.min(y0, p.y);
+        x1 = Math.max(x1, p.x);
+        y1 = Math.max(y1, p.y);
+      }
+    }
+    const pad = 550;
+    return {
+      x: x0 - pad,
+      y: y0 - pad,
+      w: Math.max(1000, x1 - x0 + pad * 2),
+      h: Math.max(1000, y1 - y0 + pad * 2),
+    };
+  }
   frame() {
     if (!this.plan) return;
-    const b = wallGeometry(this.plan).bounds,
+    const b = this.fullWorldBounds(),
       w = this.host.clientWidth,
       h = this.host.clientHeight;
     if (w <= 90 || h <= 90) return;
     this.scale = Math.min(
-      (w - 90) / Math.max(b.w, 1000),
-      (h - 90) / Math.max(b.h, 1000),
+      (w - 60) / Math.max(b.w, 1000),
+      (h - 60) / Math.max(b.h, 1000),
     );
     this.ox = (w - b.w * this.scale) / 2 - b.x * this.scale;
     this.oy = (h - b.h * this.scale) / 2 - b.y * this.scale;
     this.draw();
+  }
+  exportFullCanvas(maxSide = 2200): HTMLCanvasElement | undefined {
+    if (!this.plan) return undefined;
+    const b = this.fullWorldBounds();
+    const aspect = b.w / Math.max(1, b.h);
+    const padPx = 80;
+    let outW: number;
+    let outH: number;
+    if (aspect >= 1) {
+      outW = Math.max(1400, maxSide);
+      outH = Math.max(960, Math.round((outW - padPx * 2) / aspect + padPx * 2));
+    } else {
+      outH = Math.max(1400, maxSide);
+      outW = Math.max(960, Math.round((outH - padPx * 2) * aspect + padPx * 2));
+    }
+    const offscreen = document.createElement("canvas");
+    offscreen.width = outW;
+    offscreen.height = outH;
+    const offCtx = offscreen.getContext("2d");
+    if (!offCtx) return undefined;
+
+    const prevCanvas = this.canvas;
+    const prevCtx = this.ctx;
+    const prevScale = this.scale;
+    const prevOx = this.ox;
+    const prevOy = this.oy;
+    const prevSelection = this.selection;
+    const prevVertex = this.vertex;
+    try {
+      this.canvas = offscreen;
+      this.ctx = offCtx;
+      this.selection = undefined;
+      this.vertex = -1;
+      this.scale = Math.min(
+        (outW - padPx * 2) / Math.max(b.w, 1000),
+        (outH - padPx * 2) / Math.max(b.h, 1000),
+      );
+      this.ox = (outW - b.w * this.scale) / 2 - b.x * this.scale;
+      this.oy = (outH - b.h * this.scale) / 2 - b.y * this.scale;
+      this.draw(1);
+    } finally {
+      this.canvas = prevCanvas;
+      this.ctx = prevCtx;
+      this.scale = prevScale;
+      this.ox = prevOx;
+      this.oy = prevOy;
+      this.selection = prevSelection;
+      this.vertex = prevVertex;
+      this.draw();
+    }
+    return offscreen;
   }
   centerOn(x: number, y: number, zoom = this.scale) {
     const w = this.host.clientWidth,
@@ -564,9 +644,9 @@ export class PlanView {
     );
     return true;
   }
-  draw() {
+  draw(dprOverride?: number) {
     const c = this.ctx,
-      dpr = devicePixelRatio;
+      dpr = dprOverride ?? devicePixelRatio;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, this.canvas.width / dpr, this.canvas.height / dpr);
     c.fillStyle = "#f7f3eb";

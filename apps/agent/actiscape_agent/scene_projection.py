@@ -13,6 +13,11 @@ from .scene_contracts import (
 from .scene_registry import get_scene_registry
 
 
+def _req_hash(payload: object) -> str:
+    raw = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+
 def text_source(task_id: str, text: str) -> InputSource:
     return InputSource(
         sourceId=f"task:{task_id}:text",
@@ -364,7 +369,7 @@ async def ensure_text_scene_draft(
     created = await client.request(
         f"/projects/{project['id']}/scene-drafts",
         {
-            "requestId": f"{task['id']}:generic-scene",
+            "requestId": f"{task['id']}:generic-scene:{_req_hash(draft)}",
             "draft": draft,
         },
     )
@@ -406,18 +411,19 @@ async def sync_text_scene_program(
         authority="user_intent",
         room_type=room_type,
     )
+    patch_commands = [
+        {"op": "replaceProgram", "program": program},
+        {
+            "op": "replaceAssetResolutions",
+            "assetResolutions": catalog_asset_resolutions(plan),
+        },
+    ]
     patched = await client.request(
         f"/projects/{task['projectId']}/scene-drafts/{generation['sceneDraftId']}/patches",
         {
-            "requestId": f"{task['id']}:generic-scene:{selection_id}",
+            "requestId": f"{task['id']}:generic-scene:{selection_id}:r{generation['sceneDraftRevision']}:{_req_hash(patch_commands)}",
             "draftRevision": generation["sceneDraftRevision"],
-            "commands": [
-                {"op": "replaceProgram", "program": program},
-                {
-                    "op": "replaceAssetResolutions",
-                    "assetResolutions": catalog_asset_resolutions(plan),
-                },
-            ],
+            "commands": patch_commands,
         },
     )
     generation.update(
@@ -447,13 +453,16 @@ async def ensure_edit_scene_draft(
     intent: dict,
 ) -> dict:
     generation = store.task(task["id"], internal=True).get("generation") or {}
-    if generation.get("sceneDraftId"):
+    if (
+        generation.get("sceneDraftId")
+        and generation.get("sceneDraftBaseProjectRevision") == project["revision"]
+    ):
         return generation
     draft = initial_edit_scene_draft(task=task, project=project, intent=intent)
     created = await client.request(
         f"/projects/{project['id']}/scene-drafts",
         {
-            "requestId": f"{task['id']}:generic-scene",
+            "requestId": f"{task['id']}:generic-scene:{_req_hash(draft)}",
             "draft": draft,
         },
     )
@@ -500,18 +509,19 @@ async def sync_edit_scene_program(
         authority="manual",
         room_type=None,
     )
+    patch_commands = [
+        {"op": "replaceProgram", "program": program},
+        {
+            "op": "replaceAssetResolutions",
+            "assetResolutions": catalog_asset_resolutions(plan),
+        },
+    ]
     patched = await client.request(
         f"/projects/{task['projectId']}/scene-drafts/{generation['sceneDraftId']}/patches",
         {
-            "requestId": f"{task['id']}:generic-scene:{selection_id}",
+            "requestId": f"{task['id']}:generic-scene:{selection_id}:r{generation['sceneDraftRevision']}:{_req_hash(patch_commands)}",
             "draftRevision": generation["sceneDraftRevision"],
-            "commands": [
-                {"op": "replaceProgram", "program": program},
-                {
-                    "op": "replaceAssetResolutions",
-                    "assetResolutions": catalog_asset_resolutions(plan),
-                },
-            ],
+            "commands": patch_commands,
         },
     )
     generation.update(
@@ -597,7 +607,7 @@ async def project_floorplan_candidate(
         created = await client.request(
             f"/projects/{task['projectId']}/scene-drafts",
             {
-                "requestId": f"{task['id']}:generic-scene",
+                "requestId": f"{task['id']}:generic-scene:{_req_hash(draft)}",
                 "draft": draft,
             },
         )
@@ -608,18 +618,19 @@ async def project_floorplan_candidate(
             sceneDraftBaseProjectRevision=draft["baseProjectRevision"],
         )
     else:
+        patch_commands = [
+            {"op": "replaceProgram", "program": program},
+            {
+                "op": "replaceAssetResolutions",
+                "assetResolutions": resolutions,
+            },
+        ]
         created = await client.request(
             f"/projects/{task['projectId']}/scene-drafts/{generation['sceneDraftId']}/patches",
             {
-                "requestId": f"{task['id']}:generic-scene:{selection_id}",
+                "requestId": f"{task['id']}:generic-scene:{selection_id}:r{generation['sceneDraftRevision']}:{_req_hash(patch_commands)}",
                 "draftRevision": generation["sceneDraftRevision"],
-                "commands": [
-                    {"op": "replaceProgram", "program": program},
-                    {
-                        "op": "replaceAssetResolutions",
-                        "assetResolutions": resolutions,
-                    },
-                ],
+                "commands": patch_commands,
             },
         )
         generation.update(

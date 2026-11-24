@@ -51,6 +51,13 @@ MODE_PRIMARY_KIND = {
     "reconstruct_floorplan": "floorplan",
     "asset_import": "asset",
 }
+MODE_SKILL_ALIAS = {
+    "repair_layout": "edit",
+}
+
+
+def normalize_skill_mode(mode: str) -> str:
+    return MODE_SKILL_ALIAS.get(mode, mode)
 
 # Compatibility names for callers that still expose logical tool groups.
 GENERATION_TOOLS = {
@@ -359,6 +366,7 @@ class SkillRegistry:
         room_kind: str | None = None,
         area_m2: float | None = None,
     ) -> dict[str, list[dict]]:
+        mode = normalize_skill_mode(mode)
         if mode not in MODE_PRIMARY_KIND:
             raise TaskError("SKILL_SELECTION_INVALID", f"未知任务模式：{mode}")
         primary_kind = MODE_PRIMARY_KIND[mode]
@@ -403,6 +411,7 @@ class SkillRegistry:
         mode: str,
         allow_no_primary: bool = False,
     ) -> SkillSelection:
+        mode = normalize_skill_mode(mode)
         try:
             value = (
                 selection
@@ -461,6 +470,7 @@ class SkillRegistry:
         include_intake: bool = False,
         include_repair: bool = False,
     ) -> dict:
+        mode = normalize_skill_mode(mode)
         value = (
             selection
             if isinstance(selection, SkillSelection)
@@ -530,6 +540,7 @@ class SkillRegistry:
         return bundle.model_dump()
 
     def with_repair(self, bundle: dict, mode: str) -> dict:
+        mode = normalize_skill_mode(mode)
         try:
             current = SkillBundle.model_validate(bundle)
         except Exception as exc:

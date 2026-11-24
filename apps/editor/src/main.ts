@@ -29,6 +29,7 @@ import { displayProjectName, displayRoomName, roomArea } from "./ui/labels.js";
 import { Ov } from "./modeling/furniture-3d.js";
 import { Fh } from "./modeling/furniture-2d.js";
 import * as THREE from "three";
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import { initSafetyTwinPlugin } from "./plugins/safety-twin-plugin.js";
 import { initSceneGalleryPlugin } from "./plugins/scene-gallery-plugin.js";
 const root = document.querySelector("#app")!;
@@ -45,7 +46,7 @@ root.innerHTML = `<header class="app-bar">
   <div class="bar-actions">
     <button id="new-project" class="quiet">新建空间</button>
     <button id="open-project" class="quiet">打开项目</button>
-    <details class="export-actions"><summary>导出 <span aria-hidden="true">⌄</span></summary><button id="export-image">导出当前视图 PNG</button><button id="export-pdf">打印 / 保存为 PDF</button><button id="export-project">导出项目 JSON</button></details>
+    <details class="export-actions"><summary>导出 <span aria-hidden="true">⌄</span></summary><button id="export-image">导出完整平面图 PNG</button><button id="export-image-3d">导出当前 3D 视图 PNG</button><button id="export-glb">导出 3D 场景 GLB（VR）</button><button id="export-pdf">打印 / 保存为 PDF</button><button id="export-project">导出项目 JSON</button></details>
     <details class="more-actions"><summary aria-label="更多项目操作">•••</summary><button id="open-structure">结构编辑（高级）</button><button id="import-project">导入 JSON</button></details>
     <button id="mobile-agent" class="mobile-only" title="打开 AI 设计搭档">AI</button>
     <button id="context-toggle" class="mobile-only" title="打开项目上下文">属性</button>
@@ -430,6 +431,22 @@ const chat = new ChatPanel(
   },
 );
 chat.onPhotoImport = () => $<HTMLInputElement>("#photo-file").click();
+chat.onTaskSettled = (task) => {
+  if (task.projectId && project?.id && task.projectId !== project.id) return;
+  if (task.status === "completed") {
+    message(
+      task.result?.noChange
+        ? "AI 检查完成：当前场景无需修改，当前可继续发送。"
+        : "AI 修改已提交并保存至当前场景（可撤销），当前可继续发送。",
+    );
+  } else if (task.status === "failed") {
+    message("本次 AI 修改未提交，当前场景保持原状；可重试或调整说明后继续发送。");
+  } else if (task.status === "conflict") {
+    message("场景已有新改动，本次 AI 修改未提交；可基于最新场景重新生成。");
+  } else if (task.status === "cancelled") {
+    message("AI 任务已取消，当前场景保持原状，可继续发送。");
+  }
+};
 for (const event of ["pointerup", "pointercancel"])
   window.addEventListener(event, () =>
     queueMicrotask(() => {
@@ -709,8 +726,6 @@ async function refreshLiveChecks(snapshot: Project, announceOnEdit = false) {
     latestIssues = Array.isArray(data?.issues) ? data.issues : [];
     syncLiveCheckBanner();
     if (latestIssues.length > 0) {
-      if (!lastFailure)
-        saved(`已保存 · ${latestIssues.length} 项待检查`, false);
       if (announceOnEdit) {
         const relevant = pickRelevantIssue(latestIssues);
         if (relevant?.message)
@@ -926,10 +941,17 @@ function buildStructuredRepairBrief(
     const r = (((Math.round((rot || 0) / 90) * 90) % 360) + 360) % 360;
     return r === 0 ? "朝南+Y" : r === 180 ? "朝北-Y" : r === 90 ? "朝西-X" : "朝东+X";
   };
+  const detected = detectRooms(plan, wallGeometry(plan));
+  const roomNameOf = (x: number, y: number) => {
+    const reg = detected.regions.find((r: any) =>
+      r.rects.some((rc: any) => x >= rc.x - 40 && x <= rc.x + rc.w + 40 && y >= rc.y - 40 && y <= rc.y + rc.h + 40),
+    );
+    return reg?.labels?.[0]?.name || reg?.key || "未标注区";
+  };
   const targetLines = repairIds.map((id) => {
     const f = plan.furniture.find((item) => item.id === id);
     return f
-      ? `- [ID:${f.id}] ${f.name}（位置 ${Math.round(f.x)},${Math.round(f.y)}，尺寸 ${f.w}×${f.d}×${f.h} mm，角度 ${f.rot}°/${dirLabel(f.rot)}）`
+      ? `- [ID:${f.id}] ${f.name}（原属房间：${roomNameOf(f.x, f.y)}，位置 ${Math.round(f.x)},${Math.round(f.y)}，尺寸 ${f.w}×${f.d}×${f.h} mm，角度 ${f.rot}°/${dirLabel(f.rot)}）`
       : `- [ID:${id}]`;
   });
   const contextLines = plan.furniture
@@ -957,8 +979,8 @@ ${issueLines.join("\n")}
 
 硬约束与室内设计原则：
 1. 只能移动、旋转或加装墙锚于上述已授权目标家具 ID，不得修改参考家具、墙体或门窗；
-2. 必须判断哪件家具“跑偏/误入其他功能区”，优先把跑偏家具放回正确功能区：例如沙发应回到茶几与电视柜对面并面向茶几/电视柜（茶几距沙发前缘 450–650 mm）；餐桌应保留在餐椅群中央不可拆散；衣柜/书柜/高柜/床应背贴实墙、正面朝向室内并避开门窗；
-3. 本次待消除冲突必须全部归零，且不能产生新的碰撞、阻挡门洞或阻挡柜门开启问题。`;
+2. 严格遵守“原属房间与功能分区锁定”：严禁把任何家具跨房塞到不相关的房间（例如严禁把餐椅放进卧室床边或卫生间）；沙发应面向茶几/电视柜（间距 450–650 mm）；餐桌与餐椅必须保持成组围合，不可把餐桌单独移走留下孤立餐椅；当餐椅数量超出餐桌可围合位时，多余餐椅须整齐靠放在本餐厅墙边；衣柜/书柜/高柜/床须背贴实墙并避开门窗；
+3. 本次待消除冲突必须全部归零，且不能产生新的碰撞、跨房漂移、桌椅脱节、阻挡门洞或阻挡柜门开启问题。`;
 }
 async function repairScene(roomId?: string) {
   if (!project || busy || repairing) return;
@@ -992,7 +1014,7 @@ async function repairScene(roomId?: string) {
     await openRepairScope();
     return;
   }
-  const repairIds: string[] = [
+  const baseRepairIds: string[] = [
     ...new Set<string>(
       issues
         .slice(0, 12)
@@ -1004,7 +1026,29 @@ async function repairScene(roomId?: string) {
         .filter((id: string) => target.plan.furniture.some((f) => f.id === id))
         .filter((id: string) => !roomId || roomFurniture.has(id)),
     ),
-  ].slice(0, 16);
+  ];
+  const expandedRepairIds = [...baseRepairIds];
+  const expandedSet = new Set(expandedRepairIds);
+  for (const id of baseRepairIds) {
+    const tbl = target.plan.furniture.find((f) => f.id === id);
+    if (!tbl || !/diningtable|roundtable|餐桌/i.test(`${tbl.key} ${tbl.type} ${tbl.name}`)) continue;
+    const nearbyChairs = target.plan.furniture
+      .filter(
+        (o) =>
+          !expandedSet.has(o.id) &&
+          (!roomId || roomFurniture.has(o.id)) &&
+          /chair|餐椅/i.test(`${o.key} ${o.type} ${o.name}`) &&
+          !/officechair|deskchair|armchair|办公椅|休闲椅/i.test(`${o.key} ${o.type} ${o.name}`) &&
+          Math.hypot(o.x - tbl.x, o.y - tbl.y) <= Math.max(tbl.w, tbl.d) * 0.75 + 850,
+      )
+      .sort((a, b) => Math.hypot(a.x - tbl.x, a.y - tbl.y) - Math.hypot(b.x - tbl.x, b.y - tbl.y));
+    for (const ch of nearbyChairs) {
+      if (expandedRepairIds.length >= 16) break;
+      expandedSet.add(ch.id);
+      expandedRepairIds.push(ch.id);
+    }
+  }
+  const repairIds = expandedRepairIds.slice(0, 16);
   if (!repairIds.length) {
     message("当前问题没有可授权的家具目标，请在画布中选中家具后再试。");
     return;
@@ -1643,15 +1687,21 @@ $("#save-project").onclick = () => {
 $("#export-project").onclick = () => {
   if (project) window.location.href = `/api/projects/${project.id}/export${toolToken() ? `?token=${encodeURIComponent(toolToken())}` : ""}`;
 };
-function currentSnapshot() {
+function currentSnapshot(prefer?: "2d" | "3d") {
   if (!project) return undefined;
-  const mode = $("#viewport").dataset.mode;
-  const source =
-    mode === "3d"
-      ? three.renderer.domElement
-      : mode === "2d"
-        ? planView.canvas
-        : three.renderer.domElement;
+  const viewMode = $("#viewport").dataset.mode;
+  const targetMode = prefer ?? (viewMode === "3d" ? "3d" : "2d");
+  if (targetMode === "2d") {
+    const full = planView.exportFullCanvas(2200);
+    if (!full) return undefined;
+    return {
+      canvas: full,
+      name: displayProjectName(project.plan.name),
+      revision: project.revision,
+      mode: "2d",
+    };
+  }
+  const source = three.renderer.domElement;
   if (!source) return undefined;
   const canvas = document.createElement("canvas");
   canvas.width = source.width;
@@ -1664,7 +1714,7 @@ function currentSnapshot() {
     canvas,
     name: displayProjectName(project.plan.name),
     revision: project.revision,
-    mode,
+    mode: "3d",
   };
 }
 function download(name: string, url: string) {
@@ -1674,13 +1724,60 @@ function download(name: string, url: string) {
   link.click();
 }
 $("#export-image").onclick = () => {
-  const shot = currentSnapshot();
+  const shot = currentSnapshot("2d");
   if (!shot) return;
   download(
-    `${shot.name.replace(/[\\/:*?"<>|]/g, "-")}-v${shot.revision}.png`,
+    `${shot.name.replace(/[\\/:*?"<>|]/g, "-")}-2d-v${shot.revision}.png`,
     shot.canvas.toDataURL("image/png"),
   );
-  message("当前视图已导出为 PNG");
+  message("完整 2D 平面图已导出为高清 PNG");
+};
+$("#export-image-3d").onclick = () => {
+  const shot = currentSnapshot("3d");
+  if (!shot) return;
+  download(
+    `${shot.name.replace(/[\\/:*?"<>|]/g, "-")}-3d-v${shot.revision}.png`,
+    shot.canvas.toDataURL("image/png"),
+  );
+  message("当前 3D 视图已导出为 PNG");
+};
+async function exportSceneGlbBuffer(): Promise<{ buffer: ArrayBuffer; filename: string; ms: number } | undefined> {
+  if (!project) return undefined;
+  const started = performance.now();
+  const hidden: THREE.Object3D[] = [];
+  three.root.traverse((obj) => {
+    if ((obj as any).isSprite && obj.visible) {
+      obj.visible = false;
+      hidden.push(obj);
+    }
+  });
+  try {
+    const exporter = new GLTFExporter();
+    const raw = await exporter.parseAsync(three.root, { binary: true, onlyVisible: true });
+    if (!(raw instanceof ArrayBuffer)) throw new Error("GLB 导出未返回二进制数据");
+    const safeName = displayProjectName(project.plan.name).replace(/[\\/:*?"<>|]/g, "-");
+    return {
+      buffer: raw,
+      filename: `${safeName}-scene-v${project.revision}.glb`,
+      ms: Math.round(performance.now() - started),
+    };
+  } finally {
+    for (const obj of hidden) obj.visible = true;
+  }
+}
+$("#export-glb").onclick = async () => {
+  try {
+    message("正在打包导出标准 glTF 2.0（GLB）三维场景…");
+    const out = await exportSceneGlbBuffer();
+    if (!out) return;
+    const blob = new Blob([out.buffer], { type: "model/gltf-binary" });
+    const url = URL.createObjectURL(blob);
+    download(out.filename, url);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    message(`标准 3D 场景已导出为 GLB（${(out.buffer.byteLength / 1024 / 1024).toFixed(2)} MB，耗时 ${out.ms} ms），可供 VR / Unity 直接加载`);
+  } catch (err) {
+    fail(err);
+  }
 };
 $("#export-pdf").onclick = () => {
   const shot = currentSnapshot();
@@ -2003,6 +2100,7 @@ if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug"))
     catalog,
     buildFurniture: (f: any, p?: Plan) => Ov(f, p),
     drawFurniture: Fh,
+    exportSceneGlb: exportSceneGlbBuffer,
     THREE,
   };
 safetyTwinPlugin = initSafetyTwinPlugin({

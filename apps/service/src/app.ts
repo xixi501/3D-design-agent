@@ -43,6 +43,23 @@ const VALID_REF_VIEWS = new Set<ReferenceViewLabel>([
   "bottom",
 ]);
 
+
+const WORKSPACE_ID_RE = /^[a-zA-Z0-9_-]{4,64}$/;
+function requestWorkspace(req: any): string | undefined {
+  const fromHeader =
+    typeof req.headers?.["x-actiscape-workspace"] === "string"
+      ? req.headers["x-actiscape-workspace"]
+      : "";
+  let fromQuery = "";
+  try {
+    fromQuery =
+      new URL(req.url, "http://service").searchParams.get("workspace") || "";
+  } catch {}
+  const clean = (fromHeader || fromQuery).trim();
+  if (!clean || clean === "__admin__" || clean === "all") return undefined;
+  return WORKSPACE_ID_RE.test(clean) ? clean : undefined;
+}
+
 export async function createApp(options: {
   dataDir: string;
   staticDir?: string;
@@ -142,6 +159,83 @@ export async function createApp(options: {
       message: "缺少或错误的 ACTISCAPE_TOOL_TOKEN Bearer 令牌",
     });
   });
+  // Per-browser visitor workspace isolation guard.
+  // Internal service/Agent calls and automated tests omit x-actiscape-workspace and stay unrestricted.
+  app.addHook("preHandler", async (request, reply) => {
+    const ws = requestWorkspace(request);
+    if (!ws) return;
+    const pathname = (request.raw.url || "").split("?")[0];
+    const projMatch = pathname.match(/^\/api\/projects\/([^/]+)(\/.*)?$/);
+    if (projMatch) {
+      const pid = decodeURIComponent(projMatch[1]);
+      const sub = projMatch[2] || "";
+      if (store.hasProject(pid)) {
+        const owner = store.getOwner("project", pid);
+        if (owner !== ws && owner !== "public") {
+          return reply.code(403).send({
+            error: "WORKSPACE_FORBIDDEN",
+            message: "该项目属于其他访客的独立工作空间，无法访问或修改",
+          });
+        }
+        const readOnlySafePost =
+          sub === "/fork" ||
+          sub === "/checks" ||
+          sub === "/safety-audit" ||
+          sub === "/export-mujoco" ||
+          sub === "/render";
+        if (owner === "public" && request.method !== "GET" && !readOnlySafePost) {
+          return reply.code(403).send({
+            error: "PUBLIC_READONLY",
+            message: "公共演示项目为只读保护，请点击「创建个人副本」后再编辑",
+          });
+        }
+      }
+      return;
+    }
+    if (
+      request.method === "POST" &&
+      pathname.startsWith("/api/agent/conversations")
+    ) {
+      const pid = (request.body as any)?.projectId;
+      if (typeof pid === "string" && pid && store.hasProject(pid)) {
+        const owner = store.getOwner("project", pid);
+        if (owner !== ws && owner !== "public") {
+          return reply.code(403).send({
+            error: "WORKSPACE_FORBIDDEN",
+            message: "该项目属于其他访客的独立工作空间，无法访问或发起 AI 任务",
+          });
+        }
+        const isTaskSubmit = /^\/api\/agent\/conversations\/[^/]+\/tasks$/.test(
+          pathname,
+        );
+        if (owner === "public" && isTaskSubmit) {
+          return reply.code(403).send({
+            error: "PUBLIC_READONLY",
+            message: "公共演示项目为只读保护，请先创建个人副本后再使用 AI 编辑",
+          });
+        }
+      }
+      return;
+    }
+    const assetMatch = pathname.match(/^\/api\/assets\/([^/]+)(\/.*)?$/);
+    if (
+      assetMatch &&
+      assetMatch[1] !== "providers" &&
+      assetMatch[1] !== "jobs" &&
+      assetMatch[1] !== "generate-from-image"
+    ) {
+      const aid = decodeURIComponent(assetMatch[1]);
+      if (store.hasAsset(aid)) {
+        const owner = store.getOwner("asset", aid);
+        if (owner !== ws && owner !== "public") {
+          return reply.code(403).send({
+            error: "WORKSPACE_FORBIDDEN",
+            message: "该 3D 资产属于其他访客的独立工作空间，无法访问",
+          });
+        }
+      }
+    }
+  });
   app.get(
     "/api/health",
     { schema: { description: "Service and database readiness" } },
@@ -188,7 +282,13 @@ export async function createApp(options: {
       ],
     }),
   );
-  app.get("/api/projects", async () => store.list());
+
+  const withWorkspaceMeta = (proj: any, ws?: string) => {
+    if (!ws) return proj;
+    const ownerId = store.getOwner("project", proj.id);
+    return { ...proj, ownerId, isPublic: ownerId === "public" };
+  };
+  app.get("/api/projects", async (req) => store.list(requestWorkspace(req)));
   app.post(
     "/api/projects",
     {
@@ -213,20 +313,26 @@ export async function createApp(options: {
     },
     async (req, reply) => {
       const body = req.body as any;
-      return reply
-        .code(201)
-        .send(
-          store.create(
-            body.document ?? blankPlan(),
-            body.assetMap,
-            body.imageMap,
-          ),
-        );
+      const created = store.create(
+        body.document ?? blankPlan(),
+        body.assetMap,
+        body.imageMap,
+      );
+      const ws = requestWorkspace(req);
+      if (ws) store.setOwner("project", created.id, ws);
+      return reply.code(201).send(withWorkspaceMeta(store.get(created.id), ws));
     },
   );
   app.get("/api/projects/:id", async (req) =>
-    store.get((req.params as any).id),
+    withWorkspaceMeta(store.get((req.params as any).id), requestWorkspace(req)),
   );
+  app.post("/api/projects/:id/fork", async (req, reply) => {
+    const id = (req.params as any).id;
+    const ws = requestWorkspace(req);
+    const customName =
+      typeof (req.body as any)?.name === "string" ? (req.body as any).name : undefined;
+    return reply.code(201).send(withWorkspaceMeta(store.fork(id, ws, customName), ws));
+  });
   app.get("/api/projects/:id/export", async (req, reply) => {
     const project = store.get((req.params as any).id);
     return reply
@@ -441,7 +547,7 @@ export async function createApp(options: {
       );
     }
   });
-  app.get("/api/assets", async () => store.assets());
+  app.get("/api/assets", async (req) => store.assets(requestWorkspace(req)));
   app.post(
     "/api/assets",
     {
@@ -454,8 +560,12 @@ export async function createApp(options: {
       const file = await req.file();
       if (!file) throw new SceneError("MISSING_FILE", "需要 GLB 文件");
       const buffer = await file.toBuffer(),
-        record = inspectGlb(buffer, file.filename);
-      return reply.code(201).send(store.saveAsset(record, buffer));
+        record = inspectGlb(buffer, file.filename),
+        existed = store.hasAsset(record.id),
+        savedAsset = store.saveAsset(record, buffer),
+        ws = requestWorkspace(req);
+      if (ws && !existed) store.setOwner("asset", savedAsset.id, ws);
+      return reply.code(201).send(savedAsset);
     },
   );
   app.get("/api/assets/:id", async (req) =>
@@ -502,7 +612,27 @@ export async function createApp(options: {
   );
   registerAssetDemo(app);
   if (options.staticDir && fs.existsSync(options.staticDir))
-    await app.register(fastifyStatic, { root: options.staticDir });
+    await app.register(fastifyStatic, {
+      root: options.staticDir,
+      cacheControl: false,
+      setHeaders: (res, filePath) => {
+        const norm = filePath.replace(/\\/g, "/");
+        if (norm.endsWith(".html")) {
+          res.header("Cache-Control", "no-cache");
+        } else if (norm.includes("/assets/")) {
+          res.header("Cache-Control", "public, max-age=31536000, immutable");
+        } else if (
+          norm.includes("/hero-assets/") ||
+          norm.includes("/textures/") ||
+          /\.(glb|hdr|ktx2|jpg|jpeg|png|webp|woff2?)$/i.test(norm)
+        ) {
+          res.header(
+            "Cache-Control",
+            "public, max-age=86400, stale-while-revalidate=604800",
+          );
+        }
+      },
+    });
   app.addHook("preClose", async () => {
     for (const set of streams.values()) for (const stream of set) stream.end();
   });

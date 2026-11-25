@@ -71,20 +71,94 @@ export class ProjectStore {
       history: { undo: row.cursor, redo: timeline.length - row.cursor },
     };
   }
+  getOwner(kind: "project" | "asset", entityId: string): string {
+    const row = this.db
+      .prepare(
+        "SELECT workspace_id FROM workspace_owners WHERE kind=? AND entity_id=?",
+      )
+      .get(kind, entityId) as { workspace_id: string } | undefined;
+    return row?.workspace_id || "public";
+  }
+  setOwner(kind: "project" | "asset", entityId: string, workspaceId: string) {
+    this.db
+      .prepare(
+        "INSERT OR REPLACE INTO workspace_owners(kind,entity_id,workspace_id,created) VALUES(?,?,?,?)",
+      )
+      .run(kind, entityId, workspaceId, new Date().toISOString());
+  }
+  deleteOwner(kind: "project" | "asset", entityId: string) {
+    this.db
+      .prepare("DELETE FROM workspace_owners WHERE kind=? AND entity_id=?")
+      .run(kind, entityId);
+  }
+  hasProject(id: string): boolean {
+    return !!this.db.prepare("SELECT 1 FROM projects WHERE id=?").get(id);
+  }
+  hasAsset(id: string): boolean {
+    return !!this.db.prepare("SELECT 1 FROM assets WHERE id=?").get(id);
+  }
   get(id: string) {
     return this.document(this.row(id));
   }
-  list() {
-    return (
-      this.db
-        .prepare("SELECT * FROM projects ORDER BY updated DESC")
-        .all() as Row[]
-    ).map((r) => ({
-      id: r.id,
-      name: JSON.parse(r.state).plan.name,
-      revision: r.revision,
-      updatedAt: r.updated,
-    }));
+  list(workspaceId?: string) {
+    const rows = this.db
+      .prepare("SELECT id, revision, state, updated FROM projects ORDER BY updated DESC")
+      .all() as Pick<Row, "id" | "revision" | "state" | "updated">[];
+    const ownerMap = new Map<string, string>();
+    for (const o of this.db
+      .prepare(
+        "SELECT entity_id, workspace_id FROM workspace_owners WHERE kind='project'",
+      )
+      .all() as { entity_id: string; workspace_id: string }[]) {
+      ownerMap.set(o.entity_id, o.workspace_id);
+    }
+    const items = rows
+      .map((r) => {
+        const parsed = JSON.parse(r.state);
+        const ownerId = ownerMap.get(r.id) || "public";
+        const plan = parsed.plan || {};
+        return {
+          id: r.id,
+          name: plan.name,
+          revision: r.revision,
+          updatedAt: r.updated,
+          ownerId,
+          isPublic: ownerId === "public",
+          furnitureCount: Array.isArray(plan.furniture)
+            ? plan.furniture.length
+            : 0,
+          roomCount: Array.isArray(plan.rooms) ? plan.rooms.length : 0,
+        };
+      })
+      .filter(
+        (item) =>
+          !workspaceId ||
+          item.ownerId === workspaceId ||
+          item.ownerId === "public",
+      );
+    if (workspaceId) {
+      items.sort((a, b) => {
+        const aOwn = a.ownerId === workspaceId ? 0 : 1;
+        const bOwn = b.ownerId === workspaceId ? 0 : 1;
+        if (aOwn !== bOwn) return aOwn - bOwn;
+        return b.updatedAt.localeCompare(a.updatedAt);
+      });
+    }
+    return items;
+  }
+  fork(sourceId: string, workspaceId?: string, customName?: string) {
+    const source = this.get(sourceId);
+    const clonedPlan = JSON.parse(JSON.stringify(source.plan));
+    if (customName && customName.trim()) {
+      clonedPlan.name = customName.trim();
+    } else if (this.getOwner("project", sourceId) === "public" && workspaceId) {
+      clonedPlan.name = `${source.plan.name}（我的副本）`;
+    }
+    const created = this.create(clonedPlan);
+    if (workspaceId) {
+      this.setOwner("project", created.id, workspaceId);
+    }
+    return this.get(created.id);
   }
   asset(id: string): AssetRecord {
     const row = this.db
@@ -143,12 +217,25 @@ export class ProjectStore {
         409,
       );
   }
-  assets(): AssetRecord[] {
-    return (
-      this.db
-        .prepare("SELECT record FROM assets ORDER BY rowid DESC")
-        .all() as { record: string }[]
-    ).map((row) => JSON.parse(row.record));
+  assets(workspaceId?: string): AssetRecord[] {
+    const rows = this.db
+      .prepare("SELECT id, record FROM assets ORDER BY rowid DESC")
+      .all() as { id: string; record: string }[];
+    if (!workspaceId) return rows.map((row) => JSON.parse(row.record));
+    const ownerMap = new Map<string, string>();
+    for (const o of this.db
+      .prepare(
+        "SELECT entity_id, workspace_id FROM workspace_owners WHERE kind='asset'",
+      )
+      .all() as { entity_id: string; workspace_id: string }[]) {
+      ownerMap.set(o.entity_id, o.workspace_id);
+    }
+    return rows
+      .filter((row) => {
+        const owner = ownerMap.get(row.id) || "public";
+        return owner === workspaceId || owner === "public";
+      })
+      .map((row) => JSON.parse(row.record));
   }
   assetPath(id: string) {
     this.asset(id);

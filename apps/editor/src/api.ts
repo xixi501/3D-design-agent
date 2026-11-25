@@ -41,6 +41,45 @@ function rememberQueryToken() {
 }
 
 rememberQueryToken();
+const WORKSPACE_KEY = "actiscape-workspace-id";
+const WORKSPACE_RE = /^[a-zA-Z0-9_-]{4,64}$/;
+
+function randomWorkspaceId(): string {
+  try {
+    const bytes = new Uint8Array(8);
+    crypto.getRandomValues(bytes);
+    return (
+      "ws-" +
+      Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")
+    );
+  } catch {
+    return (
+      "ws-" +
+      Math.random().toString(16).slice(2, 10) +
+      Date.now().toString(16).slice(-6)
+    );
+  }
+}
+
+export function workspaceId(): string {
+  try {
+    const url = new URL(window.location.href);
+    const q = (url.searchParams.get("workspace") || "").trim();
+    if (q === "all" || q === "__admin__") return "";
+    if (q && WORKSPACE_RE.test(q)) {
+      localStorage.setItem(WORKSPACE_KEY, q);
+      return q;
+    }
+    const saved = (localStorage.getItem(WORKSPACE_KEY) || "").trim();
+    if (saved && WORKSPACE_RE.test(saved)) return saved;
+    const fresh = randomWorkspaceId();
+    localStorage.setItem(WORKSPACE_KEY, fresh);
+    return fresh;
+  } catch {
+    return "";
+  }
+}
+
 
 export class ApiError extends Error {
   constructor(
@@ -57,6 +96,7 @@ export async function api<T = any>(
   options: RequestInit = {},
 ): Promise<T> {
   const token = toolToken();
+  const ws = workspaceId();
   const response = await fetch(`/api${url}`, {
     ...options,
     headers: {
@@ -64,6 +104,7 @@ export async function api<T = any>(
         ? options.headers
         : { "content-type": "application/json", ...options.headers }),
       ...(token ? { "x-actiscape-token": token } : {}),
+      ...(ws ? { "x-actiscape-workspace": ws } : {}),
     },
   });
   const raw = await response.text();

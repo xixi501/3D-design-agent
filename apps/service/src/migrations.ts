@@ -30,6 +30,8 @@ export function migrate(db: Database.Database) {
     if (current < 7)
       db.exec(`CREATE TABLE IF NOT EXISTS edit_authorizations(project TEXT NOT NULL REFERENCES projects(id),task_id TEXT NOT NULL,version INTEGER NOT NULL,base_revision INTEGER NOT NULL,scope_hash TEXT NOT NULL,scope TEXT NOT NULL,request_hash TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(project,task_id,version));
       CREATE TABLE IF NOT EXISTS edit_authorization_heads(project TEXT NOT NULL REFERENCES projects(id),task_id TEXT NOT NULL,version INTEGER NOT NULL,PRIMARY KEY(project,task_id));`);
+    db.exec(`CREATE TABLE IF NOT EXISTS workspace_owners(kind TEXT NOT NULL,entity_id TEXT NOT NULL,workspace_id TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(kind,entity_id));
+      CREATE INDEX IF NOT EXISTS workspace_owners_ws ON workspace_owners(kind,workspace_id);`);
     db.pragma("user_version = 7");
   }).immediate();
 }

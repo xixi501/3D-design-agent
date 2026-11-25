@@ -1,5 +1,5 @@
 import "./style.css";
-import { api, post, toolToken, ApiError, type EditBase } from "./api.js";
+import { api, post, toolToken, ApiError, type EditBase, workspaceId } from "./api.js";
 import {
   catalogGroups,
   catalog,
@@ -1268,7 +1268,11 @@ async function open(next: Project) {
   const url = new URL(location.href);
   url.searchParams.set("project", next.id);
   window.history.replaceState(null, "", url);
-  events = new EventSource(`/api/projects/${next.id}/events${toolToken() ? `?token=${encodeURIComponent(toolToken())}` : ""}`);
+  const sseParams = new URLSearchParams();
+  if (toolToken()) sseParams.set("token", toolToken());
+  if (workspaceId()) sseParams.set("workspace", workspaceId());
+  const sseQs = sseParams.toString();
+  events = new EventSource(`/api/projects/${next.id}/events${sseQs ? `?${sseQs}` : ""}`);
   events.addEventListener("revision", (e) => {
     const rev = JSON.parse((e as MessageEvent).data).revision;
     pendingRevision = Math.max(pendingRevision, rev);
@@ -1279,7 +1283,15 @@ async function open(next: Project) {
     saved("已连接 · 自动保存");
     if (!busy) void refresh().catch(fail);
   };
-  message("项目已打开。选择家具开始编辑。");
+  const isPublicReadonly = Boolean((next as any).isPublic && workspaceId());
+  if (isPublicReadonly) {
+    saved("公共演示（只读）");
+    renderPublicReadonlyBar(next);
+    message("当前为公共只读演示，点击上方「创建我的可编辑副本」即可自由编辑。");
+  } else {
+    document.querySelector("#public-readonly-bar")?.remove();
+    message("项目已打开。选择家具开始编辑。");
+  }
 }
 function fail(error: unknown) {
   const e = error as Error;
@@ -1745,31 +1757,127 @@ async function examples(name: string) {
     await importDoc(doc, { "fixture-vase": asset.id });
   } else await importDoc(doc);
 }
+function renderPublicReadonlyBar(p: Project) {
+  document.querySelector("#public-readonly-bar")?.remove();
+  const bar = document.createElement("div");
+  bar.id = "public-readonly-bar";
+  bar.className = "public-readonly-bar";
+  bar.innerHTML = `<span>🔒 当前正在浏览公共演示空间（只读保护，不影响原样板）</span><button type="button" id="fork-public-btn" class="primary">✨ 创建我的可编辑副本</button>`;
+  const stage = document.querySelector(".stage") || document.body;
+  stage.prepend(bar);
+  bar.querySelector<HTMLButtonElement>("#fork-public-btn")!.onclick = async () => {
+    try {
+      saved("正在创建个人副本…");
+      const forked = await post<Project>(`/projects/${p.id}/fork`, {});
+      await open(forked);
+      message(`已为你创建专属可编辑副本「${displayProjectName(forked.plan.name)}」，仅当前浏览器可见。`);
+    } catch (e) {
+      fail(e);
+    }
+  };
+}
+
 async function openProjectGallery(welcome = false) {
   try {
     if (!project) {
       $<HTMLInputElement>("#project-name").value = "";
       $("#save-state").textContent = "请选择或新建空间";
     }
-    const projects = (await api<any[]>("/projects")).filter(
-      (p) =>
-        !(p.name || "").startsWith("Evaluation only:") &&
-        (p.revision > 0 || p.id === project?.id),
+    const ws = workspaceId();
+    const allProjects = (await api<any[]>("/projects")).filter(
+      (p) => !(p.name || "").startsWith("Evaluation only:"),
     );
+    const mine = allProjects.filter(
+      (p) =>
+        !p.isPublic &&
+        (p.revision > 0 || p.furnitureCount > 0 || p.roomCount > 0 || p.id === project?.id),
+    );
+    const pubByName = new Map<string, any>();
+    for (const p of allProjects) {
+      if (!p.isPublic) continue;
+      if (!(p.furnitureCount > 0 || p.roomCount > 0)) continue;
+      const name = String(p.name || "").trim();
+      if (!name || name === "新户型") continue;
+      if (
+        /^(Evaluation only:|E2E-|M3-验收|方向二-MCP|AgentArts|资产验收|图5[A-Z]|中期图-|S2-开启净空冲突)/.test(
+          name,
+        ) ||
+        /验证|局部编辑实证|（我的副本）|（编辑前）|（编辑后）/.test(name)
+      ) {
+        continue;
+      }
+      const prev = pubByName.get(name);
+      if (
+        !prev ||
+        (p.furnitureCount || 0) > (prev.furnitureCount || 0) ||
+        ((p.furnitureCount || 0) === (prev.furnitureCount || 0) &&
+          (p.revision || 0) > (prev.revision || 0))
+      ) {
+        pubByName.set(name, p);
+      }
+    }
+    const pubScore = (x: any) => {
+      const n = String(x.name || "");
+      if (n.includes("基础理化与生物教学实验室（混合资产实证）")) return 120;
+      if (n.includes("基础理化与生物教学实验室")) return 115;
+      if (n.includes("跨学科多媒体研讨")) return 110;
+      if (n.includes("教学实验室") || n.includes("研讨室")) return 100;
+      if (n.startsWith("演境")) return 80;
+      if (n.startsWith("AI全屋") || n.startsWith("AI户型图")) return 70;
+      if (n.startsWith("AI") || n.startsWith("文字生成")) return 60;
+      return 40;
+    };
+    const pub = Array.from(pubByName.values()).sort((a, b) => {
+      const ds = pubScore(b) - pubScore(a);
+      if (ds !== 0) return ds;
+      return (b.furnitureCount || 0) - (a.furnitureCount || 0);
+    });
+    const wsNotice = ws
+      ? `<p class="workspace-pill">🔒 独立访客空间（<code>${esc(ws.slice(0, 11))}</code>）：你新建的场景与上传的 3D 资产仅当前浏览器可见，他人无法查看或修改。</p>`
+      : `<p class="workspace-pill">🛠️ 管理员全视图模式（workspace=all）：显示所有工作空间项目。</p>`;
     const intro = welcome
-      ? `<div class="dialog-kicker">WELCOME TO ACTISCAPE</div><h2>从一个空间开始</h2><p class="muted">选择一个已有项目，或从精修样例开始。你也可以先新建一个空白空间。</p>`
-      : `<div class="dialog-kicker">YOUR SPACES</div><h2>打开项目</h2><p class="muted">继续一个空间，或从精修样例开始。</p>`;
+      ? `<div class="dialog-kicker">WELCOME TO ACTISCAPE</div><h2>从一个空间开始</h2>${wsNotice}`
+      : `<div class="dialog-kicker">YOUR SPACES</div><h2>打开项目</h2>${wsNotice}`;
+
+    const renderCard = (p: any, i: number, isPublicCard: boolean) =>
+      `<button data-project="${esc(p.id)}" data-public="${isPublicCard ? "1" : "0"}" class="project-card">
+        <span class="project-cover cover-${i % 4}"><span>${esc(displayProjectName(p.name).slice(0, 2))}</span><i></i></span>
+        <strong>${esc(displayProjectName(p.name))}</strong>
+        <small>${isPublicCard ? "公共演示 · 点开自动创建副本" : `我的空间 · 版本 ${p.revision}`} · ${new Date(p.updatedAt).toLocaleDateString("zh-CN")}</small>
+      </button>`;
+
+    const mineHtml = mine.length
+      ? `<h3 class="gallery-heading">我的私有空间（${mine.length}）</h3><div class="project-gallery">${mine.map((p, i) => renderCard(p, i, false)).join("")}</div>`
+      : `<h3 class="gallery-heading">我的私有空间</h3><p class="muted">当前还没有私有项目，可新建空白空间或点选下方公共演示自动创建个人副本。</p>`;
+
+    const pubHtml = pub.length
+      ? `<h3 class="gallery-heading">公共演示空间（${pub.length} · 只读保护，点开生成你的可编辑副本）</h3><div class="project-gallery">${pub.map((p, i) => renderCard(p, i + 2, true)).join("")}</div>`
+      : "";
+
     $("#dialog-body").innerHTML =
-      `${intro}<div class="project-gallery">${projects.map((p: any, i: number) => `<button data-project="${esc(p.id)}" class="project-card"><span class="project-cover cover-${i % 4}"><span>${esc(displayProjectName(p.name).slice(0, 2))}</span><i></i></span><strong>${esc(displayProjectName(p.name))}</strong><small>版本 ${p.revision} · ${new Date(p.updatedAt).toLocaleDateString("zh-CN")}</small></button>`).join("")}</div><h3 class="gallery-heading">精修样例</h3><div class="actions"><button data-example="living-dining">客餐厅</button><button data-example="full-home-showcase">全屋样板间</button><button data-example="modeling-gallery">家具展台</button><button data-example="glb-display">GLB 展台</button></div><div class="actions"><button id="gallery-new-project" class="primary">新建空白空间</button></div>`;
+      `${intro}${mineHtml}${pubHtml}<h3 class="gallery-heading">精修样例</h3><div class="actions"><button data-example="living-dining">客餐厅</button><button data-example="full-home-showcase">全屋样板间</button><button data-example="modeling-gallery">家具展台</button><button data-example="glb-display">GLB 展台</button></div><div class="actions"><button id="gallery-new-project" class="primary">新建空白空间</button></div>`;
+
     $("#dialog-body")
       .querySelectorAll<HTMLButtonElement>("[data-project]")
       .forEach(
         (b) =>
           (b.onclick = async () => {
             try {
-              await open(await api(`/projects/${b.dataset.project}`));
-              $<HTMLDialogElement>("#dialog").close();
+              const pid = b.dataset.project!;
+              const isPub = b.dataset.public === "1";
+              if (isPub && workspaceId()) {
+                b.disabled = true;
+                saved("正在为你创建个人副本…");
+                const forked = await post<Project>(`/projects/${pid}/fork`, {});
+                await open(forked);
+                $<HTMLDialogElement>("#dialog").close();
+                message(`已基于公共演示创建你的专属副本「${displayProjectName(forked.plan.name)}」，可自由编辑！`);
+              } else {
+                await open(await api(`/projects/${pid}`));
+                $<HTMLDialogElement>("#dialog").close();
+              }
             } catch (e) {
+              b.disabled = false;
               fail(e);
             }
           }),
@@ -2251,7 +2359,7 @@ try {
     try {
       await open(await api(`/projects/${id}`));
     } catch (e) {
-      if (e instanceof ApiError && e.status === 404 && !requestedProject) {
+      if (e instanceof ApiError && (e.status === 404 || e.status === 403) && !requestedProject) {
         localStorage.removeItem("actiscape-project");
         await openProjectGallery(true);
       } else throw e;

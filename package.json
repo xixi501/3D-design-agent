@@ -69,7 +69,9 @@
     "test:phase1:browser": "node scripts/phase1-browser-acceptance.mjs",
     "test:realism": "node --env-file-if-exists=.env --import tsx scripts/realism-compat-acceptance.mjs",
     "test:realism:perf": "node --env-file-if-exists=.env scripts/realism-benchmark.mjs",
-    "prepare:hero": "node scripts/optimize-hero-assets.mjs && node scripts/compress-hero-assets.mjs"
+    "prepare:hero": "node scripts/optimize-hero-assets.mjs && node scripts/compress-hero-assets.mjs",
+    "test:fluidity": "node --env-file-if-exists=.env scripts/fluidity-acceptance.mjs",
+    "optimize:textures": "node scripts/optimize-realism-textures.mjs"
   },
   "dependencies": {
     "@fastify/multipart": "10.1.7",

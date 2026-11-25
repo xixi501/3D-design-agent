@@ -23,7 +23,10 @@ try {
   await page.goto(`${base}/?project=${project}&debug&realism`, { waitUntil: "load" });
   await page.waitForFunction(() => window.__actiscape?.project && !__actiscape.busy && document.querySelector("#save-state")?.textContent?.startsWith("已保存"), { timeout: 60000 });
   await page.click(`[data-view="3d"]`);
-  await page.evaluate(() => __actiscape.three.frame());
+  if (process.env.FOCUS_FURNITURE_TYPE) {
+    const id = await page.evaluate((type) => __actiscape.project.plan.furniture.find((item) => item.type === type)?.id, process.env.FOCUS_FURNITURE_TYPE);
+    if (id) await page.evaluate((id) => __actiscape.three.focusFurniture(id), id);
+  } else await page.evaluate(() => __actiscape.three.frame());
   await new Promise((resolve) => setTimeout(resolve, 1500));
   await (await page.$("#three-view")).screenshot({ path: path.join(out, "orbit.png") });
   await page.click("#walk");

@@ -10,18 +10,18 @@ import { SMAAPass } from "three/addons/postprocessing/SMAAPass.js";
 import { SSRPass } from "three/addons/postprocessing/SSRPass.js";
 
 export class RealismPipeline {
-  private composer: EffectComposer;
+  private composer?: EffectComposer;
   private environmentTarget: THREE.WebGLRenderTarget;
-  private ssr: SSRPass;
+  private ssr?: SSRPass;
   private bounce?: THREE.RectAreaLight;
-  private scene: THREE.Scene;
 
   constructor(
-    renderer: THREE.WebGLRenderer,
-    scene: THREE.Scene,
-    camera: THREE.Camera,
+    private renderer: THREE.WebGLRenderer,
+    private scene: THREE.Scene,
+    private camera: THREE.Camera,
+    highQuality = false,
+    onChange: () => void = () => {},
   ) {
-    this.scene = scene;
     RectAreaLightUniformsLib.init();
     const pmrem = new THREE.PMREMGenerator(renderer);
     const room = new RoomEnvironment(renderer);
@@ -30,37 +30,41 @@ export class RealismPipeline {
     room.dispose();
     pmrem.dispose();
 
-    this.composer = new EffectComposer(renderer);
-    this.composer.addPass(new RenderPass(scene, camera));
-    this.ssr = new SSRPass({
-      renderer,
-      scene,
-      camera,
-      width: 1,
-      height: 1,
-      selects: [],
-      groundReflector: null,
-    });
-    this.ssr.opacity = 0.12;
-    this.ssr.maxDistance = 1.5;
-    this.ssr.thickness = 0.04;
-    this.ssr.fresnel = true;
-    this.ssr.distanceAttenuation = true;
-    this.composer.addPass(this.ssr);
-    const ao = new GTAOPass(scene, camera, 1, 1);
-    ao.updateGtaoMaterial({
-      radius: 0.3,
-      distanceExponent: 1.5,
-      thickness: 0.6,
-      distanceFallOff: 1,
-      scale: 1,
-      samples: 16,
-    });
-    ao.updatePdMaterial({ radius: 5, rings: 2, samples: 16 });
-    ao.blendIntensity = 0.75;
-    this.composer.addPass(ao);
-    this.composer.addPass(new OutputPass());
-    this.composer.addPass(new SMAAPass(1, 1));
+    if (highQuality) {
+      this.composer = new EffectComposer(renderer);
+      this.composer.addPass(new RenderPass(scene, camera));
+      this.ssr = new SSRPass({
+        renderer,
+        scene,
+        camera,
+        width: 1,
+        height: 1,
+        selects: [],
+        groundReflector: null,
+      });
+      this.ssr.opacity = 0.12;
+      this.ssr.maxDistance = 1.5;
+      this.ssr.thickness = 0.04;
+      this.ssr.fresnel = true;
+      this.ssr.distanceAttenuation = true;
+      this.ssr.enabled = false;
+      this.composer.addPass(this.ssr);
+      const ao = new GTAOPass(scene, camera, 1, 1);
+      ao.updateGtaoMaterial({
+        radius: 0.3,
+        distanceExponent: 1.5,
+        thickness: 0.6,
+        distanceFallOff: 1,
+        scale: 1,
+        samples: 8,
+      });
+      ao.updatePdMaterial({ radius: 5, rings: 2, samples: 8 });
+      ao.blendIntensity = 0.75;
+      this.composer.addPass(ao);
+      this.composer.addPass(new OutputPass());
+      this.composer.addPass(new SMAAPass(1, 1));
+    }
+
     new RGBELoader().load(
       "/textures/kloofendal_48d_partly_cloudy_puresky_1k.hdr",
       (texture) => {
@@ -69,16 +73,18 @@ export class RealismPipeline {
         const generator = new THREE.PMREMGenerator(renderer);
         this.environmentTarget = generator.fromEquirectangular(texture);
         scene.environment = this.environmentTarget.texture;
-        scene.background = texture;
+        scene.background = new THREE.Color("#d9d5ce");
         scene.userData.realismBackground = texture;
         scene.backgroundIntensity = 0.8;
         scene.backgroundBlurriness = 0.03;
         texture.dispose();
         generator.dispose();
+        onChange();
       },
       undefined,
       () => {
         scene.background = new THREE.Color("#d9d5ce");
+        onChange();
       },
     );
   }
@@ -110,27 +116,31 @@ export class RealismPipeline {
       for (const material of materials) {
         if (!(material instanceof THREE.MeshStandardMaterial)) continue;
         if (object.userData.isOverlay || material.transparent) continue;
-        material.envMapIntensity = material.transparent ? 0.8 : 0.55;
+        material.envMapIntensity = 0.55;
         const physical = material as THREE.MeshPhysicalMaterial;
         if (physical.transmission > 0.01 || material.metalness >= 0.45) {
           reflective.push(object);
         }
       }
     });
-    this.ssr.selects = reflective;
+    if (this.ssr) {
+      this.ssr.selects = reflective;
+      this.ssr.enabled = reflective.length > 0;
+    }
   }
 
   setSize(width: number, height: number) {
-    this.composer.setSize(width, height);
+    this.composer?.setSize(width, height);
   }
 
   render() {
-    this.composer.render();
+    if (this.composer) this.composer.render();
+    else this.renderer.render(this.scene, this.camera);
   }
 
   dispose() {
     this.environmentTarget.dispose();
-    this.composer.dispose();
+    this.composer?.dispose();
     this.bounce?.dispose();
   }
 }

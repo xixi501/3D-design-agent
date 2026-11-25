@@ -86,7 +86,9 @@ export async function ensureHeroAssets(keys: string[]) {
   const entries = (await loadManifest()).filter((entry) =>
     entry.catalogKeys.some((key) => keys.includes(key)),
   );
+  const missing = entries.filter((entry) => !prototypes.has(entry.id));
   await Promise.all(entries.map(loadHero));
+  return missing.length > 0;
 }
 
 function protectedFurniture(furniture: Furniture) {

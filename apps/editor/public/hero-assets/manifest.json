@@ -155,15 +155,7 @@
       "license": "CC0",
       "file": "/hero-assets/bed-01.glb",
       "bytes": 650620,
-      "catalogKeys": [
-        "bed",
-        "bed12",
-        "bed15",
-        "bed18",
-        "bed20",
-        "kingBed",
-        "kidsBed"
-      ],
+      "catalogKeys": [],
       "faces": 14558,
       "excludeStyles": [
         "chinese",
@@ -177,6 +169,13 @@
       "file": "/hero-assets/bed-02.glb",
       "bytes": 670952,
       "catalogKeys": [
+        "bed",
+        "bed12",
+        "bed15",
+        "bed18",
+        "bed20",
+        "kingBed",
+        "kidsBed",
         "dayBed"
       ],
       "faces": 2715

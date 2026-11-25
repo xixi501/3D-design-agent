@@ -84,6 +84,7 @@ export class ThreeView {
   private transientTextures: THREE.Texture[] = [];
   private realism?: RealismPipeline;
   private softwareRendering = false;
+  private dirty = true;
   private walkCeiling = new THREE.Group();
   photoTracer?: WebGLPathTracer;
   private photoReady = false;
@@ -129,9 +130,11 @@ export class ThreeView {
     const useRealism = options.realism && (!software || forceRealism);
     this.softwareRendering = software && !useRealism;
     this.renderer.setPixelRatio(
-      software ? 1 : Math.min(devicePixelRatio, useRealism ? 1.5 : 2),
+      software ? 1 : Math.min(devicePixelRatio, useRealism ? 1.25 : 2),
     );
     this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.autoUpdate = false;
+    this.renderer.shadowMap.needsUpdate = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -155,8 +158,8 @@ export class ThreeView {
     sun.position.set(8, 14, 10);
     sun.castShadow = true;
     sun.shadow.mapSize.set(
-      software ? 1024 : useRealism ? 4096 : 2048,
-      software ? 1024 : useRealism ? 4096 : 2048,
+      software ? 1024 : 2048,
+      software ? 1024 : 2048,
     );
     Object.assign(sun.shadow.camera, {
       left: -20,
@@ -179,8 +182,15 @@ export class ThreeView {
     this.controls.target.set(4.5, 0, 3);
     this.controls.enableDamping = true;
     this.controls.maxPolarAngle = Math.PI * 0.49;
+    this.controls.addEventListener("change", () => (this.dirty = true));
     if (useRealism) {
-      this.realism = new RealismPipeline(this.renderer, this.scene, this.camera);
+      this.realism = new RealismPipeline(
+        this.renderer,
+        this.scene,
+        this.camera,
+        params.get("realism") === "ultra",
+        () => this.invalidate(),
+      );
     }
     if (params.has("pathtrace")) {
       const compatibleScene = THREE.Scene.prototype as any;
@@ -399,24 +409,31 @@ export class ThreeView {
       const dt = Math.min(this.clock.getDelta(), 0.05);
       if (this.walking) {
         this.walk(dt);
+        this.dirty = true;
         this.interactionTimer += dt;
         if (this.interactionTimer >= 0.16) {
           this.interactionTimer = 0;
           this.checkWalkInteraction();
         }
       } else this.controls.update();
-      if (this.host.clientWidth) {
-        const stylized = ["diorama", "colorplan"].includes(this.plan?.look?.style);
-        if (!stylized && this.photoTracer && this.photoReady) {
-          if (!this.photoMatrix.equals(this.camera.matrixWorld)) {
-            this.photoMatrix.copy(this.camera.matrixWorld);
-            this.photoTracer.updateCamera();
-          }
-          this.photoTracer.renderSample();
-        } else if (!stylized && this.realism) this.realism.render();
-        else this.renderer.render(this.scene, this.camera);
+      if (!this.host.clientWidth) return;
+      const stylized = ["diorama", "colorplan"].includes(this.plan?.look?.style);
+      if (!stylized && this.photoTracer && this.photoReady) {
+        if (!this.photoMatrix.equals(this.camera.matrixWorld)) {
+          this.photoMatrix.copy(this.camera.matrixWorld);
+          this.photoTracer.updateCamera();
+        }
+        this.photoTracer.renderSample();
+        return;
       }
+      if (!this.dirty) return;
+      this.dirty = false;
+      if (!stylized && this.realism) this.realism.render();
+      else this.renderer.render(this.scene, this.camera);
     });
+  }
+  invalidate() {
+    this.dirty = true;
   }
   resize() {
     const w = this.host.clientWidth,
@@ -426,6 +443,7 @@ export class ThreeView {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
     this.realism?.setSize(w, h);
+    this.dirty = true;
   }
   box(
     w: number,
@@ -535,13 +553,14 @@ export class ThreeView {
   }
   async rebuild(plan: Plan, base: EditBase) {
     const generation = ++this.generation;
-    await Promise.all([
-      ensureAssets([
-        ...new Set(
-          plan.furniture.filter((f) => f.modelId).map((f) => f.modelId!),
-        ),
-      ]),
-      ensureHeroAssets(plan.furniture.map((f) => f.key)),
+    const heroTask = ensureHeroAssets(plan.furniture.map((f) => f.key)).catch((error) => {
+      this.report(`英雄资产后台加载失败：${(error as Error).message}`);
+      return false;
+    });
+    await ensureAssets([
+      ...new Set(
+        plan.furniture.filter((f) => f.modelId).map((f) => f.modelId!),
+      ),
     ]);
     if (generation !== this.generation) return;
     this.plan = plan;
@@ -1097,7 +1116,14 @@ export class ThreeView {
         this.report("路径追踪初始化失败，已回退实时渲染");
       }
     }
+    this.renderer.shadowMap.needsUpdate = true;
+    this.dirty = true;
     this.resize();
+    void heroTask.then((loaded) => {
+      if (loaded && generation === this.generation && this.plan && this.base) {
+        void this.rebuild(this.plan, this.base);
+      }
+    });
   }
 
   private drawActionEnvelopes(plan: Plan) {
@@ -1410,6 +1436,7 @@ export class ThreeView {
       .add(new THREE.Vector3(r * 0.9, r * 0.95, r * 0.9));
     this.controls.target.copy(center);
     this.controls.update();
+    this.dirty = true;
   }
   highlight(id?: string) {
     this.clearSelection();
@@ -1419,6 +1446,7 @@ export class ThreeView {
       this.scene.add(this.selected);
     }
     if (this.plan) this.drawActionEnvelopes(this.plan);
+    this.dirty = true;
   }
   clearSelection() {
     this.highlightedId = undefined;
@@ -1428,6 +1456,7 @@ export class ThreeView {
       (this.selected.material as THREE.Material).dispose();
       this.selected = undefined;
     }
+    this.dirty = true;
   }
   rayAt(e: { clientX: number; clientY: number }) {
     const r = this.renderer.domElement.getBoundingClientRect(),
@@ -1493,11 +1522,15 @@ export class ThreeView {
       g.position.z = f.y / 1000;
       g.rotation.y = (-f.rot * Math.PI) / 180;
       this.selected?.update();
+      this.renderer.shadowMap.needsUpdate = true;
+      this.dirty = true;
     }
   }
   setWalking(on: boolean) {
     if (on === this.walking) return;
     this.walking = on;
+    this.dirty = true;
+    this.renderer.shadowMap.needsUpdate = true;
     this.controls.enabled = !on;
     this.keys.clear();
     this.interactionLayer.visible = on;
